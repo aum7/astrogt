@@ -4,20 +4,9 @@
   border-color: white;
 }
 
-/* side-pane-closed { */
-/*   padding: 0px; */
-/*   margin: 0px; */
-/* } */
-
-/* side-pane-open { */
-/*   padding: 10px; */
-/*   margin: 0px; */
-/* } */
-
 label {
-  font-size: 24px;
+  font-size: 20px;
   font-family: "Ubuntu Thin";
-  /* font-family: "Ubuntu Light"; */
 }
 
 .label-tl {

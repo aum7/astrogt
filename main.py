@@ -48,24 +48,31 @@ class MainWindow(Gtk.ApplicationWindow):
         self.frm_side_pane.add_css_class("frame")
         # test label for revealer
         self.lbl_side_pane = Gtk.Label(label="side pane")
-        self.lbl_side_pane.set_vexpand(True)
-        self.lbl_side_pane.set_valign(Gtk.Align.CENTER)
-        self.lbl_side_pane.set_hexpand(True)
-        self.lbl_side_pane.set_halign(Gtk.Align.CENTER)
+        self.lbl_side_pane.set_halign(Gtk.Align.START)
+        # self.lbl_side_pane.set_hexpand(True)
+        self.lbl_side_pane.set_valign(Gtk.Align.START)
+        # self.lbl_side_pane.set_valign(Gtk.Align.CENTER)
+        # self.lbl_side_pane.set_vexpand(True)
         # attach to revealer
         self.frm_side_pane.set_child(self.lbl_side_pane)
         self.rvl_side_pane.set_child(self.frm_side_pane)
         # test button for revealer
-        self.btn_toggle_pane = Gtk.Button(label="<=pane=>")
+        self.btn_toggle_pane = Gtk.Button(label="=")
+        self.btn_toggle_pane.set_halign(Gtk.Align.START)
+        self.btn_toggle_pane.set_valign(Gtk.Align.START)
         self.btn_toggle_pane.connect("clicked", self.on_toggle_pane)
-        # test labels for paned
-        # label top left
+        #  for paned
+        # top left
+        self.overlay = Gtk.Overlay()
         self.lbl_pane_tl = Gtk.Label(label="top left")
         # self.lbl_pane_tl.set_hexpand(True)
         # self.lbl_pane_tl.set_vexpand(True)
         self.lbl_pane_tl.set_halign(Gtk.Align.CENTER)
         self.lbl_pane_tl.set_valign(Gtk.Align.CENTER)
         self.lbl_pane_tl.add_css_class("label-tl")
+        # add label to overlay
+        self.overlay.set_child(self.lbl_pane_tl)
+        self.overlay.add_overlay(self.btn_toggle_pane)
         # label top right
         self.lbl_pane_tr = Gtk.Label(label="top right")
         self.lbl_pane_tr.set_hexpand(True)
@@ -96,7 +103,8 @@ class MainWindow(Gtk.ApplicationWindow):
         # frames for h paned
         self.frm_top_start_child = Gtk.Frame()
         self.frm_top_start_child.add_css_class("frame")
-        self.frm_top_start_child.set_child(self.btn_toggle_pane)
+        self.frm_top_start_child.set_child(self.overlay)
+        # self.frm_top_start_child.set_child(self.btn_toggle_pane)
         # self.frm_top_start_child.set_child(self.lbl_pane_tl)
         self.frm_top_end_child = Gtk.Frame()
         self.frm_top_end_child.add_css_class("frame")
