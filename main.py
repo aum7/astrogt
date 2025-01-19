@@ -38,6 +38,12 @@ class MainWindow(Gtk.ApplicationWindow):
         self.set_title("astrogt")
         self.set_default_size(600, 500)
 
+        click_controller = Gtk.GestureClick()
+        # click_controller = Gtk.GestureClick.new()
+        click_controller.set_button(0)  # 0 = all ; 1-3
+        click_controller.connect("pressed", self.on_context_menu)
+        self.add_controller(click_controller)
+
         self.grid = Gtk.Grid()
         self.set_child(self.grid)
         # icons : pane
@@ -46,11 +52,11 @@ class MainWindow(Gtk.ApplicationWindow):
             f for f in os.listdir(self.icons_folder) if f.endswith(".svg")
         ]
         print(f"{self.icons_list}")
-        icon_size = Gtk.IconSize.LARGE
+        self.icon_size = Gtk.IconSize.LARGE
         icon_hmargin = 5
         icon_vmargin = 5
         ico_menu = Gtk.Image.new_from_file("imgs/icons/menu.svg")
-        ico_menu.set_icon_size(icon_size)
+        ico_menu.set_icon_size(self.icon_size)
         ico_menu.set_margin_start(icon_hmargin)
         ico_menu.set_margin_end(icon_hmargin)
         ico_menu.set_margin_top(icon_vmargin)
@@ -151,6 +157,16 @@ class MainWindow(Gtk.ApplicationWindow):
         self.grid.attach(self.rvl_side_pane, 0, 0, 1, 1)
         self.grid.attach(self.ovl_menu, 1, 0, 1, 1)
 
+    def on_context_menu(self, gesture, n_press, x, y):
+        # print(f"pressed : {gesture}\n\tnpress : {n_press}\n\tx & y : {x}-{y}")
+        # which button
+        if gesture.get_current_button() == 3:  # left button
+            print("click 3")
+        # elif gesture.get_current_button() == 1:  # right button
+        #     print("click 1")
+        # else:
+        #     print("click 2")  # middle button
+
     def on_toggle_pane(self, button):
         revealed = self.rvl_side_pane.get_child_revealed()
         if revealed:
@@ -168,20 +184,16 @@ class MainWindow(Gtk.ApplicationWindow):
     def setup_side_pane(self):
         box_side_pane = Gtk.Box(
             orientation=Gtk.Orientation.VERTICAL,
-            spacing=10,
         )
-        # buttons = [
-        #     ("event_one", self.obc_event_one),
-        #     ("settings", self.obc_settings),
-        # ]
-        # create buttons
+        # icon_size = Gtk.IconSize.LARGE
         # for icon_name, callback in buttons:
         for icon_file in self.icons_list:
             # create base name for icon, used for callbacks
             icon_base_name = icon_file.replace(".svg", "")
             button = Gtk.Button()
+            button.add_css_class("button-pane")
             icon = self.create_pane_icon(icon_file)
-            # icon = self.create_pane_icon(icon_file)
+            icon.set_icon_size(self.icon_size)
             button.set_child(icon)
             # create callbacks
             callback_name = f"obc_{icon_base_name}"
@@ -192,6 +204,7 @@ class MainWindow(Gtk.ApplicationWindow):
             else:
                 button.connect("clicked", self.obc_default, icon_base_name)
             box_side_pane.append(button)
+
         return box_side_pane
 
     def create_pane_icon(self, icon_name):

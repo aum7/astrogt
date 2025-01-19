@@ -18,3 +18,10 @@ label {
 .label-br {
   background-color: darkslategray;
 }
+
+.button-pane {
+  background-color: transparent;
+  border-color: transparent;
+  background-size: 70px;
+  margin-top: 5px;
+}
