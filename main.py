@@ -1,20 +1,25 @@
-# noqa: E405
+# noqa: E402
 # started : mon 250113-2022 utc
+# import swisseph as swe
+# from swisseph import contrib as swh
 import os
 import sys
 import gi
-import swisseph as swe
-from swisseph import contrib as swh
 
-gi.require_version("Gtk", "4.0")
 # gi.require_version("Adw", "1")
-from gi.repository import Gtk, Gdk, GdkPixbuf  # type: ignore
+gi.require_version("Gtk", "4.0")
+from gi.repository import Gtk, Gdk  # type: ignore
+
 
 css_provider = Gtk.CssProvider()
 css_provider.load_from_path("css/style.css")
-Gtk.StyleContext.add_provider_for_display(
-    Gdk.Display.get_default(), css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
-)
+display = Gdk.Display.get_default()
+if display is not None:
+    Gtk.StyleContext.add_provider_for_display(
+        display,
+        css_provider,
+        Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION,
+    )
 
 
 class AstrogtApp(Gtk.Application):
@@ -52,7 +57,9 @@ class MainWindow(Gtk.ApplicationWindow):
         ico_menu.set_margin_bottom(icon_vmargin)
         # revealer from left
         self.rvl_side_pane = Gtk.Revealer()
-        self.rvl_side_pane.set_transition_type(Gtk.RevealerTransitionType.SLIDE_RIGHT)
+        self.rvl_side_pane.set_transition_type(
+            Gtk.RevealerTransitionType.SLIDE_RIGHT,
+        )
         self.rvl_side_pane.set_transition_duration(3000)
         self.rvl_side_pane.set_reveal_child(True)
         # add frame
@@ -70,7 +77,7 @@ class MainWindow(Gtk.ApplicationWindow):
         self.btn_toggle_pane.set_halign(Gtk.Align.START)
         self.btn_toggle_pane.set_valign(Gtk.Align.START)
         self.btn_toggle_pane.connect("clicked", self.on_toggle_pane)
-        #  for paned
+        # for paned
         # top left
         self.lbl_pane_tl = Gtk.Label(label="top left")
         self.lbl_pane_tl.set_halign(Gtk.Align.FILL)
@@ -95,10 +102,13 @@ class MainWindow(Gtk.ApplicationWindow):
         self.pnd_main_v = Gtk.Paned(orientation=Gtk.Orientation.VERTICAL)
         self.pnd_main_v.set_hexpand(True)
         self.pnd_main_v.set_vexpand(True)
+        # menu toggle button - over all paned
+        self.ovl_menu = Gtk.Overlay()
+        self.ovl_menu.set_child(self.pnd_main_v)
+        self.ovl_menu.add_overlay(self.btn_toggle_pane)
         # overlay will un-clip frame's child
         self.ovl_tl = Gtk.Overlay()
         self.ovl_tl.set_child(self.lbl_pane_tl)
-        self.ovl_tl.add_overlay(self.btn_toggle_pane)
         self.ovl_tr = Gtk.Overlay()
         self.ovl_tr.set_child(self.lbl_pane_tr)
         self.ovl_bl = Gtk.Overlay()
@@ -139,7 +149,9 @@ class MainWindow(Gtk.ApplicationWindow):
         # self.pnd_main_v.set_shrink_end_child(False)
 
         self.grid.attach(self.rvl_side_pane, 0, 0, 1, 1)
-        self.grid.attach(self.pnd_main_v, 1, 0, 1, 1)
+        self.grid.attach(self.ovl_menu, 1, 0, 1, 1)
+
+        # self.grid.attach(self.pnd_main_v, 1, 0, 1, 1)
 
     def on_toggle_pane(self, button):
         revealed = self.rvl_side_pane.get_child_revealed()
@@ -156,7 +168,10 @@ class MainWindow(Gtk.ApplicationWindow):
 
     # vertical box for icons
     def setup_side_pane(self):
-        box_side_pane = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        box_side_pane = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL,
+            spacing=10,
+        )
         # buttons = [
         #     ("event_one", self.obc_event_one),
         #     ("settings", self.obc_settings),
