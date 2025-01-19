@@ -40,12 +40,12 @@ class MainWindow(Gtk.ApplicationWindow):
 
         self.grid = Gtk.Grid()
         self.set_child(self.grid)
-        # icons
-        self.icons_folder = "imgs/openicons/"
+        # icons : pane
+        self.icons_folder = "imgs/icons/pane/"
         self.icons_list = [
             f for f in os.listdir(self.icons_folder) if f.endswith(".svg")
         ]
-        # print(f"{self.icons_list}")
+        print(f"{self.icons_list}")
         icon_size = Gtk.IconSize.LARGE
         icon_hmargin = 5
         icon_vmargin = 5
@@ -150,7 +150,6 @@ class MainWindow(Gtk.ApplicationWindow):
 
         self.grid.attach(self.rvl_side_pane, 0, 0, 1, 1)
         self.grid.attach(self.ovl_menu, 1, 0, 1, 1)
-        # self.grid.attach(self.pnd_main_v, 1, 0, 1, 1)
 
     def on_toggle_pane(self, button):
         revealed = self.rvl_side_pane.get_child_revealed()
