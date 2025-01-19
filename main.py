@@ -150,7 +150,6 @@ class MainWindow(Gtk.ApplicationWindow):
 
         self.grid.attach(self.rvl_side_pane, 0, 0, 1, 1)
         self.grid.attach(self.ovl_menu, 1, 0, 1, 1)
-
         # self.grid.attach(self.pnd_main_v, 1, 0, 1, 1)
 
     def on_toggle_pane(self, button):
