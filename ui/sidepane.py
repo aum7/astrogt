@@ -53,6 +53,7 @@ class SidePaneManager:
                 button.connect("clicked", self.obc_default, button_name)
 
             box_side_pane.append(button)
+
         return box_side_pane
 
     def create_pane_icon(self, icon_name):
