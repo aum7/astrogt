@@ -45,7 +45,6 @@ class UISetup:
         click_controller.connect("pressed", self.on_context_menu)  # type: ignore
         self.add_controller(click_controller)  # type: ignore
 
-    # ... (rest of the methods with return type annotations)
     def create_label(self, text: str, css_class: str) -> Gtk.Label:
         """create a label with specified text and css class"""
         label = Gtk.Label(label=text)
@@ -53,3 +52,39 @@ class UISetup:
         label.set_valign(Gtk.Align.FILL)
         label.add_css_class(css_class)
         return label
+
+    def setup_revealer(self):
+        # initialize the revealer
+        self.rvl_side_pane = Gtk.Revealer()
+        self.rvl_side_pane.set_transition_type(
+            Gtk.RevealerTransitionType.SLIDE_RIGHT,
+        )
+        self.rvl_side_pane.set_transition_duration(3000)
+        self.rvl_side_pane.set_reveal_child(True)
+        # set the side pane content
+        self.frm_side_pane = Gtk.Frame()
+        self.frm_side_pane.add_css_class("frame")
+        self.frm_side_pane.set_child(self.setup_side_pane())
+        # set the revealer's child
+        self.rvl_side_pane.set_child(self.frm_side_pane)
+
+    def setup_menu_button(self):
+        ico_menu = Gtk.Image.new_from_file("imgs/icons/menu.svg")
+        ico_menu.set_icon_size(self.icon_size)
+        icon_hmargin = icon_vmargin = 0
+        ico_menu.set_margin_start(icon_hmargin)
+        ico_menu.set_margin_end(icon_hmargin)
+        ico_menu.set_margin_top(icon_vmargin)
+        ico_menu.set_margin_bottom(icon_vmargin)
+
+        self.btn_toggle_pane = Gtk.Button()
+        self.btn_toggle_pane.add_css_class("button-pane")
+        self.btn_toggle_pane.set_child(ico_menu)
+        self.btn_toggle_pane.set_halign(Gtk.Align.START)
+        self.btn_toggle_pane.set_valign(Gtk.Align.START)
+        self.btn_toggle_pane.set_tooltip_text(
+            """toggle side pane
+    shift-click to center all panes [todo]"""
+        )
+        # make sure we're connecting to the correct method
+        self.btn_toggle_pane.connect("clicked", self.on_toggle_pane)
