@@ -39,7 +39,6 @@ class MainWindow(Gtk.ApplicationWindow):
         self.set_default_size(600, 500)
 
         click_controller = Gtk.GestureClick()
-        # click_controller = Gtk.GestureClick.new()
         click_controller.set_button(0)  # 0 = all ; 1-3
         click_controller.connect("pressed", self.on_context_menu)
         self.add_controller(click_controller)
@@ -83,7 +82,6 @@ class MainWindow(Gtk.ApplicationWindow):
         self.frm_side_pane.add_css_class("frame")
 
         self.frm_side_pane.set_child(self.setup_side_pane())
-        # self.frm_side_pane.set_child(self.lbl_side_pane)
         # attach to revealer
         self.rvl_side_pane.set_child(self.frm_side_pane)
         # test button for revealer
@@ -173,10 +171,45 @@ double-click to center all panes [todo]"""
         self.grid.attach(self.ovl_menu, 1, 0, 1, 1)
 
     def on_context_menu(self, gesture, n_press, x, y):
-        # print(f"pressed : {gesture}\n\tnpress : {n_press}\n\tx & y : {x}-{y}")
         # which button : 1-left, 2-middle, 3-right
         if gesture.get_current_button() == 3:  # left button
             print("click 3")
+            # get widget under cursor
+            widget = gesture.get_widget()
+            if widget is None:
+                print("widget none")
+                return
+            # convert coordinates to widget space
+            root = widget.get_root()
+            if root is None:
+                print("root none")
+                return
+            # get native window coordinates
+            wx, wy = widget.translate_coordinates(root, x, y)
+            if wx is None or wy is None:
+                print("coordinates translation failed")
+                return
+            # pick widget at coordinates
+            picked = root.pick(wx, wy, Gtk.PickFlags.DEFAULT)
+            if picked is None:
+                print("picked none")
+                return
+            print(f"picked : {picked.__class__.__name__}")
+            # get parent hierarchy
+            parent = picked.get_parent()
+            if parent:
+                print(f"picked parent : {parent.__class__.__name__}")
+            overlay_name = None
+            if isinstance(parent, Gtk.Overlay):
+                if parent == self.ovl_tl:
+                    overlay_name = "ovl top left"
+                elif parent == self.ovl_tr:
+                    overlay_name = "ovl top right"
+                elif parent == self.ovl_bl:
+                    overlay_name = "ovl bottom left"
+                elif parent == self.ovl_br:
+                    overlay_name = "ovl bottom right"
+            print(f"overlay : {overlay_name}")
 
     def on_toggle_pane(self, button):
         revealed = self.rvl_side_pane.get_child_revealed()
@@ -196,13 +229,10 @@ double-click to center all panes [todo]"""
         box_side_pane = Gtk.Box(
             orientation=Gtk.Orientation.VERTICAL,
         )
-        # for icon_name, callback in buttons:
         for button_name, tooltip in self.PANE_BUTTONS.items():
             # icon filename
             icon_file = f"{button_name}.svg"
-            # for icon_file in self.icons_list:
             # create base name for icon, used for callbacks
-            # icon_base_name = icon_file.replace(".svg", "")
             button = Gtk.Button()
             button.add_css_class("button-pane")
             button.set_tooltip_text(tooltip)
