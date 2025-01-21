@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Callable
 import gi
 
 gi.require_version("Gtk", "4.0")
@@ -16,18 +16,21 @@ class UISetup:
         super().__init_subclass__(**kwargs)
 
     # type hints for inherited attributes
-    set_title: callable
-    set_default_size: callable
-    set_child: callable
+    set_title: Callable
+    set_default_size: Callable
+    set_child: Callable
     grid: Gtk.Grid
     icon_size: Gtk.IconSize
     rvl_side_pane: Gtk.Revealer
-    setup_side_pane: callable
-    on_toggle_pane: callable
+    btn_toggle_pane: Gtk.Button
+    setup_side_pane: Callable
+    on_toggle_pane: Callable
     # type hints for paned widgets
     pnd_top_h: Gtk.Paned
     pnd_btm_h: Gtk.Paned
     pnd_main_v: Gtk.Paned
+
+    frm_side_pane: Gtk.Frame
     frm_top_start_child: Gtk.Frame
     frm_top_end_child: Gtk.Frame
     frm_btm_start_child: Gtk.Frame
@@ -38,7 +41,11 @@ class UISetup:
     ovl_tr: Gtk.Overlay
     ovl_bl: Gtk.Overlay
     ovl_br: Gtk.Overlay
-    btn_toggle_pane: Gtk.Button
+
+    lbl_pane_tl: Gtk.Label
+    lbl_pane_tr: Gtk.Label
+    lbl_pane_bl: Gtk.Label
+    lbl_pane_br: Gtk.Label
 
     def setup_window(self) -> None:
         """setup main window properties"""
@@ -123,7 +130,7 @@ class UISetup:
 
         return label
 
-    def setup_overlays(self):
+    def setup_overlays(self) -> None:
         self.ovl_menu = Gtk.Overlay()
         self.ovl_tl = Gtk.Overlay()
         self.ovl_tr = Gtk.Overlay()
@@ -135,7 +142,7 @@ class UISetup:
         self.ovl_bl.set_child(self.lbl_pane_bl)
         self.ovl_br.set_child(self.lbl_pane_br)
 
-    def setup_frames(self):
+    def setup_frames(self) -> None:
         self.frm_side_pane = Gtk.Frame()
         self.frm_side_pane.add_css_class("frame")
         self.frm_side_pane.set_child(self.setup_side_pane())
@@ -145,12 +152,18 @@ class UISetup:
         self.frm_btm_start_child = self.create_frame(self.ovl_bl)
         self.frm_btm_end_child = self.create_frame(self.ovl_br)
 
-    def create_frame(self, child):
+    def create_frame(self, child: Gtk.Widget) -> Gtk.Frame:
+        """create a frame with the given child widget
+        args:
+            child: the widget to place inside the frame
+        returns:
+            the created frame widget
+        """
         frame = Gtk.Frame()
         frame.add_css_class("frame")
         frame.set_child(child)
 
-        return True
+        return frame
 
     def setup_paned_widgets(self):
         # main vertical pane

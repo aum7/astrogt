@@ -4,7 +4,7 @@ import gi
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk
 
-from .handlers import WindowHandlers
+from .handlers import WindowHandlers  # type: ignore
 from .sidepane import SidePaneManager
 from .uisetup import UISetup
 
@@ -32,4 +32,4 @@ class MainWindow(
         self.setup_window()
         self.setup_css()
         self.setup_click_controller()
-        # self.setup_main_panes()
+        self.setup_main_panes()
