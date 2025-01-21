@@ -11,6 +11,10 @@ class WindowHandlers:
     and should not be instantiated directly.
     """
 
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        """ensure proper mixin initialization"""
+        super().__init_subclass__(**kwargs)
+
     # type hints for inherited attributes
     rvl_side_pane: Gtk.Revealer
     ovl_tl: Gtk.Overlay

@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Any, Type
 import gi
 
 gi.require_version("Gtk", "4.0")
@@ -9,10 +9,15 @@ from .sidepane import SidePaneManager
 from .uisetup import UISetup
 
 
-class MainWindow(Gtk.ApplicationWindow, WindowHandlers, SidePaneManager, UISetup):
+class MainWindow(
+    Gtk.ApplicationWindow,
+    WindowHandlers,
+    SidePaneManager,
+    UISetup,
+):
     """main application window, combining ui, handlers & panes"""
 
-    def __init__(self, *args: any, **kwargs: any) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         """initialize the main window.
         args:
             *args: variable length argument list.

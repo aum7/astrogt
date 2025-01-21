@@ -1,4 +1,4 @@
-from typing import Dict, Optional
+from typing import Dict, Any
 import os
 import gi
 
@@ -11,6 +11,10 @@ class SidePaneManager:
     note: this class is intended to be used with gtk.applicationwindow
     and should not be instantiated directly
     """
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        """ensure proper mixin init"""
+        super().__init_subclass__(**kwargs)
 
     PANE_BUTTONS: Dict[str, str] = {
         "settings": "settings",
@@ -47,7 +51,8 @@ class SidePaneManager:
             if hasattr(self, callback_name):
                 callback = getattr(self, callback_name)
                 button.connect(
-                    "clicked", lambda btn, name=button_name: callback(btn, name)
+                    "clicked",
+                    lambda btn, name=button_name: callback(btn, name),
                 )
             else:
                 button.connect("clicked", self.obc_default, button_name)

@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Any
 import gi
 
 gi.require_version("Gtk", "4.0")
@@ -10,6 +10,10 @@ class UISetup:
     note: this class is intended to be used with gtk.applicationwindow
     and should not be instantiated directly.
     """
+
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        """ensure proper init"""
+        super().__init_subclass__(**kwargs)
 
     # type hints for inherited attributes
     set_title: callable

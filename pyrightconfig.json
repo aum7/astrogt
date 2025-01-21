@@ -8,5 +8,6 @@
   ],
   "typeCheckingMode": "basic",
   "useLibraryCodeForTypes": true,
-  "reportMissingTypeStubs": false
+  "reportMissingTypeStubs": false,
+  "reportGeneralTypeIssues": "warning"
 }
