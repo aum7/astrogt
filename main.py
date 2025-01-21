@@ -173,7 +173,7 @@ double-click to center all panes [todo]"""
     def on_context_menu(self, gesture, n_press, x, y):
         # which button : 1-left, 2-middle, 3-right
         if gesture.get_current_button() == 3:  # left button
-            print("click 3")
+            print("r-click")
             # get widget under cursor
             widget = gesture.get_widget()
             if widget is None:
