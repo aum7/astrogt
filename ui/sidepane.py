@@ -1,3 +1,4 @@
+from typing import Dict, Optional
 import os
 import gi
 
@@ -6,15 +7,24 @@ from gi.repository import Gtk
 
 
 class SidePaneManager:
-    PANE_BUTTONS = {
+    """mixin class for managing the side pane
+    note: this class is intended to be used with gtk.applicationwindow
+    and should not be instantiated directly
+    """
+
+    PANE_BUTTONS: Dict[str, str] = {
         "settings": "settings",
         "event_one": "data & focus to event 1",
         "event_two": "data & focus to event 2",
         "file_save": "save file",
         "file_load": "load file",
     }
+    icons_folder: str
+    icons_list: list[str]
+    icon_size: Gtk.IconSize
 
-    def init_pane(self):
+    def init_side_pane(self) -> None:
+        """initialize pane properties"""
         self.icons_folder = "imgs/icons/pane/"
         self.icons_list = sorted(
             [f for f in os.listdir(self.icons_folder) if f.endswith(".svg")]

@@ -6,13 +6,12 @@ from gi.repository import Gtk, Gdk
 
 
 class UISetup:
-    """Mixin class for setting up UI components.
-
-    Note: This class is intended to be used with Gtk.ApplicationWindow
+    """mixin class for setting up ui components.
+    note: this class is intended to be used with gtk.applicationwindow
     and should not be instantiated directly.
     """
 
-    # Type hints for inherited attributes
+    # type hints for inherited attributes
     set_title: callable
     set_default_size: callable
     set_child: callable
@@ -23,12 +22,12 @@ class UISetup:
     on_toggle_pane: callable
 
     def setup_window(self) -> None:
-        """Setup main window properties."""
+        """setup main window properties"""
         self.set_title("astrogt")  # type: ignore
         self.set_default_size(600, 500)  # type: ignore
 
     def setup_css(self) -> None:
-        """Setup CSS styling."""
+        """setup css styling."""
         css_provider = Gtk.CssProvider()
         css_provider.load_from_path("css/style.css")
         display = Gdk.Display.get_default()
@@ -40,7 +39,7 @@ class UISetup:
             )
 
     def setup_click_controller(self) -> None:
-        """Setup click gesture controller."""
+        """setup click gesture controller"""
         click_controller = Gtk.GestureClick()
         click_controller.set_button(0)
         click_controller.connect("pressed", self.on_context_menu)  # type: ignore
@@ -48,7 +47,7 @@ class UISetup:
 
     # ... (rest of the methods with return type annotations)
     def create_label(self, text: str, css_class: str) -> Gtk.Label:
-        """Create a label with specified text and CSS class."""
+        """create a label with specified text and css class"""
         label = Gtk.Label(label=text)
         label.set_halign(Gtk.Align.FILL)
         label.set_valign(Gtk.Align.FILL)

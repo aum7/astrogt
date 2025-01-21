@@ -1,17 +1,17 @@
+from typing import Optional, Any
 import gi
 
 gi.require_version("Gtk", "4.0")
-from gi.repository import Gtk, GLib
+from gi.repository import Gtk
 
 
 class WindowHandlers:
-    """Mixin class for window event handlers.
-
-    Note: This class is intended to be used with Gtk.ApplicationWindow
+    """mixin class for window event handlers.
+    note: this class is intended to be used with gtk.applicationwindow
     and should not be instantiated directly.
     """
 
-    # Type hints for inherited attributes
+    # type hints for inherited attributes
     rvl_side_pane: Gtk.Revealer
     ovl_tl: Gtk.Overlay
     ovl_tr: Gtk.Overlay
@@ -21,20 +21,13 @@ class WindowHandlers:
     def on_context_menu(
         self, gesture: Gtk.GestureClick, n_press: int, x: float, y: float
     ) -> None:
-        """Handle context menu events."""
+        """handle context menu events."""
         if gesture.get_current_button() == 3:
             print("r-click")
             widget = gesture.get_widget()
             if widget is None:
                 print("widget none")
                 return
-            # ... rest of the method:
-            print("r-click")
-            widget = gesture.get_widget()
-            if widget is None:
-                print("widget none")
-                return
-
             root = widget.get_root()
             if root is None:
                 print("root none")
