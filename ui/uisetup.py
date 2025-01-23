@@ -1,4 +1,5 @@
 from typing import Any, Callable
+from .handlers import WindowHandlers
 import gi
 
 gi.require_version("Gtk", "4.0")

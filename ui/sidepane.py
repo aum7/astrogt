@@ -30,9 +30,9 @@ class SidePaneManager:
     def init_side_pane(self) -> None:
         """initialize side pane properties"""
         self.icons_folder = "imgs/icons/pane/"
-        self.icons_list = sorted(
-            [f for f in os.listdir(self.icons_folder) if f.endswith(".svg")]
-        )
+        # self.icons_list = sorted(
+        #     [f for f in os.listdir(self.icons_folder) if f.endswith(".svg")]
+        # )
         self.icon_size = Gtk.IconSize.LARGE
 
     def setup_side_pane(self):
