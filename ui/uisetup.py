@@ -53,7 +53,7 @@ class UISetup:
         self.set_default_size(600, 500)  # type: ignore
 
     def setup_css(self) -> None:
-        """setup css styling."""
+        """setup css styling"""
         css_provider = Gtk.CssProvider()
         css_provider.load_from_path("css/style.css")
         display = Gdk.Display.get_default()
@@ -68,7 +68,10 @@ class UISetup:
         """setup click gesture controller"""
         click_controller = Gtk.GestureClick()
         click_controller.set_button(0)
-        click_controller.connect("pressed", self.on_context_menu)  # type: ignore
+        click_controller.connect(
+            "pressed",
+            self.on_context_menu,
+        )  # type: ignore
         self.add_controller(click_controller)  # type: ignore
 
     def setup_main_panes(self):
@@ -85,7 +88,7 @@ class UISetup:
         self.rvl_side_pane.set_transition_type(
             Gtk.RevealerTransitionType.SLIDE_RIGHT,
         )
-        self.rvl_side_pane.set_transition_duration(3000)
+        # self.rvl_side_pane.set_transition_duration(3000)
         self.rvl_side_pane.set_reveal_child(True)
         # set the side pane content
         self.frm_side_pane = Gtk.Frame()
@@ -185,22 +188,19 @@ class UISetup:
         self.pnd_top_h.set_resize_start_child(True)
         self.pnd_top_h.set_end_child(self.frm_top_end_child)
         self.pnd_top_h.set_resize_end_child(True)
-
-        # Setup bottom paned
+        # setup bottom paned
         self.pnd_btm_h.set_hexpand(True)
         self.pnd_btm_h.set_vexpand(True)
         self.pnd_btm_h.set_start_child(self.frm_btm_start_child)
         self.pnd_btm_h.set_resize_start_child(True)
         self.pnd_btm_h.set_end_child(self.frm_btm_end_child)
         self.pnd_btm_h.set_resize_end_child(True)
-
-        # Setup main vertical paned
+        # setup main vertical paned
         self.pnd_main_v.set_start_child(self.pnd_top_h)
         self.pnd_main_v.set_resize_start_child(True)
         self.pnd_main_v.set_end_child(self.pnd_btm_h)
         self.pnd_main_v.set_resize_end_child(True)
-
-        # Setup menu overlay
+        # setup menu overlay
         self.ovl_menu.set_child(self.pnd_main_v)
         self.ovl_menu.add_overlay(self.btn_toggle_pane)
 

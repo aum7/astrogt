@@ -9,5 +9,5 @@
   "typeCheckingMode": "basic",
   "useLibraryCodeForTypes": true,
   "reportMissingTypeStubs": false,
-  "reportGeneralTypeIssues": "warning"
+  "reportGeneralTypeIssues": "warning",
 }

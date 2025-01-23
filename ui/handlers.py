@@ -2,7 +2,7 @@ from typing import Optional, Any
 import gi
 
 gi.require_version("Gtk", "4.0")
-from gi.repository import Gtk
+from gi.repository import Graphene, Gtk
 
 
 class WindowHandlers:
@@ -25,9 +25,10 @@ class WindowHandlers:
     def on_context_menu(
         self, gesture: Gtk.GestureClick, n_press: int, x: float, y: float
     ) -> None:
-        """handle context menu events."""
+        """handle context menu events"""
         if gesture.get_current_button() == 3:
-            print("r-click")
+            """mouse right-click : context menu"""
+            # print("r-click")
             widget = gesture.get_widget()
             if widget is None:
                 print("widget none")
@@ -37,11 +38,18 @@ class WindowHandlers:
                 print("root none")
                 return
 
-            wx, wy = widget.translate_coordinates(root, x, y)
-            if wx is None or wy is None:
-                print("coordinates translation failed")
+            # print(f"root type : {type(root)}")
+            # print(f"root class name : {root.__class__.__name__}")
+            # wx, wy = root.translate_coordinates(widget, x, y)
+            success, point = widget.compute_point(root, Graphene.Point().init(x, y))
+            if not success or point is None:
+                print("point computation failed")
                 return
 
+            wx: float = point.x
+            wy: float = point.y
+
+            print(f"x : {wx} | y : {wy}")
             picked = root.pick(wx, wy, Gtk.PickFlags.DEFAULT)
             if picked is None:
                 print("picked none")
