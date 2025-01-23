@@ -40,17 +40,10 @@ class WindowHandlers:
                 return
             # print(f"root type : {type(root)}")
             # print(f"root class name : {root.__class__.__name__}")
-            # wx, wy = root.translate_coordinates(widget, x, y)
-            # success, point = widget.compute_point(root, Graphene.Point().init(x, y))
-            # if not success or point is None:
-            #     print("point computation failed")
-            #     return
-
-            # self.wx: float = point.x
-            # self.wy: float = point.y
 
             print(f"x : {x} | y : {y}")
-            picked = root.pick(x, y, Gtk.PickFlags.DEFAULT)
+            # picked = root.pick(x, y, Gtk.PickFlags.DEFAULT)
+            picked = widget.pick(x, y, Gtk.PickFlags.DEFAULT)
             if picked is None:
                 print("picked none")
                 return
@@ -64,14 +57,11 @@ class WindowHandlers:
             overlay_name = None
             if isinstance(parent, Gtk.Overlay):
                 if parent == self.ovl_tl:
-                    # context_top_left(self.ovl_tl)
-                    # overlay_name = "mumbojumbo"
-                    # overlay_name = "ovl top left"
-
                     pop_ctx_tl = Gtk.PopoverMenu()
                     box_ctx_tl = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
                     pop_ctx_tl.set_child(box_ctx_tl)
-                    # reuse PANE_BUTTONS items
+                    # PANE_BUTTONS items : todo: reuse / set all buttons
+                    # in 1 place
                     PANE_BUTTONS: Dict[str, str] = {
                         "settings": "settings",
                         "event_one": "data & focus to event 1",
@@ -103,20 +93,10 @@ class WindowHandlers:
 
                     pop_ctx_tl.set_parent(self.ovl_tl)
                     # pop_ctx_tl.set_offset(int(x), int(y))
-                    # pop_ctx_tl.set_offset(x, y)
                     pop_ctx_tl.set_offset(0, 0)
                     pop_ctx_tl.set_autohide(True)
                     pop_ctx_tl.set_has_arrow(True)
                     pop_ctx_tl.popup()
-                    # rect = Gdk.Rectangle()
-                    # rect.x = self.wx
-                    # rect.y = self.wy
-                    # rect.width = 1
-                    # rect.height = 1
-                    # pop_ctx_tl.set_pointing_to(rect)
-                    # pop_ctx_tl.popup()
-
-                    # return pop_ctx_tl
 
                 elif parent == self.ovl_tr:
                     overlay_name = "ovl top right"
@@ -126,56 +106,6 @@ class WindowHandlers:
                     overlay_name = "ovl bottom right"
             if overlay_name is not None:
                 print(f"overlay : {overlay_name}")
-
-        # def context_top_left(self, context):
-        #     # print(f"context : {context}")
-        #     print("mumbojumbo")
-        #     pop_ctx_tl = Gtk.PopoverMenu()
-        #     box_ctx_tl = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        #     pop_ctx_tl.set_child(box_ctx_tl)
-        #     # reuse PANE_BUTTONS items
-        #     PANE_BUTTONS: Dict[str, str] = {
-        #         "settings": "settings",
-        #         "event_one": "data & focus to event 1",
-        #         "event_two": "data & focus to event 2",
-        #         "file_save": "save file",
-        #         "file_load": "load file",
-        #     }
-        #     for button_name, tooltip in PANE_BUTTONS.items():
-        #         button = Gtk.Button()
-        #         button.add_css_class("button-pane")
-        #         button.set_tooltip_text(tooltip)
-
-        #         icon = self.create_context_icon(f"{button_name}.svg")
-        #         icon.set_icon_size(Gtk.IconSize.LARGE)
-        #         button.set_child(icon)
-
-        #         callback_name = f"obc_{button_name}"
-        #         if hasattr(self, callback_name):
-        #             callback = getattr(self, callback_name)
-        #             button.connect(
-        #                 "clicked",
-        #                 lambda btn, name=button_name: callback(btn, name),
-        #             )
-        #         else:
-        #             button.connect("clicked", self.on_context_default, button_name)
-        #         box_ctx_tl.append(button)
-        #     pop_ctx_tl.set_parent(context)
-        #     rect = Gdk.Rectangle()
-        #     rect.x = self.wx
-        #     rect.y = self.wy
-        #     rect.width = 1
-        #     rect.height = 1
-        #     pop_ctx_tl.set_pointing_to(rect)
-        #     pop_ctx_tl.popup()
-
-        #     return pop_ctx_tl
-
-        #     def create_context_icon(self, icon_name):
-        #         return Gtk.Image.new_from_file(f"imgs/icons/pane/{icon_name}")
-
-        #     def on_context_default(self, button_name):
-        #         print(f"{button_name} clicked : context default")
 
     def on_toggle_pane(self, button):
         revealed = self.rvl_side_pane.get_child_revealed()
