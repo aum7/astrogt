@@ -96,6 +96,7 @@ class WindowHandlers:
                     pop_ctx_tl.set_offset(0, 0)
                     pop_ctx_tl.set_autohide(True)
                     pop_ctx_tl.set_has_arrow(True)
+                    pop_ctx_tl.set_child_visible(True)
                     pop_ctx_tl.popup()
 
                 elif parent == self.ovl_tr:
