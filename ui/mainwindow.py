@@ -24,13 +24,9 @@ class MainWindow(
             **kwargs: arbitrary keyword arguments.
         """
         super().__init__(*args, **kwargs)
-        # initialize side pane
         self.init_side_pane()
-        # setup revealer
         self.setup_revealer()
-        # setup window components
         self.setup_window()
         self.setup_css()
         self.setup_main_panes()
-        self.setup_click_ctrlr_default()
-        self.setup_click_ctrlr_tl()
+        self.setup_context_controllers()

@@ -2,7 +2,7 @@ from typing import Any, Dict  # Callable, Any
 import gi
 
 gi.require_version("Gtk", "4.0")
-from gi.repository import Gdk, Graphene, Gtk
+from gi.repository import Gdk, Gtk, GLib
 
 
 class WindowHandlers:
@@ -24,96 +24,56 @@ class WindowHandlers:
 
     PANE_BUTTONS: Dict[str, str]
 
-    # default r-click
-    def on_context_menu_default(
-        self,
-        gesture: Gtk.GestureClick,
-        n_press: int,
-        x: float,
-        y: float,
-    ) -> None:
-        """handle context menu other than top-left (astro chart)"""
-        widget = gesture.get_widget()
-        if not widget or gesture.get_current_button == 3:
-            return
-        print("context menu not top-left")
-        # overlay_name = None
-        # elif parent == self.ovl_tr:
-        #     overlay_name = "ovl top right"
-        # elif parent == self.ovl_bl:
-        #     overlay_name = "ovl bottom left"
-        # elif parent == self.ovl_br:
-        #     overlay_name = "ovl bottom right"
-        # if overlay_name is not None:
-        #     print(f"overlay : {overlay_name}")
+    def setup_context_controllers(self) -> None:
+        """setup right-click context menu / controllers for panes"""
+        # 4 panes = 4 overlays
+        self.overlays = {
+            self.ovl_tl: "top-left",
+            self.ovl_tr: "top-right",
+            self.ovl_bl: "bottom-left",
+            self.ovl_br: "bottom-right",
+        }
+        # track current active popover
+        # self.current_popover = None
 
-    def setup_click_ctrlr_tl(self) -> None:
-        """setup top left right-click context menu / controller"""
-        click_ctrlr_tl = Gtk.GestureClick()
-        click_ctrlr_tl.set_button(3)  # r-click
-        click_ctrlr_tl.connect(
-            "pressed",
-            self.on_context_menu,
-        )
-        # ovl_tl.add_controller(click_ctrlr_tl)
-        self.ovl_tl.add_controller(click_ctrlr_tl)
+        for overlay in self.overlays:
+            context_controller = Gtk.GestureClick()
+            context_controller.set_button(3)  # r-click
+            context_controller.connect("begin", self.on_gesture_begin)
+            context_controller.connect("pressed", self.on_context_menu)
+            overlay.add_controller(context_controller)
+
+    def on_gesture_begin(self, gesture: Gtk.GestureClick, sequence: Any) -> None:
+        """handle gesture begin to prevent drag"""
+        gesture.set_state(Gtk.EventSequenceState.CLAIMED)
 
     def on_context_menu(
         self, gesture: Gtk.GestureClick, n_press: int, x: float, y: float
     ) -> None:
         """handle right-click context menu events"""
-        widget = gesture.get_widget()
-        if not widget:
-            print("widget none")
-            return
-        print(f"widget : {widget.__class__.__name__}")
-        # print(f"root class name : {root.__class__.__name__}")
-        print(f"x : {x} | y : {y}")
-        picked = widget.pick(x, y, Gtk.PickFlags.DEFAULT)
-        if not picked:
-            print("picked none")
-            return
-        print(f"picked : {picked.__class__.__name__}")
-        gesture.set_state(Gtk.EventSequenceState.CLAIMED)
-        # # widget hierarchy
-        # current = picked
-        # while current:
-        #     # print(f"current hierarchy : {type(current).__name__}")
-        #     print(f"current hierarchy : {current.__class__.__name__}")
-        #     current = current.get_parent()
-        parent = picked.get_parent()
-        print(f"parent : {parent.__class__.__name__ if parent else 'none'}")
-        print(f"is parent self.ovl_tl ? {parent == self.ovl_tl}")
-        if not parent or parent != self.ovl_tl:
-            print("no parent or not overlay top-left")
-            return
-        print(f"parent : {parent.__class__.__name__}")
         # claim the event to prevent propagation
         # gesture.set_state(Gtk.EventSequenceState.CLAIMED)
-        # reference overlays through the main window instance
-        # if not isinstance(parent, Gtk.Overlay):
-        #     return
-        # if isinstance(parent, Gtk.Overlay):
-        # if widget == self.ovl_tl:
-        # if parent == self.ovl_tl:
-        pop_ctx_tl = Gtk.PopoverMenu()
-        box_ctx_tl = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        pop_ctx_tl.set_child(box_ctx_tl)
-        # PANE_BUTTONS items : todo: reuse / set all buttons
-        # in 1 place
-        # PANE_BUTTONS: Dict[str, str] = {
-        #     "settings": "settings",
-        #     "event_one": "data & focus to event 1",
-        #     "event_two": "data & focus to event 2",
-        #     "file_save": "save file",
-        #     "file_load": "load file",
-        # }
+        widget = gesture.get_widget()
+        if not widget:
+            return
+        # print(f"x : {x} | y : {y}")
+        picked = widget.pick(x, y, Gtk.PickFlags.DEFAULT)
+        if not picked:
+            return
+        parent = picked.get_parent()
+        if not parent or parent not in self.overlays:
+            return
+
+        pop_ctx, box_ctx = self.create_popover_menu()
+
         for button_name, tooltip in self.PANE_BUTTONS.items():
             button = Gtk.Button()
             button.add_css_class("button-pane")
-            button.set_tooltip_text(tooltip)
+            button.set_tooltip_text(f"parent : {self.overlays[parent]}\n{tooltip}")
 
-            icon = Gtk.Image.new_from_file(f"imgs/icons/pane/{button_name}.svg")
+            icon = Gtk.Image.new_from_file(
+                f"imgs/icons/pane/{button_name}.svg",
+            )
             icon.set_icon_size(Gtk.IconSize.NORMAL)
             button.set_child(icon)
 
@@ -122,27 +82,53 @@ class WindowHandlers:
                 callback = getattr(self, callback_name)
                 button.connect(
                     "clicked",
-                    lambda btn, name=button_name: callback(
+                    lambda btn, name=button_name, pos=self.overlays[
+                        parent
+                    ]: self.handle_context_action(
                         btn,
                         name,
+                        pos,
                     ),
                 )
-            # else:
-            box_ctx_tl.append(button)
+            box_ctx.append(button)
 
         rect = Gdk.Rectangle()
         rect.x = int(x + 30)
         rect.y = int(y)
         rect.width = 1
         rect.height = 1
-        pop_ctx_tl.set_parent(parent)
-        # pop_ctx_tl.set_parent(widget)
-        pop_ctx_tl.set_pointing_to(rect)
-        pop_ctx_tl.set_position(Gtk.PositionType.BOTTOM)
-        # pop_ctx_tl.set_offset(int(x), int(y))
-        pop_ctx_tl.set_autohide(True)
-        pop_ctx_tl.set_has_arrow(False)
-        pop_ctx_tl.popup()
+
+        pop_ctx.set_parent(parent)
+        pop_ctx.set_pointing_to(rect)
+        pop_ctx.set_position(Gtk.PositionType.BOTTOM)
+        pop_ctx.set_autohide(True)
+        pop_ctx.set_has_arrow(False)
+
+        pop_ctx.popup()
+
+    def create_popover_menu(self) -> tuple[Gtk.Popover, Gtk.Box]:
+        """create popover menu with proper setup"""
+        pop_ctx = Gtk.Popover()
+
+        box_ctx = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        box_ctx.set_margin_start(4)
+        box_ctx.set_margin_end(4)
+        box_ctx.set_margin_top(4)
+        box_ctx.set_margin_bottom(4)
+
+        pop_ctx.set_child(box_ctx)
+
+        return pop_ctx, box_ctx
+
+    def handle_context_action(
+        self, button: Gtk.Button, action: str, position: str
+    ) -> None:
+        """handle pane actions (with position context)"""
+        callback_name = f"obc_{action}"
+        if hasattr(self, callback_name):
+            callback = getattr(self, callback_name)
+            print(f"{action} triggered from {position}")
+            callback(button, f"{action}_{position}")
 
     def on_toggle_pane(self, button):
         revealed = self.rvl_side_pane.get_child_revealed()
@@ -152,3 +138,10 @@ class WindowHandlers:
         else:
             self.rvl_side_pane.set_visible(True)
             self.rvl_side_pane.set_reveal_child(True)
+
+        # # widget hierarchy
+        # current = picked
+        # while current:
+        #     # print(f"current hierarchy : {type(current).__name__}")
+        #     print(f"current hierarchy : {current.__class__.__name__}")
+        #     current = current.get_parent()
