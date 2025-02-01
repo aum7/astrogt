@@ -26,6 +26,7 @@ class UISetup:
     btn_toggle_pane: Gtk.Button
     setup_side_pane: Callable
     on_toggle_pane: Callable
+    on_context_menu: Callable
     # type hints for paned widgets
     pnd_top_h: Gtk.Paned
     pnd_btm_h: Gtk.Paned
@@ -65,15 +66,16 @@ class UISetup:
                 Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION,
             )
 
-    def setup_click_controller(self) -> None:
+    def setup_click_ctrlr_default(self) -> None:
         """setup click gesture controller"""
-        click_controller = Gtk.GestureClick()
-        click_controller.set_button(0)
-        click_controller.connect(
+        click_ctrlr_default = Gtk.GestureClick()
+        # specifically for right-click
+        click_ctrlr_default.set_button(3)  # 0=any_button
+        click_ctrlr_default.connect(
             "pressed",
             self.on_context_menu,
         )  # type: ignore
-        self.add_controller(click_controller)  # type: ignore
+        self.add_controller(click_ctrlr_default)  # type: ignore
 
     def setup_main_panes(self):
         self.setup_menu_button()
@@ -114,7 +116,7 @@ class UISetup:
         self.btn_toggle_pane.set_valign(Gtk.Align.START)
         self.btn_toggle_pane.set_tooltip_text(
             """toggle side pane
-    shift-click to center all panes [todo]"""
+shift-click to center all panes [todo]"""
         )
         # make sure we're connecting to the correct method
         self.btn_toggle_pane.connect("clicked", self.on_toggle_pane)

@@ -31,5 +31,6 @@ class MainWindow(
         # setup window components
         self.setup_window()
         self.setup_css()
-        self.setup_click_controller()
         self.setup_main_panes()
+        self.setup_click_ctrlr_default()
+        self.setup_click_ctrlr_tl()
