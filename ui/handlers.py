@@ -33,9 +33,6 @@ class WindowHandlers:
             self.ovl_bl: "bottom-left",
             self.ovl_br: "bottom-right",
         }
-        # track current active popover
-        # self.current_popover = None
-
         for overlay in self.overlays:
             context_controller = Gtk.GestureClick()
             context_controller.set_button(3)  # r-click
@@ -51,8 +48,6 @@ class WindowHandlers:
         self, gesture: Gtk.GestureClick, n_press: int, x: float, y: float
     ) -> None:
         """handle right-click context menu events"""
-        # claim the event to prevent propagation
-        # gesture.set_state(Gtk.EventSequenceState.CLAIMED)
         widget = gesture.get_widget()
         if not widget:
             return
