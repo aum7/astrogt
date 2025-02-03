@@ -1,3 +1,9 @@
+label {
+  font-size: 16px;
+  font-family: "Ubuntu Thin";
+  padding: 7px;
+}
+
 .frame {
   border-style: solid;
   border-width: 1px;
@@ -14,13 +20,15 @@
   margin: 0px;
 }
 
-.frame-label {
+.label-frame {
   font-size: 18px;
+  padding-top: 0px;
+  padding-bottom: 0px;
 }
 
-label {
+.dropdown label {
   font-size: 16px;
-  font-family: "Ubuntu Thin";
+  padding: 0px;
 }
 
 .label-tl {
@@ -36,9 +44,4 @@ label {
   border-color: transparent;
   background-size: 70px;
   margin-top: 5px;
-}
-
-.event-widget {
-  border: 1px solid;
-  border-color: white;
 }

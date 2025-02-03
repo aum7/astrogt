@@ -21,7 +21,6 @@ class WindowHandlers:
     ovl_tr: Gtk.Overlay
     ovl_bl: Gtk.Overlay
     ovl_br: Gtk.Overlay
-
     PANE_BUTTONS: Dict[str, str]
 
     def setup_context_controllers(self) -> None:
