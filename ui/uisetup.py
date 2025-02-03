@@ -12,9 +12,9 @@ class UISetup:
     and should not be instantiated directly.
     """
 
-    def __init_subclass__(cls, **kwargs: Any) -> None:
-        """ensure proper init"""
-        super().__init_subclass__(**kwargs)
+    # def __init_subclass__(cls, **kwargs: Any) -> None:
+    #     """ensure proper init"""
+    #     super().__init_subclass__(**kwargs)
 
     # type hints for inherited attributes
     set_title: Callable
@@ -66,16 +66,16 @@ class UISetup:
                 Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION,
             )
 
-    def setup_click_ctrlr_default(self) -> None:
-        """setup click gesture controller"""
-        click_ctrlr_default = Gtk.GestureClick()
-        # specifically for right-click
-        click_ctrlr_default.set_button(3)  # 0=any_button
-        click_ctrlr_default.connect(
-            "pressed",
-            self.on_context_menu,
-        )  # type: ignore
-        self.add_controller(click_ctrlr_default)  # type: ignore
+    # def setup_click_ctrlr_default(self) -> None:
+    #     """setup click gesture controller"""
+    #     click_ctrlr_default = Gtk.GestureClick()
+    #     # specifically for right-click
+    #     click_ctrlr_default.set_button(3)  # 0=any_button
+    #     click_ctrlr_default.connect(
+    #         "pressed",
+    #         self.on_context_menu,
+    #     )  # type: ignore
+    #     self.add_controller(click_ctrlr_default)  # type: ignore
 
     def setup_main_panes(self):
         self.setup_menu_button()
@@ -159,12 +159,7 @@ shift-click to center all panes [todo]"""
         self.frm_btm_end_child = self.create_frame(self.ovl_br)
 
     def create_frame(self, child: Gtk.Widget) -> Gtk.Frame:
-        """create a frame with the given child widget
-        args:
-            child: the widget to place inside the frame
-        returns:
-            the created frame widget
-        """
+        """create a frame with the given child widget"""
         frame = Gtk.Frame()
         frame.add_css_class("frame")
         frame.set_child(child)

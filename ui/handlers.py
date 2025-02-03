@@ -1,8 +1,8 @@
-from typing import Any, Dict  # Callable, Any
+from typing import Any, Dict
 import gi
 
 gi.require_version("Gtk", "4.0")
-from gi.repository import Gdk, Gtk, GLib
+from gi.repository import Gdk, Gtk
 
 
 class WindowHandlers:
@@ -11,9 +11,9 @@ class WindowHandlers:
     and should not be instantiated directly.
     """
 
-    def __init_subclass__(cls, **kwargs: Any) -> None:
-        """ensure proper mixin initialization"""
-        super().__init_subclass__(**kwargs)
+    # def __init_subclass__(cls, **kwargs: Any) -> None:
+    #     """ensure proper mixin initialization"""
+    #     super().__init_subclass__(**kwargs)
 
     # type hints for inherited attributes
     rvl_side_pane: Gtk.Revealer
@@ -64,7 +64,7 @@ class WindowHandlers:
         for button_name, tooltip in self.PANE_BUTTONS.items():
             button = Gtk.Button()
             button.add_css_class("button-pane")
-            button.set_tooltip_text(f"parent : {self.overlays[parent]}\n{tooltip}")
+            button.set_tooltip_text(f"{tooltip}")
 
             icon = Gtk.Image.new_from_file(
                 f"imgs/icons/pane/{button_name}.svg",
@@ -140,3 +140,4 @@ class WindowHandlers:
         #     # print(f"current hierarchy : {type(current).__name__}")
         #     print(f"current hierarchy : {current.__class__.__name__}")
         #     current = current.get_parent()
+        # button.set_tooltip_text(f"parent : {self.overlays[parent]}\n{tooltip}")

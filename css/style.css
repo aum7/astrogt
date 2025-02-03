@@ -6,8 +6,20 @@
   margin: 0px;
 }
 
+.frame-sidepane {
+  border-style: solid;
+  border-width: 1px;
+  border-color: white;
+  padding: 3px;
+  margin: 0px;
+}
+
+.frame-label {
+  font-size: 18px;
+}
+
 label {
-  font-size: 20px;
+  font-size: 16px;
   font-family: "Ubuntu Thin";
 }
 
@@ -24,4 +36,9 @@ label {
   border-color: transparent;
   background-size: 70px;
   margin-top: 5px;
+}
+
+.event-widget {
+  border: 1px solid;
+  border-color: white;
 }
