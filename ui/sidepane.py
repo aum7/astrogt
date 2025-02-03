@@ -1,6 +1,4 @@
-from typing import Dict, Any
-
-# import os
+from typing import Dict
 import gi
 
 gi.require_version("Gtk", "4.0")
@@ -8,19 +6,14 @@ from gi.repository import Gtk  # type: ignore
 
 
 class SidePaneManager:
-    """mixin class for managing the side pane
-    note: this class is intended to be used with gtk.applicationwindow
-    and should not be instantiated directly
-    """
+    """mixin class for managing the side pane"""
 
-    # def __init_subclass__(cls, **kwargs: Any) -> None:
-    #     """ensure proper mixin init"""
-    #     super().__init_subclass__(**kwargs)
+    selected_event = "event_one"
 
     PANE_BUTTONS: Dict[str, str] = {
+        "event_one": "focus event one",
+        "event_two": "focus event two",
         "settings": "settings",
-        "event_one": "data & focus to event 1",
-        "event_two": "data & focus to event 2",
         "file_save": "save file",
         "file_load": "load file",
     }
@@ -56,29 +49,53 @@ class SidePaneManager:
         self.icons_pane = "imgs/icons/pane/"
         self.icons_change_time = "imgs/icons/changetime/"
         self.icon_size = Gtk.IconSize.LARGE
+        # ensure init todo do we need init twice ?
+        # self.selected_event = "event_one"
+        # store references for icon updates
+        self.event_buttons = {}
+
+    def get_event_icon(self, button_name: str) -> str:
+        """get proper icon for selected event"""
+        return (
+            f"{button_name}_sel.svg"
+            if button_name == self.selected_event
+            else f"{button_name}.svg"
+        )
 
     def setup_side_pane(self):
         box_side_pane_buttons = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        # box_side_pane_buttons.set_visible(True)
+        # store reference : todo do we need that ?
+        # self.box_side_pane_buttons = box_side_pane_buttons
 
         for button_name, tooltip in self.PANE_BUTTONS.items():
             button = Gtk.Button()
             button.add_css_class("button-pane")
             button.set_tooltip_text(tooltip)
 
-            icon = self.create_pane_icon(f"{button_name}.svg")
+            if button_name in ["event_one", "event_two"]:
+                icon_name = self.get_event_icon(button_name)
+                # store reference for later updates
+                self.event_buttons[button_name] = button
+            else:
+                icon_name = f"{button_name}.svg"
+            # get proper icon
+            icon = self.create_pane_icon(icon_name)
             icon.set_icon_size(self.icon_size)
             button.set_child(icon)
-
-            callback_name = f"obc_{button_name}"
-            if hasattr(self, callback_name):
-                callback = getattr(self, callback_name)
-                button.connect(
-                    "clicked",
-                    lambda btn, name=button_name: callback(btn, name),
-                )
+            # separate handlers
+            if button_name in ["event_one", "event_two"]:
+                button.connect("clicked", self.obc_event_selection, button_name)
             else:
-                button.connect("clicked", self.obc_default, button_name)
+                callback_name = f"obc_{button_name}"
+                if hasattr(self, callback_name):
+                    callback = getattr(self, callback_name)
+                    button.connect(
+                        "clicked",
+                        callback,
+                        button_name,
+                    )
+                else:
+                    button.connect("clicked", self.obc_default, button_name)
 
             box_side_pane_buttons.append(button)
 
@@ -86,12 +103,12 @@ class SidePaneManager:
         box_side_pane_widgets = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         # put widgets into main frame
         frm_change_time = self.setup_change_time()
-        frm_event_one = self.setup_event("event one")
-        frm_event_two = self.setup_event("event two")
+        self.frm_event_one = self.setup_event("event one")
+        self.frm_event_two = self.setup_event("event two")
         # append to box
         box_side_pane_widgets.append(frm_change_time)
-        box_side_pane_widgets.append(frm_event_one)
-        box_side_pane_widgets.append(frm_event_two)
+        box_side_pane_widgets.append(self.frm_event_one)
+        box_side_pane_widgets.append(self.frm_event_two)
 
         box_side_pane_main = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         box_side_pane_main.append(box_side_pane_buttons)
@@ -146,7 +163,7 @@ arrow key left / right : move time backward / forward"""
 
         # box for icons & dropdown for selecting time period
         box_change_time = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        # dropdown list
+        # dropdown time periods list
         self.time_periods_list = list(self.CHANGE_TIME_PERIODS.values())
         # create dropdown
         ddn_time_periods = Gtk.DropDown.new_from_strings(self.time_periods_list)
@@ -164,17 +181,13 @@ arrow key left / right : move time backward / forward"""
 
         return frm_change_time
 
-    def get_seconds_from_key(self, key: str) -> int:
-        """extract seconds from CHANGE_TIME_PERIODS"""
-        return int(key.split("_")[-1])
-
     def odd_time_period(self, dropdown, *args):
-        """on dropdown changed"""
+        """on dropdown time period changed / selected"""
         selected = dropdown.get_selected()
         value = self.time_periods_list[selected]
         print(f"dropdown selected : {value}")
         key = [k for k, v in self.CHANGE_TIME_PERIODS.items() if v == value][0]
-        seconds = self.get_seconds_from_key(key)
+        seconds = key.split("_")[-1]
         print(f"selected period : {seconds} seconds")
 
     def setup_event(self, event_name: str) -> Gtk.Frame:
@@ -185,7 +198,9 @@ arrow key left / right : move time backward / forward"""
             # top label : which event
             lbl_frm_one = Gtk.Label(label="event one :")
             lbl_frm_one.add_css_class("label-frame")
-            lbl_frm_one.set_tooltip_text("""main event ie natal chart""")
+            lbl_frm_one.set_tooltip_text(
+                """main event ie natal chart\nclick to set focus to event one"""
+            )
             lbl_frm_one.set_xalign(0.0)
             # next below : datetime
             lbl_datetime_one = Gtk.Label(label="date & time")
@@ -234,7 +249,9 @@ arrow key left / right : move time backward / forward"""
             # top label : which event
             lbl_frm_two = Gtk.Label(label="event two :")
             lbl_frm_two.add_css_class("label-frame")
-            lbl_frm_two.set_tooltip_text("""secondary event ie transit / progression""")
+            lbl_frm_two.set_tooltip_text(
+                """secondary event ie transit / progression\nclick to set focus to event two"""
+            )
             lbl_frm_two.set_xalign(0.0)
             # next below : datetime
             lbl_datetime_two = Gtk.Label(label="date & time")
@@ -295,11 +312,46 @@ arrow key left / right : move time backward / forward"""
     def obc_settings(self, widget, data):
         print(f"{data} clicked")
 
-    def obc_event_one(self, widget, data):
-        print(f"{data} clicked")
+    def obc_event_selection(self, widget, event_name):
+        """handle event selection"""
+        # print(f"widget : {widget}")
+        if self.selected_event != event_name:
+            self.selected_event = event_name
+            if self.selected_event == "event_one":
+                print("selected EVENT ONE")
+                self.frm_event_two.remove_css_class("label-frame-sel")
+                self.frm_event_one.remove_css_class("label-frame")
+                self.frm_event_one.add_css_class("label-frame-sel")
+            if self.selected_event == "event_two":
+                print("selected EVENT TWO")
+                self.frm_event_one.remove_css_class("label-frame-sel")
+                self.frm_event_two.remove_css_class("label-frame")
+                self.frm_event_two.add_css_class("label-frame-sel")
+            # update icons
+            # for btn_name in ["event_one", "event_two"]:
+            #     button = self.event_buttons.get(btn_name)
+            #     if button:
+            #         icon_name = self.get_event_icon(btn_name)
+            #         new_icon = self.create_pane_icon(icon_name)
+            #         new_icon.set_icon_size(self.icon_size)
+            #         # old_icon = button.get_child()
+            #         # if old_icon:
+            #         #     button.remove(old_icon)
+            #         button.set_child(new_icon)
+            # break
+        print(f"selected event changed : {event_name}")
 
-    def obc_event_two(self, widget, data):
-        print(f"{data} clicked")
+    # def obc_event_one(self, widget, data):
+    #     if self.selected_event != "event_one":
+    #         self.selected_event = "event_one"
+    #     self.update_event_buttons()
+    #     print(f"{data} clicked - selected : {self.selected_event}")
+
+    # def obc_event_two(self, widget, data):
+    #     if self.selected_event != "event_one":
+    #         self.selected_event = "event_one"
+    #     self.update_event_buttons()
+    #     print(f"{data} clicked - selected : {self.selected_event}")
 
     def obc_file_save(self, widget, data):
         print(f"{data} clicked")
