@@ -2,7 +2,7 @@ from typing import Dict
 import gi
 
 gi.require_version("Gtk", "4.0")
-from gi.repository import Gtk  # type: ignore
+from gi.repository import GLib, Gtk  # type: ignore
 
 
 class SidePaneManager:
@@ -196,12 +196,26 @@ arrow key left / right : move time backward / forward"""
             frm_event_one = Gtk.Frame()
             frm_event_one.add_css_class("frame-sidepane")
             # top label : which event
-            lbl_frm_one = Gtk.Label(label="event one :")
-            lbl_frm_one.add_css_class("label-frame")
-            lbl_frm_one.set_tooltip_text(
+            self.lbl_frm_one = Gtk.Label(label="event one :")
+            # self.lbl_frm_one.set_selectable(True)
+            self.lbl_frm_one.set_tooltip_text(
                 """main event ie natal chart\nclick to set focus to event one"""
             )
-            lbl_frm_one.set_xalign(0.0)
+            self.lbl_frm_one.set_xalign(0.0)
+            # make label clickable
+            gesture = Gtk.GestureClick.new()
+            gesture.connect(
+                "pressed",
+                lambda gesture, n_press, x, y: self.obc_event_selection(
+                    gesture,
+                    n_press,
+                    x,
+                    y,
+                    "event_one",
+                ),
+            )
+            self.lbl_frm_one.add_controller(gesture)
+            self.lbl_frm_one.add_css_class("label-frame")
             # next below : datetime
             lbl_datetime_one = Gtk.Label(label="date & time")
             lbl_datetime_one.set_halign(Gtk.Align.START)
@@ -233,7 +247,7 @@ arrow key left / right : move time backward / forward"""
             # put labels & entries verticaly into a box
             box_event_one = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
             # box_datetime_one.set_visible(True)
-            box_event_one.append(lbl_frm_one)
+            box_event_one.append(self.lbl_frm_one)
             box_event_one.append(lbl_datetime_one)
             box_event_one.append(ent_datetime_one)
             box_event_one.append(lbl_location_one)
@@ -247,12 +261,27 @@ arrow key left / right : move time backward / forward"""
             frm_event_two = Gtk.Frame()
             frm_event_two.add_css_class("frame-sidepane")
             # top label : which event
-            lbl_frm_two = Gtk.Label(label="event two :")
-            lbl_frm_two.add_css_class("label-frame")
-            lbl_frm_two.set_tooltip_text(
-                """secondary event ie transit / progression\nclick to set focus to event two"""
+            self.lbl_frm_two = Gtk.Label(label="event two :")
+            # self.lbl_frm_two.set_selectable(True)
+            self.lbl_frm_two.set_tooltip_text(
+                """secondary event ie transit / progression
+click to set focus to event two"""
             )
-            lbl_frm_two.set_xalign(0.0)
+            self.lbl_frm_two.set_xalign(0.0)
+            # make label clickable
+            gesture = Gtk.GestureClick.new()
+            gesture.connect(
+                "pressed",
+                lambda gesture, n_pres, x, y: self.obc_event_selection(
+                    gesture,
+                    n_pres,
+                    x,
+                    y,
+                    "event_two",
+                ),
+            )
+            self.lbl_frm_two.add_controller(gesture)
+            self.lbl_frm_two.add_css_class("label-frame")
             # next below : datetime
             lbl_datetime_two = Gtk.Label(label="date & time")
             lbl_datetime_two.set_halign(Gtk.Align.START)
@@ -284,7 +313,7 @@ arrow key left / right : move time backward / forward"""
             # put labels & entries verticaly into a box
             box_event_two = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
             # box_datetime_one.set_visible(True)
-            box_event_two.append(lbl_frm_two)
+            box_event_two.append(self.lbl_frm_two)
             box_event_two.append(lbl_datetime_two)
             box_event_two.append(ent_datetime_two)
             box_event_two.append(lbl_location_two)
@@ -312,46 +341,31 @@ arrow key left / right : move time backward / forward"""
     def obc_settings(self, widget, data):
         print(f"{data} clicked")
 
-    def obc_event_selection(self, widget, event_name):
+    def obc_event_selection(self, gesture, n_press, x, y, event_name):
         """handle event selection"""
-        # print(f"widget : {widget}")
         if self.selected_event != event_name:
             self.selected_event = event_name
-            if self.selected_event == "event_one":
-                print("selected EVENT ONE")
-                self.frm_event_two.remove_css_class("label-frame-sel")
-                self.frm_event_one.remove_css_class("label-frame")
-                self.frm_event_one.add_css_class("label-frame-sel")
-            if self.selected_event == "event_two":
-                print("selected EVENT TWO")
-                self.frm_event_one.remove_css_class("label-frame-sel")
-                self.frm_event_two.remove_css_class("label-frame")
-                self.frm_event_two.add_css_class("label-frame-sel")
-            # update icons
-            # for btn_name in ["event_one", "event_two"]:
-            #     button = self.event_buttons.get(btn_name)
-            #     if button:
-            #         icon_name = self.get_event_icon(btn_name)
-            #         new_icon = self.create_pane_icon(icon_name)
-            #         new_icon.set_icon_size(self.icon_size)
-            #         # old_icon = button.get_child()
-            #         # if old_icon:
-            #         #     button.remove(old_icon)
-            #         button.set_child(new_icon)
-            # break
-        print(f"selected event changed : {event_name}")
+            GLib.idle_add(self.update_labels)
+            print(f"selected event changed : {event_name}")
 
-    # def obc_event_one(self, widget, data):
-    #     if self.selected_event != "event_one":
-    #         self.selected_event = "event_one"
-    #     self.update_event_buttons()
-    #     print(f"{data} clicked - selected : {self.selected_event}")
+    def update_labels(self):
+        if self.selected_event == "event_one":
+            print("selected EVENT ONE")
+            self.lbl_frm_two.remove_css_class("label-frame-sel")
+            self.lbl_frm_two.add_css_class("label-frame")
+            self.lbl_frm_one.remove_css_class("label-frame")
+            self.lbl_frm_one.add_css_class("label-frame-sel")
+        if self.selected_event == "event_two":
+            print("selected EVENT TWO")
+            self.lbl_frm_one.remove_css_class("label-frame-sel")
+            self.lbl_frm_one.add_css_class("label-frame")
+            self.lbl_frm_two.remove_css_class("label-frame")
+            self.lbl_frm_two.add_css_class("label-frame-sel")
 
-    # def obc_event_two(self, widget, data):
-    #     if self.selected_event != "event_one":
-    #         self.selected_event = "event_one"
-    #     self.update_event_buttons()
-    #     print(f"{data} clicked - selected : {self.selected_event}")
+        print(f"lbl_frm_one classes : { self.lbl_frm_one.get_css_classes() }")
+        print(f"lbl_frm_two classes : { self.lbl_frm_two.get_css_classes() }")
+
+        return False
 
     def obc_file_save(self, widget, data):
         print(f"{data} clicked")
