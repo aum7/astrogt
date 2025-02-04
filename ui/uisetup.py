@@ -149,9 +149,9 @@ shift-click to center all panes [todo]"""
         self.ovl_br.set_child(self.lbl_pane_br)
 
     def setup_frames(self) -> None:
-        self.frm_side_pane = Gtk.Frame()
-        self.frm_side_pane.add_css_class("frame")
-        self.frm_side_pane.set_child(self.setup_side_pane())
+        # self.frm_side_pane = Gtk.Frame()
+        # self.frm_side_pane.add_css_class("frame")
+        # self.frm_side_pane.set_child(self.setup_side_pane())
 
         self.frm_top_start_child = self.create_frame(self.ovl_tl)
         self.frm_top_end_child = self.create_frame(self.ovl_tr)

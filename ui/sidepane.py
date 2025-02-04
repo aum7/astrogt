@@ -11,8 +11,8 @@ class SidePaneManager:
     selected_event = "event_one"
 
     PANE_BUTTONS: Dict[str, str] = {
-        "event_one": "focus event one",
-        "event_two": "focus event two",
+        # "event_one": "focus event one",
+        # "event_two": "focus event two",
         "settings": "settings",
         "file_save": "save file",
         "file_load": "load file",
@@ -52,7 +52,7 @@ class SidePaneManager:
         # ensure init todo do we need init twice ?
         # self.selected_event = "event_one"
         # store references for icon updates
-        self.event_buttons = {}
+        # self.event_buttons = {}
 
     def get_event_icon(self, button_name: str) -> str:
         """get proper icon for selected event"""
@@ -64,38 +64,28 @@ class SidePaneManager:
 
     def setup_side_pane(self):
         box_side_pane_buttons = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        # store reference : todo do we need that ?
-        # self.box_side_pane_buttons = box_side_pane_buttons
 
         for button_name, tooltip in self.PANE_BUTTONS.items():
             button = Gtk.Button()
             button.add_css_class("button-pane")
             button.set_tooltip_text(tooltip)
 
-            if button_name in ["event_one", "event_two"]:
-                icon_name = self.get_event_icon(button_name)
-                # store reference for later updates
-                self.event_buttons[button_name] = button
-            else:
-                icon_name = f"{button_name}.svg"
+            icon_name = f"{button_name}.svg"
             # get proper icon
             icon = self.create_pane_icon(icon_name)
             icon.set_icon_size(self.icon_size)
             button.set_child(icon)
-            # separate handlers
-            if button_name in ["event_one", "event_two"]:
-                button.connect("clicked", self.obc_event_selection, button_name)
+
+            callback_name = f"obc_{button_name}"
+            if hasattr(self, callback_name):
+                callback = getattr(self, callback_name)
+                button.connect(
+                    "clicked",
+                    callback,
+                    button_name,
+                )
             else:
-                callback_name = f"obc_{button_name}"
-                if hasattr(self, callback_name):
-                    callback = getattr(self, callback_name)
-                    button.connect(
-                        "clicked",
-                        callback,
-                        button_name,
-                    )
-                else:
-                    button.connect("clicked", self.obc_default, button_name)
+                button.connect("clicked", self.obc_default, button_name)
 
             box_side_pane_buttons.append(button)
 
@@ -103,12 +93,12 @@ class SidePaneManager:
         box_side_pane_widgets = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         # put widgets into main frame
         frm_change_time = self.setup_change_time()
-        self.frm_event_one = self.setup_event("event one")
-        self.frm_event_two = self.setup_event("event two")
+        frm_event_one = self.setup_event("event one")
+        frm_event_two = self.setup_event("event two")
         # append to box
         box_side_pane_widgets.append(frm_change_time)
-        box_side_pane_widgets.append(self.frm_event_one)
-        box_side_pane_widgets.append(self.frm_event_two)
+        box_side_pane_widgets.append(frm_event_one)
+        box_side_pane_widgets.append(frm_event_two)
 
         box_side_pane_main = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         box_side_pane_main.append(box_side_pane_buttons)
@@ -166,7 +156,9 @@ arrow key left / right : move time backward / forward"""
         # dropdown time periods list
         self.time_periods_list = list(self.CHANGE_TIME_PERIODS.values())
         # create dropdown
-        ddn_time_periods = Gtk.DropDown.new_from_strings(self.time_periods_list)
+        ddn_time_periods = Gtk.DropDown.new_from_strings(
+            self.time_periods_list,
+        )
         ddn_time_periods.add_css_class("dropdown")
         # set default time period : 1 day
         default_period = self.time_periods_list.index("1 day")
@@ -199,7 +191,8 @@ arrow key left / right : move time backward / forward"""
             self.lbl_frm_one = Gtk.Label(label="event one :")
             # self.lbl_frm_one.set_selectable(True)
             self.lbl_frm_one.set_tooltip_text(
-                """main event ie natal chart\nclick to set focus to event one"""
+                """main event ie natal chart
+click to set focus to event one"""
             )
             self.lbl_frm_one.set_xalign(0.0)
             # make label clickable
@@ -349,6 +342,8 @@ click to set focus to event two"""
             print(f"selected event changed : {event_name}")
 
     def update_labels(self):
+        # self.rvl_side_pane.queue_resize()
+
         if self.selected_event == "event_one":
             print("selected EVENT ONE")
             self.lbl_frm_two.remove_css_class("label-frame-sel")
@@ -361,6 +356,10 @@ click to set focus to event two"""
             self.lbl_frm_one.add_css_class("label-frame")
             self.lbl_frm_two.remove_css_class("label-frame")
             self.lbl_frm_two.add_css_class("label-frame-sel")
+
+        self.frm_side_pane.queue_draw()
+        self.lbl_frm_one.queue_draw()
+        self.lbl_frm_two.queue_draw()
 
         print(f"lbl_frm_one classes : { self.lbl_frm_one.get_css_classes() }")
         print(f"lbl_frm_two classes : { self.lbl_frm_two.get_css_classes() }")
