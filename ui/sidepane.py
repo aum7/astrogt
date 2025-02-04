@@ -14,7 +14,6 @@ class SidePaneManager:
     EVENT_TWO: EventEntryData = None
 
     PANE_BUTTONS: Dict[str, str] = {
-        "timenow": "time now\nset current time for selected event",
         "settings": "settings",
         "file_save": "save file",
         "file_load": "load file",
@@ -22,16 +21,19 @@ class SidePaneManager:
     CHANGE_TIME_BUTTONS: Dict[str, str] = {
         "arrow_l_g": "move time backward",
         "arrow_r_g": "move time forward",
-        "timenow": "time now\nset current time for selected event",
+        "time_now": "time now\nset time now at set location",
         "arrow_up_g": "select previous time period",
         "arrow_dn_g": "select next time period",
     }
+    # global value for selected change time
+    CHANGE_TIME_SELECTED = 0
     # time periods in seconds, used with sweph julian day
     CHANGE_TIME_PERIODS: Dict[str, str] = {
         "period_315360000": "10 years",
         "period_31536000": "1 year",
         "period_7776000": "3 months (90 d)",
         "period_2592000": "1 month (30 d)",
+        "period_2360592": "1 month (27.3 d)",
         "period_604800": "1 week",
         "period_86400": "1 day",
         "period_21600": "6 hours",
@@ -118,7 +120,9 @@ class SidePaneManager:
             """change time period for selected event (one or two)
 hotkeys :
 arrow key up / down : select previous / next time period
-arrow key left / right : move time backward / forward"""
+arrow key left / right : move time backward / forward
+
+1 month (27.3 d) = sidereal lunar month"""
         )
 
         for button_name, tooltip in self.CHANGE_TIME_BUTTONS.items():
@@ -172,6 +176,7 @@ arrow key left / right : move time backward / forward"""
         key = [k for k, v in self.CHANGE_TIME_PERIODS.items() if v == value][0]
         seconds = key.split("_")[-1]
         # print(f"selected period : {seconds} seconds")
+        self.CHANGE_TIME_SELECTED = seconds
 
     def setup_event(self, event_name: str) -> Gtk.Frame:
         if event_name == "event one":
@@ -214,8 +219,10 @@ so change time will apply to it"""
             ent_datetime_one = Gtk.Entry()
             ent_datetime_one.set_placeholder_text("yyyy MM dd hh mm (ss)")
             ent_datetime_one.set_tooltip_text(
-                """ year month day hour minute (second)
-    second is optional """
+                """year month day hour minute (second)
+    2010 9 11 22 55
+second is optional
+only use space as separator"""
             )
             # next location - label
             lbl_location_one = Gtk.Label(label="location - lat & lon :")
@@ -229,11 +236,12 @@ so change time will apply to it"""
             ent_location_one.set_tooltip_text(
                 """latitude & longitude
     clearest form is :
-        degree minute (second) n(orth) / s(outh) and e(ast) / w(est) 
+        degree minute (second) n(orth) / s(outh) & e(ast) / w(est) 
         34 21 09 n 77 66 w
     will accept also decimal degree : 33.72 n 124.876 e
-    and also a sign ('-') for south / west : -16.75 -72.6789
-    seconds are optional"""
+    and also a sign ('-') for south & west : -16.75 -72.6789
+    seconds are optional
+    only use space as separator"""
             )
             # put labels & entries verticaly into a box
             box_event_one = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -250,14 +258,6 @@ so change time will apply to it"""
                 ent_datetime_one,
                 ent_location_one,
             )
-            # button for current utc
-            btn_current_utc = Gtk.Button(label="now")
-            btn_current_utc.connect(
-                "clicked",
-                lambda x: self.EVENT_ONE.set_current_utc(),
-            )
-            box_event_one.append(btn_current_utc)
-
             frm_event_one.set_child(box_event_one)
 
             return frm_event_one
@@ -337,14 +337,6 @@ so change time will apply to it"""
                 ent_datetime_two,
                 ent_location_two,
             )
-            # button for current utc
-            btn_current_utc = Gtk.Button(label="now")
-            btn_current_utc.connect(
-                "clicked",
-                lambda x: self.EVENT_TWO.set_current_utc(),
-            )
-            box_event_two.append(btn_current_utc)
-
             frm_event_two.set_child(box_event_two)
 
             return frm_event_two
@@ -414,6 +406,14 @@ so change time will apply to it"""
 
     def obc_arrow_r(self, widget, data):
         print(f"{data} clicked")
+
+    def obc_time_now(self, widget, data):
+        """set time now for selected event"""
+        print(f"{data} clicked")
+        if self.selected_event == "event_one" and self.EVENT_ONE:
+            self.EVENT_ONE.set_current_utc()
+        elif self.selected_event == "event_two" and self.EVENT_TWO:
+            self.EVENT_TWO.set_current_utc()
 
     def obc_arrow_up(self, widget, data):
         print(f"{data} clicked")

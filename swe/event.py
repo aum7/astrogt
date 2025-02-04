@@ -13,9 +13,9 @@ class EventEntryData:
         self.date_time = date_time
         self.location = location
         # signals jummy!
-        self.event_name.connect("changed", self.on_name_change)
-        self.date_time.connect("changed", self.on_date_time_change)
-        self.location.connect("changed", self.on_location_change)
+        self.event_name.connect("activate", self.on_name_change)
+        self.date_time.connect("activate", self.on_date_time_change)
+        self.location.connect("activate", self.on_location_change)
 
     def on_name_change(self, entry):
         """process name"""
