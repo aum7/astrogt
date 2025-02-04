@@ -1,5 +1,5 @@
 from typing import Dict
-from ..swe.event import EventEntryData
+from swe.event import EventEntryData
 import gi
 
 gi.require_version("Gtk", "4.0")
@@ -10,17 +10,21 @@ class SidePaneManager:
     """mixin class for managing the side pane"""
 
     selected_event = "event_one"
+    EVENT_ONE: EventEntryData = None
+    EVENT_TWO: EventEntryData = None
 
     PANE_BUTTONS: Dict[str, str] = {
+        "timenow": "time now\nset current time for selected event",
         "settings": "settings",
         "file_save": "save file",
         "file_load": "load file",
     }
     CHANGE_TIME_BUTTONS: Dict[str, str] = {
-        "arrow_l": "move time backward",
-        "arrow_r": "move time forward",
-        "arrow_up": "select previous time period",
-        "arrow_dn": "select next time period",
+        "arrow_l_g": "move time backward",
+        "arrow_r_g": "move time forward",
+        "timenow": "time now\nset current time for selected event",
+        "arrow_up_g": "select previous time period",
+        "arrow_dn_g": "select next time period",
     }
     # time periods in seconds, used with sweph julian day
     CHANGE_TIME_PERIODS: Dict[str, str] = {
@@ -240,6 +244,20 @@ so change time will apply to it"""
             box_event_one.append(ent_datetime_one)
             box_event_one.append(lbl_location_one)
             box_event_one.append(ent_location_one)
+            # event processing
+            self.EVENT_ONE = EventEntryData(
+                ent_event_name_one,
+                ent_datetime_one,
+                ent_location_one,
+            )
+            # button for current utc
+            btn_current_utc = Gtk.Button(label="now")
+            btn_current_utc.connect(
+                "clicked",
+                lambda x: self.EVENT_ONE.set_current_utc(),
+            )
+            box_event_one.append(btn_current_utc)
+
             frm_event_one.set_child(box_event_one)
 
             return frm_event_one
@@ -313,6 +331,20 @@ so change time will apply to it"""
             box_event_two.append(ent_datetime_two)
             box_event_two.append(lbl_location_two)
             box_event_two.append(ent_location_two)
+            # event processing
+            self.EVENT_TWO = EventEntryData(
+                ent_event_name_two,
+                ent_datetime_two,
+                ent_location_two,
+            )
+            # button for current utc
+            btn_current_utc = Gtk.Button(label="now")
+            btn_current_utc.connect(
+                "clicked",
+                lambda x: self.EVENT_TWO.set_current_utc(),
+            )
+            box_event_two.append(btn_current_utc)
+
             frm_event_two.set_child(box_event_two)
 
             return frm_event_two
@@ -328,6 +360,25 @@ so change time will apply to it"""
             default_frame.set_child(lbl_error)
 
             return default_frame
+
+    # data handlers
+    def get_selected_event_data(self) -> dict:
+        """get data for current selected event"""
+        if self.selected_event == "event_one":
+
+            return self.EVENT_ONE.get_event_data()
+
+        elif self.selected_event == "event_two":
+
+            return self.EVENT_TWO.get_event_data()
+
+        return {}
+
+    def get_both_events_data(self) -> tuple:
+        """get data for both events"""
+        event_one = self.EVENT_ONE.get_event_data() if self.EVENT_ONE else None
+        event_two = self.EVENT_TWO.get_event_data() if self.EVENT_TWO else None
+        return (event_one, event_two)
 
     # button handlers
     def obc_default(self, widget, data):
