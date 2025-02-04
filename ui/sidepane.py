@@ -21,7 +21,7 @@ class SidePaneManager:
     CHANGE_TIME_BUTTONS: Dict[str, str] = {
         "arrow_l_g": "move time backward",
         "arrow_r_g": "move time forward",
-        "time_now": "time now\nset time now at set location",
+        "time_now": "time now\nset time now for selected location",
         "arrow_up_g": "select previous time period",
         "arrow_dn_g": "select next time period",
     }
@@ -210,19 +210,27 @@ so change time will apply to it"""
             ent_event_name_one = Gtk.Entry()
             ent_event_name_one.set_placeholder_text("event one name")
             ent_event_name_one.set_tooltip_text(
-                "will be used for filename when saving",
+                """ will be used for filename when saving
+    max 30 characters
+
+[enter] = apply data
+[tab] / [shift-tab] = next / previous entry """
             )
             # next below : datetime
             lbl_datetime_one = Gtk.Label(label="date & time")
             lbl_datetime_one.set_halign(Gtk.Align.START)
             # next datetime entry
             ent_datetime_one = Gtk.Entry()
-            ent_datetime_one.set_placeholder_text("yyyy MM dd hh mm (ss)")
+            ent_datetime_one.set_placeholder_text("yyyy mm dd HH MM (SS)")
             ent_datetime_one.set_tooltip_text(
                 """year month day hour minute (second)
     2010 9 11 22 55
 second is optional
-only use space as separator"""
+24 hour time format
+only use space as separator
+
+[enter] = apply data
+[tab] / [shift-tab] = focus next / previous entry"""
             )
             # next location - label
             lbl_location_one = Gtk.Label(label="location - lat & lon :")
@@ -235,13 +243,17 @@ only use space as separator"""
             )
             ent_location_one.set_tooltip_text(
                 """latitude & longitude
-    clearest form is :
-        degree minute (second) n(orth) / s(outh) & e(ast) / w(est) 
-        34 21 09 n 77 66 w
-    will accept also decimal degree : 33.72 n 124.876 e
-    and also a sign ('-') for south & west : -16.75 -72.6789
-    seconds are optional
-    only use space as separator"""
+
+clearest form is :
+    deg min (sec) n(orth) / s(outh) & e(ast) / w(est)
+    34 21 09 n 77 66 w
+will accept also decimal degree : 33.72 n 124.876 e
+and also a sign ('-') for south & west : -16.75 -72.6789
+seconds are optional
+only use space as separator
+
+[enter] = apply data
+[tab] / [shift-tab] = focus next / previous entry"""
             )
             # put labels & entries verticaly into a box
             box_event_one = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -292,7 +304,10 @@ so change time will apply to it"""
             ent_event_name_two = Gtk.Entry()
             ent_event_name_two.set_placeholder_text("event two name")
             ent_event_name_two.set_tooltip_text(
-                "will be used for filename when saving",
+                """will be used for filename when saving
+
+[enter] = apply data
+[tab] / [shift-tab] = next / previous entry """
             )
             # next below : datetime
             lbl_datetime_two = Gtk.Label(label="date & time")
@@ -301,8 +316,14 @@ so change time will apply to it"""
             ent_datetime_two = Gtk.Entry()
             ent_datetime_two.set_placeholder_text("yyyy MM dd hh mm (ss)")
             ent_datetime_two.set_tooltip_text(
-                """ year month day hour minute (second)
-    second is optional """
+                """year month day hour minute (second)
+    2010 9 11 22 55
+second is optional
+24 hour time format
+only use space as separator
+
+[enter] = apply data
+[tab] / [shift-tab] = focus next / previous entry"""
             )
             # next location - label
             lbl_location_two = Gtk.Label(label="location - lat & lon :")
@@ -315,12 +336,17 @@ so change time will apply to it"""
             )
             ent_location_two.set_tooltip_text(
                 """latitude & longitude
-    clearest form is :
-        degree minute (second) n(orth) / s(outh) and e(ast) / w(est) 
-        34 21 09 n 77 66 w
-    will accept also decimal degree : 33.72 n 124.876 e
-    and also a sign ('-') for south / west : -16.75 -72.6789
-    seconds are optional"""
+                
+clearest form is :
+    degree minute (second) n(orth) / s(outh) & e(ast) / w(est) 
+    34 21 09 n 77 66 w
+will accept also decimal degree : 33.72 n 124.876 e
+and also a sign ('-') for south & west : -16.75 -72.6789
+seconds are optional
+only use space as separator
+
+[enter] = apply data
+[tab] / [shift-tab] = focus next / previous entry"""
             )
             # put labels & entries verticaly into a box
             box_event_two = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
