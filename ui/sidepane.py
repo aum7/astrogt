@@ -70,7 +70,7 @@ class SidePaneManager:
 
         # main box for widgets
         box_side_pane_widgets = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        # put widgets into main frame
+        # put widgets into box widgets
         clp_change_time = self.setup_change_time()
         self.clp_event_one = self.setup_event("event one")
         if self.selected_event == "event one":
@@ -80,18 +80,19 @@ class SidePaneManager:
         box_side_pane_widgets.append(clp_change_time)
         box_side_pane_widgets.append(self.clp_event_one)
         box_side_pane_widgets.append(self.clp_event_two)
+        # main container scrolled window for collapse panels
+        scw_side_pane_widgets = Gtk.ScrolledWindow()
+        scw_side_pane_widgets.set_child(box_side_pane_widgets)
+        scw_side_pane_widgets.set_hexpand(True)
+        scw_side_pane_widgets.set_visible(True)
         # side pane main box
         box_side_pane_main = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         box_side_pane_main.append(box_side_pane_buttons)
-        box_side_pane_main.append(box_side_pane_widgets)
-        # main container scrolled window
-        scw_pane_widgets = Gtk.ScrolledWindow()
-        scw_pane_widgets.set_child(box_side_pane_main)
-        scw_pane_widgets.set_hexpand(True)
-        scw_pane_widgets.set_visible(True)
+        box_side_pane_main.append(scw_side_pane_widgets)
+        # box_side_pane_main.append(box_side_pane_widgets)
 
-        return scw_pane_widgets
-        # return box_side_pane_main
+        # return scw_pane_widgets
+        return box_side_pane_main
 
     def create_pane_icon(self, icon_name):
         icons_pane = "imgs/icons/pane/"
@@ -261,193 +262,6 @@ only use space as separator
 
         return panel
 
-    #         if event_name == "event one":
-    #             # create collapse panel
-    #             self.clp_event_one = CollapsePanel(title="event one")
-    #             # top label : which event
-    #             self.clp_event_one.set_title_tooltip(
-    #                 """main event ie natal chart
-    # click to set focus to event one
-    # so change time will apply to it"""
-    #             )
-    #             # make label clickable
-    #             gesture = Gtk.GestureClick.new()
-    #             gesture.connect(
-    #                 "pressed",
-    #                 lambda gesture, n_press, x, y: self.obc_event_selection(
-    #                     gesture,
-    #                     n_press,
-    #                     x,
-    #                     y,
-    #                     "event_one",
-    #                 ),
-    #             )
-    #             self.clp_event_one.add_title_controller(gesture)
-    #             self.clp_event_one.add_title_css_class("label-frame-sel")
-    #             # next entry for event name
-    #             ent_event_name_one = Gtk.Entry()
-    #             ent_event_name_one.set_placeholder_text("event one name")
-    #             ent_event_name_one.set_tooltip_text(
-    #                 """ will be used for filename when saving
-    #     max 30 characters
-
-    # [enter] = apply data
-    # [tab] / [shift-tab] = next / previous entry """
-    #             )
-    #             # next below : datetime
-    #             lbl_datetime_one = Gtk.Label(label="date & time")
-    #             lbl_datetime_one.set_halign(Gtk.Align.START)
-    #             # next datetime entry
-    #             ent_datetime_one = Gtk.Entry()
-    #             ent_datetime_one.set_placeholder_text("yyyy mm dd HH MM (SS)")
-    #             ent_datetime_one.set_tooltip_text(
-    #                 """year month day hour minute (second)
-    #     2010 9 11 22 55
-    # second is optional
-    # 24 hour time format
-    # only use space as separator
-
-    # [enter] = apply data
-    # [tab] / [shift-tab] = focus next / previous entry"""
-    #             )
-    #             # next location - label
-    #             lbl_location_one = Gtk.Label(label="location - lat & lon :")
-    #             lbl_location_one.add_css_class("label")
-    #             lbl_location_one.set_halign(Gtk.Align.START)
-    #             # next location entry
-    #             ent_location_one = Gtk.Entry()
-    #             ent_location_one.set_placeholder_text(
-    #                 "deg min (sec) n / s deg min (sec) e / w",
-    #             )
-    #             ent_location_one.set_tooltip_text(
-    #                 """latitude & longitude
-
-    # clearest form is :
-    #     deg min (sec) n(orth) / s(outh) & e(ast) / w(est)
-    #     34 21 09 n 77 66 w
-    # will accept also decimal degree : 33.72 n 124.876 e
-    # and also a sign ('-') for south & west : -16.75 -72.6789
-    # seconds are optional
-    # only use space as separator
-
-    # [enter] = apply data
-    # [tab] / [shift-tab] = focus next / previous entry"""
-    #             )
-    #             # put labels & entries verticaly into a box
-    #             box_event_one = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-    #             box_event_one.append(ent_event_name_one)
-    #             box_event_one.append(lbl_datetime_one)
-    #             box_event_one.append(ent_datetime_one)
-    #             box_event_one.append(lbl_location_one)
-    #             box_event_one.append(ent_location_one)
-    #             # event processing
-    #             self.EVENT_ONE = EventEntryData(
-    #                 ent_event_name_one,
-    #                 ent_datetime_one,
-    #                 ent_location_one,
-    #             )
-    #             self.clp_event_one.add_widget(box_event_one)
-    #             # frm_event_one.set_child(box_event_one)
-
-    #             return self.clp_event_one
-    #             # return frm_event_one
-
-    #         elif event_name == "event two":
-    #             # event one datetime & location
-    #             # create collapse panel
-    #             self.clp_event_two = CollapsePanel(title="event two", expanded=False)
-    #             # top label : which event
-    #             self.clp_event_two.set_title_tooltip(
-    #                 """secondary event ie transit / progression
-    # click to set focus to event two
-    # so change time will apply to it"""
-    #             )
-    #             # make label clickable
-    #             gesture = Gtk.GestureClick.new()
-    #             gesture.connect(
-    #                 "pressed",
-    #                 lambda gesture, n_pres, x, y: self.obc_event_selection(
-    #                     gesture,
-    #                     n_pres,
-    #                     x,
-    #                     y,
-    #                     "event_two",
-    #                 ),
-    #             )
-    #             self.clp_event_two.add_title_controller(gesture)
-    #             self.clp_event_two.add_title_css_class("label-frame")
-    #             # next entry for event name
-    #             ent_event_name_two = Gtk.Entry()
-    #             ent_event_name_two.set_placeholder_text("event two name")
-    #             ent_event_name_two.set_tooltip_text(
-    #                 """will be used for filename when saving
-
-    # [enter] = apply data
-    # [tab] / [shift-tab] = next / previous entry """
-    #             )
-    #             # next below : datetime
-    #             lbl_datetime_two = Gtk.Label(label="date & time")
-    #             lbl_datetime_two.set_halign(Gtk.Align.START)
-    #             # next datetime entry
-    #             ent_datetime_two = Gtk.Entry()
-    #             ent_datetime_two.set_placeholder_text("yyyy MM dd hh mm (ss)")
-    #             ent_datetime_two.set_tooltip_text(
-    #                 """year month day hour minute (second)
-    #     2010 9 11 22 55
-    # second is optional
-    # 24 hour time format
-    # only use space as separator
-
-    # [enter] = apply data
-    # [tab] / [shift-tab] = focus next / previous entry"""
-    #             )
-    #             # next location - label
-    #             lbl_location_two = Gtk.Label(label="location - lat & lon :")
-    #             lbl_location_two.add_css_class("label")
-    #             lbl_location_two.set_halign(Gtk.Align.START)
-    #             # next location entry
-    #             ent_location_two = Gtk.Entry()
-    #             ent_location_two.set_placeholder_text(
-    #                 "deg min (sec) n / s deg min (sec) e / w",
-    #             )
-    #             ent_location_two.set_tooltip_text(
-    #                 """latitude & longitude
-    #
-    # clearest form is :
-    #     degree minute (second) n(orth) / s(outh) & e(ast) / w(est)
-    #     34 21 09 n 77 66 w
-    # will accept also decimal degree : 33.72 n 124.876 e
-    # and also a sign ('-') for south & west : -16.75 -72.6789
-    # seconds are optional
-    # only use space as separator
-
-    # [enter] = apply data
-    # [tab] / [shift-tab] = focus next / previous entry"""
-    #             )
-    #             # put labels & entries verticaly into a box
-    #             box_event_two = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-    #             # box_datetime_one.set_visible(True)
-    #             box_event_two.append(ent_event_name_two)
-    #             box_event_two.append(lbl_datetime_two)
-    #             box_event_two.append(ent_datetime_two)
-    #             box_event_two.append(lbl_location_two)
-    #             box_event_two.append(ent_location_two)
-    #             # event processing
-    #             self.EVENT_TWO = EventEntryData(
-    #                 ent_event_name_two,
-    #                 ent_datetime_two,
-    #                 ent_location_two,
-    #             )
-    #             self.clp_event_two.add_widget(box_event_two)
-
-    #             return self.clp_event_two
-
-    #         else:
-    #             clp_default = CollapsePanel()
-    #             clp_default.set_title("error : unknown event")
-
-    #             return clp_default
-
     # data handlers
     def get_selected_event_data(self) -> dict:
         """get data for current selected event"""
@@ -480,13 +294,13 @@ only use space as separator
             self.selected_event = event_name
             if self.selected_event == "event one":
                 self.clp_event_two.remove_title_css_class("label-frame-sel")
-                self.clp_event_two.add_title_css_class("label-frame")
-                self.clp_event_one.remove_title_css_class("label-frame")
+                # self.clp_event_two.add_title_css_class("label-frame")
+                # self.clp_event_one.remove_title_css_class("label-frame")
                 self.clp_event_one.add_title_css_class("label-frame-sel")
             if self.selected_event == "event two":
                 self.clp_event_one.remove_title_css_class("label-frame-sel")
-                self.clp_event_one.add_title_css_class("label-frame")
-                self.clp_event_two.remove_title_css_class("label-frame")
+                # self.clp_event_one.add_title_css_class("label-frame")
+                # self.clp_event_two.remove_title_css_class("label-frame")
                 self.clp_event_two.add_title_css_class("label-frame-sel")
 
     def obc_file_save(self, widget, data):
