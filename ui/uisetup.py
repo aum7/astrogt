@@ -102,7 +102,7 @@ class UISetup:
 
     def setup_menu_button(self):
         ico_menu = Gtk.Image.new_from_file("imgs/icons/menu.svg")
-        ico_menu.set_icon_size(self.icon_size)
+        ico_menu.set_icon_size(Gtk.IconSize.LARGE)
         icon_hmargin = icon_vmargin = 0
         ico_menu.set_margin_start(icon_hmargin)
         ico_menu.set_margin_end(icon_hmargin)

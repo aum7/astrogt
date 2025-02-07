@@ -24,7 +24,6 @@ class MainWindow(
             **kwargs: arbitrary keyword arguments.
         """
         super().__init__(*args, **kwargs)
-        self.init_side_pane()
         self.setup_revealer()
         self.setup_window()
         self.setup_css()
