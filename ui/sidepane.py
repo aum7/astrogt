@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional
 from swe.event import EventEntryData
 from ui.collapsepanel import CollapsePanel
 import gi
@@ -11,8 +11,8 @@ class SidePaneManager:
     """mixin class for managing the side pane"""
 
     selected_event = "event one"
-    EVENT_ONE: EventEntryData = None
-    EVENT_TWO: EventEntryData = None
+    EVENT_ONE: Optional[EventEntryData] = None
+    EVENT_TWO: Optional[EventEntryData] = None
 
     PANE_BUTTONS: Dict[str, str] = {
         "settings": "settings",
@@ -132,7 +132,8 @@ arrow key left / right : move time backward / forward
                 callback = getattr(self, callback_name)
                 button.connect(
                     "clicked",
-                    lambda btn, name=button_name: callback(btn, name),
+                    callback,
+                    button_name,
                 )
             else:
                 button.connect("clicked", self.obc_default, button_name)
@@ -143,8 +144,12 @@ arrow key left / right : move time backward / forward
         # dropdown time periods list
         self.time_periods_list = list(self.CHANGE_TIME_PERIODS.values())
         # create dropdown
-        ddn_time_periods = Gtk.DropDown.new_from_strings(self.time_periods_list)
-        ddn_time_periods.set_tooltip_text("select period to use for time change")
+        ddn_time_periods = Gtk.DropDown.new_from_strings(
+            self.time_periods_list,
+        )
+        ddn_time_periods.set_tooltip_text(
+            "select period to use for time change",
+        )
         ddn_time_periods.add_css_class("dropdown")
         # set default time period : 1 day
         default_period = self.time_periods_list.index("1 day")

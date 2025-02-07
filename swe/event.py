@@ -6,23 +6,19 @@ from datetime import datetime
 class EventEntryData:
     def __init__(self, event_name, date_time, location):
         """get user input and puf! puf! into sweph"""
-        # store gkt.entry as instance variables
-        self.event_name_widget = event_name
-        self.date_time_widget = date_time
-        self.location_widget = location
-        # store actual values
-        self.event_name = event_name.get_text().strip()
-        self.date_time = date_time.get_text().strip()
-        self.location = location.get_text().strip()
+        # self.event_name = event_name.get_text().strip()
+        self.event_name = event_name
+        self.date_time = date_time
+        self.location = location
         # backup data lol
         self.old_name = ""
         self.old_date_time = ""
         self.old_location = ""
         # connect signals for entry completion
         for widget, callback in [
-            (self.event_name_widget, self.on_name_change),
-            (self.date_time_widget, self.on_date_time_change),
-            (self.location_widget, self.on_location_change),
+            (self.event_name, self.on_name_change),
+            (self.date_time, self.on_date_time_change),
+            (self.location, self.on_location_change),
         ]:
             widget.connect("activate", callback)  # [enter]
 
@@ -118,13 +114,13 @@ class EventEntryData:
     def get_event_data(self):
         """values from all entries for an event"""
         return {
-            "name": self.event_name_widget.get_text().strip(),
-            "date_time": self.date_time_widget.get_text().strip(),
-            "location": self.location_widget.get_text().strip(),
+            "name": self.event_name.get_text().strip(),
+            "date_time": self.date_time.get_text().strip(),
+            "location": self.location.get_text().strip(),
         }
 
     def set_current_utc(self):
         current_utc = datetime.now(pytz.UTC)
         formatted_utc = current_utc.strftime("%Y-%m-%d %H:%M:%S")
-        self.date_time_widget.set_text(formatted_utc)
+        self.date_time.set_text(formatted_utc)
         print(f"current utc : {formatted_utc}")
