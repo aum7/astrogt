@@ -144,6 +144,7 @@ arrow key left / right : move time backward / forward
         self.time_periods_list = list(self.CHANGE_TIME_PERIODS.values())
         # create dropdown
         ddn_time_periods = Gtk.DropDown.new_from_strings(self.time_periods_list)
+        ddn_time_periods.set_tooltip_text("select period to use for time change")
         ddn_time_periods.add_css_class("dropdown")
         # set default time period : 1 day
         default_period = self.time_periods_list.index("1 day")
@@ -240,12 +241,13 @@ there user must un-comment (delete '# ' & save file) any country of interest"""
         lbl_city.set_halign(Gtk.Align.START)
 
         ent_city = Gtk.Entry()
+        ent_city.set_placeholder_text("enter city name")
         ent_city.set_tooltip_text(
             """type city name & confirm with [enter]
 if more than 1 city (within selected country) is found
 user needs to select the one of interest"""
         )
-
+        # latitude & longitude of event
         lbl_geolocation = Gtk.Label(label="latitude & longitude")
         lbl_geolocation.add_css_class("label")
         lbl_geolocation.set_halign(Gtk.Align.START)
@@ -255,11 +257,16 @@ user needs to select the one of interest"""
         ent_geolocation.set_tooltip_text(
             """latitude & longitude
 
+if user selects country & city, this field should be filled auto-magically
+user can also enter geo coordinates manually
+
 clearest form is :
     deg min (sec) n(orth) / s(outh) & e(ast) / w(est)
     32 21 09 n 77 66 w
 will accept also decimal degree : 33.72 n 124.876 e
 and also a sign ('-') for south & west : -16.75 -72.678
+    note : positive (without '-') values are for north & east
+        16.75 72.678
 seconds are optional
 only use space as separator
 
@@ -355,11 +362,16 @@ only use space as separator
 
     def obc_time_now(self, widget, data):
         """set time now for selected event"""
-        print(f"{data} clicked")
+        print(f"obc_time_now : {data} clicked")
+        print(f"selected_event : {self.selected_event}")
         if self.selected_event == "event one" and self.EVENT_ONE:
+            print("obc_time_now : updating EVENT_ONE")
             self.EVENT_ONE.set_current_utc()
         elif self.selected_event == "event two" and self.EVENT_TWO:
+            print("obc_time_now : updating EVENT_TWO")
             self.EVENT_TWO.set_current_utc()
+        else:
+            print("obc_time_now : error")
 
     def obc_arrow_up_g(self, widget, data):
         print(f"{data} clicked")
