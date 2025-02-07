@@ -218,13 +218,41 @@ only use space as separator
 [enter] = apply data
 [tab] / [shift-tab] = next / previous entry"""
         )
-        lbl_location = Gtk.Label(label="location")
-        lbl_location.add_css_class("label")
-        lbl_location.set_halign(Gtk.Align.START)
+        # location nested panel
+        sub_panel = CollapsePanel(
+            title="location one" if event_name == "event one" else "location two",
+            indent=10,
+        )
+        lbl_country = Gtk.Label(label="country")
+        lbl_country.add_css_class("label")
+        lbl_country.set_halign(Gtk.Align.START)
 
-        ent_location = Gtk.Entry()
-        ent_location.set_placeholder_text("deg min (sec) n / s deg  min (sec) e / w")
-        ent_location.set_tooltip_text(
+        ent_country = Gtk.Entry()
+        ent_country.set_tooltip_text(
+            """select country for location
+in astrogt/user/ folder there is file named
+countries.txt
+there user must un-comment (delete '# ' & save file) any country of interest"""
+        )
+
+        lbl_city = Gtk.Label(label="city")
+        lbl_city.add_css_class("label")
+        lbl_city.set_halign(Gtk.Align.START)
+
+        ent_city = Gtk.Entry()
+        ent_city.set_tooltip_text(
+            """type city name & confirm with [enter]
+if more than 1 city (within selected country) is found
+user needs to select the one of interest"""
+        )
+
+        lbl_geolocation = Gtk.Label(label="latitude & longitude")
+        lbl_geolocation.add_css_class("label")
+        lbl_geolocation.set_halign(Gtk.Align.START)
+
+        ent_geolocation = Gtk.Entry()
+        ent_geolocation.set_placeholder_text("deg min (sec) n / s deg  min (sec) e / w")
+        ent_geolocation.set_tooltip_text(
             """latitude & longitude
 
 clearest form is :
@@ -238,24 +266,33 @@ only use space as separator
 [enter] = accept data
 [tab] / [shift-tab] = next / previous entry"""
         )
+        # put widgets into sub-panel
+        sub_panel.add_widget(lbl_country)
+        sub_panel.add_widget(ent_country)
+        sub_panel.add_widget(lbl_city)
+        sub_panel.add_widget(ent_city)
+        sub_panel.add_widget(lbl_geolocation)
+        sub_panel.add_widget(ent_geolocation)
+        # main box for event panels
         box_event = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         box_event.append(ent_event_name)
         box_event.append(lbl_datetime)
         box_event.append(ent_datetime)
-        box_event.append(lbl_location)
-        box_event.append(ent_location)
+        # sub-panel
+        box_event.append(sub_panel)
+        # box_event.append(ent_location)
 
         if event_name == "event one":
             self.EVENT_ONE = EventEntryData(
                 ent_event_name,
                 ent_datetime,
-                ent_location,
+                ent_geolocation,
             )
         else:
             self.EVENT_TWO = EventEntryData(
                 ent_event_name,
                 ent_datetime,
-                ent_location,
+                ent_geolocation,
             )
 
         panel.add_widget(box_event)

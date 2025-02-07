@@ -7,7 +7,7 @@ from gi.repository import Gtk
 class CollapsePanel(Gtk.Box):
     """collapsing data input panel"""
 
-    def __init__(self, title="", css_class="heading", expanded=True):
+    def __init__(self, title="", css_class="heading", expanded=True, indent=7):
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
         margin_x = 0
         margin_y = 0
@@ -34,7 +34,7 @@ class CollapsePanel(Gtk.Box):
         self.box_header.append(self.lbl_title)
         # content
         self.box_content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        self.box_content.set_margin_start(7)  # indent content
+        self.box_content.set_margin_start(indent)  # indent content
         self.box_content.set_visible(expanded)
         # add to main container
         self.append(self.box_header)
