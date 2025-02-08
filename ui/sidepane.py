@@ -12,6 +12,7 @@ class SidePaneManager:
 
     selected_event = "event one"
     margin_end = 7
+
     EVENT_ONE: Optional[EventEntryData] = None
     EVENT_TWO: Optional[EventEntryData] = None
 
@@ -81,12 +82,9 @@ class SidePaneManager:
         box_side_pane_widgets.append(clp_change_time)
         box_side_pane_widgets.append(self.clp_event_one)
         box_side_pane_widgets.append(self.clp_event_two)
-        # box_side_pane_widgets.set_hexpand(True)
-        # box_side_pane_widgets.set_visible(True)
         # main container scrolled window for collapse panels
         scw_side_pane_widgets = Gtk.ScrolledWindow()
         scw_side_pane_widgets.set_hexpand(False)
-        # scw_side_pane_widgets.set_visible(True)
         scw_side_pane_widgets.set_propagate_natural_width(True)
         scw_side_pane_widgets.set_child(box_side_pane_widgets)
         # side pane main box
@@ -94,16 +92,15 @@ class SidePaneManager:
         box_side_pane_main.set_size_request(-1, -1)
         box_side_pane_main.append(box_side_pane_buttons)
         box_side_pane_main.append(scw_side_pane_widgets)
-        # box_side_pane_main.set_hexpand(True)  # ko
 
         return box_side_pane_main
 
     def create_pane_icon(self, icon_name):
-        icons_pane = "imgs/icons/pane/"
+        icons_pane = "ui/imgs/icons/pane/"
         return Gtk.Image.new_from_file(f"{icons_pane}{icon_name}")
 
     def create_change_time_icon(self, icon_name):
-        icons_change_time = "imgs/icons/changetime/"
+        icons_change_time = "ui/imgs/icons/changetime/"
         return Gtk.Image.new_from_file(f"{icons_change_time}{icon_name}")
 
     def setup_change_time(self) -> CollapsePanel:
@@ -264,7 +261,9 @@ user needs to select the one of interest"""
         lbl_geolocation.set_halign(Gtk.Align.START)
 
         ent_geolocation = Gtk.Entry()
-        ent_geolocation.set_placeholder_text("deg min (sec) n / s deg  min (sec) e / w")
+        ent_geolocation.set_placeholder_text(
+            "deg min (sec) n / s deg  min (sec) e / w",
+        )
         ent_geolocation.set_tooltip_text(
             """latitude & longitude
 
@@ -346,13 +345,9 @@ only use space as separator
             self.selected_event = event_name
             if self.selected_event == "event one":
                 self.clp_event_two.remove_title_css_class("label-frame-sel")
-                # self.clp_event_two.add_title_css_class("label-frame")
-                # self.clp_event_one.remove_title_css_class("label-frame")
                 self.clp_event_one.add_title_css_class("label-frame-sel")
             if self.selected_event == "event two":
                 self.clp_event_one.remove_title_css_class("label-frame-sel")
-                # self.clp_event_one.add_title_css_class("label-frame")
-                # self.clp_event_two.remove_title_css_class("label-frame")
                 self.clp_event_two.add_title_css_class("label-frame-sel")
 
     def obc_file_save(self, widget, data):
@@ -370,7 +365,6 @@ only use space as separator
 
     def obc_time_now(self, widget, data):
         """set time now for selected event"""
-        # print(f"obc_time_now : {data} clicked")
         if self.selected_event == "event one" and self.EVENT_ONE:
             self.EVENT_ONE.set_current_utc()
         elif self.selected_event == "event two" and self.EVENT_TWO:

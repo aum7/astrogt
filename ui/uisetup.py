@@ -7,14 +7,7 @@ from gi.repository import Gtk, Gdk
 
 
 class UISetup:
-    """mixin class for setting up ui components.
-    note: this class is intended to be used with gtk.applicationwindow
-    and should not be instantiated directly.
-    """
-
-    # def __init_subclass__(cls, **kwargs: Any) -> None:
-    #     """ensure proper init"""
-    #     super().__init_subclass__(**kwargs)
+    """class for setting up ui components"""
 
     # type hints for inherited attributes
     set_title: Callable
@@ -57,7 +50,7 @@ class UISetup:
     def setup_css(self) -> None:
         """setup css styling"""
         css_provider = Gtk.CssProvider()
-        css_provider.load_from_path("css/style.css")
+        css_provider.load_from_path("ui/css/style.css")
         display = Gdk.Display.get_default()
         if display is not None:
             Gtk.StyleContext.add_provider_for_display(
@@ -65,17 +58,6 @@ class UISetup:
                 css_provider,
                 Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION,
             )
-
-    # def setup_click_ctrlr_default(self) -> None:
-    #     """setup click gesture controller"""
-    #     click_ctrlr_default = Gtk.GestureClick()
-    #     # specifically for right-click
-    #     click_ctrlr_default.set_button(3)  # 0=any_button
-    #     click_ctrlr_default.connect(
-    #         "pressed",
-    #         self.on_context_menu,
-    #     )  # type: ignore
-    #     self.add_controller(click_ctrlr_default)  # type: ignore
 
     def setup_main_panes(self):
         self.setup_menu_button()
@@ -91,7 +73,6 @@ class UISetup:
         self.rvl_side_pane.set_transition_type(
             Gtk.RevealerTransitionType.SLIDE_RIGHT,
         )
-        # self.rvl_side_pane.set_transition_duration(3000)
         self.rvl_side_pane.set_reveal_child(True)
         # set the side pane content
         self.frm_side_pane = Gtk.Frame()
@@ -101,7 +82,7 @@ class UISetup:
         self.rvl_side_pane.set_child(self.frm_side_pane)
 
     def setup_menu_button(self):
-        ico_menu = Gtk.Image.new_from_file("imgs/icons/menu.svg")
+        ico_menu = Gtk.Image.new_from_file("ui/imgs/icons/menu.svg")
         ico_menu.set_icon_size(Gtk.IconSize.LARGE)
         icon_hmargin = icon_vmargin = 0
         ico_menu.set_margin_start(icon_hmargin)
@@ -118,7 +99,6 @@ class UISetup:
             """toggle side pane
 shift-click to center all panes [todo]"""
         )
-        # make sure we're connecting to the correct method
         self.btn_toggle_pane.connect("clicked", self.on_toggle_pane)
 
     def setup_labels(self):
@@ -149,10 +129,6 @@ shift-click to center all panes [todo]"""
         self.ovl_br.set_child(self.lbl_pane_br)
 
     def setup_frames(self) -> None:
-        # self.frm_side_pane = Gtk.Frame()
-        # self.frm_side_pane.add_css_class("frame")
-        # self.frm_side_pane.set_child(self.setup_side_pane())
-
         self.frm_top_start_child = self.create_frame(self.ovl_tl)
         self.frm_top_end_child = self.create_frame(self.ovl_tr)
         self.frm_btm_start_child = self.create_frame(self.ovl_bl)
