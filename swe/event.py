@@ -112,7 +112,7 @@ class EventEntryData:
         print(f"event location : {location}")
 
     def get_event_data(self):
-        """values from all entries for an event"""
+        """values from all entries needed for an event"""
         return {
             "name": self.event_name.get_text().strip(),
             "date_time": self.date_time.get_text().strip(),

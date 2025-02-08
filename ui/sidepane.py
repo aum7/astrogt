@@ -11,6 +11,7 @@ class SidePaneManager:
     """mixin class for managing the side pane"""
 
     selected_event = "event one"
+    margin_end = 7
     EVENT_ONE: Optional[EventEntryData] = None
     EVENT_TWO: Optional[EventEntryData] = None
 
@@ -80,18 +81,21 @@ class SidePaneManager:
         box_side_pane_widgets.append(clp_change_time)
         box_side_pane_widgets.append(self.clp_event_one)
         box_side_pane_widgets.append(self.clp_event_two)
+        # box_side_pane_widgets.set_hexpand(True)
+        # box_side_pane_widgets.set_visible(True)
         # main container scrolled window for collapse panels
         scw_side_pane_widgets = Gtk.ScrolledWindow()
+        scw_side_pane_widgets.set_hexpand(False)
+        # scw_side_pane_widgets.set_visible(True)
+        scw_side_pane_widgets.set_propagate_natural_width(True)
         scw_side_pane_widgets.set_child(box_side_pane_widgets)
-        scw_side_pane_widgets.set_hexpand(True)
-        scw_side_pane_widgets.set_visible(True)
         # side pane main box
         box_side_pane_main = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        box_side_pane_main.set_size_request(-1, -1)
         box_side_pane_main.append(box_side_pane_buttons)
         box_side_pane_main.append(scw_side_pane_widgets)
-        # box_side_pane_main.append(box_side_pane_widgets)
+        # box_side_pane_main.set_hexpand(True)  # ko
 
-        # return scw_pane_widgets
         return box_side_pane_main
 
     def create_pane_icon(self, icon_name):
@@ -106,6 +110,7 @@ class SidePaneManager:
         """setup widget for changing time of the event one or two"""
         # main container of change time widget
         clp_change_time = CollapsePanel(title="change time", expanded=False)
+        clp_change_time.set_margin_end(self.margin_end)
         clp_change_time.set_title_tooltip(
             """change time period for selected event (one or two)
 hotkeys :
@@ -179,6 +184,7 @@ arrow key left / right : move time backward / forward
             title="event one" if event_name == "event one" else "event two",
             expanded=False,
         )
+        panel.set_margin_end(self.margin_end)
         lbl_event = panel.get_title()
         lbl_event.set_tooltip_text(
             """main event ie natal chart
@@ -227,7 +233,7 @@ only use space as separator
         # location nested panel
         sub_panel = CollapsePanel(
             title="location one" if event_name == "event one" else "location two",
-            indent=10,
+            indent=14,
         )
         lbl_country = Gtk.Label(label="country")
         lbl_country.add_css_class("label")
@@ -292,7 +298,6 @@ only use space as separator
         box_event.append(ent_datetime)
         # sub-panel
         box_event.append(sub_panel)
-        # box_event.append(ent_location)
 
         if event_name == "event one":
             self.EVENT_ONE = EventEntryData(
@@ -315,11 +320,9 @@ only use space as separator
     def get_selected_event_data(self) -> dict:
         """get data for current selected event"""
         if self.selected_event == "event one":
-
             return self.EVENT_ONE.get_event_data()
 
         elif self.selected_event == "event two":
-
             return self.EVENT_TWO.get_event_data()
 
         return {}
@@ -367,16 +370,11 @@ only use space as separator
 
     def obc_time_now(self, widget, data):
         """set time now for selected event"""
-        print(f"obc_time_now : {data} clicked")
-        print(f"selected_event : {self.selected_event}")
+        # print(f"obc_time_now : {data} clicked")
         if self.selected_event == "event one" and self.EVENT_ONE:
-            print("obc_time_now : updating EVENT_ONE")
             self.EVENT_ONE.set_current_utc()
         elif self.selected_event == "event two" and self.EVENT_TWO:
-            print("obc_time_now : updating EVENT_TWO")
             self.EVENT_TWO.set_current_utc()
-        else:
-            print("obc_time_now : error")
 
     def obc_arrow_up_g(self, widget, data):
         print(f"{data} clicked")
