@@ -8,6 +8,8 @@ from .handlers import WindowHandlers  # type: ignore
 from .sidepane import SidePaneManager
 from .uisetup import UISetup
 
+# from swe.geolocation import Geolocation
+
 
 class MainWindow(
     Gtk.ApplicationWindow,
@@ -18,12 +20,9 @@ class MainWindow(
     """main application window, combining ui, handlers & panes"""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        """initialize the main window.
-        args:
-            *args: variable length argument list.
-            **kwargs: arbitrary keyword arguments.
-        """
+        """initialize the main window"""
         super().__init__(*args, **kwargs)
+        # self.geo = Geolocation(self)
         self.setup_revealer()
         self.setup_window()
         self.setup_css()

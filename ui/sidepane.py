@@ -1,6 +1,7 @@
-from typing import Dict, Optional
-from swe.event import EventEntryData
+from typing import Dict, Optional, Callable
+from swe.eventdata import EventData
 from ui.collapsepanel import CollapsePanel
+from swe.geolocation import GeoLocation
 import gi
 
 gi.require_version("Gtk", "4.0")
@@ -8,13 +9,13 @@ from gi.repository import Gtk  # type: ignore
 
 
 class SidePaneManager:
-    """mixin class for managing the side pane"""
+    """class for managing the side pane"""
 
     selected_event = "event one"
     margin_end = 7
 
-    EVENT_ONE: Optional[EventEntryData] = None
-    EVENT_TWO: Optional[EventEntryData] = None
+    EVENT_ONE: Optional[EventData] = None
+    EVENT_TWO: Optional[EventData] = None
 
     PANE_BUTTONS: Dict[str, str] = {
         "settings": "settings",
@@ -74,10 +75,10 @@ class SidePaneManager:
         box_side_pane_widgets = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         # put widgets into box widgets
         clp_change_time = self.setup_change_time()
-        self.clp_event_one = self.setup_event("event one")
+        self.clp_event_one = self.setup_event("event one", True)
         if self.selected_event == "event one":
             self.clp_event_one.add_title_css_class("label-frame-sel")
-        self.clp_event_two = self.setup_event("event two")
+        self.clp_event_two = self.setup_event("event two", False)
         # append to box
         box_side_pane_widgets.append(clp_change_time)
         box_side_pane_widgets.append(self.clp_event_one)
@@ -158,7 +159,6 @@ arrow key left / right : move time backward / forward
         ddn_time_periods.set_selected(default_period)
         ddn_time_periods.connect("notify::selected", self.odd_time_period)
         # put label & buttons & dropdown into box
-        # box_change_time.append(lbl_change_time)
         box_change_time.append(box_time_icons)
         box_change_time.append(ddn_time_periods)
 
@@ -176,10 +176,12 @@ arrow key left / right : move time backward / forward
         # print(f"selected period : {seconds} seconds")
         self.CHANGE_TIME_SELECTED = seconds
 
-    def setup_event(self, event_name: str) -> CollapsePanel:
+    def setup_event(self, event_name: str, expand: bool) -> CollapsePanel:
+        """setup event one & two collapsible panels, incl location sub-panel"""
+        # self.geo: Callable
         panel = CollapsePanel(
             title="event one" if event_name == "event one" else "event two",
-            expanded=False,
+            expanded=expand,
         )
         panel.set_margin_end(self.margin_end)
         lbl_event = panel.get_title()
@@ -236,13 +238,18 @@ only use space as separator
         lbl_country.add_css_class("label")
         lbl_country.set_halign(Gtk.Align.START)
 
-        ent_country = Gtk.Entry()
-        ent_country.set_tooltip_text(
+        geo_location = GeoLocation(self)
+        countries = geo_location.get_countries()
+
+        ddn_country = Gtk.DropDown.new_from_strings(countries)
+        ddn_country.set_tooltip_text(
             """select country for location
 in astrogt/user/ folder there is file named
 countries.txt
-there user must un-comment (delete '# ' & save file) any country of interest"""
+open it with text editor &un-comment any country of interest
+(delete '# ' & save file)"""
         )
+        ddn_country.add_css_class("dropdown")
 
         lbl_city = Gtk.Label(label="city")
         lbl_city.add_css_class("label")
@@ -254,6 +261,13 @@ there user must un-comment (delete '# ' & save file) any country of interest"""
             """type city name & confirm with [enter]
 if more than 1 city (within selected country) is found
 user needs to select the one of interest"""
+        )
+        ent_city.connect(
+            "activate",
+            lambda entry, country: geo_location.get_city_from_atlas(
+                entry, country, event_name
+            ),
+            ddn_country,
         )
         # latitude & longitude of event
         lbl_geolocation = Gtk.Label(label="latitude & longitude")
@@ -267,7 +281,7 @@ user needs to select the one of interest"""
         ent_geolocation.set_tooltip_text(
             """latitude & longitude
 
-if user selects country & city, this field should be filled auto-magically
+if country & city are filled, this field should be filled auto-magically
 user can also enter geo coordinates manually
 
 clearest form is :
@@ -275,7 +289,7 @@ clearest form is :
     32 21 09 n 77 66 w
 will accept also decimal degree : 33.72 n 124.876 e
 and also a sign ('-') for south & west : -16.75 -72.678
-    note : positive (without '-') values are for north & east
+    note : positive values (without '-') are for north & east
         16.75 72.678
 seconds are optional
 only use space as separator
@@ -285,7 +299,7 @@ only use space as separator
         )
         # put widgets into sub-panel
         sub_panel.add_widget(lbl_country)
-        sub_panel.add_widget(ent_country)
+        sub_panel.add_widget(ddn_country)
         sub_panel.add_widget(lbl_city)
         sub_panel.add_widget(ent_city)
         sub_panel.add_widget(lbl_geolocation)
@@ -299,13 +313,13 @@ only use space as separator
         box_event.append(sub_panel)
 
         if event_name == "event one":
-            self.EVENT_ONE = EventEntryData(
+            self.EVENT_ONE = EventData(
                 ent_event_name,
                 ent_datetime,
                 ent_geolocation,
             )
         else:
-            self.EVENT_TWO = EventEntryData(
+            self.EVENT_TWO = EventData(
                 ent_event_name,
                 ent_datetime,
                 ent_geolocation,
@@ -315,16 +329,22 @@ only use space as separator
 
         return panel
 
+    # city search from geolocation > country city
+    # def handle_search_city(self, entry, ddn_country, event_name):
+    #     geo = Geolocation(self)
+    #     geo.search_city(entry, ddn_country)
+    #     if geo.get_sel
+
     # data handlers
-    def get_selected_event_data(self) -> dict:
-        """get data for current selected event"""
-        if self.selected_event == "event one":
-            return self.EVENT_ONE.get_event_data()
+    # def get_selected_event_data(self) -> dict:
+    #     """get data for current selected event"""
+    #     if self.selected_event == "event one":
+    #         return self.EVENT_ONE.get_event_data()
 
-        elif self.selected_event == "event two":
-            return self.EVENT_TWO.get_event_data()
+    #     elif self.selected_event == "event two":
+    #         return self.EVENT_TWO.get_event_data()
 
-        return {}
+    #     return {}
 
     def get_both_events_data(self) -> tuple:
         """get data for both events"""

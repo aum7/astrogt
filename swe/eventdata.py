@@ -3,7 +3,7 @@ import pytz
 from datetime import datetime
 
 
-class EventEntryData:
+class EventData:
     def __init__(self, event_name, date_time, location):
         """get user input and puf! puf! into sweph"""
         # self.event_name = event_name.get_text().strip()
