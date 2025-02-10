@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Callable
+from typing import Dict, Optional
 from swe.eventdata import EventData
 from ui.collapsepanel import CollapsePanel
 from swe.geolocation import GeoLocation
@@ -9,7 +9,7 @@ from gi.repository import Gtk  # type: ignore
 
 
 class SidePaneManager:
-    """class for managing the side pane"""
+    """mixin class for managing the side pane"""
 
     selected_event = "event one"
     margin_end = 7
@@ -257,7 +257,7 @@ comment (add '# ' & save file) uninterested country"""
         lbl_city.set_halign(Gtk.Align.START)
 
         ent_city = Gtk.Entry()
-        ent_city.set_name("ent_city")
+        # ent_city.set_name("ent_city")
         ent_city.set_placeholder_text("enter city name")
         ent_city.set_tooltip_text(
             """type city name & confirm with [enter]
@@ -277,7 +277,7 @@ user needs to select the one of interest"""
         lbl_geolocation.set_halign(Gtk.Align.START)
 
         ent_geolocation = Gtk.Entry()
-        ent_geolocation.set_name("ent_geolocation")
+        # ent_geolocation.set_name("ent_geolocation")
         ent_geolocation.set_placeholder_text(
             "deg min (sec) n / s deg  min (sec) e / w",
         )
@@ -299,6 +299,10 @@ only use space as separator
 
 [enter] = accept data
 [tab] / [shift-tab] = next / previous entry"""
+        )
+        ent_geolocation.connect(
+            "activate",
+            lambda widget: self.get_both_events_data(),
         )
         # put widgets into sub-panel
         sub_panel.add_widget(lbl_country)
@@ -332,25 +336,21 @@ only use space as separator
 
         return panel
 
-    # city search from geolocation > country city
-    # def handle_search_city(self, entry, ddn_country, event_name):
-    #     geo = Geolocation(self)
-    #     geo.search_city(entry, ddn_country)
-    #     if geo.get_sel
-
     # data handlers
-    # def get_selected_event_data(self) -> dict:
-    #     """get data for current selected event"""
-    #     if self.selected_event == "event one":
-    #         return self.EVENT_ONE.get_event_data()
+    def get_selected_event_data(self) -> dict:
+        """get data for current selected event"""
+        print("get_selected_event_data called")
+        if self.selected_event == "event one" and self.EVENT_ONE:
+            return self.EVENT_ONE.get_event_data()
 
-    #     elif self.selected_event == "event two":
-    #         return self.EVENT_TWO.get_event_data()
+        elif self.selected_event == "event two" and self.EVENT_TWO:
+            return self.EVENT_TWO.get_event_data()
 
-    #     return {}
+        return {}
 
-    def get_both_events_data(self) -> tuple:
+    def get_both_events_data(self, widget=None) -> tuple:
         """get data for both events"""
+        print("get_both_events_data called")
         event_one = self.EVENT_ONE.get_event_data() if self.EVENT_ONE else None
         event_two = self.EVENT_TWO.get_event_data() if self.EVENT_TWO else None
         return (event_one, event_two)

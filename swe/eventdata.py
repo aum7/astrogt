@@ -25,10 +25,10 @@ class EventData:
     def on_name_change(self, entry):
         """process name"""
         name = entry.get_text().strip()
+        if not name or name == self.old_name:
+            return
         if len(name) > 30:
             print("name too long : max 30 characters")
-            return
-        if not name or name == self.old_name:
             return
 
         self.old_name = name
@@ -64,8 +64,10 @@ class EventData:
             else:
                 parts = [p for p in re.split("[ -/.:]+", date_time) if p]
                 # print(f"parts : {parts}")
-            if len(parts) < 5 or len(parts) > 6:
-                print("wrong data count : 6 or 5 (no seconds) time units expected")
+            if len(parts) in [5, 6]:
+                print(
+                    "wrong data count : 6 or 5 (no seconds) time units expected\nie 1999 11 12 13 14"
+                )
                 return
             # handle year
             try:
@@ -109,7 +111,7 @@ class EventData:
             return
 
         self.old_location = location
-        print(f"event location : {location}")
+        print(f"eventdata : event location : {location}")
 
     def get_event_data(self):
         """values from all entries needed for an event"""

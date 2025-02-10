@@ -89,7 +89,7 @@ class GeoLocation:
         # print(f"select_city : found_cities passed :\n\t{found_cities}")
         # present list of found cities for user to choose one
         dialog = Gtk.Dialog(
-            title="select city : name latitude longitude altitude",
+            title="select city : name-latitude-longitude-altitude",
             modal=True,
         )
         dialog.set_transient_for(self.parent)
@@ -131,11 +131,8 @@ class GeoLocation:
                     dialog.destroy()
 
     def format_geo_location(self, location):
-        """if single city is found : location = tuple
-        if multiple cities : location = string
-        we want string as result"""
+        """all geolocation data is processed as string"""
         # south & west -ve : -16.75 -72.678
-        # print(f"location : {location}")
         self.direction_lat = self.direction_lon = ""
         self.name = ""
         self.lat = self.lon = 0.0
@@ -143,14 +140,14 @@ class GeoLocation:
         self.lon_deg = self.lon_min = self.lon_sec = ""
         self.alt = ""
         if isinstance(location, str):
-            print("format_geo_location : location = string")
+            # print("format_geo_location : location = string")
             self.name, self.lat, self.lon, alt = location.split(",")
             self.alt = alt.strip()
-        elif isinstance(location, tuple):
-            # todo do we need this ?
-            print("format_geo_location : location = tuple")
-            self.name, self.lat, self.lon, alt = location
-            self.alt = str(alt).strip()
+        # elif isinstance(location, tuple):
+        #     # todo do we need this ?
+        #     print("format_geo_location : location = tuple")
+        #     self.name, self.lat, self.lon, alt = location
+        #     self.alt = str(alt).strip()
 
         if float(self.lat) <= 0:
             self.direction_lat = "s"
@@ -175,7 +172,7 @@ class GeoLocation:
 
         # construct desired format
         loc_result = f"{self.lat_deg.zfill(2)} {self.lat_min.zfill(2)} {self.lat_sec.zfill(2)} {self.direction_lat} {self.lon_deg.zfill(3)} {self.lon_min.zfill(2)} {self.lon_sec.zfill(2)} {self.direction_lon} {self.alt.zfill(4)} m"
-        print(loc_result)
+        # print(loc_result)
         # update entries
         if hasattr(self, "current_entries"):
             self.current_entries["city"].set_text(self.name.strip())
@@ -186,9 +183,9 @@ class GeoLocation:
     def decimal_to_dms(self, decimal):
         """convert decimal number to degree-minute-second"""
         min_, deg_ = modf(decimal)
+        sec_, _ = modf(min_ * 60)
         deg = int(deg_)
         min = int(min_ * 60)
-        sec_, _ = modf(min_ * 60)
         sec = int(sec_ * 60)
         # print(f"decimal_to_dms : d-m-s : {deg} - {min} - {sec}")
 
