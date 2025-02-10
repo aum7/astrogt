@@ -62,7 +62,7 @@ class WindowHandlers:
             button.set_tooltip_text(f"{tooltip}")
 
             icon = Gtk.Image.new_from_file(
-                f"imgs/icons/pane/{button_name}.svg",
+                f"ui/imgs/icons/pane/{button_name}.svg",
             )
             icon.set_icon_size(Gtk.IconSize.NORMAL)
             button.set_child(icon)

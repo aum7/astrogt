@@ -246,8 +246,9 @@ only use space as separator
             """select country for location
 in astrogt/user/ folder there is file named
 countries.txt
-open it with text editor &un-comment any country of interest
-(delete '# ' & save file)"""
+open it with text editor & un-comment any country of interest
+    (delete '# ' & save file)
+comment (add '# ' & save file) uninterested country"""
         )
         ddn_country.add_css_class("dropdown")
 

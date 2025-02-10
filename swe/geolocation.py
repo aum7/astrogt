@@ -1,4 +1,5 @@
 import sqlite3
+from math import modf
 from typing import Optional
 import gi
 
@@ -11,11 +12,18 @@ class GeoLocation:
         self.parent = parent
         self.countries = []
         self.country_map = {}
+        self._selected_city = ""
 
-        # self.selected_geo_data = None
-        self.selected_city = None
-        # self.multi_cities = None
-        # self.pop_cities = None
+    @property
+    def selected_city(self):
+        return self._selected_city
+
+    @selected_city.setter
+    def selected_city(self, value):
+        self._selected_city = value
+        if value:
+            formatted = self.format_geo_location(value)
+            # print(f"formatted geolocation : {formatted}")
 
     def get_countries(self):
         with open("user/countries.txt", "r") as f:
@@ -54,19 +62,20 @@ class GeoLocation:
         cities = cursor.fetchall()
         conn.close()
         self.check_cities(cities)
-        # return cities
 
     def check_cities(self, cities):
         if len(cities) == 0:
-            print("get_city_from_atlas : city not found : exiting ...")
+            print("check_cities : city not found : exiting ...")
             return
 
         elif len(cities) == 1:
-            print(f"get_city_from_atlas : found 1 city : {cities[0]}")
-            self.selected_city = cities[0]
+            print(f"check_cities : found 1 city : {cities[0]}")
+            str_city, lat, lon, alt = cities[0]
+            city = f"{str_city}, {lat}, {lon}, {alt}"
+            self.selected_city = city
 
         elif len(cities) > 1:
-            # print(f"get_city_from_atlas : found multiple cities :\n\t{cities}")
+            # print(f"check_cities : found multiple cities :\n\t{cities}")
             self.select_city(cities)
 
     def select_city(self, found_cities) -> Optional[str]:
@@ -111,11 +120,63 @@ class GeoLocation:
             if row and (label := row.get_child()):
                 if isinstance(label, Gtk.Label):
                     self.selected_city = label.get_text()
-                    print(f"pick_city : selected city : {self.selected_city}")
+                    # print(f"pick_city : {self.selected_city} selected")
+                    # print(f"self.selected_city type : {type(self.selected_city)}")
                     dialog.destroy()
 
-    def format_geo_location(self, lat, lon, alt):
-        # todo deg-min-sec n/s & e/w
-        geo_format = f"format_geo_location : {lat} {lon} {alt}m"
+    def format_geo_location(self, location):
+        """if single city is found : location = tuple
+        if multiple cities : location = string
+        we want string as result"""
+        # south & west -ve : -16.75 -72.678
+        # print(f"location : {location}")
+        self.direction_lat = self.direction_lon = ""
+        self.name = ""
+        self.lat_deg = self.lat_min = self.lat_sec = ""
+        self.lon_deg = self.lon_min = self.lon_sec = ""
+        self.lat = self.lon = 0.0
+        self.alt = ""
+        if isinstance(location, str):
+            self.name, self.lat, self.lon, alt = location.split(",")
+            self.alt = alt.strip()
+        elif isinstance(location, tuple):
+            self.name, self.lat, self.lon, alt = location
+            self.alt = str(alt).strip()
 
-        return geo_format
+        if float(self.lat) <= 0:
+            self.direction_lat = "s"
+        else:
+            self.direction_lat = "n"
+        if float(self.lon) <= 0:
+            self.direction_lon = "w"
+        else:
+            self.direction_lon = "e"
+
+        lat_abs = abs(float(self.lat))
+        lat_deg, lat_min, lat_sec = self.decimal_to_dms(lat_abs)
+        self.lat_deg = str(lat_deg)
+        self.lat_min = str(lat_min)
+        self.lat_sec = str(lat_sec)
+
+        lon_abs = abs(float(self.lon))
+        lon_deg, lon_min, lon_sec = self.decimal_to_dms(lon_abs)
+        self.lon_deg = str(lon_deg)
+        self.lon_min = str(lon_min)
+        self.lon_sec = str(lon_sec)
+
+        dir_result = f"location : {self.name} {self.lat_deg.zfill(2)} {self.lat_min.zfill(2)} {self.lat_sec.zfill(2)} {self.direction_lat} {self.lon_deg.zfill(3)} {self.lon_min.zfill(2)} {self.lon_sec.zfill(2)} {self.direction_lon} {self.alt.zfill(4)} m"
+        print(dir_result)
+
+        # return geo_format
+
+    def decimal_to_dms(self, decimal):
+        """convert decimal number to degree-minute-second"""
+        # decimal = 40.7128
+        min_, deg_ = modf(decimal)
+        deg = int(deg_)
+        min = int(min_ * 60)
+        sec_, _ = modf(min_ * 60)
+        sec = int(sec_ * 60)
+        # print(f"decimal_to_dms : d-m-s : {deg} - {min} - {sec}")
+
+        return deg, min, sec
