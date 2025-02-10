@@ -4,6 +4,8 @@ made using gtk4 & python
 
 uses swisseph via pyswisseph lib
 
+![current development stage](https://github.com/aum7/astrogt/blob/development/ui/astrogt250210.png)
+
 ## License
 
 This project is licensed under the Creative Commons Attribution-NonCommercial 4.0 International License - see the [LICENSE.md](LICENSE.md) file for details.
