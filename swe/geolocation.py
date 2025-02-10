@@ -22,7 +22,8 @@ class GeoLocation:
     def selected_city(self, value):
         self._selected_city = value
         if value:
-            formatted = self.format_geo_location(value)
+            self.format_geo_location(value)
+            # formatted = self.format_geo_location(value)
             # print(f"formatted geolocation : {formatted}")
 
     def get_countries(self):
@@ -137,9 +138,11 @@ class GeoLocation:
         self.lat = self.lon = 0.0
         self.alt = ""
         if isinstance(location, str):
+            print("format_geo_location : location = string")
             self.name, self.lat, self.lon, alt = location.split(",")
             self.alt = alt.strip()
         elif isinstance(location, tuple):
+            print("format_geo_location : location = tuple")
             self.name, self.lat, self.lon, alt = location
             self.alt = str(alt).strip()
 
@@ -164,8 +167,8 @@ class GeoLocation:
         self.lon_min = str(lon_min)
         self.lon_sec = str(lon_sec)
 
-        dir_result = f"location : {self.name} {self.lat_deg.zfill(2)} {self.lat_min.zfill(2)} {self.lat_sec.zfill(2)} {self.direction_lat} {self.lon_deg.zfill(3)} {self.lon_min.zfill(2)} {self.lon_sec.zfill(2)} {self.direction_lon} {self.alt.zfill(4)} m"
-        print(dir_result)
+        loc_result = f"location : {self.name} {self.lat_deg.zfill(2)} {self.lat_min.zfill(2)} {self.lat_sec.zfill(2)} {self.direction_lat} {self.lon_deg.zfill(3)} {self.lon_min.zfill(2)} {self.lon_sec.zfill(2)} {self.direction_lon} {self.alt.zfill(4)} m"
+        print(loc_result)
 
         # return geo_format
 

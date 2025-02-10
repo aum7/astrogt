@@ -365,9 +365,11 @@ only use space as separator
         if self.selected_event != event_name:
             self.selected_event = event_name
             if self.selected_event == "event one":
+                print("event_selection : event one selected")
                 self.clp_event_two.remove_title_css_class("label-frame-sel")
                 self.clp_event_one.add_title_css_class("label-frame-sel")
             if self.selected_event == "event two":
+                print("event_selection : event two selected")
                 self.clp_event_one.remove_title_css_class("label-frame-sel")
                 self.clp_event_two.add_title_css_class("label-frame-sel")
 
