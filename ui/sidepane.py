@@ -257,6 +257,7 @@ comment (add '# ' & save file) uninterested country"""
         lbl_city.set_halign(Gtk.Align.START)
 
         ent_city = Gtk.Entry()
+        ent_city.set_name("ent_city")
         ent_city.set_placeholder_text("enter city name")
         ent_city.set_tooltip_text(
             """type city name & confirm with [enter]
@@ -266,7 +267,7 @@ user needs to select the one of interest"""
         ent_city.connect(
             "activate",
             lambda entry, country: geo_location.get_city_from_atlas(
-                entry, country, event_name
+                entry, country, event_name, ent_geolocation
             ),
             ddn_country,
         )
@@ -276,6 +277,7 @@ user needs to select the one of interest"""
         lbl_geolocation.set_halign(Gtk.Align.START)
 
         ent_geolocation = Gtk.Entry()
+        ent_geolocation.set_name("ent_geolocation")
         ent_geolocation.set_placeholder_text(
             "deg min (sec) n / s deg  min (sec) e / w",
         )
@@ -283,16 +285,16 @@ user needs to select the one of interest"""
             """latitude & longitude
 
 if country & city are filled, this field should be filled auto-magically
-user can also enter geo coordinates manually
+user can also enter or fine-tune geo coordinates manually
 
 clearest form is :
-    deg min (sec) n(orth) / s(outh) & e(ast) / w(est)
-    32 21 09 n 77 66 w
+    deg min (sec) n(orth) / s(outh) & e(ast) / w(est) (altitude m)
+    32 21 09 n 77 66 w 113 m
 will accept also decimal degree : 33.72 n 124.876 e
 and also a sign ('-') for south & west : -16.75 -72.678
     note : positive values (without '-') are for north & east
         16.75 72.678
-seconds are optional
+seconds & altitude are optional
 only use space as separator
 
 [enter] = accept data

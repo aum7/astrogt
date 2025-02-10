@@ -43,7 +43,7 @@ class GeoLocation:
 
         return sorted(self.countries)
 
-    def get_city_from_atlas(self, ent_city, ddn_country, event_name):
+    def get_city_from_atlas(self, ent_city, ddn_country, event_name, ent_geolocation):
         city = ent_city.get_text().strip()
         country_index = ddn_country.get_selected()
         country = ddn_country.get_model().get_string(country_index)
@@ -62,6 +62,11 @@ class GeoLocation:
         )
         cities = cursor.fetchall()
         conn.close()
+        # store entries for later update
+        self.current_entries = {
+            "city": ent_city,
+            "geolocation": ent_geolocation,
+        }
         self.check_cities(cities)
 
     def check_cities(self, cities):
@@ -133,15 +138,16 @@ class GeoLocation:
         # print(f"location : {location}")
         self.direction_lat = self.direction_lon = ""
         self.name = ""
+        self.lat = self.lon = 0.0
         self.lat_deg = self.lat_min = self.lat_sec = ""
         self.lon_deg = self.lon_min = self.lon_sec = ""
-        self.lat = self.lon = 0.0
         self.alt = ""
         if isinstance(location, str):
             print("format_geo_location : location = string")
             self.name, self.lat, self.lon, alt = location.split(",")
             self.alt = alt.strip()
         elif isinstance(location, tuple):
+            # todo do we need this ?
             print("format_geo_location : location = tuple")
             self.name, self.lat, self.lon, alt = location
             self.alt = str(alt).strip()
@@ -167,14 +173,18 @@ class GeoLocation:
         self.lon_min = str(lon_min)
         self.lon_sec = str(lon_sec)
 
-        loc_result = f"location : {self.name} {self.lat_deg.zfill(2)} {self.lat_min.zfill(2)} {self.lat_sec.zfill(2)} {self.direction_lat} {self.lon_deg.zfill(3)} {self.lon_min.zfill(2)} {self.lon_sec.zfill(2)} {self.direction_lon} {self.alt.zfill(4)} m"
+        # construct desired format
+        loc_result = f"{self.lat_deg.zfill(2)} {self.lat_min.zfill(2)} {self.lat_sec.zfill(2)} {self.direction_lat} {self.lon_deg.zfill(3)} {self.lon_min.zfill(2)} {self.lon_sec.zfill(2)} {self.direction_lon} {self.alt.zfill(4)} m"
         print(loc_result)
+        # update entries
+        if hasattr(self, "current_entries"):
+            self.current_entries["city"].set_text(self.name.strip())
+            self.current_entries["geolocation"].set_text(loc_result)
 
-        # return geo_format
+        return loc_result
 
     def decimal_to_dms(self, decimal):
         """convert decimal number to degree-minute-second"""
-        # decimal = 40.7128
         min_, deg_ = modf(decimal)
         deg = int(deg_)
         min = int(min_ * 60)
