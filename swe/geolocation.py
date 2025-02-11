@@ -75,7 +75,7 @@ class GeoLocation:
             return
 
         elif len(cities) == 1:
-            print(f"check_cities : found 1 city : {cities[0]}")
+            # print(f"check_cities : found 1 city : {cities[0]}")
             str_city, lat, lon, alt = cities[0]
             city = f"{str_city}, {lat}, {lon}, {alt}"
             self.selected_city = city

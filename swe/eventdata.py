@@ -111,7 +111,7 @@ class EventData:
             return
 
         self.old_location = location
-        print(f"eventdata : event location : {location}")
+        # print(f"eventdata : event location : {location}")
 
     def get_event_data(self):
         """values from all entries needed for an event"""

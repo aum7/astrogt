@@ -1,0 +1,24 @@
+# util_colors.py
+# planet : colors & weekday order : unpack with
+# for planet, r, g, b in planets:
+#     print(f"Planet: {planet}, R: {r}, G: {g}, B: {b}")
+# ur = ra, ne = ke, pl = black, asc = white, mc = sa
+
+colors = [
+    ("su", 199, 184, 0),  # C7B800
+    ("mo", 179, 178, 179),  # B3B2B3
+    ("ma", 172, 27, 14),  # AC1B0E
+    ("me", 44, 128, 47),  # 2C802F
+    ("ju", 173, 104, 5),  # AD6805
+    ("ve", 94, 31, 92),  # 5E1F5C
+    ("sa", 55, 58, 155),  # 373A9B
+    ("ra", 96, 96, 96),  # 606060
+    ("ke", 68, 68, 68),  # 444444
+    ("white", 231, 231, 231),  # E7E7E7
+    ("black", 31, 31, 31),  # 1F1F1F
+    ("bgnd"", 21, 21, 21),  # 151515
+    ("ab", 42, 178, 176),  # 2AB2B0 abhijit
+    ("ejout"", 19, 155, 19),  # 139B13 eurojackpot
+    ("ejmid", 204, 204, 19),  # CCCC13
+    ("extra"", 201, 67, 152),  # C94398 extra
+]

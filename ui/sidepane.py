@@ -2,6 +2,7 @@ from typing import Dict, Optional
 from swe.eventdata import EventData
 from ui.collapsepanel import CollapsePanel
 from swe.geolocation import GeoLocation
+from swe.swecore import SweCore
 import gi
 
 gi.require_version("Gtk", "4.0")
@@ -13,6 +14,8 @@ class SidePaneManager:
 
     selected_event = "event one"
     margin_end = 7
+
+    swe_core = SweCore
 
     EVENT_ONE: Optional[EventData] = None
     EVENT_TWO: Optional[EventData] = None
@@ -337,23 +340,25 @@ only use space as separator
         return panel
 
     # data handlers
-    def get_selected_event_data(self) -> dict:
+    def get_selected_event_data(self) -> None:
         """get data for current selected event"""
         print("get_selected_event_data called")
         if self.selected_event == "event one" and self.EVENT_ONE:
-            return self.EVENT_ONE.get_event_data()
+            self.swe_core.get_events_data(self.EVENT_ONE.get_event_data(), None)
 
         elif self.selected_event == "event two" and self.EVENT_TWO:
-            return self.EVENT_TWO.get_event_data()
+            self.swe_core.get_events_data(None, self.EVENT_TWO.get_event_data())
 
-        return {}
+        # return {}
 
-    def get_both_events_data(self, widget=None) -> tuple:
+    def get_both_events_data(self, widget=None) -> None:
         """get data for both events"""
-        print("get_both_events_data called")
+        # print("get_both_events_data called")
         event_one = self.EVENT_ONE.get_event_data() if self.EVENT_ONE else None
         event_two = self.EVENT_TWO.get_event_data() if self.EVENT_TWO else None
-        return (event_one, event_two)
+        self.swe_core.get_events_data(self, event_one, event_two)
+
+        # return (event_one, event_two)
 
     # button handlers
     def obc_default(self, widget, data):
