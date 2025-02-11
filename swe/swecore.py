@@ -32,5 +32,5 @@ class SweCore:
         # def get_events_data(self, event_one: "EventData", event_two: "EventData"):
         self.EVENT_ONE = event_one
         self.EVENT_TWO = event_two
-        print(f"get_events_data : EVENT_ONE: {self.EVENT_ONE}")
-        print(f"get_events_data : EVENT_TWO: {self.EVENT_TWO}")
+        print(f"swecore : get_events_data : EVENT_ONE: {self.EVENT_ONE}")
+        print(f"swecore : get_events_data : EVENT_TWO: {self.EVENT_TWO}")

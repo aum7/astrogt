@@ -344,10 +344,16 @@ only use space as separator
         """get data for current selected event"""
         print("get_selected_event_data called")
         if self.selected_event == "event one" and self.EVENT_ONE:
-            self.swe_core.get_events_data(self.EVENT_ONE.get_event_data(), None)
+            self.swe_core.get_events_data(
+                self.EVENT_ONE.get_event_data(),
+                None,
+            )
 
         elif self.selected_event == "event two" and self.EVENT_TWO:
-            self.swe_core.get_events_data(None, self.EVENT_TWO.get_event_data())
+            self.swe_core.get_events_data(
+                None,
+                self.EVENT_TWO.get_event_data(),
+            )
 
         # return {}
 
