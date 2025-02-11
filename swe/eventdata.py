@@ -1,12 +1,9 @@
 import re
-import pytz
-from datetime import datetime
 
 
 class EventData:
     def __init__(self, event_name, date_time, location):
         """get user input and puf! puf! into sweph"""
-        # self.event_name = event_name.get_text().strip()
         self.event_name = event_name
         self.date_time = date_time
         self.location = location
@@ -14,6 +11,12 @@ class EventData:
         self.old_name = ""
         self.old_date_time = ""
         self.old_location = ""
+
+        # focus wrapper
+        def focus_wrapper(widget, pspec, callback):
+            if not widget.has_focus():
+                callback(widget)
+
         # connect signals for entry completion
         for widget, callback in [
             (self.event_name, self.on_name_change),
@@ -21,6 +24,10 @@ class EventData:
             (self.location, self.on_location_change),
         ]:
             widget.connect("activate", callback)  # [enter]
+            widget.connect(
+                "notify::has-focus",
+                lambda w, p, cb=callback: focus_wrapper(w, p, cb),
+            )  # focus lost ?
 
     def on_name_change(self, entry):
         """process name"""
@@ -41,37 +48,34 @@ class EventData:
             return
 
         self.old_date_time = date_time
+        # print(f"on_dt_change : date_time : {date_time}")
         # validate datetime
         try:
             # check characters
             valid_chars = set("0123456789 -/.:")
             invalid_chars = set(date_time) - valid_chars
             if invalid_chars:
-                print(f"dt_change : unaccepted characters : {sorted(invalid_chars)}")
+                print(f"on_dt_change : unaccepted characters : {sorted(invalid_chars)}")
                 return
             # huston we have data
             is_year_negative = date_time.lstrip().startswith("-")
-            if not is_year_negative:
-                # try formatted version for +ve years
-                try:
-                    dt = datetime.strptime(date_time, "%Y-%m-%d %H:%M:%S")
-                    print(f"event dt : {dt}")
-                    return
+            # print(f"eventdata : year negative : {is_year_negative}")
 
-                except ValueError:
-                    pass
+            parts = [p for p in re.split("[ -/.:]+", date_time) if p]
+            # print(f"parts : {parts}")
 
-            else:
-                parts = [p for p in re.split("[ -/.:]+", date_time) if p]
-                # print(f"parts : {parts}")
-            if len(parts) in [5, 6]:
+            if len(parts) < 5 or len(parts) > 6:
                 print(
-                    "wrong data count : 6 or 5 (no seconds) time units expected\nie 1999 11 12 13 14"
+                    """wrong data count : 6 or 5 (no seconds) time units expected
+    ie 1999 11 12 13 14"""
                 )
                 return
-            # handle year
+                # handle year
             try:
                 year = int(parts[0])
+                if is_year_negative:
+                    year = -abs(year)
+                # print(f"year : {year}")
                 # swiseph year range
                 if not -13200 <= year <= 17191:
                     print("year out of sweph range (-13.200 - 17.191)")
@@ -85,23 +89,79 @@ class EventData:
                 # add seconds
                 parts.append("00")
 
+            _, month, day, hour, minute, second = map(int, parts)
+
+            # check if date_time is valid day
+            def is_valid_date(year, month, day):
+                day_count_for_month = [
+                    # 0 added to match number with month
+                    0,
+                    31,
+                    28,
+                    31,
+                    30,
+                    31,
+                    30,
+                    31,
+                    31,
+                    30,
+                    31,
+                    30,
+                    31,
+                ]
+                if year % 4 == 0 and (year % 100 != 0 or year % 400 == 0):
+                    day_count_for_month[2] = 29
+
+                return 1 <= month <= 12 and 1 <= day <= day_count_for_month[month]
+
+            if not is_valid_date(year, month, day):
+                print(f"{year}-{month}-{day} : date is NOT valid : fix & try again")
+                print("\tcheck month & day : february has 28 or 29 days")
+
+                return
+
+            def is_valid_time(hour, minute, second):
+                return 0 <= hour <= 23 and 0 <= minute <= 59 and 0 <= second <= 59
+
+            if not is_valid_time(hour, minute, second):
+                print(f"{hour}:{minute}:{second} : time is NOT valid : fix & try again")
+
+                return
+
             try:
-                year, month, day, hour, minute, second = map(int, parts)
-                dt = datetime(year, month, day, hour, minute, second)
-                formatted = f"{year:04d}-{month:02d}-{day:02d} {hour:02d}:{minute:02d}:{second:02d}"
-                # formatted = dt.strftime("%Y-%m-%d %H:%M:%S")
-                print(f"formatted event dt : {formatted}")
+                if year <= -10000:
+                    y_ = f"-{abs(year)}"
+                elif year < 0:
+                    y_ = f"-{abs(year):04d}"
+                elif year >= 0:
+                    y_ = f"{year:04d}"
+                m_ = f"{month:02d}"
+                d_ = f"{day:02d}"
+                h_ = f"{hour:02d}"
+                mi_ = f"{minute:02d}"
+                s_ = f"{second:02d}"
+
+                formatted = f"{y_}-{m_}-{d_} {h_}:{mi_}:{s_}"
+                print(f"formatted dt : \n\t{formatted}")
+                entry.set_text(formatted)
+                date_time_formatted = f"{year} {month} {day} {hour} {minute} {second}"
+                print(f"final date_time : \n\t{date_time_formatted}")
+
+                # return dt
 
             except ValueError as e:
                 print(f"invalid date-time : {str(e)}")
+
                 return
 
-        except Exception:
+        except Exception as e:
             print(
                 """wrong date-time format
     we only accept space-separated : yyyy mm dd HH MM SS
     and - / . : for separators"""
             )
+            print(f"error : {str(e)}")
+
             return
 
     def on_location_change(self, entry):

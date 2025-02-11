@@ -12,13 +12,12 @@ from gi.repository import Gtk  # type: ignore
 class SidePaneManager:
     """mixin class for managing the side pane"""
 
+    # def __init__(self):
     selected_event = "event one"
     margin_end = 7
-
     swe_core = SweCore
-
-    EVENT_ONE: Optional[EventData] = None
-    EVENT_TWO: Optional[EventData] = None
+    EVENT_ONE = EventData
+    EVENT_TWO = EventData
 
     PANE_BUTTONS: Dict[str, str] = {
         "settings": "settings",
@@ -232,6 +231,10 @@ only use space as separator
 [enter] = apply data
 [tab] / [shift-tab] = next / previous entry"""
         )
+        # ent_datetime.connect(
+        #     "focus-out",
+        #     lambda widget: self.get_both_events_data(),
+        # )
         # location nested panel
         sub_panel = CollapsePanel(
             title="location one" if event_name == "event one" else "location two",
@@ -314,13 +317,6 @@ only use space as separator
         sub_panel.add_widget(ent_city)
         sub_panel.add_widget(lbl_geolocation)
         sub_panel.add_widget(ent_geolocation)
-        # main box for event panels
-        box_event = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        box_event.append(ent_event_name)
-        box_event.append(lbl_datetime)
-        box_event.append(ent_datetime)
-        # sub-panel
-        box_event.append(sub_panel)
 
         if event_name == "event one":
             self.EVENT_ONE = EventData(
@@ -334,32 +330,38 @@ only use space as separator
                 ent_datetime,
                 ent_geolocation,
             )
+        # main box for event panels
+        box_event = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        box_event.append(ent_event_name)
+        box_event.append(lbl_datetime)
+        box_event.append(ent_datetime)
+        # sub-panel
+        box_event.append(sub_panel)
 
         panel.add_widget(box_event)
 
         return panel
 
     # data handlers
-    def get_selected_event_data(self) -> None:
-        """get data for current selected event"""
-        print("get_selected_event_data called")
-        if self.selected_event == "event one" and self.EVENT_ONE:
-            self.swe_core.get_events_data(
-                self.EVENT_ONE.get_event_data(),
-                None,
-            )
+    # def get_selected_event_data(self) -> None:
+    #     """get data for current selected event"""
+    #     print("get_selected_event_data called")
+    #     if self.selected_event == "event one" and self.EVENT_ONE:
+    #         self.swe_core.get_events_data(
+    #             self.EVENT_ONE.get_event_data(),
+    #             None,
+    #         )
 
-        elif self.selected_event == "event two" and self.EVENT_TWO:
-            self.swe_core.get_events_data(
-                None,
-                self.EVENT_TWO.get_event_data(),
-            )
+    #     elif self.selected_event == "event two" and self.EVENT_TWO:
+    #         self.swe_core.get_events_data(
+    #             None,
+    #             self.EVENT_TWO.get_event_data(),
+    #         )
 
-        # return {}
+    # return {}
 
     def get_both_events_data(self, widget=None) -> None:
         """get data for both events"""
-        # print("get_both_events_data called")
         event_one = self.EVENT_ONE.get_event_data() if self.EVENT_ONE else None
         event_two = self.EVENT_TWO.get_event_data() if self.EVENT_TWO else None
         self.swe_core.get_events_data(self, event_one, event_two)
