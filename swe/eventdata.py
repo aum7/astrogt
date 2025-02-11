@@ -1,4 +1,7 @@
 import re
+from math import modf
+from datetime import datetime
+import pytz
 
 
 class EventData:
@@ -7,10 +10,21 @@ class EventData:
         self.event_name = event_name
         self.date_time = date_time
         self.location = location
-        # backup data lol
         self.old_name = ""
         self.old_date_time = ""
         self.old_location = ""
+        # connect signals
+        self.event_name.connect("activate", self.on_name_change)
+        self.date_time.connect("activate", self.on_date_time_change)
+        self.location.connect("activate", self.on_location_change)
+
+        self.event_name.connect("focus-out-event", lambda w, e: self.on_name_change(w))
+        self.date_time.connect(
+            "focus-out-event", lambda w, e: self.on_date_time_change(w)
+        )
+        self.location.connect(
+            "focus-out-event", lambda w, e: self.on_location_change(w)
+        )
 
         # focus wrapper
         def focus_wrapper(widget, pspec, callback):
@@ -165,13 +179,160 @@ class EventData:
             return
 
     def on_location_change(self, entry):
-        """process location"""
+        """process location data (as string)
+        3 allowed input formats :
+        1. dms : "32 21 09 n 77 66 00 w 113 m"
+        2. decimal : "33.72 n 124.876 e"
+        3. signed decimal : "-16.75 -72.678"
+        south & west are -ve : -16.75 -72.678"""
+
         location = entry.get_text().strip()
         if not location or location == self.old_location:
+
             return
 
-        self.old_location = location
-        # print(f"eventdata : event location : {location}")
+        try:
+            parts = location.lower().split()
+            # detect direction (e, s, n, w)
+            has_direction = any(d in "nsew" for d in location.lower())
+
+            if has_direction:
+                lat_dir_idx = -1
+                lon_dir_idx = -1
+                for i, part in enumerate(parts):
+                    if part in "ns":
+                        lat_dir_idx = i
+                    elif part in "ew":
+                        lon_dir_idx = i
+                if lat_dir_idx == -1 or lon_dir_idx == -1:
+                    print("missing direction indicators (n/s & e/w)")
+
+                    return False
+                # split into latitude & longitude
+                lat_parts = parts[: lat_dir_idx + 1]
+                lon_parts = parts[lat_dir_idx + 1 : lon_dir_idx + 1]
+                # get optional altitude
+                alt = "/ m"
+                if len(parts) > lon_dir_idx + 1:
+                    alt = parts[lon_dir_idx + 1]
+                # check if d-m-s or decimal
+                try:
+                    if len(lat_parts) == 2 and len(lon_parts) == 2:
+                        # decimal with direction format
+                        lat = float(lat_parts[0])
+                        lat_dir = lat_parts[1]
+                        lon = float(lon_parts[0])
+                        lon_dir = lon_parts[1]
+                        # convert to deg-min-sec
+                        lat_deg, lat_min, lat_sec = self.decimal_to_dms(abs(lat))
+                        lon_deg, lon_min, lon_sec = self.decimal_to_dms(abs(lon))
+                    else:
+                        # d-m-s format : seconds are optional
+                        if len(lat_parts) < 3 or len(lon_parts) < 3:
+                            print("eventdata : invalid deg-min-(sec) n/s e/w format")
+
+                            return False
+
+                        lat_deg = int(lat_parts[0])
+                        lat_min = int(lat_parts[1])
+                        lat_sec = int(lat_parts[2]) if len(lat_parts) > 3 else 0
+                        lat_dir = lat_parts[-1]
+
+                        lon_deg = int(lon_parts[0])
+                        lon_min = int(lon_parts[1])
+                        lon_sec = int(lon_parts[2]) if len(lon_parts) > 3 else 0
+                        lon_dir = lon_parts[-1]
+                except (ValueError, IndexError) as e:
+                    print(f"error parsing coordinates :\n\t{str(e)}")
+
+                    return False
+
+            else:
+                # signed decimal format
+                try:
+                    if len(parts) < 2:
+                        print("need min latitude & longitude")
+
+                        return False
+
+                    lat = float(parts[0])
+                    lon = float(parts[1])
+                    # get optional altitude
+                    alt = parts[2] if len(parts) > 2 else "/"
+                    # determine direction from signs
+                    lat_dir = "s" if lat < 0 else "n"
+                    lon_dir = "w" if lon < 0 else "e"
+                    # convert to d-m-s
+                    lat_deg, lat_min, lat_sec = self.decimal_to_dms(abs(lat))
+                    lon_deg, lon_min, lon_sec = self.decimal_to_dms(abs(lon))
+
+                except ValueError as e:
+                    print(f"invalid decimal coordinates :\n\t{str(e)}")
+
+                    return False
+
+            # validate ranges
+            if not (0 <= lat_deg <= 89):
+                print("latitude degrees must be between 0 & 90")
+                return False
+            if not (0 <= lat_min <= 59) or not (0 <= lat_sec <= 59):
+                print("minutes & seconds must be between 0 & 59")
+                return False
+            if lat_dir not in ["n", "s"]:
+                print("latitude direction must be n(orth) or s(outh)")
+                return False
+
+            if not (0 <= lon_deg <= 179):
+                print("longitude degrees must be between 0 and 179")
+                return False
+            if not (0 <= lon_min <= 59) or not (0 <= lon_sec <= 59):
+                print("minutes & seconds must be between 0 & 59")
+                return False
+            if lon_dir not in ["e", "w"]:
+                print("longitude direction must be e(ast) or w(est)")
+                return False
+            # try to convert altitude to int if present
+            try:
+                alt = str(int(alt))
+            except ValueError:
+                print("invalid altitude value")
+                return False
+
+            # format final string
+            location_formatted = (
+                f"{lat_deg:02d} {lat_min:02d} {lat_sec:02d} {lat_dir} "
+                f"{lon_deg:03d} {lon_min:02d} {lon_sec:02d} {lon_dir} "
+                f"{alt.zfill(4)} m"
+            )
+            # update entry if text changed
+            if location != location_formatted:
+                entry.set_text(location_formatted)
+
+            self.old_location = location_formatted
+            print(f"location valid & formatted : {location_formatted}")
+            return True
+
+        except Exception as e:
+            print(
+                f"""invalid location format : we accept :
+1. deg-min-sec with direction : 32 21 (9) n 77 66 (11) w (alt) - sec & alt are optional
+2. decimal with direction : 33.77 n 124.87 e (alt) - alt is optional
+3. decimal signed : -16.76 -72.678 (alt) - alt is optional
+
+error :\n\t{str(e)}"""
+            )
+            return False
+
+    def decimal_to_dms(self, decimal):
+        """convert decimal number to degree-minute-second"""
+        min_, deg_ = modf(decimal)
+        sec_, _ = modf(min_ * 60)
+        deg = int(deg_)
+        min = int(min_ * 60)
+        sec = int(sec_ * 60)
+        # print(f"decimal_to_dms : d-m-s : {deg} - {min} - {sec}")
+
+        return deg, min, sec
 
     def get_event_data(self):
         """values from all entries needed for an event"""

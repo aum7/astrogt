@@ -1,7 +1,7 @@
 from typing import Dict, Optional
 from swe.eventdata import EventData
 from ui.collapsepanel import CollapsePanel
-from swe.geolocation import GeoLocation
+from swe.eventlocation import EventLocation
 from swe.swecore import SweCore
 import gi
 
@@ -231,10 +231,6 @@ only use space as separator
 [enter] = apply data
 [tab] / [shift-tab] = next / previous entry"""
         )
-        # ent_datetime.connect(
-        #     "focus-out",
-        #     lambda widget: self.get_both_events_data(),
-        # )
         # location nested panel
         sub_panel = CollapsePanel(
             title="location one" if event_name == "event one" else "location two",
@@ -244,7 +240,7 @@ only use space as separator
         lbl_country.add_css_class("label")
         lbl_country.set_halign(Gtk.Align.START)
 
-        geo_location = GeoLocation(self)
+        geo_location = EventLocation(self)
         countries = geo_location.get_countries()
 
         ddn_country = Gtk.DropDown.new_from_strings(countries)
@@ -263,7 +259,6 @@ comment (add '# ' & save file) uninterested country"""
         lbl_city.set_halign(Gtk.Align.START)
 
         ent_city = Gtk.Entry()
-        # ent_city.set_name("ent_city")
         ent_city.set_placeholder_text("enter city name")
         ent_city.set_tooltip_text(
             """type city name & confirm with [enter]
@@ -272,22 +267,19 @@ user needs to select the one of interest"""
         )
         ent_city.connect(
             "activate",
-            lambda entry, country: geo_location.get_city_from_atlas(
-                entry, country, event_name, ent_geolocation
-            ),
+            lambda entry, country: geo_location.get_selected_city(entry, country),
             ddn_country,
         )
         # latitude & longitude of event
-        lbl_geolocation = Gtk.Label(label="latitude & longitude")
-        lbl_geolocation.add_css_class("label")
-        lbl_geolocation.set_halign(Gtk.Align.START)
+        lbl_location = Gtk.Label(label="latitude & longitude")
+        lbl_location.add_css_class("label")
+        lbl_location.set_halign(Gtk.Align.START)
 
-        ent_geolocation = Gtk.Entry()
-        # ent_geolocation.set_name("ent_geolocation")
-        ent_geolocation.set_placeholder_text(
+        ent_location = Gtk.Entry()
+        ent_location.set_placeholder_text(
             "deg min (sec) n / s deg  min (sec) e / w",
         )
-        ent_geolocation.set_tooltip_text(
+        ent_location.set_tooltip_text(
             """latitude & longitude
 
 if country & city are filled, this field should be filled auto-magically
@@ -306,7 +298,7 @@ only use space as separator
 [enter] = accept data
 [tab] / [shift-tab] = next / previous entry"""
         )
-        ent_geolocation.connect(
+        ent_location.connect(
             "activate",
             lambda widget: self.get_both_events_data(),
         )
@@ -315,20 +307,22 @@ only use space as separator
         sub_panel.add_widget(ddn_country)
         sub_panel.add_widget(lbl_city)
         sub_panel.add_widget(ent_city)
-        sub_panel.add_widget(lbl_geolocation)
-        sub_panel.add_widget(ent_geolocation)
+        sub_panel.add_widget(lbl_location)
+        sub_panel.add_widget(ent_location)
 
+        # create eventdata instance
+        event_data = EventData(ent_event_name, ent_datetime, ent_location)
         if event_name == "event one":
             self.EVENT_ONE = EventData(
                 ent_event_name,
                 ent_datetime,
-                ent_geolocation,
+                ent_location,
             )
         else:
             self.EVENT_TWO = EventData(
                 ent_event_name,
                 ent_datetime,
-                ent_geolocation,
+                ent_location,
             )
         # main box for event panels
         box_event = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -362,10 +356,45 @@ only use space as separator
 
     def get_both_events_data(self, widget=None) -> None:
         """get data for both events"""
-        event_one = self.EVENT_ONE.get_event_data() if self.EVENT_ONE else None
-        event_two = self.EVENT_TWO.get_event_data() if self.EVENT_TWO else None
-        self.swe_core.get_events_data(self, event_one, event_two)
+        try:
+            event_one = (
+                self.EVENT_ONE.get_event_data()
+                if isinstance(self.EVENT_ONE, EventData)
+                else None
+            )
+            event_two = (
+                self.EVENT_TWO.get_event_data()
+                if isinstance(self.EVENT_TWO, EventData)
+                else None
+            )
+            self.swe_core.get_events_data(self, event_one, event_two)
 
+        except AttributeError:
+            # re-initialize if they be converted to dict
+            if isinstance(self.EVENT_ONE, dict):
+                self.EVENT_ONE = EventData(
+                    self.clp_event_one.get_widget("event_name"),
+                    self.clp_event_one.get_widget("date_time"),
+                    self.clp_event_one.get_widget("location"),
+                )
+            if isinstance(self.EVENT_TWO, dict):
+                self.EVENT_TWO = EventData(
+                    self.clp_event_two.get_widget("event_name"),
+                    self.clp_event_two.get_widget("date_time"),
+                    self.clp_event_two.get_widget("location"),
+                )
+            # try again
+            event_one = (
+                self.EVENT_ONE.get_event_data()
+                if isinstance(self.EVENT_ONE, EventData)
+                else None
+            )
+            event_two = (
+                self.EVENT_TWO.get_event_data()
+                if isinstance(self.EVENT_TWO, EventData)
+                else None
+            )
+            self.swe_core.get_events_data(self, event_one, event_two)
         # return (event_one, event_two)
 
     # button handlers
