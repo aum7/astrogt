@@ -18,6 +18,9 @@ class EventData:
         self.date_time.connect("activate", self.on_date_time_change)
         self.location.connect("activate", self.on_location_change)
 
+        def widget_wrapper(self, widget, pspec, callback):
+            pass
+
         self.event_name.connect("focus-out-event", lambda w, e: self.on_name_change(w))
         self.date_time.connect(
             "focus-out-event", lambda w, e: self.on_date_time_change(w)

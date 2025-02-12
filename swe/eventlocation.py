@@ -59,7 +59,7 @@ class EventLocation:
             self.check_cities(sorted(cities))
 
         except Exception as e:
-            print(f"atlas db error :\n\t{str(e)}")
+            print(f"eventlocation : atlas db error :\n\t{str(e)}")
 
     def check_cities(self, cities):
         if len(cities) == 0:
