@@ -12,6 +12,11 @@ class EventLocation:
         self.countries = []
         self.country_map = {}
         self.selected_city = ""
+        self.entry = None
+        self.location_callback = None
+
+    def set_location_callback(self, callback):
+        self.location_callback = callback
 
     def get_countries(self):
         with open("user/countries.txt", "r") as f:
@@ -35,8 +40,10 @@ class EventLocation:
         ent_city,
         ddn_country,
         # event_name,
-        # ent_geolocation,
+        # ent_location,
     ):
+        # store entry reference
+        self.entry = ent_city
         city = ent_city.get_text().strip()
         country_index = ddn_country.get_selected()
         country = ddn_country.get_model().get_string(country_index)
@@ -71,13 +78,32 @@ class EventLocation:
             city, lat, lon, alt = cities[0]
             city_str = f"{city}, {lat}, {lon}, {alt}"
             self.selected_city = city_str
+            self.update_entries(city_str)
 
         elif len(cities) > 1:
             # print(f"check_cities : found multiple cities :\n\t{cities}")
-            self.selected_city = self.select_city(cities)
+            # self.selected_city = self.select_city(cities)
+            self.show_city_dialog(cities)
         # return selected_city
 
-    def select_city(self, found_cities) -> Optional[str]:
+    def update_entries(self, city_str):
+        if not city_str:
+            return
+
+        parts = city_str.split(", ")
+        if len(parts) >= 4:
+            city_name = parts[0]
+            lat, lon, alt = parts[1:4]
+
+            if self.entry:
+                self.entry.set_text(city_name)
+
+            if self.location_callback:
+                self.location_callback(lat, lon, alt)
+
+    def show_city_dialog(self, found_cities):
+
+        # def select_city(self, found_cities) -> Optional[str]:
         """present list of found cities for user to select one (modal)"""
         # print(f"select_city : found_cities passed :\n\t{found_cities}")
         # present list of found cities for user to choose one
@@ -97,17 +123,27 @@ class EventLocation:
 
         listbox = Gtk.ListBox()
         listbox.set_selection_mode(Gtk.SelectionMode.SINGLE)
-        listbox.connect(
-            "row-activated",
-            lambda listbox, row: pick_city(row),
-        )
+
+        def pick_city(listbox_, row):
+            if row and (label := row.get_child()):
+                if isinstance(label, Gtk.Label):
+                    selected = label.get_text()
+                    self.selected_city = selected
+                    self.update_entries(selected)
+                    # print(f"pick_city : {self.selected_city} selected")
+                    # print(f"self.selected_city type : {type(self.selected_city)}")
+                    # dialog.destroy()
+                    dialog.close()
+
+        listbox.connect("row-activated", pick_city)
 
         margin_h = 7
         for city in found_cities:
             row = Gtk.ListBoxRow()
-            city_str = str(city).replace("(", "")
-            city_str = city_str.replace(")", "")
-            city_str = city_str.replace("'", "")
+            city_str = f"{city[0]}, {city[1]},{city[2]}, {city[3]}"
+            # city_str = str(city).replace("(", "")
+            # city_str = city_str.replace(")", "")
+            # city_str = city_str.replace("'", "")
             label = Gtk.Label(label=city_str)
             label.set_margin_start(margin_h)
             label.set_margin_end(margin_h)
@@ -117,15 +153,20 @@ class EventLocation:
         scw.set_child(listbox)
         dialog.present()
 
-        def pick_city(row):
-            if row and (label := row.get_child()):
-                if isinstance(label, Gtk.Label):
-                    self.selected_city = label.get_text()
-                    # print(f"pick_city : {self.selected_city} selected")
-                    # print(f"self.selected_city type : {type(self.selected_city)}")
-                    dialog.destroy()
+        # self.ent_city.set_text(self.selected_city)
 
     def get_selected_city(self, entry, dropdown):
+        print(f"1st-get_selected_city : {self.selected_city}")
+        selected_city = self.selected_city
+        print(f"2nd-get_selected_city : selected_city : {selected_city}")
         self.get_city_from_atlas(entry, dropdown)
+        print(
+            f"3rd-get_selected_city : {self.selected_city} after get_city_from_atlas()"
+        )
+
+        # selected_ = selected_city.split()
+        # print(f"get_selected_city : selected_city : {selected_city}")
+        # if self.selected_city:
+        #     entry.set_text(self.selected_city.split(", ")[0])
 
         return self.selected_city

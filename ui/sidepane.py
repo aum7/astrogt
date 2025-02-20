@@ -240,8 +240,8 @@ only use space as separator
         lbl_country.add_css_class("label")
         lbl_country.set_halign(Gtk.Align.START)
 
-        geo_location = EventLocation(self)
-        countries = geo_location.get_countries()
+        event_location = EventLocation(self)
+        countries = event_location.get_countries()
 
         ddn_country = Gtk.DropDown.new_from_strings(countries)
         ddn_country.set_tooltip_text(
@@ -259,6 +259,14 @@ comment (add '# ' & save file) uninterested country"""
         lbl_city.set_halign(Gtk.Align.START)
 
         ent_city = Gtk.Entry()
+
+        def update_location(lat, lon, alt):
+            location_entry = self.find_location_entry(ent_city)
+            if location_entry:
+                location_entry.set_text(f"{lat} {lon} {alt}")
+
+        event_location.set_location_callback(update_location)
+
         ent_city.set_placeholder_text("enter city name")
         ent_city.set_tooltip_text(
             """type city name & confirm with [enter]
@@ -267,7 +275,10 @@ user needs to select the one of interest"""
         )
         ent_city.connect(
             "activate",
-            lambda entry, country: geo_location.get_selected_city(entry, country),
+            lambda entry, country: event_location.get_selected_city(entry, country),
+            # lambda entry, country: self.handle_city_selection(
+            # entry, country, event_location
+            # ),
             ddn_country,
         )
         # latitude & longitude of event
@@ -335,6 +346,29 @@ only use space as separator
         panel.add_widget(box_event)
 
         return panel
+
+    def handle_city_selection(self, entry, country, event_location):
+        selected = event_location.get_selected_city(entry, country)
+        if selected:
+            # update location entry
+            location_entry = self.find_location_entry(entry)
+            if location_entry:
+                lat, lon, alt = [x.strip() for x in selected.split(", ")[1:]]
+                location_entry.set_text(f"{lat} {lon} {alt}")
+
+    def find_location_entry(self, ent_city_):
+        # find corresponding ent_location in same event panel
+        parent = ent_city_.get_parent()
+        while parent:
+            location_entry = (
+                parent.get_child().get_widget("location")
+                if hasattr(parent, "get_widget")
+                else None
+            )
+            if location_entry:
+                return location_entry
+            parent = parent.get_parent()
+        return None
 
     # data handlers
     # def get_selected_event_data(self) -> None:

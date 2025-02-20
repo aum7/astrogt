@@ -13,21 +13,6 @@ class EventData:
         self.old_name = ""
         self.old_date_time = ""
         self.old_location = ""
-        # connect signals
-        self.event_name.connect("activate", self.on_name_change)
-        self.date_time.connect("activate", self.on_date_time_change)
-        self.location.connect("activate", self.on_location_change)
-
-        def widget_wrapper(self, widget, pspec, callback):
-            pass
-
-        self.event_name.connect("focus-out-event", lambda w, e: self.on_name_change(w))
-        self.date_time.connect(
-            "focus-out-event", lambda w, e: self.on_date_time_change(w)
-        )
-        self.location.connect(
-            "focus-out-event", lambda w, e: self.on_location_change(w)
-        )
 
         # focus wrapper
         def focus_wrapper(widget, pspec, callback):
@@ -64,7 +49,7 @@ class EventData:
         if not date_time or date_time == self.old_date_time:
             return
 
-        self.old_date_time = date_time
+        # self.old_date_time = date_time
         # print(f"on_dt_change : date_time : {date_time}")
         # validate datetime
         try:
@@ -161,10 +146,11 @@ class EventData:
                 formatted = f"{y_}-{m_}-{d_} {h_}:{mi_}:{s_}"
                 print(f"formatted dt : \n\t{formatted}")
                 entry.set_text(formatted)
-                date_time_formatted = f"{year} {month} {day} {hour} {minute} {second}"
-                print(f"final date_time : \n\t{date_time_formatted}")
+                date_time_final = f"{year} {month} {day} {hour} {minute} {second}"
+                print(f"final date_time : \n\t{date_time_final}")
 
-                # return dt
+                entry.set_text(formatted)
+                return formatted, date_time_final
 
             except ValueError as e:
                 print(f"invalid date-time : {str(e)}")
