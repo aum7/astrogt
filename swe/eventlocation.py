@@ -1,10 +1,8 @@
 import sqlite3
-
-# from typing import Optional
 import gi
 
 gi.require_version("Gtk", "4.0")
-from gi.repository import Gtk
+from gi.repository import Gtk  # type: ignore
 
 
 class EventLocation:
@@ -108,7 +106,7 @@ class EventLocation:
         """present list of found cities for user to select one (modal)"""
         # print(f"select_city : found_cities passed :\n\t{found_cities}")
         dialog = Gtk.Dialog(
-            title="select city : name | latitude | longitude | altitude",
+            title="select city : name | latitude | longitude | altitude [- = s / w ]",
             modal=True,
         )
         dialog.set_transient_for(self.parent)
@@ -151,5 +149,4 @@ class EventLocation:
     def get_selected_city(self, entry, dropdown):
         self.get_city_from_atlas(entry, dropdown)
         # print(f"get_selected_city : {self.selected_city}")
-
         return self.selected_city

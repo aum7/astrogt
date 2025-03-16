@@ -1,6 +1,6 @@
-from typing import Dict, Optional
-from swe.eventdata import EventData
+from typing import Dict
 from ui.collapsepanel import CollapsePanel
+from swe.eventdata import EventData
 from swe.eventlocation import EventLocation
 from swe.swecore import SweCore
 import gi
@@ -12,12 +12,11 @@ from gi.repository import Gtk  # type: ignore
 class SidePaneManager:
     """mixin class for managing the side pane"""
 
-    # def __init__(self):
     selected_event = "event one"
+    EVENT_ONE = None
+    EVENT_TWO = None
+    swe_core = SweCore()
     margin_end = 7
-    swe_core = SweCore
-    EVENT_ONE = EventData
-    EVENT_TWO = EventData
 
     PANE_BUTTONS: Dict[str, str] = {
         "settings": "settings",
@@ -51,52 +50,57 @@ class SidePaneManager:
     }
 
     def setup_side_pane(self):
-        box_side_pane_buttons = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        # box_side_pane_buttons = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
 
-        for button_name, tooltip in self.PANE_BUTTONS.items():
-            button = Gtk.Button()
-            button.add_css_class("button-pane")
-            button.set_tooltip_text(tooltip)
+        # for button_name, tooltip in self.PANE_BUTTONS.items():
+        #     button = Gtk.Button()
+        #     button.add_css_class("button-pane")
+        #     button.set_tooltip_text(tooltip)
 
-            icon_name = f"{button_name}.svg"
-            # get proper icon
-            icon = self.create_pane_icon(icon_name)
-            icon.set_icon_size(Gtk.IconSize.NORMAL)
-            button.set_child(icon)
+        #     icon_name = f"{button_name}.svg"
+        #     # get proper icon
+        #     icon = self.create_pane_icon(icon_name)
+        #     icon.set_icon_size(Gtk.IconSize.NORMAL)
+        #     button.set_child(icon)
 
-            callback_name = f"obc_{button_name}"
-            if hasattr(self, callback_name):
-                callback = getattr(self, callback_name)
-                button.connect("clicked", callback, button_name)
-            else:
-                button.connect("clicked", self.obc_default, button_name)
+        #     callback_name = f"obc_{button_name}"
+        #     if hasattr(self, callback_name):
+        #         callback = getattr(self, callback_name)
+        #         button.connect("clicked", callback, button_name)
+        #     else:
+        #         button.connect("clicked", self.obc_default, button_name)
 
-            box_side_pane_buttons.append(button)
+        #     box_side_pane_buttons.append(button)
 
         # main box for widgets
         box_side_pane_widgets = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        box_side_pane_widgets.set_size_request(-1, -1)
         # put widgets into box widgets
         clp_change_time = self.setup_change_time()
         self.clp_event_one = self.setup_event("event one", True)
         if self.selected_event == "event one":
             self.clp_event_one.add_title_css_class("label-frame-sel")
         self.clp_event_two = self.setup_event("event two", False)
+        # tools
+        self.clp_tools = self.setup_tools()
         # append to box
         box_side_pane_widgets.append(clp_change_time)
         box_side_pane_widgets.append(self.clp_event_one)
         box_side_pane_widgets.append(self.clp_event_two)
+        box_side_pane_widgets.append(self.clp_tools)
         # main container scrolled window for collapse panels
         scw_side_pane_widgets = Gtk.ScrolledWindow()
         scw_side_pane_widgets.set_hexpand(False)
         scw_side_pane_widgets.set_propagate_natural_width(True)
         scw_side_pane_widgets.set_child(box_side_pane_widgets)
         # side pane main box
-        box_side_pane_main = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        box_side_pane_main.set_size_request(-1, -1)
-        box_side_pane_main.append(box_side_pane_buttons)
-        box_side_pane_main.append(scw_side_pane_widgets)
+        # box_side_pane_main = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        # box_side_pane_main.set_size_request(-1, -1)
+        # box_side_pane_main.append(box_side_pane_buttons)
+        # box_side_pane_main.append(scw_side_pane_widgets)
 
-        return box_side_pane_main
+        return box_side_pane_widgets
+        # return box_side_pane_main
 
     def create_pane_icon(self, icon_name):
         icons_pane = "ui/imgs/icons/pane/"
@@ -142,6 +146,7 @@ arrow key left / right : move time backward / forward
                 )
             else:
                 button.connect("clicked", self.obc_default, button_name)
+
             box_time_icons.append(button)
 
         # box for icons & dropdown for selecting time period
@@ -225,7 +230,7 @@ so change time will apply to it"""
     2010 9 11 22 55
 second is optional
 24 hour time format
-only use space as separator
+only use [space] as separator
 
 [enter] = apply data
 [tab] / [shift-tab] = next / previous entry"""
@@ -299,9 +304,9 @@ and also a sign ('-') for south & west : -16.75 -72.678
     note : positive values (without '-') are for north & east
         16.75 72.678
 seconds & altitude are optional
-only use space as separator
+only use [space] as separator
 
-[enter] = accept data
+[enter] = accept & process data
 [tab] / [shift-tab] = next / previous entry"""
         )
         ent_location.connect(
@@ -341,6 +346,38 @@ only use space as separator
         panel.add_widget(box_event)
 
         return panel
+
+    def setup_tools(self) -> CollapsePanel:
+        """setup widget for tools buttons, ie save & load file"""
+        clp_tools = CollapsePanel(title="tools", expanded=False)
+        clp_tools.set_margin_end(self.margin_end)
+        clp_tools.set_title_tooltip("""buttons for file load & save etc""")
+
+        box_tools = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+
+        for button_name, tooltip in self.PANE_BUTTONS.items():
+            button = Gtk.Button()
+            button.add_css_class("button-pane")
+            button.set_tooltip_text(tooltip)
+
+            icon_name = f"{button_name}.svg"
+            # get proper icon
+            icon = self.create_pane_icon(icon_name)
+            icon.set_icon_size(Gtk.IconSize.NORMAL)
+            button.set_child(icon)
+
+            callback_name = f"obc_{button_name}"
+            if hasattr(self, callback_name):
+                callback = getattr(self, callback_name)
+                button.connect("clicked", callback, button_name)
+            else:
+                button.connect("clicked", self.obc_default, button_name)
+
+            box_tools.append(button)
+
+        clp_tools.add_widget(box_tools)
+
+        return clp_tools
 
     def handle_city_selection(self, entry, country, event_location):
         selected = event_location.get_selected_city(entry, country)
@@ -396,7 +433,6 @@ only use space as separator
                 if isinstance(self.EVENT_TWO, EventData)
                 else None
             )
-            # self.swe_core.get_events_data(event_one, event_two)
             self.swe_core.get_events_data(self, event_one, event_two)
 
         except AttributeError:

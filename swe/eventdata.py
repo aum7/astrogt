@@ -175,6 +175,7 @@ class EventData:
         if not location or location == self.old_location:
             return
 
+        # self.old_location = location
         try:
             parts = location.lower().split()
             # detect direction (e, s, n, w)
@@ -196,7 +197,7 @@ class EventData:
                 lat_parts = parts[: lat_dir_idx + 1]
                 lon_parts = parts[lat_dir_idx + 1 : lon_dir_idx + 1]
                 # get optional altitude
-                alt = "/ m"
+                alt = "/"
                 if len(parts) > lon_dir_idx + 1:
                     alt = parts[lon_dir_idx + 1]
                 # check if d-m-s or decimal
@@ -279,14 +280,18 @@ class EventData:
             try:
                 alt = str(int(alt))
             except ValueError:
-                print("invalid altitude value")
-                return False
+                print("invalid altitude value ; setting alt to /")
+                alt = "/"
+                # return False
 
             # format final string
             location_formatted = (
                 f"{lat_deg:02d} {lat_min:02d} {lat_sec:02d} {lat_dir} "
                 f"{lon_deg:03d} {lon_min:02d} {lon_sec:02d} {lon_dir} "
                 f"{alt.zfill(4)} m"
+                if alt != "/"
+                else f"{lat_deg:02d} {lat_min:02d} {lat_sec:02d} {lat_dir} "
+                f"{lon_deg:03d} {lon_min:02d} {lon_sec:02d} {lon_dir} /"
             )
             # update entry if text changed
             if location != location_formatted:
