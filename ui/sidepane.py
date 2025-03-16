@@ -401,6 +401,7 @@ only use space as separator
                 if isinstance(self.EVENT_TWO, EventData)
                 else None
             )
+            # self.swe_core.get_events_data(event_one, event_two)
             self.swe_core.get_events_data(self, event_one, event_two)
 
         except AttributeError:

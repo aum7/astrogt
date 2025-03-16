@@ -1,5 +1,6 @@
 import sqlite3
-from typing import Optional
+
+# from typing import Optional
 import gi
 
 gi.require_version("Gtk", "4.0")
@@ -39,8 +40,6 @@ class EventLocation:
         self,
         ent_city,
         ddn_country,
-        # event_name,
-        # ent_location,
     ):
         # store entry reference
         self.entry = ent_city
@@ -50,6 +49,7 @@ class EventLocation:
         iso3 = self.country_map.get(country)
 
         try:
+            # todo hardcoded
             conn = sqlite3.connect("user/atlas/atlas.db")
             cursor = conn.cursor()
             cursor.execute(
@@ -66,7 +66,7 @@ class EventLocation:
             self.check_cities(sorted(cities))
 
         except Exception as e:
-            print(f"eventlocation : atlas db error :\n\t{str(e)}")
+            print(f"eventlocation : atlas db error :\n\t{str(e)}\n")
 
     def check_cities(self, cities):
         if len(cities) == 0:
@@ -99,16 +99,15 @@ class EventLocation:
                 self.entry.set_text(city_name)
 
             if self.location_callback:
-                self.location_callback(lat, lon, alt)
+                self.set_location_callback(lat, lon, alt)
 
     def show_city_dialog(self, found_cities):
-
         # def select_city(self, found_cities) -> Optional[str]:
         """present list of found cities for user to select one (modal)"""
         # print(f"select_city : found_cities passed :\n\t{found_cities}")
         # present list of found cities for user to choose one
         dialog = Gtk.Dialog(
-            title="select city : name-latitude-longitude-altitude",
+            title="select city : name | latitude | longitude | altitude",
             modal=True,
         )
         dialog.set_transient_for(self.parent)
@@ -132,7 +131,6 @@ class EventLocation:
                     self.update_entries(selected)
                     # print(f"pick_city : {self.selected_city} selected")
                     # print(f"self.selected_city type : {type(self.selected_city)}")
-                    # dialog.destroy()
                     dialog.close()
 
         listbox.connect("row-activated", pick_city)
@@ -141,9 +139,6 @@ class EventLocation:
         for city in found_cities:
             row = Gtk.ListBoxRow()
             city_str = f"{city[0]}, {city[1]},{city[2]}, {city[3]}"
-            # city_str = str(city).replace("(", "")
-            # city_str = city_str.replace(")", "")
-            # city_str = city_str.replace("'", "")
             label = Gtk.Label(label=city_str)
             label.set_margin_start(margin_h)
             label.set_margin_end(margin_h)

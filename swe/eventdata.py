@@ -62,10 +62,8 @@ class EventData:
             # huston we have data
             is_year_negative = date_time.lstrip().startswith("-")
             # print(f"eventdata : year negative : {is_year_negative}")
-
             parts = [p for p in re.split("[ -/.:]+", date_time) if p]
             # print(f"parts : {parts}")
-
             if len(parts) < 5 or len(parts) > 6:
                 print(
                     """wrong data count : 6 or 5 (no seconds) time units expected
@@ -177,7 +175,6 @@ class EventData:
 
         location = entry.get_text().strip()
         if not location or location == self.old_location:
-
             return
 
         try:
