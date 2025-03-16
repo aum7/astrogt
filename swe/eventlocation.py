@@ -52,6 +52,7 @@ class EventLocation:
             # todo hardcoded
             conn = sqlite3.connect("user/atlas/atlas.db")
             cursor = conn.cursor()
+
             cursor.execute(
                 """
                 SELECT name, latitude, longitude, elevation
@@ -61,6 +62,7 @@ class EventLocation:
                 """,
                 (iso3, f"%{city}%"),
             )
+
             cities = cursor.fetchall()
             conn.close()
             self.check_cities(sorted(cities))
@@ -82,9 +84,7 @@ class EventLocation:
 
         elif len(cities) > 1:
             # print(f"check_cities : found multiple cities :\n\t{cities}")
-            # self.selected_city = self.select_city(cities)
             self.show_city_dialog(cities)
-        # return selected_city
 
     def update_entries(self, city_str):
         if not city_str:
@@ -99,13 +99,12 @@ class EventLocation:
                 self.entry.set_text(city_name)
 
             if self.location_callback:
-                self.set_location_callback(lat, lon, alt)
+                print("update_entries : calling self.location_callback")
+                self.location_callback(lat, lon, alt)
 
     def show_city_dialog(self, found_cities):
-        # def select_city(self, found_cities) -> Optional[str]:
         """present list of found cities for user to select one (modal)"""
         # print(f"select_city : found_cities passed :\n\t{found_cities}")
-        # present list of found cities for user to choose one
         dialog = Gtk.Dialog(
             title="select city : name | latitude | longitude | altitude",
             modal=True,
@@ -127,10 +126,10 @@ class EventLocation:
             if row and (label := row.get_child()):
                 if isinstance(label, Gtk.Label):
                     selected = label.get_text()
+                    # print(f"pick_city : {selected} selected")
                     self.selected_city = selected
+                    print(f"pick_city : {self.selected_city} selected")
                     self.update_entries(selected)
-                    # print(f"pick_city : {self.selected_city} selected")
-                    # print(f"self.selected_city type : {type(self.selected_city)}")
                     dialog.close()
 
         listbox.connect("row-activated", pick_city)
@@ -138,7 +137,7 @@ class EventLocation:
         margin_h = 7
         for city in found_cities:
             row = Gtk.ListBoxRow()
-            city_str = f"{city[0]}, {city[1]},{city[2]}, {city[3]}"
+            city_str = f"{city[0]}, {city[1]}, {city[2]}, {city[3]}"
             label = Gtk.Label(label=city_str)
             label.set_margin_start(margin_h)
             label.set_margin_end(margin_h)
@@ -147,8 +146,6 @@ class EventLocation:
 
         scw.set_child(listbox)
         dialog.present()
-
-        # self.ent_city.set_text(self.selected_city)
 
     def get_selected_city(self, entry, dropdown):
         print(f"1st-get_selected_city : {self.selected_city}")
