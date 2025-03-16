@@ -99,7 +99,9 @@ class EventLocation:
                 self.entry.set_text(city_name)
 
             if self.location_callback:
-                print("update_entries : calling self.location_callback")
+                # print(
+                #     f"update_entries : calling self.location_callback\n\t{lat} {lon} {alt}"
+                # )
                 self.location_callback(lat, lon, alt)
 
     def show_city_dialog(self, found_cities):
@@ -126,9 +128,8 @@ class EventLocation:
             if row and (label := row.get_child()):
                 if isinstance(label, Gtk.Label):
                     selected = label.get_text()
-                    # print(f"pick_city : {selected} selected")
                     self.selected_city = selected
-                    print(f"pick_city : {self.selected_city} selected")
+                    # print(f"pick_city : {self.selected_city} selected")
                     self.update_entries(selected)
                     dialog.close()
 
@@ -148,17 +149,7 @@ class EventLocation:
         dialog.present()
 
     def get_selected_city(self, entry, dropdown):
-        print(f"1st-get_selected_city : {self.selected_city}")
-        selected_city = self.selected_city
-        print(f"2nd-get_selected_city : selected_city : {selected_city}")
         self.get_city_from_atlas(entry, dropdown)
-        print(
-            f"3rd-get_selected_city : {self.selected_city} after get_city_from_atlas()"
-        )
-
-        # selected_ = selected_city.split()
-        # print(f"get_selected_city : selected_city : {selected_city}")
-        # if self.selected_city:
-        #     entry.set_text(self.selected_city.split(", ")[0])
+        # print(f"get_selected_city : {self.selected_city}")
 
         return self.selected_city

@@ -180,7 +180,6 @@ arrow key left / right : move time backward / forward
 
     def setup_event(self, event_name: str, expand: bool) -> CollapsePanel:
         """setup event one & two collapsible panels, incl location sub-panel"""
-        # self.geo: Callable
         panel = CollapsePanel(
             title="event one" if event_name == "event one" else "event two",
             expanded=expand,
@@ -261,9 +260,7 @@ comment (add '# ' & save file) uninterested country"""
         ent_city = Gtk.Entry()
 
         def update_location(lat, lon, alt):
-            location_entry = self.find_location_entry(ent_city)
-            if location_entry:
-                location_entry.set_text(f"{lat} {lon} {alt}")
+            ent_location.set_text(f"{lat} {lon} {alt}")
 
         event_location.set_location_callback(update_location)
 
@@ -276,9 +273,6 @@ user needs to select the one of interest"""
         ent_city.connect(
             "activate",
             lambda entry, country: event_location.get_selected_city(entry, country),
-            # lambda entry, country: self.handle_city_selection(
-            # entry, country, event_location
-            # ),
             ddn_country,
         )
         # latitude & longitude of event
@@ -287,6 +281,7 @@ user needs to select the one of interest"""
         lbl_location.set_halign(Gtk.Align.START)
 
         ent_location = Gtk.Entry()
+        ent_location.set_name("location")
         ent_location.set_placeholder_text(
             "deg min (sec) n / s deg  min (sec) e / w",
         )

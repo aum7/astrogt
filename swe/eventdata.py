@@ -49,8 +49,6 @@ class EventData:
         if not date_time or date_time == self.old_date_time:
             return
 
-        # self.old_date_time = date_time
-        # print(f"on_dt_change : date_time : {date_time}")
         # validate datetime
         try:
             # check characters
