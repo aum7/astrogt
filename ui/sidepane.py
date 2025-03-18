@@ -1,3 +1,4 @@
+# ruff: noqa: E402
 from typing import Dict
 from ui.collapsepanel import CollapsePanel
 from swe.eventdata import EventData
@@ -173,7 +174,7 @@ arrow key left / right : move time backward / forward
 
         return clp_change_time
 
-    def odd_time_period(self, dropdown, *args):
+    def odd_time_period(self, dropdown):
         """on dropdown time period changed / selected"""
         selected = dropdown.get_selected()
         value = self.time_periods_list[selected]
@@ -322,7 +323,7 @@ only use [space] as separator
         sub_panel.add_widget(ent_location)
 
         # create eventdata instance
-        event_data = EventData(ent_event_name, ent_datetime, ent_location)
+        # event_data = EventData(ent_event_name, ent_datetime, ent_location)
         if event_name == "event one":
             self.EVENT_ONE = EventData(
                 ent_event_name,

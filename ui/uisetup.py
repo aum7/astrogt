@@ -1,9 +1,9 @@
-from typing import Any, Callable
-from .handlers import WindowHandlers
+# ruff: noqa: E402
+from typing import Callable
 import gi
 
 gi.require_version("Gtk", "4.0")
-from gi.repository import Gtk, Gdk
+from gi.repository import Gtk, Gdk  # type: ignore
 
 
 class UISetup:

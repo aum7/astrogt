@@ -20,4 +20,3 @@ def on_activate(app):
 
 if __name__ == "__main__":
     main()
-    # import sys

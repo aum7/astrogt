@@ -7,10 +7,7 @@ from gi.repository import Gdk, Gtk  # type: ignore
 
 
 class WindowHandlers:
-    """mixin class for window event handlers.
-    note: this class is intended to be used with gtk.applicationwindow
-    and should not be instantiated directly.
-    """
+    """mixin class for window event handlers"""
 
     # type hints for inherited attributes
     rvl_side_pane: Gtk.Revealer
