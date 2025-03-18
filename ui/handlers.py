@@ -1,8 +1,9 @@
+# ruff: noqa: E402
 from typing import Any, Dict
 import gi
 
 gi.require_version("Gtk", "4.0")
-from gi.repository import Gdk, Gtk
+from gi.repository import Gdk, Gtk  # type: ignore
 
 
 class WindowHandlers:
@@ -69,12 +70,12 @@ class WindowHandlers:
 
             callback_name = f"obc_{button_name}"
             if hasattr(self, callback_name):
-                callback = getattr(self, callback_name)
+                # callback = getattr(self, callback_name)
                 button.connect(
                     "clicked",
-                    lambda btn, name=button_name, pos=self.overlays[
-                        parent
-                    ]: self.handle_context_action(
+                    lambda btn,
+                    name=button_name,
+                    pos=self.overlays[parent]: self.handle_context_action(
                         btn,
                         name,
                         pos,
@@ -117,7 +118,7 @@ class WindowHandlers:
         callback_name = f"obc_{action}"
         if hasattr(self, callback_name):
             callback = getattr(self, callback_name)
-            print(f"{action} triggered from {position}")
+            # print(f"{action} triggered from {position}")
             callback(button, f"{action}_{position}")
 
     def on_toggle_pane(self, button):

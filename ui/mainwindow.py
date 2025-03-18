@@ -1,12 +1,13 @@
-from typing import Any, Type
+# ruff: noqa: E402
+from typing import Any
+from .handlers import WindowHandlers 
+from .sidepane import SidePaneManager
+from .uisetup import UISetup
 import gi
 
 gi.require_version("Gtk", "4.0")
-from gi.repository import Gtk
+from gi.repository import Gtk # type: ignore
 
-from .handlers import WindowHandlers  # type: ignore
-from .sidepane import SidePaneManager
-from .uisetup import UISetup
 
 
 class MainWindow(

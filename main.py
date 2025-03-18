@@ -1,10 +1,9 @@
+# ruff: noqa: E402
+from ui.mainwindow import MainWindow
 import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk
-
-from ui.mainwindow import MainWindow
-
 
 def main():
     app = Gtk.Application(application_id="aum.astrogt.app")
