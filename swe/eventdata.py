@@ -1,7 +1,13 @@
+# ruff: noqa: E402
 import re
+import pytz
+from typing import Callable
 from math import modf
 from datetime import datetime
-import pytz
+import gi
+
+gi.require_version("Gtk", "4.0")
+from gi.repository import Gtk  # type: ignore
 
 
 class EventData:
@@ -13,6 +19,8 @@ class EventData:
         self.old_name = ""
         self.old_date_time = ""
         self.old_location = ""
+
+        get_application: Callable[[], Gtk.Application]
 
         # focus wrapper
         def focus_wrapper(widget, pspec, callback):
@@ -63,6 +71,10 @@ class EventData:
             parts = [p for p in re.split("[ -/.:]+", date_time) if p]
             # print(f"parts : {parts}")
             if len(parts) < 5 or len(parts) > 6:
+                self.get_application().notify_manager.error(
+                    """wrong data count : 6 or 5 (no seconds) time units expected
+    ie 1999 11 12 13 14"""
+                )
                 print(
                     """wrong data count : 6 or 5 (no seconds) time units expected
     ie 1999 11 12 13 14"""

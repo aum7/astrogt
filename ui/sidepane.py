@@ -1,5 +1,6 @@
 # ruff: noqa: E402
 from typing import Dict, Callable
+from datetime import datetime, timezone, timedelta
 from ui.collapsepanel import CollapsePanel
 from swe.eventdata import EventData
 from swe.eventlocation import EventLocation
@@ -13,7 +14,6 @@ from gi.repository import Gtk  # type: ignore
 class SidePaneManager:
     """mixin class for managing the side pane"""
 
-    # show_notification: Callable[[str], None]
     get_application: Callable[[], Gtk.Application]
     selected_event = "event one"
     EVENT_ONE = None
@@ -453,10 +453,18 @@ only use [space] as separator
 
     # change time funcs
     def obc_arrow_l_g(self, widget, data):
-        print(f"{data} clicked")
+        # print(f"{data} clicked")
+        self.get_application().notify_manager.success(
+            "time change backward", source="sidepane.py"
+        )
+        self._adjust_event_time(-int(self.CHANGE_TIME_SELECTED))
 
     def obc_arrow_r_g(self, widget, data):
-        print(f"{data} clicked")
+        # print(f"{data} clicked")
+        self.get_application().notify_manager.success(
+            "time change forward", source="sidepane.py"
+        )
+        self._adjust_event_time(int(self.CHANGE_TIME_SELECTED))
 
     def obc_time_now(self, widget, data):
         """set time now for selected event"""
@@ -470,6 +478,45 @@ only use [space] as separator
 
     def obc_arrow_dn_g(self, widget, data):
         print(f"{data} clicked")
+
+    def _adjust_event_time(self, sec_delta):
+        """adjust event time by given seconds"""
+        # get active entry : event one or two
+        entry = self._get_active_ent_datetime()
+        if not entry:
+            return
+        # get current datetime
+        current_text = entry.get_text().strip()
+        # if empty, use current utc
+        if not current_text:
+            current_utc = datetime.now(timezone.utc)
+        else:
+            try:
+                # parse datetime
+                current_utc = datetime.strptime(current_text, "%Y %m %d %H %M %S")
+                # assume utc todo
+                current_utc = current_utc.replace(tzinfo=timezone.utc)
+            except ValueError:
+                self.get_application().notify_manager.error(
+                    "invalid datetime format", source="sidepane.py"
+                )
+                current_utc = datetime.now(timezone.utc)
+        # apply delta
+        current_utc = current_utc + timedelta(seconds=sec_delta)
+        # format & set new value
+        new_text = current_utc.strftime("%Y %m %d %H %M %S")
+        entry.set_text(new_text)
+        # trigger entry activate signal
+        entry.activate()
+
+    def _get_active_ent_datetime(self):
+        """get datetime entry for selected / active event"""
+
+        if hasattr(self, "EVENT_ONE") and self.selected_event == "event one":
+            # return self.EVENT_ONE.get_widget("date_time")
+            self.clp_event_one.get_widget("date_time")
+        else:
+            self.clp_event_two.get_widget("date_time")
 
     # def get_selected_event_data(self) -> None:
     #     """get data for current selected event"""
