@@ -147,13 +147,14 @@ arrow key left / right : move time backward / forward
 
         return clp_change_time
 
-    def odd_time_period(self, dropdown):
+    def odd_time_period(self, dropdown, user_data=None):
         """on dropdown time period changed / selected"""
         selected = dropdown.get_selected()
         value = self.time_periods_list[selected]
         # print(f"dropdown selected : {value}")
         key = [k for k, v in self.CHANGE_TIME_PERIODS.items() if v == value][0]
         seconds = key.split("_")[-1]
+        self.show_notification(f"selected period : {value} ({seconds} sec)")
         # print(f"selected period : {seconds} seconds")
         self.CHANGE_TIME_SELECTED = seconds
 
@@ -377,23 +378,6 @@ only use [space] as separator
         return None
 
     # data handlers
-    # def get_selected_event_data(self) -> None:
-    #     """get data for current selected event"""
-    #     print("get_selected_event_data called")
-    #     if self.selected_event == "event one" and self.EVENT_ONE:
-    #         self.swe_core.get_events_data(
-    #             self.EVENT_ONE.get_event_data(),
-    #             None,
-    #         )
-
-    #     elif self.selected_event == "event two" and self.EVENT_TWO:
-    #         self.swe_core.get_events_data(
-    #             None,
-    #             self.EVENT_TWO.get_event_data(),
-    #         )
-
-    # return {}
-
     def get_both_events_data(self, widget=None) -> None:
         """get data for both events"""
         try:
@@ -435,7 +419,6 @@ only use [space] as separator
                 else None
             )
             self.swe_core.get_events_data(self, event_one, event_two)
-        # return (event_one, event_two)
 
     # button handlers
     def obc_event_selection(self, gesture, n_press, x, y, event_name):
@@ -455,7 +438,7 @@ only use [space] as separator
         print(f"{data} clicked : obc_default()")
 
     def obc_settings(self, widget, data):
-        print(f"{data} clicked")
+        # print(f"{data} clicked")
         self.show_notification(f"{data} clicked : notify")
 
     def obc_file_save(self, widget, data):
@@ -483,3 +466,20 @@ only use [space] as separator
 
     def obc_arrow_dn_g(self, widget, data):
         print(f"{data} clicked")
+
+    # def get_selected_event_data(self) -> None:
+    #     """get data for current selected event"""
+    #     print("get_selected_event_data called")
+    #     if self.selected_event == "event one" and self.EVENT_ONE:
+    #         self.swe_core.get_events_data(
+    #             self.EVENT_ONE.get_event_data(),
+    #             None,
+    #         )
+
+    #     elif self.selected_event == "event two" and self.EVENT_TWO:
+    #         self.swe_core.get_events_data(
+    #             None,
+    #             self.EVENT_TWO.get_event_data(),
+    #         )
+
+    # return {}
