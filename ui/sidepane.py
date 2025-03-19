@@ -538,16 +538,19 @@ only use [space] as separator
                 current_utc = current_utc.replace(tzinfo=timezone.utc)
             except ValueError:
                 self.get_application().notify_manager.error(
-                    "invalid datetime format", source="sidepane.py"
+                    "invalid datetime format, using datetime.now utc",
+                    source="sidepane.py",
                 )
                 current_utc = datetime.now(timezone.utc)
         # apply delta
-        current_utc = current_utc + timedelta(seconds=sec_delta)
+        current_utc = current_utc + timedelta(seconds=int(sec_delta))
         # format & set new value
         new_text = current_utc.strftime("%Y-%m-%d %H:%M:%S")
         entry.set_text(new_text)
         # trigger entry activate signal
         entry.activate()
+        # force update data todo
+        # self.get_both_events_data()
 
     def _get_active_ent_datetime(self):
         """get datetime entry for selected / active event"""

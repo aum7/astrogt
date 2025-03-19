@@ -2,13 +2,8 @@
 import re
 import pytz
 
-# from typing import Dict, Callable
 from math import modf
 from datetime import datetime
-# import gi
-
-# gi.require_version("Gtk", "4.0")
-# from gi.repository import Gtk  # type: ignore
 
 
 class EventData:
@@ -21,16 +16,6 @@ class EventData:
         self.old_date_time = ""
         self.old_location = ""
         self.get_application = get_application
-        # self.get_application: Callable[[], Gtk.Application]
-
-    def error_message(self, message):
-        if hasattr(self, "get_application") and self.get_application:
-            self.get_application().notify_manager.error(
-                message,
-                source="eventlocation.py",
-            )
-        else:
-            print(f"error : {message}")
 
         # focus wrapper
         def focus_wrapper(widget, pspec, callback):
@@ -49,7 +34,23 @@ class EventData:
                 lambda w, p, cb=callback: focus_wrapper(w, p, cb),
             )  # focus lost ?
 
-    # get_application: Callable[[], Gtk.Application]
+    def error_message(self, message):
+        if hasattr(self, "get_application") and self.get_application:
+            self.get_application().notify_manager.error(
+                message,
+                source="eventdata.py",
+            )
+        else:
+            print(f"error : {message}")
+
+    def info_message(self, message):
+        if hasattr(self, "get_application") and self.get_application:
+            self.get_application().notify_manager.info(
+                message,
+                source="eventdata.py",
+            )
+        else:
+            print(f"error : {message}")
 
     def on_name_change(self, entry):
         """process title / name"""
@@ -196,10 +197,10 @@ ie 1999 11 12 13 14""")
                 s_ = f"{second:02d}"
 
                 formatted = f"{y_}-{m_}-{d_} {h_}:{mi_}:{s_}"
-                print(f"formatted dt : \n\t{formatted}")
+                # print(f"formatted dt : \n\t{formatted}")
                 entry.set_text(formatted)
                 date_time_final = f"{year} {month} {day} {hour} {minute} {second}"
-                print(f"final date_time : \n\t{date_time_final}")
+                # print(f"final date_time : \n\t{date_time_final}")
 
                 entry.set_text(formatted)
                 return formatted, date_time_final
@@ -385,7 +386,8 @@ and - / . : for separators""")
             try:
                 alt = str(int(alt))
             except ValueError:
-                self.error_message("invalid altitude value ; setting alt to /")
+                self.info_message("invalid altitude value ; setting alt to /")
+                # self.error_message("invalid altitude value ; setting alt to /")
                 # self.get_application().notify_manager.warning(
                 #     "invalid altitude value ; setting alt to /"
                 # )
