@@ -43,7 +43,7 @@ class NotifyMessage:
     def full_str(self):
         """detailed string representation"""
         return (
-            f"{self.timestamp.strftime('%Y-%m-%d %H:%M:%S')} "
+            f"{self.timestamp.strftime('%Y-%m-%d %H:%M:%S')} utc "
             f"[{self.level.value.upper()}] {self.source} : {self.message}"
         )
 
@@ -102,7 +102,7 @@ class NotifyManager:
                 if os.path.exists(icon_path):
                     icon.set_from_file(icon_path)
                 else:
-                    # Fallback to system icons
+                    # fallback to system icons
                     fallback_icons = {
                         NotifyLevel.INFO: "dialog-information",
                         NotifyLevel.SUCCESS: "checkbox-checked",
@@ -139,7 +139,7 @@ class NotifyManager:
         source: Optional[str] = None,
         timeout: Optional[int] = None,
     ) -> bool:
-        """Show info notification"""
+        """show info notification"""
         return self.notify(message, NotifyLevel.INFO, source, timeout)
 
     def success(
@@ -148,7 +148,7 @@ class NotifyManager:
         source: Optional[str] = None,
         timeout: Optional[int] = None,
     ) -> bool:
-        """Show success notification"""
+        """show success notification"""
         return self.notify(message, NotifyLevel.SUCCESS, source, timeout)
 
     def warning(
@@ -157,7 +157,7 @@ class NotifyManager:
         source: Optional[str] = None,
         timeout: Optional[int] = None,
     ) -> bool:
-        """Show warning notification"""
+        """show warning notification"""
         return self.notify(message, NotifyLevel.WARNING, source, timeout)
 
     def error(
@@ -166,7 +166,7 @@ class NotifyManager:
         source: Optional[str] = None,
         timeout: Optional[int] = None,
     ) -> bool:
-        """Show error notification"""
+        """show error notification"""
         return self.notify(message, NotifyLevel.ERROR, source, timeout)
 
     def debug(
@@ -175,5 +175,5 @@ class NotifyManager:
         source: Optional[str] = None,
         timeout: Optional[int] = None,
     ) -> bool:
-        """Show debug notification"""
+        """show debug notification"""
         return self.notify(message, NotifyLevel.DEBUG, source, timeout)
