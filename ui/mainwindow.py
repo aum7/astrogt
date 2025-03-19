@@ -3,12 +3,11 @@ from typing import Any
 from .handlers import WindowHandlers
 from .sidepane import SidePaneManager
 from .uisetup import UISetup
-from .notifyuser import NotifyManager
 import gi
 
 gi.require_version("Gtk", "4.0")
 # gi.require_version("Adw", "1")
-from gi.repository import Gtk, Adw  # type: ignore
+from gi.repository import Gtk  # type: ignore
 
 
 class MainWindow(
@@ -16,7 +15,6 @@ class MainWindow(
     WindowHandlers,
     SidePaneManager,
     UISetup,
-    # NotifyManager,
 ):
     """main application window, combining ui, handlers & panes"""
 
@@ -25,6 +23,8 @@ class MainWindow(
         super().__init__(*args, **kwargs)
         self.set_title("astrogt")
         self.set_default_size(800, 600)
+        # self.set_title("astrogt")
+        # self.set_default_size(800, 600)
         # notifications manager
         # notify_manager = NotifyManager()
         # notify_manager.setup_overlay(self)
@@ -43,3 +43,10 @@ class MainWindow(
         self.setup_css()
         self.setup_main_panes()
         self.setup_context_controllers()
+
+    def show_notification(self, message, timeout=3):
+        """helper method to access notifictions from app instance"""
+        app = self.get_application()
+        print(f"show_notification : {type(app)}")
+        if app and hasattr(app, "notify_manager"):
+            app.notify_manager.notify(message, timeout)

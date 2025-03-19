@@ -1,9 +1,11 @@
 # ruff: noqa: E402
-from typing import Dict
+from typing import Dict, Callable
 from ui.collapsepanel import CollapsePanel
 from swe.eventdata import EventData
 from swe.eventlocation import EventLocation
 from swe.swecore import SweCore
+
+# from ui.notifyuser import NotifyManager
 import gi
 
 gi.require_version("Gtk", "4.0")
@@ -13,6 +15,7 @@ from gi.repository import Gtk  # type: ignore
 class SidePaneManager:
     """mixin class for managing the side pane"""
 
+    show_notification: Callable[[str], None]
     selected_event = "event one"
     EVENT_ONE = None
     EVENT_TWO = None
@@ -465,12 +468,6 @@ only use [space] as separator
         # return (event_one, event_two)
 
     # button handlers
-    def obc_default(self, widget, data):
-        print(f"{data} clicked : obc_default()")
-
-    def obc_settings(self, widget, data):
-        print(f"{data} clicked")
-
     def obc_event_selection(self, gesture, n_press, x, y, event_name):
         """handle event selection"""
         if self.selected_event != event_name:
@@ -483,6 +480,13 @@ only use [space] as separator
                 print("event_selection : event two selected")
                 self.clp_event_one.remove_title_css_class("label-frame-sel")
                 self.clp_event_two.add_title_css_class("label-frame-sel")
+
+    def obc_default(self, widget, data):
+        print(f"{data} clicked : obc_default()")
+
+    def obc_settings(self, widget, data):
+        print(f"{data} clicked")
+        self.show_notification(f"{data} clicked : notify")
 
     def obc_file_save(self, widget, data):
         print(f"{data} clicked")

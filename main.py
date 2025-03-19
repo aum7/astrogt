@@ -1,5 +1,6 @@
 # ruff: noqa: E402
 from ui.mainwindow import MainWindow
+from ui.notifyuser import NotifyManager
 import gi
 
 gi.require_version("Gtk", "4.0")
@@ -13,37 +14,26 @@ class AstrogtApp(Gtk.Application):
             application_id="aum.astrogt.app",
             # flags=Gio.ApplicationFlags.FLAGS_NONE,
         )
-        # self.ovl_toast_adw = Adw.ToastOverlay()
+        self.notify_manager = NotifyManager()
 
     def do_activate(self):
-        # win = MainWindow(application=self)
-        win = Gtk.ApplicationWindow(application=self)
+        # win = Gtk.ApplicationWindow(application=self)
+        win = MainWindow(application=self)
         win.connect("destroy", lambda x: self.quit())
-        win.set_title("astrogt")
-        win.set_default_size(800, 600)
-        self.ovl_toast_adw = Adw.ToastOverlay()
-        # content would be main_window (gtk.applicationwindow)
-        box_content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        # box_content.append(win)
-        label = Gtk.Label(label="olo lo")
-        box_content.append(label)
-        button = Gtk.Button(label="show toast")
-        button.connect("clicked", self.on_show_toast, self.ovl_toast_adw)
-        box_content.append(button)
-        # pass directly win
-        # here child would be grid
-        # adwaita toast overlay
-        self.ovl_toast_adw.set_child(box_content)
-        # self.ovl_toast_adw.set_transient_for(self)
-        win.set_child(self.ovl_toast_adw)
+        # get existing content
+        content = win.get_child()
+        # create toast overlay
+        toast_overlay = Adw.ToastOverlay()
+        if content:
+            win.set_child(None)
+            toast_overlay.set_child(content)
+        # set toast overlay as winddow chile
+        win.set_child(toast_overlay)
+        self.notify_manager.toast_overlay = toast_overlay
+        # self.notify_manager.setup_overlay(win)
+        # test notification
+        # self.notify_manager.notify("olo toast")
         win.present()
-
-    def on_show_toast(self, button, overlay):
-        toast = Adw.Toast.new("olo toast")
-        toast.set_timeout(3)
-        overlay.add_toast(toast)
-
-    # toast.show()
 
 
 if __name__ == "__main__":
