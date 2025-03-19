@@ -155,7 +155,6 @@ arrow key left / right : move time backward / forward
         # print(f"dropdown selected : {value}")
         key = [k for k, v in self.CHANGE_TIME_PERIODS.items() if v == value][0]
         seconds = key.split("_")[-1]
-        # self.show_notification(f"selected period : {value} ({seconds} sec)")
         self.get_application().notify_manager.info(
             f"selected period : {value} ({seconds} sec)", source="sidepane.py"
         )

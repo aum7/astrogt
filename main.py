@@ -12,7 +12,6 @@ class AstrogtApp(Gtk.Application):
     def __init__(self):
         super().__init__(
             application_id="aum.astrogt.app",
-            # flags=Gio.ApplicationFlags.FLAGS_NONE,
         )
         self.notify_manager = NotifyManager()
 
@@ -29,7 +28,7 @@ class AstrogtApp(Gtk.Application):
         # set toast overlay as winddow chile
         win.set_child(toast_overlay)
         self.notify_manager.toast_overlay = toast_overlay
-        # notification
+        # notification : code specific to this file
         self.notify_manager.success("astrogt app started", source="main.py", timeout=7)
         win.present()
 

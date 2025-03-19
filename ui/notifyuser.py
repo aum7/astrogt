@@ -1,5 +1,6 @@
 # ruff: noqa: E402
 import os
+import logging
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
@@ -48,11 +49,45 @@ class NotifyMessage:
         )
 
 
+class NotifyLogger:
+    """write notifications to log file"""
+
+    def __init__(self, log_file=None):
+        # setup logger
+        self.logger = logging.getLogger("notifications")
+        self.logger.setLevel(logging.DEBUG)
+        # default log file in home directory
+        if log_file is None:
+            log_dir = os.path.join(os.path.expanduser("~"), ".astrogt", "logs")
+            os.makedirs(log_dir, exist_ok=True)
+            log_file = os.path.join(log_dir, "notifications.log")
+        # setup file handler
+        handler = logging.FileHandler(log_file)
+        formatter = logging.Formatter("%(message)s")
+        handler.setFormatter(formatter)
+        self.logger.addHandler(handler)
+
+        self.log_file = log_file
+
+    def log(self, msg: NotifyMessage):
+        """log notification message"""
+        log_level = {
+            NotifyLevel.INFO: logging.INFO,
+            NotifyLevel.SUCCESS: logging.INFO,
+            NotifyLevel.WARNING: logging.WARNING,
+            NotifyLevel.ERROR: logging.ERROR,
+            NotifyLevel.DEBUG: logging.DEBUG,
+        }
+
+        self.logger.log(log_level[msg.level], msg.full_str())
+
+
 class NotifyManager:
     """notification manager with level-specific toasts"""
 
-    def __init__(self):
+    def __init__(self, log_file=None):
         self.toast_overlay = None
+        self.logger = NotifyLogger(log_file)
         self._DEFAULT_TIMEOUTS = {
             NotifyLevel.INFO: 3,
             NotifyLevel.SUCCESS: 3,
@@ -75,6 +110,9 @@ class NotifyManager:
 
         msg = NotifyMessage(message, level, source, timeout=timeout)
         print(msg.full_str())
+        # log to file
+        self.logger.log(msg)
+
         GLib.idle_add(self._show_toast, msg)
         return True
 
