@@ -34,18 +34,27 @@ class EventData:
                 lambda w, p, cb=callback: focus_wrapper(w, p, cb),
             )  # focus lost ?
 
-    def error_message(self, message):
+    def info_message(self, message):
         if hasattr(self, "get_application") and self.get_application:
-            self.get_application().notify_manager.error(
+            self.get_application().notify_manager.info(
                 message,
                 source="eventdata.py",
             )
         else:
             print(f"error : {message}")
 
-    def info_message(self, message):
+    def success_message(self, message):
         if hasattr(self, "get_application") and self.get_application:
-            self.get_application().notify_manager.info(
+            self.get_application().notify_manager.success(
+                message,
+                source="eventdata.py",
+            )
+        else:
+            print(f"error : {message}")
+
+    def error_message(self, message):
+        if hasattr(self, "get_application") and self.get_application:
+            self.get_application().notify_manager.error(
                 message,
                 source="eventdata.py",
             )
@@ -408,10 +417,8 @@ and - / . : for separators""")
                 entry.set_text(location_formatted)
 
             self.old_location = location_formatted
-            # self.get_application().notify_manager.success(
-            #     "location valid & formatted", source="eventdata.py"
-            # )
-            print(f"location valid & formatted : {location_formatted}")
+            self.success_message("location valid & formatted")
+            # print(f"location valid & formatted : {location_formatted}")
             return True
 
         except Exception as e:
