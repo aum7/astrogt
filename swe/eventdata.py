@@ -1,7 +1,7 @@
 # ruff: noqa: E402
 import re
 import pytz
-from typing import Callable
+from typing import Dict, Callable
 from math import modf
 from datetime import datetime
 import gi
@@ -20,7 +20,7 @@ class EventData:
         self.old_date_time = ""
         self.old_location = ""
 
-        get_application: Callable[[], Gtk.Application]
+        # get_application: Callable[[], Gtk.Application]
 
         # focus wrapper
         def focus_wrapper(widget, pspec, callback):
@@ -39,6 +39,8 @@ class EventData:
                 lambda w, p, cb=callback: focus_wrapper(w, p, cb),
             )  # focus lost ?
 
+    get_application: Callable[[], Gtk.Application]
+
     def on_name_change(self, entry):
         """process name"""
         name = entry.get_text().strip()
@@ -56,13 +58,15 @@ class EventData:
         date_time = entry.get_text().strip()
         if not date_time or date_time == self.old_date_time:
             return
-
         # validate datetime
         try:
             # check characters
             valid_chars = set("0123456789 -/.:")
             invalid_chars = set(date_time) - valid_chars
             if invalid_chars:
+                self.get_application().notify_manager.warning(
+                    f"date-time : characters {sorted(invalid_chars)} not allowed"
+                )
                 print(f"on_dt_change : unaccepted characters : {sorted(invalid_chars)}")
                 return
             # huston we have data
@@ -71,10 +75,10 @@ class EventData:
             parts = [p for p in re.split("[ -/.:]+", date_time) if p]
             # print(f"parts : {parts}")
             if len(parts) < 5 or len(parts) > 6:
-                self.get_application().notify_manager.error(
-                    """wrong data count : 6 or 5 (no seconds) time units expected
-    ie 1999 11 12 13 14"""
-                )
+                #             self.get_application().notify_manager.error(
+                #                 """wrong data count : 6 or 5 (no seconds) time units expected
+                # ie 1999 11 12 13 14"""
+                #             )
                 print(
                     """wrong data count : 6 or 5 (no seconds) time units expected
     ie 1999 11 12 13 14"""

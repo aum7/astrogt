@@ -136,9 +136,10 @@ arrow key left / right : move time backward / forward
             "select period to use for time change",
         )
         ddn_time_periods.add_css_class("dropdown")
-        # set default time period : 1 day
+        # set default time period : 1 day & seconds
         default_period = self.time_periods_list.index("1 day")
         ddn_time_periods.set_selected(default_period)
+        self.CHANGE_TIME_SELECTED = 86400
         ddn_time_periods.connect("notify::selected", self.odd_time_period)
         # put label & buttons & dropdown into box
         box_change_time.append(box_time_icons)
@@ -170,13 +171,20 @@ arrow key left / right : move time backward / forward
         panel.set_margin_end(self.margin_end)
         lbl_event = panel.get_title()
         lbl_event.set_tooltip_text(
-            """main event ie natal chart
+            """main event ie natal / event chart
 click to set focus to event one
-so change time will apply to it"""
+so change time will apply to it
+
+note : location one + title one
++ time one are mandatory"""
             if event_name == "event one"
-            else """secondary event ie transit / progression
+            else """secondary event ie transit / progression etc
 click to set focus to event two
-so change time will apply to it"""
+so change time will apply to it
+
+note : leave location two empty
+(both city + latitude & longitude)
+if location two = location one"""
         )
         gesture = Gtk.GestureClick.new()
         gesture.connect(
@@ -186,35 +194,8 @@ so change time will apply to it"""
             ),
         )
         panel.add_title_controller(gesture)
-
-        ent_event_name = Gtk.Entry()
-        ent_event_name.set_placeholder_text(
-            "event one name" if event_name == "event one" else "event two name"
-        )
-        ent_event_name.set_tooltip_text(
-            """will be used for filename when saving
-    max 30 characters
-
-[enter] = apply data
-[tab] / [shift-tab] = next / previous entry"""
-        )
-        lbl_datetime = Gtk.Label(label="date & time")
-        lbl_datetime.set_halign(Gtk.Align.START)
-
-        ent_datetime = Gtk.Entry()
-        ent_datetime.set_placeholder_text("yyyy mm dd HH MM (SS)")
-        ent_datetime.set_tooltip_text(
-            """year month day hour minute (second)
-    2010 9 11 22 55
-second is optional
-24 hour time format
-only use [space] as separator
-
-[enter] = apply data
-[tab] / [shift-tab] = next / previous entry"""
-        )
         # location nested panel
-        sub_panel = CollapsePanel(
+        subpnl_location = CollapsePanel(
             title="location one" if event_name == "event one" else "location two",
             indent=14,
         )
@@ -249,9 +230,12 @@ comment (add '# ' & save file) uninterested country"""
 
         ent_city.set_placeholder_text("enter city name")
         ent_city.set_tooltip_text(
-            """type city name & confirm with [enter]
+            """enter city name
 if more than 1 city (within selected country) is found
-user needs to select the one of interest"""
+user needs to select the one of interest
+
+[enter] = accept data
+[tab] / [shift-tab] = next / previous entry"""
         )
         ent_city.connect(
             "activate",
@@ -284,21 +268,72 @@ and also a sign ('-') for south & west : -16.75 -72.678
 seconds & altitude are optional
 only use [space] as separator
 
-[enter] = accept & process data
+[enter] = accept data
 [tab] / [shift-tab] = next / previous entry"""
         )
-        ent_location.connect(
+        # ent_location.connect(
+        #     "activate",
+        #     lambda widget: self.get_both_events_data(),
+        # )
+        # put widgets into sub-panel
+        subpnl_location.add_widget(lbl_country)
+        subpnl_location.add_widget(ddn_country)
+        subpnl_location.add_widget(lbl_city)
+        subpnl_location.add_widget(ent_city)
+        subpnl_location.add_widget(lbl_location)
+        subpnl_location.add_widget(ent_location)
+
+        subpnl_event_name = CollapsePanel(
+            title="name / title one"
+            if event_name == "event one"
+            else "name / title two",
+            indent=14,
+        )
+        # lbl_event_name = Gtk.Label(label="name / title")
+        # lbl_event_name.set_halign(Gtk.Align.START)
+        ent_event_name = Gtk.Entry()
+
+        ent_event_name.set_placeholder_text(
+            "event one name" if event_name == "event one" else "event two name"
+        )
+        ent_event_name.set_tooltip_text(
+            """will be used for filename when saving
+    max 30 characters
+
+[enter] = apply data
+[tab] / [shift-tab] = next / previous entry"""
+        )
+        # put widgets into sub-panel
+        # subpnl_event_name.add_widget(lbl_event_name)
+        subpnl_event_name.add_widget(ent_event_name)
+
+        subpnl_datetime = CollapsePanel(
+            title="date & time one" if event_name == "event one" else "date & time two",
+            indent=14,
+        )
+        # lbl_datetime = Gtk.Label(label="date & time")
+        # lbl_datetime.set_halign(Gtk.Align.START)
+
+        ent_datetime = Gtk.Entry()
+        ent_datetime.set_name("date_time")
+        ent_datetime.set_placeholder_text("yyyy mm dd HH MM (SS)")
+        ent_datetime.set_tooltip_text(
+            """year month day hour minute (second)
+    2010 9 11 22 55
+second is optional
+24 hour time format
+only use [space] as separator
+
+[enter] = apply & process data
+[tab] / [shift-tab] = next / previous entry"""
+        )
+        ent_datetime.connect(
             "activate",
             lambda widget: self.get_both_events_data(),
         )
         # put widgets into sub-panel
-        sub_panel.add_widget(lbl_country)
-        sub_panel.add_widget(ddn_country)
-        sub_panel.add_widget(lbl_city)
-        sub_panel.add_widget(ent_city)
-        sub_panel.add_widget(lbl_location)
-        sub_panel.add_widget(ent_location)
-
+        # subpnl_datetime.add_widget(lbl_datetime)
+        subpnl_datetime.add_widget(ent_datetime)
         # create eventdata instance
         if event_name == "event one":
             self.EVENT_ONE = EventData(
@@ -314,11 +349,10 @@ only use [space] as separator
             )
         # main box for event panels
         box_event = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        box_event.append(ent_event_name)
-        box_event.append(lbl_datetime)
-        box_event.append(ent_datetime)
         # sub-panel
-        box_event.append(sub_panel)
+        box_event.append(subpnl_location)
+        box_event.append(subpnl_event_name)
+        box_event.append(subpnl_datetime)
 
         panel.add_widget(box_event)
 
@@ -489,11 +523,14 @@ only use [space] as separator
         current_text = entry.get_text().strip()
         # if empty, use current utc
         if not current_text:
+            self.get_application().notify_manager.warning(
+                "datetime None", source="sidepane.py [adjust_event_time]"
+            )
             current_utc = datetime.now(timezone.utc)
         else:
             try:
                 # parse datetime
-                current_utc = datetime.strptime(current_text, "%Y %m %d %H %M %S")
+                current_utc = datetime.strptime(current_text, "%Y-%m-%d %H:%M:%S")
                 # assume utc todo
                 current_utc = current_utc.replace(tzinfo=timezone.utc)
             except ValueError:
@@ -504,7 +541,7 @@ only use [space] as separator
         # apply delta
         current_utc = current_utc + timedelta(seconds=sec_delta)
         # format & set new value
-        new_text = current_utc.strftime("%Y %m %d %H %M %S")
+        new_text = current_utc.strftime("%Y-%m-%d %H:%M:%S")
         entry.set_text(new_text)
         # trigger entry activate signal
         entry.activate()
@@ -512,13 +549,10 @@ only use [space] as separator
     def _get_active_ent_datetime(self):
         """get datetime entry for selected / active event"""
 
-        if hasattr(self, "EVENT_ONE") and self.selected_event == "event one":
-            # return self.EVENT_ONE.get_widget("date_time")
-            self.EVENT_ONE.get_widget("date_time")
-            # self.clp_event_one.get_widget("date_time")
+        if hasattr(self, "selected_event") and self.selected_event == "event one":
+            return self.EVENT_ONE.date_time if self.EVENT_ONE else None
         else:
-            self.EVENT_TWO.get_widget("date_time")
-            # self.clp_event_two.get_widget("date_time")
+            return self.EVENT_TWO.date_time if self.EVENT_TWO else None
 
     # def get_selected_event_data(self) -> None:
     #     """get data for current selected event"""
