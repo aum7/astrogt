@@ -7,7 +7,7 @@ from .notifyuser import NotifyManager
 import gi
 
 gi.require_version("Gtk", "4.0")
-gi.require_version("Adw", "1")
+# gi.require_version("Adw", "1")
 from gi.repository import Gtk, Adw  # type: ignore
 
 
@@ -16,16 +16,18 @@ class MainWindow(
     WindowHandlers,
     SidePaneManager,
     UISetup,
-    NotifyManager,
+    # NotifyManager,
 ):
     """main application window, combining ui, handlers & panes"""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """initialize the main window"""
         super().__init__(*args, **kwargs)
+        self.set_title("astrogt")
+        self.set_default_size(800, 600)
         # notifications manager
-        self.setup_overlay(self)
-        # self.notify_manager = NotifyManager()
+        # notify_manager = NotifyManager()
+        # notify_manager.setup_overlay(self)
         # adwaita toast overlay
         # self.ovl_toast_adw = Adw.ToastOverlay()
         # content would be main_window (gtk.applicationwindow)

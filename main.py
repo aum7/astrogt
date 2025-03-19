@@ -3,7 +3,7 @@ from ui.mainwindow import MainWindow
 import gi
 
 gi.require_version("Gtk", "4.0")
-# gi.require_version("Adw", "1")
+gi.require_version("Adw", "1")
 from gi.repository import Gtk, Adw  # type: ignore
 
 
@@ -19,26 +19,30 @@ class AstrogtApp(Gtk.Application):
         # win = MainWindow(application=self)
         win = Gtk.ApplicationWindow(application=self)
         win.connect("destroy", lambda x: self.quit())
-        # self.ovl_toast_adw = Adw.ToastOverlay()
+        win.set_title("astrogt")
+        win.set_default_size(800, 600)
+        self.ovl_toast_adw = Adw.ToastOverlay()
         # content would be main_window (gtk.applicationwindow)
-        # box_content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        box_content = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         # box_content.append(win)
-        # label = Gtk.Label(label="olo lo")
-        # box_content.append(label)
-        # button = Gtk.Button(label="show toast")
-        # button.connect("clicked", self.on_show_toast, self.ovl_toast_adw)
+        label = Gtk.Label(label="olo lo")
+        box_content.append(label)
+        button = Gtk.Button(label="show toast")
+        button.connect("clicked", self.on_show_toast, self.ovl_toast_adw)
+        box_content.append(button)
         # pass directly win
         # here child would be grid
         # adwaita toast overlay
-        # self.ovl_toast_adw.set_child(box_content)
+        self.ovl_toast_adw.set_child(box_content)
         # self.ovl_toast_adw.set_transient_for(self)
-        # win.set_child(self.ovl_toast_adw)
+        win.set_child(self.ovl_toast_adw)
         win.present()
 
-    # def on_show_toast(self, button, overlay):
-    #     toast = Adw.Toast.new("olo toast")
-    #     toast.set_timeout(3)
-    #     overlay.add_toast(toast)
+    def on_show_toast(self, button, overlay):
+        toast = Adw.Toast.new("olo toast")
+        toast.set_timeout(3)
+        overlay.add_toast(toast)
+
     # toast.show()
 
 
