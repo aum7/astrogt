@@ -17,7 +17,6 @@ class AstrogtApp(Gtk.Application):
         self.notify_manager = NotifyManager()
 
     def do_activate(self):
-        # win = Gtk.ApplicationWindow(application=self)
         win = MainWindow(application=self)
         win.connect("destroy", lambda x: self.quit())
         # get existing content
@@ -30,24 +29,9 @@ class AstrogtApp(Gtk.Application):
         # set toast overlay as winddow chile
         win.set_child(toast_overlay)
         self.notify_manager.toast_overlay = toast_overlay
-        # self.notify_manager.setup_overlay(win)
-        # test notification
-        # self.notify_manager.notify("olo toast")
         win.present()
 
 
 if __name__ == "__main__":
     app = AstrogtApp()
     app.run(None)
-
-    # main()
-# def main():
-#     app = Gtk.Application(application_id="aum.astrogt.app")
-#     app.connect("activate", on_activate)
-#     app.run(None)
-
-
-# def on_activate(app):
-#     win = MainWindow(application=app)
-#     win.connect("destroy", lambda x: app.quit())
-#     win.present()

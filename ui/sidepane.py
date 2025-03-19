@@ -4,8 +4,6 @@ from ui.collapsepanel import CollapsePanel
 from swe.eventdata import EventData
 from swe.eventlocation import EventLocation
 from swe.swecore import SweCore
-
-# from ui.notifyuser import NotifyManager
 import gi
 
 gi.require_version("Gtk", "4.0")
@@ -54,33 +52,11 @@ class SidePaneManager:
     }
 
     def setup_side_pane(self):
-        # box_side_pane_buttons = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-
-        # for button_name, tooltip in self.PANE_BUTTONS.items():
-        #     button = Gtk.Button()
-        #     button.add_css_class("button-pane")
-        #     button.set_tooltip_text(tooltip)
-
-        #     icon_name = f"{button_name}.svg"
-        #     # get proper icon
-        #     icon = self.create_pane_icon(icon_name)
-        #     icon.set_icon_size(Gtk.IconSize.NORMAL)
-        #     button.set_child(icon)
-
-        #     callback_name = f"obc_{button_name}"
-        #     if hasattr(self, callback_name):
-        #         callback = getattr(self, callback_name)
-        #         button.connect("clicked", callback, button_name)
-        #     else:
-        #         button.connect("clicked", self.obc_default, button_name)
-
-        #     box_side_pane_buttons.append(button)
-
         # main box for widgets
         box_side_pane_widgets = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         box_side_pane_widgets.set_size_request(-1, -1)
         # put widgets into box widgets
-        clp_change_time = self.setup_change_time()
+        self.clp_change_time = self.setup_change_time()
         self.clp_event_one = self.setup_event("event one", True)
         if self.selected_event == "event one":
             self.clp_event_one.add_title_css_class("label-frame-sel")
@@ -88,7 +64,7 @@ class SidePaneManager:
         # tools
         self.clp_tools = self.setup_tools()
         # append to box
-        box_side_pane_widgets.append(clp_change_time)
+        box_side_pane_widgets.append(self.clp_change_time)
         box_side_pane_widgets.append(self.clp_event_one)
         box_side_pane_widgets.append(self.clp_event_two)
         box_side_pane_widgets.append(self.clp_tools)
@@ -97,14 +73,8 @@ class SidePaneManager:
         scw_side_pane_widgets.set_hexpand(False)
         scw_side_pane_widgets.set_propagate_natural_width(True)
         scw_side_pane_widgets.set_child(box_side_pane_widgets)
-        # side pane main box
-        # box_side_pane_main = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-        # box_side_pane_main.set_size_request(-1, -1)
-        # box_side_pane_main.append(box_side_pane_buttons)
-        # box_side_pane_main.append(scw_side_pane_widgets)
 
         return box_side_pane_widgets
-        # return box_side_pane_main
 
     def create_pane_icon(self, icon_name):
         icons_pane = "ui/imgs/icons/pane/"
