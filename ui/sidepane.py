@@ -13,7 +13,8 @@ from gi.repository import Gtk  # type: ignore
 class SidePaneManager:
     """mixin class for managing the side pane"""
 
-    show_notification: Callable[[str], None]
+    # show_notification: Callable[[str], None]
+    get_application: Callable[[], Gtk.Application]
     selected_event = "event one"
     EVENT_ONE = None
     EVENT_TWO = None
@@ -154,7 +155,10 @@ arrow key left / right : move time backward / forward
         # print(f"dropdown selected : {value}")
         key = [k for k, v in self.CHANGE_TIME_PERIODS.items() if v == value][0]
         seconds = key.split("_")[-1]
-        self.show_notification(f"selected period : {value} ({seconds} sec)")
+        # self.show_notification(f"selected period : {value} ({seconds} sec)")
+        self.get_application().notify_manager.info(
+            f"selected period : {value} ({seconds} sec)", source="sidepane.py"
+        )
         # print(f"selected period : {seconds} seconds")
         self.CHANGE_TIME_SELECTED = seconds
 
@@ -297,7 +301,6 @@ only use [space] as separator
         sub_panel.add_widget(ent_location)
 
         # create eventdata instance
-        # event_data = EventData(ent_event_name, ent_datetime, ent_location)
         if event_name == "event one":
             self.EVENT_ONE = EventData(
                 ent_event_name,
@@ -439,7 +442,9 @@ only use [space] as separator
 
     def obc_settings(self, widget, data):
         # print(f"{data} clicked")
-        self.show_notification(f"{data} clicked : notify")
+        self.get_application().notify_manager.debug(
+            "settings clicked", source="sidepane.py"
+        )
 
     def obc_file_save(self, widget, data):
         print(f"{data} clicked")

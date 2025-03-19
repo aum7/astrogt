@@ -29,6 +29,8 @@ class AstrogtApp(Gtk.Application):
         # set toast overlay as winddow chile
         win.set_child(toast_overlay)
         self.notify_manager.toast_overlay = toast_overlay
+        # notification
+        self.notify_manager.success("astrogt app started", source="main.py", timeout=7)
         win.present()
 
 

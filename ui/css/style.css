@@ -2,15 +2,22 @@
 toastoverlay toast {
   background-color: rgba(0, 0, 0, 0.8);
   border-radius: 9px;
-  padding: 3px;
+  padding: 5px;
   margin: 7px;
+  font-size: 16px;
 }
 
-toastoverlay toast label {
-  font-size: 16px;
-  color: white;
-  font-family: "Ubuntu Thin";
-}
+/* .heading { */
+/*   font-size: 30px; */
+/*   font-family: "Ubuntu Thin"; */
+/*   padding: 3px; */
+/* } */
+
+/* toastoverlay toast label { */
+/* below not working properly */
+/* color: white; */
+/* font-family: "Ubuntu Thin"; */
+/* } */
 
 tooltip {
   background-color: rgba(0, 100, 0, 0.9);
