@@ -514,9 +514,11 @@ only use [space] as separator
 
         if hasattr(self, "EVENT_ONE") and self.selected_event == "event one":
             # return self.EVENT_ONE.get_widget("date_time")
-            self.clp_event_one.get_widget("date_time")
+            self.EVENT_ONE.get_widget("date_time")
+            # self.clp_event_one.get_widget("date_time")
         else:
-            self.clp_event_two.get_widget("date_time")
+            self.EVENT_TWO.get_widget("date_time")
+            # self.clp_event_two.get_widget("date_time")
 
     # def get_selected_event_data(self) -> None:
     #     """get data for current selected event"""
