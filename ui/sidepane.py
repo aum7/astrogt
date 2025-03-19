@@ -203,7 +203,7 @@ if location two = location one"""
         lbl_country.add_css_class("label")
         lbl_country.set_halign(Gtk.Align.START)
 
-        event_location = EventLocation(self)
+        event_location = EventLocation(self, get_application=self.get_application)
         countries = event_location.get_countries()
 
         ddn_country = Gtk.DropDown.new_from_strings(countries)
@@ -340,12 +340,14 @@ only use [space] as separator
                 ent_event_name,
                 ent_datetime,
                 ent_location,
+                get_application=self.get_application,
             )
         else:
             self.EVENT_TWO = EventData(
                 ent_event_name,
                 ent_datetime,
                 ent_location,
+                get_application=self.get_application,
             )
         # main box for event panels
         box_event = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
@@ -390,6 +392,7 @@ only use [space] as separator
 
         return clp_tools
 
+    # todo do we need this & next func ?
     def handle_city_selection(self, entry, country, event_location):
         selected = event_location.get_selected_city(entry, country)
         if selected:
