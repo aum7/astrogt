@@ -1,4 +1,5 @@
 # ruff: noqa: E402
+from typing import Callable
 import sqlite3
 import gi
 
@@ -14,6 +15,8 @@ class EventLocation:
         self.selected_city = ""
         self.entry = None
         self.location_callback = None
+
+    get_application: Callable[[], Gtk.Application]
 
     def set_location_callback(self, callback):
         self.location_callback = callback
@@ -67,11 +70,19 @@ class EventLocation:
             self.check_cities(sorted(cities))
 
         except Exception as e:
-            print(f"eventlocation : atlas db error :\n\t{str(e)}\n")
+            self.get_application().notify_manager.error(
+                "atlas db error",
+                source="eventlocation.py",
+            )
+            # print(f"eventlocation : atlas db error :\n\t{str(e)}\n")
 
     def check_cities(self, cities):
         if len(cities) == 0:
-            print("check_cities : city not found : exiting ...")
+            # print("check_cities : city not found : exiting ...")
+            self.get_application().notify_manager.error(
+                "city not found",
+                source="eventlocation.py",
+            )
             return
 
         elif len(cities) == 1:
@@ -83,6 +94,11 @@ class EventLocation:
 
         elif len(cities) > 1:
             # print(f"check_cities : found multiple cities :\n\t{cities}")
+            # todo right place ?
+            self.get_application().notify_manager.info(
+                "select city",
+                timeout=1,
+            )
             self.show_city_dialog(cities)
 
     def update_entries(self, city_str):
@@ -98,13 +114,18 @@ class EventLocation:
                 self.entry.set_text(city_name)
 
             if self.location_callback:
+                self.location_callback(lat, lon, alt)
                 # print(
                 #     f"update_entries : calling self.location_callback\n\t{lat} {lon} {alt}"
                 # )
-                self.location_callback(lat, lon, alt)
 
     def show_city_dialog(self, found_cities):
         """present list of found cities for user to select one (modal)"""
+        # # todo right place ?
+        # self.get_application().notify_manager.info(
+        #     "select city",
+        #     timeout=1,
+        # )
         # print(f"select_city : found_cities passed :\n\t{found_cities}")
         dialog = Gtk.Dialog(
             title="select city : name | latitude | longitude | altitude [- = s / w ]",
