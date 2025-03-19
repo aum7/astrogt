@@ -1,3 +1,22 @@
+/* adwaita toast */
+toastoverlay toast {
+  background-color: rgba(0, 0, 0, 0.8);
+  border-radius: 9px;
+  padding: 3px;
+  margin: 7px;
+}
+
+toastoverlay toast label {
+  font-size: 16px;
+  color: white;
+  font-family: "Ubuntu Thin";
+}
+
+tooltip {
+  background-color: rgba(0, 100, 0, 0.9);
+  color: white;
+}
+
 label {
   font-size: 16px;
   font-family: "Ubuntu Thin";
