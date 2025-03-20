@@ -42,11 +42,6 @@ class UISetup:
     lbl_pane_bl: Gtk.Label
     lbl_pane_br: Gtk.Label
 
-    def setup_window(self) -> None:
-        """setup main window properties"""
-        self.set_title("astrogt")  # type: ignore
-        self.set_default_size(600, 500)  # type: ignore
-
     def setup_css(self) -> None:
         """setup css styling"""
         css_provider = Gtk.CssProvider()
@@ -100,9 +95,6 @@ class UISetup:
 [shift-click] to center all panes"""
         )
         self.btn_toggle_pane.connect("clicked", self.on_toggle_pane)
-        # self.btn_toggle_pane.connect(
-        #     "clicked", self.on_toggle_pane, self.btn_toggle_pane
-        # )
 
     def setup_labels(self):
         self.lbl_pane_tl = self.create_label("top left", "label-tl")

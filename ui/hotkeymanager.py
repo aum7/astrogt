@@ -1,5 +1,4 @@
 # ruff: noqa: E402
-# import functools
 from typing import Dict, Callable
 import gi
 
@@ -88,7 +87,6 @@ class HotkeyManager:
             self.active_modifiers[Gdk.KEY_Alt_L] = False
 
     def register_hotkey(self, shortcut: str, callback: Callable) -> None:
-        # self.hotkey_map[shortcut.lower()] = functools.partial(callback, self.window)
         self.hotkey_map[shortcut.lower()] = callback
 
     def unregister_hotkey(self, shortcut: str) -> None:
@@ -125,7 +123,6 @@ class HotkeyManager:
             and hasattr(self.window, "pnd_top_h")
             and hasattr(self.window, "pnd_btm_h")
         ):
-            # if hassatr(self.window.png_main_v, "sht")
             self.window.pnd_main_v.set_position(
                 self.window.pnd_main_v.get_allocated_height() // 2
             )

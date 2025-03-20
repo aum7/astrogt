@@ -25,7 +25,6 @@ class MainWindow(
         self.set_default_size(800, 600)
         # setup ui
         self.setup_revealer()
-        self.setup_window()
         self.setup_css()
         self.setup_main_panes()
         self.setup_context_controllers()
