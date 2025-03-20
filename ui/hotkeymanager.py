@@ -16,20 +16,34 @@ class HotkeyManager:
         self.active_modifiers = {
             Gdk.KEY_Control_L: False,
             Gdk.KEY_Shift_L: False,
-            Gdk.KEY_Alt_L: False,
+            # Gdk.KEY_Alt_L: False,
         }
         # store reference to window methods
         self.actions = {
             "toggle_pane": getattr(window, "on_toggle_pane", None),
             "center_panes": self._center_all_panes,
         }
+        # self.key_controller = Gtk.EventControllerKey()  # added
         self.setup_controllers()
+        # self.setup_focus_handlers()  # added
 
     def setup_controllers(self) -> None:
         key_controller = Gtk.EventControllerKey()
         key_controller.connect("key-pressed", self.on_key_pressed)
         key_controller.connect("key-released", self.on_key_released)
         self.window.add_controller(key_controller)
+
+    # def setup_focus_handlers(self) -> None:
+    #     """workaround for hotkeys not working when focus is lost"""
+    #     self.window.connect("notify::has-focus", self.on_focus_changed)
+
+    # def on_focus_changed(self, window, pspec) -> None:
+    #     if window.get_has_focus():
+    #         print("window has focus")
+    #         if self.key_controller not in window.list_controllers():
+    #             window.add_controller(self.key_controller)
+    #     else:
+    #         print("window has no focus")
 
     def intercept_button_controller(self, button: Gtk.Button, action_name: str) -> None:
         """intercept button click events"""
@@ -72,8 +86,8 @@ class HotkeyManager:
             self.active_modifiers[Gdk.KEY_Control_L] = True
         elif keyval == Gdk.KEY_Shift_L:
             self.active_modifiers[Gdk.KEY_Shift_L] = True
-        elif keyval == Gdk.KEY_Alt_L:
-            self.active_modifiers[Gdk.KEY_Alt_L] = True
+        # elif keyval == Gdk.KEY_Alt_L:
+        #     self.active_modifiers[Gdk.KEY_Alt_L] = True
 
         shortcut = self._create_keyboard_shortcut(keyval, state)
         return self._trigger_hotkey(shortcut)
@@ -83,8 +97,8 @@ class HotkeyManager:
             self.active_modifiers[Gdk.KEY_Control_L] = False
         elif keyval == Gdk.KEY_Shift_L:
             self.active_modifiers[Gdk.KEY_Shift_L] = False
-        elif keyval == Gdk.KEY_Alt_L:
-            self.active_modifiers[Gdk.KEY_Alt_L] = False
+        # elif keyval == Gdk.KEY_Alt_L:
+        #     self.active_modifiers[Gdk.KEY_Alt_L] = False
 
     def register_hotkey(self, shortcut: str, callback: Callable) -> None:
         self.hotkey_map[shortcut.lower()] = callback
@@ -103,8 +117,8 @@ class HotkeyManager:
             parts.append("ctrl")
         if self.active_modifiers[Gdk.KEY_Shift_L]:
             parts.append("shift")
-        if self.active_modifiers[Gdk.KEY_Alt_L]:
-            parts.append("alt")
+        # if self.active_modifiers[Gdk.KEY_Alt_L]:
+        #     parts.append("alt")
 
         parts.append(key_name.lower())
         return "+".join(parts)
