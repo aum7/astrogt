@@ -40,6 +40,12 @@ class MainWindow(
         # register additional hotkeys
         self.hotkey_manager.register_hotkey("h", self.show_help)
         self.hotkey_manager.register_hotkey("e", self.on_toggle_pane)
+        self.hotkey_manager.register_hotkey("c", self.center_all_panes)
+        self.hotkey_manager.register_hotkey("shift+arrow_up", self.test)
+        # self.hotkey_manager.register_hotkey("arrow_up", self.obc_arrow_up)
+
+    def test(self):
+        print("arrow up")
 
     # hotkey action functions
     def show_help(self):
@@ -65,16 +71,10 @@ class MainWindow(
     def center_all_panes(self) -> None:
         """center all 4 main panes"""
         if (
-            hasattr(self.window, "pnd_main_v")
-            and hasattr(self.window, "pnd_top_h")
-            and hasattr(self.window, "pnd_btm_h")
+            hasattr(self, "pnd_main_v")
+            and hasattr(self, "pnd_top_h")
+            and hasattr(self, "pnd_btm_h")
         ):
-            self.window.pnd_main_v.set_position(
-                self.window.pnd_main_v.get_allocated_height() // 2
-            )
-            self.window.pnd_top_h.set_position(
-                self.window.pnd_top_h.get_allocated_width() // 2
-            )
-            self.window.pnd_btm_h.set_position(
-                self.window.pnd_btm_h.get_allocated_width() // 2
-            )
+            self.pnd_main_v.set_position(self.pnd_main_v.get_allocated_height() // 2)
+            self.pnd_top_h.set_position(self.pnd_top_h.get_allocated_width() // 2)
+            self.pnd_btm_h.set_position(self.pnd_btm_h.get_allocated_width() // 2)

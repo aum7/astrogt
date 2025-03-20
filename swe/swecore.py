@@ -23,24 +23,16 @@ class SweCore:
         current_dir = os.path.dirname(os.path.abspath(__file__))
         ephe_path = os.path.join(current_dir, "ephe")
         swe.set_ephe_path(ephe_path)
-        # todo : move to end
+        # todo : move to end or leave it
         swe.close()
         self.get_application = get_application
-
-    # def warning_message(window, message):
-    #     if hasattr(window, "get_application") and window.get_application:
-    #         window.get_application().notify_manager.warning(
-    #             message,
-    #             source="swecore.py",
-    #         )
-    #     else:
-    #         print(f"error : {message}")
 
     @staticmethod
     def get_events_data(window, event_one=None, event_two=None):
         """process event data using swisseph ; parent window / widget (optional)"""
 
         event_one_location = ""
+        event_one_name = ""
 
         if event_one:
             print("processing event one :")
@@ -57,6 +49,7 @@ class SweCore:
 
             # data received
             event_one_location = event_one["location"]
+            event_one_name = event_one["name"]
 
             window.get_application().notify_manager.success(
                 message=f"event one : data received : {event_one['name']} : {event_one['date_time']} : {event_one['location']}",
@@ -72,7 +65,7 @@ class SweCore:
                 return {}
             # for event two only datetime is mandatory
             if not event_two["name"]:
-                event_two["name"] = "event two"
+                event_two["name"] = event_one_name
             # if location not provided, use event one location
             if not event_two["location"]:
                 event_two["location"] = event_one_location

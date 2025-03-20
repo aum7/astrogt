@@ -27,11 +27,11 @@ class SidePaneManager:
         "file_load": "load file",
     }
     CHANGE_TIME_BUTTONS: Dict[str, str] = {
-        "arrow_l_g": "move time backward",
-        "arrow_r_g": "move time forward",
+        "arrow_l": "move time backward",
+        "arrow_r": "move time forward",
         "time_now": "time now\nset time now for selected location",
-        "arrow_up_g": "select previous time period",
-        "arrow_dn_g": "select next time period",
+        "arrow_up": "select previous time period",
+        "arrow_dn": "select next time period",
     }
     # global value for selected change time
     CHANGE_TIME_SELECTED = 0
@@ -482,19 +482,19 @@ only use [space] as separator
         print(f"{data} clicked")
 
     # change time handlers
-    def obc_arrow_l_g(self, widget, data):
+    def obc_arrow_l(self, widget, data):
+        self._adjust_event_time(-int(self.CHANGE_TIME_SELECTED))
         # print(f"{data} clicked")
         # self.get_application().notify_manager.success(
         #     "time change backward", source="sidepane.py"
         # )
-        self._adjust_event_time(-int(self.CHANGE_TIME_SELECTED))
 
-    def obc_arrow_r_g(self, widget, data):
+    def obc_arrow_r(self, widget, data):
+        self._adjust_event_time(int(self.CHANGE_TIME_SELECTED))
         # print(f"{data} clicked")
         # self.get_application().notify_manager.success(
         #     "time change forward", source="sidepane.py"
         # )
-        self._adjust_event_time(int(self.CHANGE_TIME_SELECTED))
 
     def obc_time_now(self, widget, data):
         """set time now for selected event"""
@@ -526,22 +526,22 @@ only use [space] as separator
             seconds = new_key.split("_")[-1]
             self.CHANGE_TIME_SELECTED = seconds
 
-    def obc_arrow_up_g(self, widget, data):
+    def obc_arrow_up(self, widget, data):
         """select previous time period"""
         # print(f"{data} clicked")
         self._change_time_period(-1)
-        self.get_application().notify_manager.info(
-            "previous time period selected",
-            source="sidepane.py",
-        )
+        # self.get_application().notify_manager.info(
+        #     "previous time period selected",
+        #     source="sidepane.py",
+        # )
 
-    def obc_arrow_dn_g(self, widget, data):
+    def obc_arrow_dn(self, widget, data):
         # print(f"{data} clicked")
         self._change_time_period(1)
-        self.get_application().notify_manager.info(
-            "next time period selected",
-            source="sidepane.py",
-        )
+        # self.get_application().notify_manager.info(
+        #     "next time period selected",
+        #     source="sidepane.py",
+        # )
 
     def _adjust_event_time(self, sec_delta):
         """adjust event time by given seconds"""
@@ -576,8 +576,6 @@ only use [space] as separator
         entry.set_text(new_text)
         # trigger entry activate signal
         entry.activate()
-        # force update data todo
-        # self.get_both_events_data()
 
     def _get_active_ent_datetime(self):
         """get datetime entry for selected / active event"""
