@@ -1,5 +1,5 @@
 # ruff: noqa: E402
-from typing import Dict, Callable
+from typing import Dict, Callable, Optional
 from datetime import datetime, timezone, timedelta
 from ui.collapsepanel import CollapsePanel
 from swe.eventdata import EventData
@@ -27,11 +27,11 @@ class SidePaneManager:
         "file_load": "load file",
     }
     CHANGE_TIME_BUTTONS: Dict[str, str] = {
-        "arrow_l": "move time backward",
-        "arrow_r": "move time forward",
-        "time_now": "time now\nset time now for selected location",
-        "arrow_up": "select previous time period",
-        "arrow_dn": "select next time period",
+        "arrow_l": "move time backward (hk : arrow left)",
+        "arrow_r": "move time forward (hk : arrow right)",
+        "time_now": "time now (hk : n)\nset time now for selected ",
+        "arrow_up": "select previous time period (hk : arrow up)",
+        "arrow_dn": "select next time period (hk : arrow down)",
     }
     # global value for selected change time
     CHANGE_TIME_SELECTED = 0
@@ -155,9 +155,9 @@ arrow key left / right : move time backward / forward
         # print(f"dropdown selected : {value}")
         key = [k for k, v in self.CHANGE_TIME_PERIODS.items() if v == value][0]
         seconds = key.split("_")[-1]
-        self.get_application().notify_manager.info(
-            f"selected period : {value} ({seconds} sec)", source="sidepane.py"
-        )
+        # self.get_application().notify_manager.info(
+        #     f"selected period : {value} ({seconds} sec)", source="sidepane.py"
+        # )
         # print(f"selected period : {seconds} seconds")
         self.CHANGE_TIME_SELECTED = seconds
 
@@ -482,28 +482,39 @@ only use [space] as separator
         print(f"{data} clicked")
 
     # change time handlers
-    def obc_arrow_l(self, widget, data):
+    def obc_arrow_l(
+        self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
+    ):
         self._adjust_event_time(-int(self.CHANGE_TIME_SELECTED))
         # print(f"{data} clicked")
         # self.get_application().notify_manager.success(
         #     "time change backward", source="sidepane.py"
         # )
 
-    def obc_arrow_r(self, widget, data):
+    def obc_arrow_r(
+        self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
+    ):
         self._adjust_event_time(int(self.CHANGE_TIME_SELECTED))
         # print(f"{data} clicked")
         # self.get_application().notify_manager.success(
         #     "time change forward", source="sidepane.py"
         # )
 
-    def obc_time_now(self, widget, data):
+    def obc_time_now(
+        self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
+    ):
         """set time now for selected event"""
         if self.selected_event == "event one" and self.EVENT_ONE:
             self.EVENT_ONE.set_current_utc()
         elif self.selected_event == "event two" and self.EVENT_TWO:
             self.EVENT_TWO.set_current_utc()
 
-    def _change_time_period(self, direction):
+    def _change_time_period(
+        self,
+        widget: Optional[Gtk.Widget] = None,
+        data: Optional[str] = None,
+        direction=1,
+    ):
         """helper function to change time period ; direction -1 / 1 for previous / next"""
         # get list of periods
         period_keys = list(self.CHANGE_TIME_PERIODS.keys())
@@ -526,18 +537,23 @@ only use [space] as separator
             seconds = new_key.split("_")[-1]
             self.CHANGE_TIME_SELECTED = seconds
 
-    def obc_arrow_up(self, widget, data):
+    def obc_arrow_up(
+        self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
+    ):
+        # def obc_arrow_up(self, widget, data):
         """select previous time period"""
         # print(f"{data} clicked")
-        self._change_time_period(-1)
+        self._change_time_period(direction=-1)
         # self.get_application().notify_manager.info(
         #     "previous time period selected",
         #     source="sidepane.py",
         # )
 
-    def obc_arrow_dn(self, widget, data):
+    def obc_arrow_dn(
+        self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
+    ):
         # print(f"{data} clicked")
-        self._change_time_period(1)
+        self._change_time_period(direction=1)
         # self.get_application().notify_manager.info(
         #     "next time period selected",
         #     source="sidepane.py",

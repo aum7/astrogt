@@ -41,11 +41,11 @@ class MainWindow(
         self.hotkey_manager.register_hotkey("h", self.show_help)
         self.hotkey_manager.register_hotkey("e", self.on_toggle_pane)
         self.hotkey_manager.register_hotkey("c", self.center_all_panes)
-        self.hotkey_manager.register_hotkey("shift+arrow_up", self.test)
-        # self.hotkey_manager.register_hotkey("arrow_up", self.obc_arrow_up)
-
-    def test(self):
-        print("arrow up")
+        self.hotkey_manager.register_hotkey("Up", self.obc_arrow_up)
+        self.hotkey_manager.register_hotkey("Down", self.obc_arrow_dn)
+        self.hotkey_manager.register_hotkey("Left", self.obc_arrow_l)
+        self.hotkey_manager.register_hotkey("Right", self.obc_arrow_r)
+        self.hotkey_manager.register_hotkey("n", self.obc_time_now)
 
     # hotkey action functions
     def show_help(self):
@@ -56,7 +56,13 @@ class MainWindow(
             "\nhover mouse over notification message - persist message"
             "\nesc : discard message\n\nhotkeys"
             "\nh : show help (this message)"
-            "\ne : toggle side pane",
+            "\ne : toggle side pane"
+            "\nc : center all panes"
+            "\narrow keys : up/down = change period | left/right = change time"
+            "\n\tfor selected event"
+            "\nn : set time to now for selected event"
+            "\ntab/shift+tab : navigate between widgets in side pane"
+            "\nspace/enter : activate button if focused",
             source="help",
             timeout=7,
         )
