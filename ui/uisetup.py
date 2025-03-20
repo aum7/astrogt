@@ -100,7 +100,9 @@ class UISetup:
 [shift-click] to center all panes"""
         )
         self.btn_toggle_pane.connect("clicked", self.on_toggle_pane)
-        # self.btn_toggle_pane.connect("clicked", self.on_toggle_pane, "btn_toggle_pane")
+        # self.btn_toggle_pane.connect(
+        #     "clicked", self.on_toggle_pane, self.btn_toggle_pane
+        # )
 
     def setup_labels(self):
         self.lbl_pane_tl = self.create_label("top left", "label-tl")

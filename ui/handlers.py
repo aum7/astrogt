@@ -119,7 +119,7 @@ class WindowHandlers:
             # print(f"{action} triggered from {position}")
             callback(button, f"{action}_{position}")
 
-    def on_toggle_pane(self):
+    def on_toggle_pane(self, button):
         # def on_toggle_pane(self, button):
         revealed = self.rvl_side_pane.get_child_revealed()
         if revealed:
