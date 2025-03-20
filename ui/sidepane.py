@@ -533,7 +533,10 @@ only use [space] as separator
             # set new value
             dropdown_index = period_values.index(new_value)
             self.ddn_time_periods.set_selected(dropdown_index)
-
+            # notify new value
+            # self.get_application().notify_manager.info(
+            #     f"selected period : {new_value}", source="time change", timeout=5
+            # )
             seconds = new_key.split("_")[-1]
             self.CHANGE_TIME_SELECTED = seconds
 

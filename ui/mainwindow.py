@@ -64,7 +64,7 @@ class MainWindow(
             "\ntab/shift+tab : navigate between widgets in side pane"
             "\nspace/enter : activate button if focused",
             source="help",
-            timeout=7,
+            timeout=5,
         )
 
     # hotkey actions end

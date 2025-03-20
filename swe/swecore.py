@@ -26,13 +26,16 @@ class SweCore:
         # todo : move to end or leave it
         swe.close()
         self.get_application = get_application
+        self.event_one_name = ""
+        self.event_one_location = ""
+        self.event_one_date_time = ""
+        self.event_two_name = ""
+        self.event_two_location = ""
+        self.event_two_date_time = ""
 
     @staticmethod
     def get_events_data(window, event_one=None, event_two=None):
         """process event data using swisseph ; parent window / widget (optional)"""
-
-        event_one_location = ""
-        event_one_name = ""
 
         if event_one:
             print("processing event one :")
@@ -43,36 +46,40 @@ class SweCore:
             ):
                 window.get_application().notify_manager.warning(
                     message="event one : data missing",
-                    source="swecore.py",
+                    source="swecore",
                 )
                 return {}
-
             # data received
-            event_one_location = event_one["location"]
-            event_one_name = event_one["name"]
+            SweCore.event_one_name = event_one["name"]
+            SweCore.event_one_date_time = event_one["date_time"]
+            SweCore.event_one_location = event_one["location"]
 
             window.get_application().notify_manager.success(
                 message=f"event one : data received : {event_one['name']} : {event_one['date_time']} : {event_one['location']}",
-                source="swecore.py",
+                source="swecore",
             )
         if event_two:
             print("processing event two :")
+            # for event two only datetime is mandatory
             if not event_two["date_time"]:
                 window.get_application().notify_manager.warning(
                     message="event two : datetime missing",
-                    source="swecore.py",
+                    source="swecore",
                 )
                 return {}
-            # for event two only datetime is mandatory
+
             if not event_two["name"]:
-                event_two["name"] = event_one_name
+                event_two["name"] = SweCore.event_one_name
             # if location not provided, use event one location
             if not event_two["location"]:
-                event_two["location"] = event_one_location
+                event_two["location"] = SweCore.event_one_location
+            SweCore.event_two_name = event_two["name"]
+            SweCore.event_two_date_time = event_two["date_time"]
+            SweCore.event_two_location = event_two["location"]
 
             window.get_application().notify_manager.success(
                 message=f"event two : data received : {event_two['name']} : {event_two['date_time']} : {event_two['location']}",
-                source="swecore.py",
+                source="swecore",
             )
 
     # print(f"swecore : OBJECTS : {OBJECTS}")

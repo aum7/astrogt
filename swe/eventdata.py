@@ -38,7 +38,7 @@ class EventData:
         if hasattr(self, "get_application") and self.get_application:
             self.get_application().notify_manager.info(
                 message,
-                source="eventdata.py",
+                source="eventdata",
             )
         else:
             print(f"error : {message}")
@@ -47,7 +47,7 @@ class EventData:
         if hasattr(self, "get_application") and self.get_application:
             self.get_application().notify_manager.success(
                 message,
-                source="eventdata.py",
+                source="eventdata",
             )
         else:
             print(f"error : {message}")
@@ -56,7 +56,7 @@ class EventData:
         if hasattr(self, "get_application") and self.get_application:
             self.get_application().notify_manager.error(
                 message,
-                source="eventdata.py",
+                source="eventdata",
             )
         else:
             print(f"error : {message}")
