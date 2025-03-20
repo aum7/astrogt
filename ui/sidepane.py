@@ -270,10 +270,6 @@ only use [space] as separator
 [enter] = accept data
 [tab] / [shift-tab] = next / previous entry"""
         )
-        # ent_location.connect(
-        #     "activate",
-        #     lambda widget: self.get_both_events_data(),
-        # )
         # put widgets into sub-panel
         subpnl_location.add_widget(lbl_country)
         subpnl_location.add_widget(ddn_country)
@@ -303,15 +299,12 @@ only use [space] as separator
 [tab] / [shift-tab] = next / previous entry"""
         )
         # put widgets into sub-panel
-        # subpnl_event_name.add_widget(lbl_event_name)
         subpnl_event_name.add_widget(ent_event_name)
 
         subpnl_datetime = CollapsePanel(
             title="date & time one" if event_name == "event one" else "date & time two",
             indent=14,
         )
-        # lbl_datetime = Gtk.Label(label="date & time")
-        # lbl_datetime.set_halign(Gtk.Align.START)
 
         ent_datetime = Gtk.Entry()
         ent_datetime.set_name("date_time")
@@ -331,7 +324,6 @@ only use [space] as separator
             lambda widget: self.get_both_events_data(),
         )
         # put widgets into sub-panel
-        # subpnl_datetime.add_widget(lbl_datetime)
         subpnl_datetime.add_widget(ent_datetime)
         # create eventdata instance
         if event_name == "event one":

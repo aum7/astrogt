@@ -168,13 +168,7 @@ ie 1999 11 12 13 14""")
                 self.error_message(
                     f"{year}-{month}-{day} : date NOT valid : fix & try again"
                 )
-                # self.get_application().notify_manager.warning(
-                #     f"{year}-{month}-{day} : date NOT valid : fix & try again"
-                # )
                 self.error_message("check month & day : february has 28 or 29 days")
-                # self.get_application().notify_manager.warning(
-                #     " check month & day : february has 28 or 29 days "
-                # )
                 # print(f"{year}-{month}-{day} : date is NOT valid : fix & try again")
                 # print("\tcheck month & day : february has 28 or 29 days")
                 return
@@ -186,9 +180,6 @@ ie 1999 11 12 13 14""")
                 self.error_message(
                     f"{hour}:{minute}:{second} : time NOT valid : fix & try again"
                 )
-                # self.get_application().notify_manager.warning(
-                #     f"{hour}:{minute}:{second} : time NOT valid : fix & try again"
-                # )
                 # print(f"{hour}:{minute}:{second} : time is NOT valid : fix & try again")
                 return
 
@@ -216,9 +207,6 @@ ie 1999 11 12 13 14""")
 
             except ValueError as e:
                 self.error_message(f"invalid date-time : {str(e)}")
-                # self.get_application().notify_manager.warning(
-                #     f"invalid date-time : {str(e)}"
-                # )
                 # print(f"invalid date-time : {str(e)}")
                 return
 
@@ -226,11 +214,6 @@ ie 1999 11 12 13 14""")
             self.error_message("""wrong date-time format
 we only accept space-separated : yyyy mm dd HH MM SS
 and - / . : for separators""")
-            # self.get_application().notify_manager.warning(
-            #     """wrong date-time format
-            #     we only accept space-separated : yyyy mm dd HH MM SS
-            #     and - / . : for separators"""
-            # )
             #         print(
             #             """wrong date-time format
             # we only accept space-separated : yyyy mm dd HH MM SS
@@ -267,9 +250,6 @@ and - / . : for separators""")
                         lon_dir_idx = i
                 if lat_dir_idx == -1 or lon_dir_idx == -1:
                     self.error_message("missing direction indicators (n/s & e/w)")
-                    # self.get_application().notify_manager.warning(
-                    #     "missing direction indicators (n/s & e/w)"
-                    # )
                     # print("missing direction indicators (n/s & e/w)")
                     return False
                 # split into latitude & longitude
@@ -312,9 +292,6 @@ and - / . : for separators""")
 
                 except (ValueError, IndexError) as e:
                     self.error_message(f"error parsing coordinates :\n\t{str(e)}")
-                    # self.get_application().notify_manager.warning(
-                    #     f"error parsing coordinates :\n\t{str(e)}"
-                    # )
                     # print(f"error parsing coordinates :\n\t{str(e)}")
                     return False
             else:
@@ -341,54 +318,33 @@ and - / . : for separators""")
 
                 except ValueError as e:
                     self.error_message(f"invalid decimal coordinates :\n\t{str(e)}")
-                    # self.get_application().notify_manager.warning(
-                    #     f"invalid decimal coordinates :\n\t{str(e)}"
-                    # )
                     # print(f"invalid decimal coordinates :\n\t{str(e)}")
                     return False
 
             # validate ranges
             if not (0 <= lat_deg <= 89):
                 self.error_message("latitude degrees must be between 0 & 90")
-                # self.get_application().notify_manager.warning(
-                #     "latitude degrees must be between 0 & 90"
-                # )
                 # print("latitude degrees must be between 0 & 90")
                 return False
             if not (0 <= lat_min <= 59) or not (0 <= lat_sec <= 59):
                 self.error_message("minutes & seconds must be between 0 & 59")
-                # self.get_application().notify_manager.warning(
-                #     "minutes & seconds must be between 0 & 59"
-                # )
                 # print("minutes & seconds must be between 0 & 59")
                 return False
             if lat_dir not in ["n", "s"]:
                 self.error_message("latitude direction must be n(orth) or s(outh)")
-                # self.get_application().notify_manager.warning(
-                #     "latitude direction must be n(orth) or s(outh)"
-                # )
                 # print("latitude direction must be n(orth) or s(outh)")
                 return False
 
             if not (0 <= lon_deg <= 179):
                 self.error_message("longitude degrees must be between 0 and 179")
-                # self.get_application().notify_manager.warning(
-                #     "longitude degrees must be between 0 and 179"
-                # )
                 # print("longitude degrees must be between 0 and 179")
                 return False
             if not (0 <= lon_min <= 59) or not (0 <= lon_sec <= 59):
                 self.error_message("minutes & seconds must be between 0 & 59")
-                # self.get_application().notify_manager.warning(
-                #     "minutes & seconds must be between 0 & 59"
-                # )
                 # print("minutes & seconds must be between 0 & 59")
                 return False
             if lon_dir not in ["e", "w"]:
                 self.error_message("longitude direction must be e(ast) or w(est)")
-                # self.get_application().notify_manager.warning(
-                #     "longitude direction must be e(ast) or w(est)"
-                # )
                 # print("longitude direction must be e(ast) or w(est)")
                 return False
             # try to convert altitude to int if present
@@ -396,13 +352,8 @@ and - / . : for separators""")
                 alt = str(int(alt))
             except ValueError:
                 self.info_message("invalid altitude value ; setting alt to /")
-                # self.error_message("invalid altitude value ; setting alt to /")
-                # self.get_application().notify_manager.warning(
-                #     "invalid altitude value ; setting alt to /"
-                # )
                 # print("invalid altitude value ; setting alt to /")
                 alt = "/"
-
             # format final string
             location_formatted = (
                 f"{lat_deg:02d} {lat_min:02d} {lat_sec:02d} {lat_dir} "
@@ -423,41 +374,17 @@ and - / . : for separators""")
 
         except Exception as e:
             self.error_message("invalid location format : we accept :")
-            # self.get_application().notify_manager.warning(
-            #     """invalid location format : we accept :""",
-            #     timeout=2,
-            # )
             self.error_message(
                 "1. deg-min-sec with direction : 32 21 (9) n 77 66 (11) w (alt) - sec & alt are optional"
             )
-            # self.get_application().notify_manager.warning(
-            #     """1. deg-min-sec with direction : 32 21 (9) n 77 66 (11) w (alt) - sec & alt are optional""",
-            #     timeout=3,
-            # )
             self.error_message(
                 "2. decimal with direction : 33.77 n 124.87 e (alt) - alt is optional"
             )
-            # self.get_application().notify_manager.warning(
-            #     """2. decimal with direction : 33.77 n 124.87 e (alt) - alt is optional""",
-            #     timeout=3,
-            # )
             self.error_message(
                 "3. decimal signed : -16.76 -72.678 (alt) - alt is optional"
             )
-            # self.get_application().notify_manager.warning(
-            #     """3. decimal signed : -16.76 -72.678 (alt) - alt is optional""",
-            #     timeout=3,
-            # )
             self.error_message(f"error :\n\t{str(e)}")
-            # self.get_application().notify_manager.warning(f"error :\n\t{str(e)}")
-            #             print(
-            #                 f"""invalid location format : we accept :
-            # 1. deg-min-sec with direction : 32 21 (9) n 77 66 (11) w (alt) - sec & alt are optional
-            # 2. decimal with direction : 33.77 n 124.87 e (alt) - alt is optional
-            # 3. decimal signed : -16.76 -72.678 (alt) - alt is optional
 
-            # error :\n\t{str(e)}"""
-            #             )
             return False
 
     def decimal_to_dms(self, decimal):

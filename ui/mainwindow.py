@@ -38,17 +38,43 @@ class MainWindow(
 
     def setup_hotkeys(self):
         # register additional hotkeys
-        self.hotkey_manager.register_hotkey("h", self.toggle_help)
+        self.hotkey_manager.register_hotkey("h", self.show_help)
         self.hotkey_manager.register_hotkey("e", self.on_toggle_pane)
 
     # hotkey action functions
-    def toggle_help(self):
+    def show_help(self):
         # todo
-        self.show_notification("help shown")
+        self.show_notification(
+            "manual\n"
+            "\nhover mouse over buttons & text - show tooltips"
+            "\nhover mouse over notification message - persist message"
+            "\nesc : discard message\n\nhotkeys"
+            "\nh : show help (this message)"
+            "\ne : toggle side pane",
+            source="help",
+            timeout=7,
+        )
 
     # hotkey actions end
-    def show_notification(self, message, timeout=3):
+    def show_notification(self, message, source=None, timeout=3):
         """helper method to access notifictions from app instance"""
         app = self.get_application()
         if app and hasattr(app, "notify_manager"):
-            app.notify_manager.notify(message, timeout)
+            app.notify_manager.notify(message=message, source=source, timeout=timeout)
+
+    def center_all_panes(self) -> None:
+        """center all 4 main panes"""
+        if (
+            hasattr(self.window, "pnd_main_v")
+            and hasattr(self.window, "pnd_top_h")
+            and hasattr(self.window, "pnd_btm_h")
+        ):
+            self.window.pnd_main_v.set_position(
+                self.window.pnd_main_v.get_allocated_height() // 2
+            )
+            self.window.pnd_top_h.set_position(
+                self.window.pnd_top_h.get_allocated_width() // 2
+            )
+            self.window.pnd_btm_h.set_position(
+                self.window.pnd_btm_h.get_allocated_width() // 2
+            )
