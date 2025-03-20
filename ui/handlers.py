@@ -131,7 +131,7 @@ class WindowHandlers:
         # # widget hierarchy
         # current = picked
         # while current:
-        #     # print(f"current hierarchy : {type(current).__name__}")
+        #     # print(f"current hierarchy : {typeqcurrent).__name__}")
         #     print(f"current hierarchy : {current.__class__.__name__}")
         #     current = current.get_parent()
         # button.set_tooltip_text(f"parent : {self.overlays[parent]}\n{tooltip}")

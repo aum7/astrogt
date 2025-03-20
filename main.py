@@ -29,7 +29,7 @@ class AstrogtApp(Gtk.Application):
         win.set_child(toast_overlay)
         self.notify_manager.toast_overlay = toast_overlay
         # notification : code specific to this file
-        self.notify_manager.success("astrogt app started", source="main.py", timeout=7)
+        # self.notify_manager.success("astrogt app started", source="main.py", timeout=7)
         win.present()
 
 
