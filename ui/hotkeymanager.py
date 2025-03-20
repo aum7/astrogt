@@ -1,4 +1,5 @@
 # ruff: noqa: E402
+# import functools
 from typing import Dict, Callable
 import gi
 
@@ -87,6 +88,7 @@ class HotkeyManager:
             self.active_modifiers[Gdk.KEY_Alt_L] = False
 
     def register_hotkey(self, shortcut: str, callback: Callable) -> None:
+        # self.hotkey_map[shortcut.lower()] = functools.partial(callback, self.window)
         self.hotkey_map[shortcut.lower()] = callback
 
     def unregister_hotkey(self, shortcut: str) -> None:

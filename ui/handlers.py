@@ -1,5 +1,5 @@
 # ruff: noqa: E402
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 import gi
 
 gi.require_version("Gtk", "4.0")
@@ -119,8 +119,8 @@ class WindowHandlers:
             # print(f"{action} triggered from {position}")
             callback(button, f"{action}_{position}")
 
-    def on_toggle_pane(self, button):
-        # def on_toggle_pane(self, button):
+    # def on_toggle_pane(self):
+    def on_toggle_pane(self, button: Optional[Gtk.Button] = None) -> None:
         revealed = self.rvl_side_pane.get_child_revealed()
         if revealed:
             self.rvl_side_pane.set_reveal_child(False)
