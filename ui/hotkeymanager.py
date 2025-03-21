@@ -20,7 +20,6 @@ class HotkeyManager:
         # store reference to window methods
         self.actions = {
             "toggle_pane": getattr(window, "on_toggle_pane", None),
-            # "center_panes": getattr(window, "center_all_panes", None),
             "center_panes": self._center_all_panes,
         }
         self.setup_controllers()

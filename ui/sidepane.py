@@ -516,14 +516,6 @@ only use [space] as separator
     ):
         self._adjust_event_time(-int(self.CHANGE_TIME_SELECTED))
         self.get_selected_event_data()
-        # self.get_both_events_data()
-        # entry = self._get_active_ent_datetime()
-        # if entry:
-        #     entry.activate()
-        # app = self.get_application()
-        # if app and hasattr(app, "ent_datetime"):
-        #     print("found app & ent_datetime")
-        # print(f"{data} clicked")
         # self.get_application().notify_manager.success(
         #     "time change backward", source="sidepane.py"
         # )
@@ -533,10 +525,6 @@ only use [space] as separator
     ):
         self._adjust_event_time(int(self.CHANGE_TIME_SELECTED))
         self.get_selected_event_data()
-        # entry = self._get_active_ent_datetime()
-        # if entry:
-        #     entry.activate()
-        # print(f"{data} clicked")
         # self.get_application().notify_manager.success(
         #     "time change forward", source="sidepane.py"
         # )
@@ -584,9 +572,7 @@ only use [space] as separator
     def obc_arrow_up(
         self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
     ):
-        # def obc_arrow_up(self, widget, data):
         """select previous time period"""
-        # print(f"{data} clicked")
         self._change_time_period(direction=-1)
         # self.get_application().notify_manager.info(
         #     "previous time period selected",
@@ -596,7 +582,6 @@ only use [space] as separator
     def obc_arrow_dn(
         self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
     ):
-        # print(f"{data} clicked")
         self._change_time_period(direction=1)
         # self.get_application().notify_manager.info(
         #     "next time period selected",
@@ -636,26 +621,11 @@ only use [space] as separator
         entry.set_text(new_text)
         # trigger entry activate signal
         entry.activate()
-        # call get_selected_event_data to update swecore
-        # self.get_selected_event_data()
 
     def _get_active_ent_datetime(self):
         """get datetime entry for selected / active event"""
         if self.selected_event == "event one" and self.EVENT_ONE:
-            return self.EVENT_ONE.date_time  # if self.EVENT_ONE else None
+            return self.EVENT_ONE.date_time
         elif self.selected_event == "event two" and self.EVENT_TWO:
-            return self.EVENT_TWO.date_time  # if self.EVENT_TWO else None
+            return self.EVENT_TWO.date_time
         return None
-        # if hasattr(self, "clp_event_one"):
-        #     datetime_entry = self.clp_event_one.find_widget_by_name("date_time")
-        #     print("found datetime entry in event one")
-        #     print(f"datetime_entry : {datetime_entry}")
-        #     if datetime_entry is not None and datetime_entry.has_focus():
-        #         print("has focus")
-        #     return datetime_entry
-        # elif hasattr(self, "clp_event_two"):
-        #     datetime_entry = self.clp_event_two.find_widget_by_name("date_time")
-        #     print("found datetime entry in event two")
-        #     if datetime_entry is not None and datetime_entry.has_focus():
-        #         print("has focus")
-        #     return datetime_entry

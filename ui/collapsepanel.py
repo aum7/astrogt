@@ -79,24 +79,24 @@ class CollapsePanel(Gtk.Box):
         self.lbl_title.remove_css_class(css_class)
 
     # todo do we need this?
-    def find_widget_by_name(self, widget_name):
-        """find widget by name"""
-        for child in self.box_content.observe_children():
-            # for child in self.box_content.get_children():
-            # if widget.get_name() == widget_name:
-            #     return widget
-            # for child in self.get_widgets():
-            if isinstance(child, Gtk.Entry) and child.get_name() == widget_name:
-                print(f"collapsepanel : found entry by name : {child.get_name()}")
-                return child
-            if isinstance(child, Gtk.Widget) and hasattr(child, "get_first_child"):
-                for sub_child in child.observe_children():
-                    if (
-                        isinstance(sub_child, Gtk.Entry)
-                        and sub_child.get_name() == widget_name
-                    ):
-                        print(
-                            f"collapsepanel : found widget (entry) by name : {child.get_name()}"
-                        )
-                        return sub_child
-        return None
+    # def find_widget_by_name(self, widget_name):
+    #     """find widget by name"""
+    #     for child in self.box_content.observe_children():
+    #         # for child in self.box_content.get_children():
+    #         # if widget.get_name() == widget_name:
+    #         #     return widget
+    #         # for child in self.get_widgets():
+    #         if isinstance(child, Gtk.Entry) and child.get_name() == widget_name:
+    #             print(f"collapsepanel : found entry by name : {child.get_name()}")
+    #             return child
+    #         if isinstance(child, Gtk.Widget) and hasattr(child, "get_first_child"):
+    #             for sub_child in child.observe_children():
+    #                 if (
+    #                     isinstance(sub_child, Gtk.Entry)
+    #                     and sub_child.get_name() == widget_name
+    #                 ):
+    #                     print(
+    #                         f"collapsepanel : found widget (entry) by name : {child.get_name()}"
+    #                     )
+    #                     return sub_child
+    #     return None
