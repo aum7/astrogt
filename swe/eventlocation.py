@@ -1,7 +1,6 @@
 # ruff: noqa: E402
 import sqlite3
 import gi
-# from ui.mainwindow import MainWindow
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
@@ -17,24 +16,16 @@ class EventLocation:
         self.selected_city = ""
         self.entry = None
 
-    def error_message(self, message):
-        if hasattr(self, "get_application") and self.get_application:
-            self.get_application().notify_manager.error(
-                message,
-                source="eventlocation.py",
-            )
+    def notify_user(self, message, **kwargs):
+        app = (
+            self.get_application()
+            if self.get_application
+            else Gtk.get_application_default()
+        )
+        if app and hasattr(app, "notify_manager"):
+            app.notify_manager.notify(message=message, **kwargs)
         else:
-            print(f"error : {message}")
-
-    def info_message(self, message, timeout=None):
-        if hasattr(self, "get_application") and self.get_application:
-            self.get_application().notify_manager.info(
-                message,
-                source="eventlocation.py",
-                timeout=timeout,
-            )
-        else:
-            print(f"error : {message}")
+            print(f"eventdata : {message}")
 
     def set_location_callback(self, callback):
         self.location_callback = callback
@@ -88,12 +79,20 @@ class EventLocation:
             self.check_cities(sorted(cities))
 
         except Exception as e:
-            self.error_message(f"atlas db error : {str(e)}")
+            self.notify_user(
+                f"atlas db error : {str(e)}",
+                level="error",
+                source="eventlocation",
+            )
 
     def check_cities(self, cities):
         if len(cities) == 0:
-            self.error_message("city not found")
-            # print("check_cities : city not found : exiting ...")
+            self.notify_user(
+                "city not found",
+                level="warning",
+                source="eventlocation",
+                do_log=False,
+            )
             return
 
         elif len(cities) == 1:

@@ -65,7 +65,7 @@ class MainWindow(
             "manual\n"
             "\nhover mouse over buttons & text = show tooltips"
             "\nhover mouse over notification message = persist message"
-            "\nesc : discard message\n\nhotkeys"
+            "\nesc : discard message\n\nhotkeys (hk)"
             "\nh : show help (this message)"
             "\ns : toggle side pane"
             "\ne : select event for time change"
@@ -74,7 +74,8 @@ class MainWindow(
             "\n\tfor selected event"
             "\nn : set time now (utc) for selected event"
             "\ntab/shift+tab : navigate between widgets in side pane"
-            "\nspace/enter : activate button / dropdown when focused",
+            "\nspace/enter : activate button / dropdown when focused"
+            "\n\nnote : if entry (text) field is focused, hotkeys will not work",
             level="debug",
             source="help",
             timeout=5,

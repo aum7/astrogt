@@ -408,47 +408,23 @@ only use [space] as separator
         return None
 
     # data handlers
-    def get_both_events_data(self, widget=None) -> None:
-        """get data for both events"""
-        try:
-            event_one = (
-                self.EVENT_ONE.get_event_data()
-                if isinstance(self.EVENT_ONE, EventData)
-                else None
+    def ensure_event_data(self, event, collapse_panel):
+        # from swe.eventdata import EventData
+        if isinstance(event, dict):
+            return EventData(
+                collapse_panel.get_widget("event_name"),
+                collapse_panel.get_widget("date_time"),
+                collapse_panel.get_widget("location"),
+                get_application=self.get_application,
             )
-            event_two = (
-                self.EVENT_TWO.get_event_data()
-                if isinstance(self.EVENT_TWO, EventData)
-                else None
-            )
-            self.swe_core.get_events_data(self, event_one, event_two)
+        return event
 
-        except AttributeError:
-            # re-initialize if they be converted to dict
-            if isinstance(self.EVENT_ONE, dict):
-                self.EVENT_ONE = EventData(
-                    self.clp_event_one.get_widget("event_name"),
-                    self.clp_event_one.get_widget("date_time"),
-                    self.clp_event_one.get_widget("location"),
-                )
-            if isinstance(self.EVENT_TWO, dict):
-                self.EVENT_TWO = EventData(
-                    self.clp_event_two.get_widget("event_name"),
-                    self.clp_event_two.get_widget("date_time"),
-                    self.clp_event_two.get_widget("location"),
-                )
-            # try again
-            event_one = (
-                self.EVENT_ONE.get_event_data()
-                if isinstance(self.EVENT_ONE, EventData)
-                else None
-            )
-            event_two = (
-                self.EVENT_TWO.get_event_data()
-                if isinstance(self.EVENT_TWO, EventData)
-                else None
-            )
-            self.swe_core.get_events_data(self, event_one, event_two)
+    def get_both_events_data(self, widget=None) -> None:
+        self.EVENT_ONE = self.ensure_event_data(self.EVENT_ONE, self.clp_event_one)
+        self.EVENT_TWO = self.ensure_event_data(self.EVENT_TWO, self.clp_event_two)
+        event_one_data = self.EVENT_ONE.get_event_data() if self.EVENT_ONE else None
+        event_two_data = self.EVENT_TWO.get_event_data() if self.EVENT_TWO else None
+        self.swe_core.get_events_data(self, event_one_data, event_two_data)
 
     def get_selected_event_data(self, widget=None) -> None:
         """get data for selected event"""

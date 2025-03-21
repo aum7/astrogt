@@ -1,18 +1,18 @@
 import os
 import swisseph as swe
-from datetime import datetime
-from typing import Callable, Dict, List, Tuple, Optional
-from user.settings.settings import (
-    OBJECTS,
-    HOUSE_SYSTEMS,
-    SWE_FLAG,
-    FILES,
-    CHART_SETTINGS,
-    SOLAR_YEAR,
-    LUNAR_MONTH,
-    AYANAMSA,
-    CUSTOM_AYANAMSA,
-)
+# from datetime import datetime
+# from typing import Callable, Dict, List, Tuple, Optional
+# from user.settings.settings import (
+#     OBJECTS,
+#     HOUSE_SYSTEMS,
+#     SWE_FLAG,
+#     FILES,
+#     CHART_SETTINGS,
+#     SOLAR_YEAR,
+#     LUNAR_MONTH,
+#     AYANAMSA,
+#     CUSTOM_AYANAMSA,
+# )
 
 
 class SweCore:
@@ -55,7 +55,7 @@ class SweCore:
             SweCore.event_one_location = event_one["location"]
 
             window.get_application().notify_manager.success(
-                message=f"event one : data received : {event_one['name']} : {event_one['date_time']} : {event_one['location']}",
+                message=f"event one data received :\n\t{event_one['name']} : {event_one['date_time']} : {event_one['location']}",
                 source="swecore",
             )
         if event_two:
@@ -65,6 +65,7 @@ class SweCore:
                 window.get_application().notify_manager.warning(
                     message="event two : datetime missing",
                     source="swecore",
+                    timeout=1,
                 )
                 return {}
 
@@ -78,7 +79,17 @@ class SweCore:
             SweCore.event_two_location = event_two["location"]
 
             window.get_application().notify_manager.success(
-                message=f"event two : data received : {event_two['name']} : {event_two['date_time']} : {event_two['location']}",
+                message=f"event two data received :\n\t{event_two['name']} : {event_two['date_time']} : {event_two['location']}",
+                source="swecore",
+            )
+            # todo test print
+            window.get_application().notify_manager.debug(
+                message=f"self.event_one_name : {SweCore.event_one_name}"
+                f"\nself.event_one_date_time : {SweCore.event_one_date_time}"
+                f"\nself.event_one_location : {SweCore.event_one_location}"
+                f"\nself.event_two_name : {SweCore.event_two_name}"
+                f"\nself.event_two_date_time : {SweCore.event_two_date_time}"
+                f"\nself.event_two_location : {SweCore.event_two_location}",
                 source="swecore",
             )
 
