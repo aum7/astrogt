@@ -287,7 +287,7 @@ only use [space] as separator
         # lbl_event_name = Gtk.Label(label="name / title")
         # lbl_event_name.set_halign(Gtk.Align.START)
         ent_event_name = Gtk.Entry()
-
+        ent_event_name.set_name("event_name")
         ent_event_name.set_placeholder_text(
             "event one name" if event_name == "event one" else "event two name"
         )
@@ -450,19 +450,48 @@ only use [space] as separator
             )
             self.swe_core.get_events_data(self, event_one, event_two)
 
+    def get_selected_event_data(self, widget=None) -> None:
+        """get data for selected event"""
+        # print("get_selected_event_data called")
+        if self.selected_event == "event one" and self.EVENT_ONE:
+            self.swe_core.get_events_data(
+                self,
+                self.EVENT_ONE.get_event_data(),
+                None,
+            )
+        elif self.selected_event == "event two" and self.EVENT_TWO:
+            self.swe_core.get_events_data(
+                self,
+                None,
+                self.EVENT_TWO.get_event_data(),
+            )
+
     # button handlers
+    def event_toggle_selected(self):
+        """toggle selected event"""
+        if self.selected_event == "event one":
+            self.selected_event = "event two"
+            print(f"event_toggle_selected : {self.selected_event} selected")
+            self.clp_event_one.remove_title_css_class("label-frame-sel")
+            self.clp_event_two.add_title_css_class("label-frame-sel")
+        elif self.selected_event == "event two":
+            self.selected_event = "event one"
+            print(f"event_toggle_selected : {self.selected_event} selected")
+            self.clp_event_two.remove_title_css_class("label-frame-sel")
+            self.clp_event_one.add_title_css_class("label-frame-sel")
+
     def obc_event_selection(self, gesture, n_press, x, y, event_name):
         """handle event selection"""
         if self.selected_event != event_name:
             self.selected_event = event_name
             if self.selected_event == "event one":
                 # todo comment
-                print("event_selection : event one selected")
+                print(f"event_selection : {self.selected_event} selected")
                 self.clp_event_two.remove_title_css_class("label-frame-sel")
                 self.clp_event_one.add_title_css_class("label-frame-sel")
             if self.selected_event == "event two":
                 # todo comment
-                print("event_selection : event two selected")
+                print(f"event_selection : {self.selected_event} selected")
                 self.clp_event_one.remove_title_css_class("label-frame-sel")
                 self.clp_event_two.add_title_css_class("label-frame-sel")
 
@@ -486,6 +515,14 @@ only use [space] as separator
         self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
     ):
         self._adjust_event_time(-int(self.CHANGE_TIME_SELECTED))
+        self.get_selected_event_data()
+        # self.get_both_events_data()
+        # entry = self._get_active_ent_datetime()
+        # if entry:
+        #     entry.activate()
+        # app = self.get_application()
+        # if app and hasattr(app, "ent_datetime"):
+        #     print("found app & ent_datetime")
         # print(f"{data} clicked")
         # self.get_application().notify_manager.success(
         #     "time change backward", source="sidepane.py"
@@ -495,6 +532,10 @@ only use [space] as separator
         self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
     ):
         self._adjust_event_time(int(self.CHANGE_TIME_SELECTED))
+        self.get_selected_event_data()
+        # entry = self._get_active_ent_datetime()
+        # if entry:
+        #     entry.activate()
         # print(f"{data} clicked")
         # self.get_application().notify_manager.success(
         #     "time change forward", source="sidepane.py"
@@ -595,28 +636,26 @@ only use [space] as separator
         entry.set_text(new_text)
         # trigger entry activate signal
         entry.activate()
+        # call get_selected_event_data to update swecore
+        # self.get_selected_event_data()
 
     def _get_active_ent_datetime(self):
         """get datetime entry for selected / active event"""
-
-        if hasattr(self, "selected_event") and self.selected_event == "event one":
-            return self.EVENT_ONE.date_time if self.EVENT_ONE else None
-        else:
-            return self.EVENT_TWO.date_time if self.EVENT_TWO else None
-
-    # def get_selected_event_data(self) -> None:
-    #     """get data for current selected event"""
-    #     print("get_selected_event_data called")
-    #     if self.selected_event == "event one" and self.EVENT_ONE:
-    #         self.swe_core.get_events_data(
-    #             self.EVENT_ONE.get_event_data(),
-    #             None,
-    #         )
-
-    #     elif self.selected_event == "event two" and self.EVENT_TWO:
-    #         self.swe_core.get_events_data(
-    #             None,
-    #             self.EVENT_TWO.get_event_data(),
-    #         )
-
-    # return {}
+        if self.selected_event == "event one" and self.EVENT_ONE:
+            return self.EVENT_ONE.date_time  # if self.EVENT_ONE else None
+        elif self.selected_event == "event two" and self.EVENT_TWO:
+            return self.EVENT_TWO.date_time  # if self.EVENT_TWO else None
+        return None
+        # if hasattr(self, "clp_event_one"):
+        #     datetime_entry = self.clp_event_one.find_widget_by_name("date_time")
+        #     print("found datetime entry in event one")
+        #     print(f"datetime_entry : {datetime_entry}")
+        #     if datetime_entry is not None and datetime_entry.has_focus():
+        #         print("has focus")
+        #     return datetime_entry
+        # elif hasattr(self, "clp_event_two"):
+        #     datetime_entry = self.clp_event_two.find_widget_by_name("date_time")
+        #     print("found datetime entry in event two")
+        #     if datetime_entry is not None and datetime_entry.has_focus():
+        #         print("has focus")
+        #     return datetime_entry
