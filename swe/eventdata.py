@@ -1,7 +1,10 @@
 # ruff: noqa: E402
 import re
 import pytz
+import gi
 
+gi.require_version("Gtk", "4.0")
+from gi.repository import Gtk  # type: ignore
 from math import modf
 from datetime import datetime
 
@@ -34,32 +37,16 @@ class EventData:
                 lambda w, p, cb=callback: focus_wrapper(w, p, cb),
             )  # focus lost ?
 
-    def info_message(self, message):
-        if hasattr(self, "get_application") and self.get_application:
-            self.get_application().notify_manager.info(
-                message,
-                source="eventdata",
-            )
+    def notify_user(self, message, **kwargs):
+        app = (
+            self.get_application()
+            if self.get_application
+            else Gtk.get_application_default()
+        )
+        if app and hasattr(app, "notify_manager"):
+            app.notify_manager.notify(message=message, **kwargs)
         else:
-            print(f"error : {message}")
-
-    def success_message(self, message):
-        if hasattr(self, "get_application") and self.get_application:
-            self.get_application().notify_manager.success(
-                message,
-                source="eventdata",
-            )
-        else:
-            print(f"error : {message}")
-
-    def error_message(self, message):
-        if hasattr(self, "get_application") and self.get_application:
-            self.get_application().notify_manager.error(
-                message,
-                source="eventdata",
-            )
-        else:
-            print(f"error : {message}")
+            print(f"eventdata : {message}")
 
     def on_name_change(self, entry):
         """process title / name"""
@@ -89,13 +76,12 @@ class EventData:
             valid_chars = set("0123456789 -/.:")
             invalid_chars = set(date_time) - valid_chars
             if invalid_chars:
-                self.error_message(
-                    f"date-time : characters {sorted(invalid_chars)} not allowed"
+                self.notify_user(
+                    f"date-time : characters {sorted(invalid_chars)} not allowed",
+                    level="warning",
+                    source="eventdata",
+                    do_log=False,
                 )
-                # self.get_application().notify_manager.warning(
-                #     f"date-time : characters {sorted(invalid_chars)} not allowed"
-                # )
-                # print(f"on_dt_change : unaccepted characters : {sorted(invalid_chars)}")
                 return
             # huston we have data
             is_year_negative = date_time.lstrip().startswith("-")
@@ -103,16 +89,13 @@ class EventData:
             parts = [p for p in re.split("[ -/.:]+", date_time) if p]
             # print(f"parts : {parts}")
             if len(parts) < 5 or len(parts) > 6:
-                self.error_message("""wrong data count : 6 or 5 (no seconds) time units expected
-ie 1999 11 12 13 14""")
-                # self.get_application().notify_manager.warning(
-                #     """wrong data count : 6 or 5 (no seconds) time units expected
-                # ie 1999 11 12 13 14"""
-                # )
-                #             print(
-                #                 """wrong data count : 6 or 5 (no seconds) time units expected
-                # ie 1999 11 12 13 14"""
-                #             )
+                self.notify_user(
+                    "wrong data count : 6 or 5 (if no seconds) time units expected"
+                    "\n\tie 1999 11 12 13 14",
+                    level="warning",
+                    source="eventdata",
+                    do_log=False,
+                )
                 return
                 # handle year
             try:
@@ -122,17 +105,21 @@ ie 1999 11 12 13 14""")
                 # print(f"year : {year}")
                 # swiseph year range
                 if not -13200 <= year <= 17191:
-                    self.error_message("year out of sweph range (-13.200 - 17.191)")
-                    # self.get_application().notify_manager.warning(
-                    #     "year out of sweph range (-13.200 - 17.191)"
-                    # )
-                    # print("year out of sweph range (-13.200 - 17.191)")
+                    self.notify_user(
+                        "year out of sweph range (-13.200 - 17.191)",
+                        level="warning",
+                        source="eventdata",
+                        do_log=False,
+                    )
                     return
 
             except ValueError:
-                self.error_message("invalid year format")
-                # self.get_application().notify_manager.warning("invalid year format")
-                # print("invalid year format")
+                self.notify_user(
+                    "invalid year format",
+                    level="error",
+                    source="eventdata",
+                    do_log=False,
+                )
                 return
 
             if len(parts) == 5:
@@ -165,22 +152,25 @@ ie 1999 11 12 13 14""")
                 return 1 <= month <= 12 and 1 <= day <= day_count_for_month[month]
 
             if not is_valid_date(year, month, day):
-                self.error_message(
-                    f"{year}-{month}-{day} : date NOT valid : fix & try again"
+                self.notify_user(
+                    f"{year}-{month}-{day} : date not valid"
+                    "\ncheck month & day : february has 28 or 29 days",
+                    level="warning",
+                    source="eventdata",
+                    do_log=False,
                 )
-                self.error_message("check month & day : february has 28 or 29 days")
-                # print(f"{year}-{month}-{day} : date is NOT valid : fix & try again")
-                # print("\tcheck month & day : february has 28 or 29 days")
                 return
 
             def is_valid_time(hour, minute, second):
                 return 0 <= hour <= 23 and 0 <= minute <= 59 and 0 <= second <= 59
 
             if not is_valid_time(hour, minute, second):
-                self.error_message(
-                    f"{hour}:{minute}:{second} : time NOT valid : fix & try again"
+                self.notify_user(
+                    f"{hour}:{minute}:{second} : time not valid",
+                    level="warning",
+                    source="eventdata",
+                    do_log=False,
                 )
-                # print(f"{hour}:{minute}:{second} : time is NOT valid : fix & try again")
                 return
 
             try:
@@ -206,21 +196,23 @@ ie 1999 11 12 13 14""")
                 return formatted, date_time_final
 
             except ValueError as e:
-                self.error_message(f"invalid date-time : {str(e)}")
-                # print(f"invalid date-time : {str(e)}")
+                self.notify_user(
+                    f"invalid date-time : {str(e)}",
+                    level="error",
+                    source="eventdata",
+                    do_log=False,
+                )
                 return
 
-        except Exception as e:
-            self.error_message("""wrong date-time format
-we only accept space-separated : yyyy mm dd HH MM SS
-and - / . : for separators""")
-            #         print(
-            #             """wrong date-time format
-            # we only accept space-separated : yyyy mm dd HH MM SS
-            # and - / . : for separators"""
-            #         )
-            print(f"error : {str(e)}")
-
+        except Exception:
+            self.notify_user(
+                "wrong date-time format"
+                "\nwe only accept space-separated : yyyy mm dd HH MM SS"
+                "\nand - / . : for separators",
+                level="error",
+                source="eventdata",
+                do_log=False,
+            )
             return
 
     def on_location_change(self, entry):
@@ -249,8 +241,12 @@ and - / . : for separators""")
                     elif part in "ew":
                         lon_dir_idx = i
                 if lat_dir_idx == -1 or lon_dir_idx == -1:
-                    self.error_message("missing direction indicators (n/s & e/w)")
-                    # print("missing direction indicators (n/s & e/w)")
+                    self.notify_user(
+                        "missing direction indicators (n/s & e/w)",
+                        source="eventdata",
+                        level="warning",
+                        do_log=False,
+                    )
                     return False
                 # split into latitude & longitude
                 lat_parts = parts[: lat_dir_idx + 1]
@@ -273,11 +269,12 @@ and - / . : for separators""")
                     else:
                         # d-m-s format : seconds are optional
                         if len(lat_parts) < 3 or len(lon_parts) < 3:
-                            self.error_message("invalid deg-min-(sec) n/s e/w format")
-                            # self.get_application().notify_manager.warning(
-                            #     "invalid deg-min-(sec) n/s e/w format"
-                            # )
-                            # print("eventdata : invalid deg-min-(sec) n/s e/w format")
+                            self.notify_user(
+                                "invalid deg-min-(sec) n/s e/w format",
+                                source="eventdata",
+                                level="warning",
+                                do_log=False,
+                            )
                             return False
 
                         lat_deg = int(lat_parts[0])
@@ -291,18 +288,23 @@ and - / . : for separators""")
                         lon_dir = lon_parts[-1]
 
                 except (ValueError, IndexError) as e:
-                    self.error_message(f"error parsing coordinates :\n\t{str(e)}")
-                    # print(f"error parsing coordinates :\n\t{str(e)}")
+                    self.notify_user(
+                        f"error parsing coordinates :\n\t{str(e)}",
+                        source="eventdata",
+                        level="error",
+                        do_log=False,
+                    )
                     return False
             else:
                 # signed decimal format
                 try:
                     if len(parts) < 2:
-                        self.error_message("need min latitude & longitude")
-                        # self.get_application().notify_manager.warning(
-                        #     "need min latitude & longitude"
-                        # )
-                        # print("need min latitude & longitude")
+                        self.notify_user(
+                            "need min latitude & longitude",
+                            level="warning",
+                            source="eventdata",
+                            do_log=False,
+                        )
                         return False
 
                     lat = float(parts[0])
@@ -317,41 +319,73 @@ and - / . : for separators""")
                     lon_deg, lon_min, lon_sec = self.decimal_to_dms(abs(lon))
 
                 except ValueError as e:
-                    self.error_message(f"invalid decimal coordinates :\n\t{str(e)}")
-                    # print(f"invalid decimal coordinates :\n\t{str(e)}")
+                    self.notify_user(
+                        f"invalid decimal coordinates :\n\t{str(e)}",
+                        level="error",
+                        source="eventdata",
+                        do_log=False,
+                    )
                     return False
-
             # validate ranges
             if not (0 <= lat_deg <= 89):
-                self.error_message("latitude degrees must be between 0 & 90")
-                # print("latitude degrees must be between 0 & 90")
+                self.notify_user(
+                    "latitude degrees must be between 0 & 90",
+                    level="warning",
+                    source="eventdata",
+                    do_log=False,
+                )
                 return False
             if not (0 <= lat_min <= 59) or not (0 <= lat_sec <= 59):
-                self.error_message("minutes & seconds must be between 0 & 59")
-                # print("minutes & seconds must be between 0 & 59")
+                self.notify_user(
+                    "minutes & seconds must be between 0 & 59",
+                    level="warning",
+                    source="eventdata",
+                    do_log=False,
+                )
                 return False
             if lat_dir not in ["n", "s"]:
-                self.error_message("latitude direction must be n(orth) or s(outh)")
-                # print("latitude direction must be n(orth) or s(outh)")
+                self.notify_user(
+                    "latitude direction must be n(orth) or s(outh)",
+                    level="warning",
+                    source="eventdata",
+                    do_log=False,
+                )
                 return False
 
             if not (0 <= lon_deg <= 179):
-                self.error_message("longitude degrees must be between 0 and 179")
-                # print("longitude degrees must be between 0 and 179")
+                self.notify_user(
+                    "longitude degrees must be between 0 and 179",
+                    level="warning",
+                    source="eventdata",
+                    do_log=False,
+                )
                 return False
             if not (0 <= lon_min <= 59) or not (0 <= lon_sec <= 59):
-                self.error_message("minutes & seconds must be between 0 & 59")
-                # print("minutes & seconds must be between 0 & 59")
+                self.notify_user(
+                    "minutes & seconds must be between 0 & 59",
+                    level="warning",
+                    source="eventdata",
+                    do_log=False,
+                )
                 return False
             if lon_dir not in ["e", "w"]:
-                self.error_message("longitude direction must be e(ast) or w(est)")
-                # print("longitude direction must be e(ast) or w(est)")
+                self.notify_user(
+                    "longitude direction must be e(ast) or w(est)",
+                    level="warning",
+                    source="eventdata",
+                    do_log=False,
+                )
                 return False
             # try to convert altitude to int if present
             try:
                 alt = str(int(alt))
             except ValueError:
-                self.info_message("invalid altitude value ; setting alt to /")
+                self.notify_user(
+                    "missing altitude value ; setting alt to /",
+                    source="eventdata",
+                    level="info",
+                    do_log=False,
+                )
                 # print("invalid altitude value ; setting alt to /")
                 alt = "/"
             # format final string
@@ -368,23 +402,27 @@ and - / . : for separators""")
                 entry.set_text(location_formatted)
 
             self.old_location = location_formatted
-            self.success_message("location valid & formatted")
-            # print(f"location valid & formatted : {location_formatted}")
+            self.notify_user(
+                "location valid & formatted",
+                source="eventdata",
+                level="success",
+                do_log=False,
+            )
             return True
 
         except Exception as e:
-            self.error_message("invalid location format : we accept :")
-            self.error_message(
-                "1. deg-min-sec with direction : 32 21 (9) n 77 66 (11) w (alt) - sec & alt are optional"
+            self.notify_user(
+                "invalid location format : we accept :"
+                "\n1. deg-min-(sec) with direction : 32 21 (9) n 77 66 (11) w (alt)"
+                "\n\tsec & alt are optional"
+                "\n2. decimal with direction : 33.77 n 124.87 e (alt)"
+                "\n3. decimal signed : -16.76 -72.678 (alt)"
+                "\n\talt is optional"
+                f"error :\n\t{str(e)}",
+                level="error",
+                source="eventdata",
+                do_log=False,
             )
-            self.error_message(
-                "2. decimal with direction : 33.77 n 124.87 e (alt) - alt is optional"
-            )
-            self.error_message(
-                "3. decimal signed : -16.76 -72.678 (alt) - alt is optional"
-            )
-            self.error_message(f"error :\n\t{str(e)}")
-
             return False
 
     def decimal_to_dms(self, decimal):

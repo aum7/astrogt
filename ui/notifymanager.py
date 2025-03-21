@@ -1,9 +1,10 @@
 # ruff: noqa: E402
-import os
-import logging
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
+from pathlib import Path
+import os
+import logging
 import gi
 
 gi.require_version("Gtk", "4.0")
@@ -22,7 +23,7 @@ class NotifyLevel(Enum):
 
 
 class NotifyMessage:
-    """notification message object"""
+    """notification message object, implemented via adw.toastoverlay"""
 
     def __init__(
         self,
@@ -31,12 +32,14 @@ class NotifyMessage:
         source: Optional[str] = None,
         timestamp: Optional[datetime] = None,
         timeout: Optional[int] = None,
+        do_log: Optional[bool] = True,
     ):
         self.level = level if isinstance(level, NotifyLevel) else NotifyLevel.INFO
         self.message = message
         self.source = source or "sys"
         self.timestamp = timestamp or datetime.now(timezone.utc)
         self.timeout = timeout
+        self.do_log = do_log
 
     def __str__(self):
         return f"{self.source} : {self.message}"
@@ -53,18 +56,16 @@ class NotifyLogger:
     """write notifications to log file"""
 
     def __init__(self, log_file=None):
-        # setup logger
         self.logger = logging.getLogger("notifications")
         self.logger.setLevel(logging.DEBUG)
         # default log file in home directory
         if log_file is None:
-            log_dir = os.path.join(os.path.expanduser("~"), ".astrogt", "logs")
-            os.makedirs(log_dir, exist_ok=True)
-            log_file = os.path.join(log_dir, "notifications.log")
+            log_dir = Path.home() / ".astrogt" / "logs"
+            log_dir.mkdir(parents=True, exist_ok=True)
+            log_file = str(log_dir / "notifications.log")
         # setup file handler
         handler = logging.FileHandler(log_file)
-        formatter = logging.Formatter("%(message)s")
-        handler.setFormatter(formatter)
+        handler.setFormatter(logging.Formatter("%(message)s"))
         self.logger.addHandler(handler)
 
         self.log_file = log_file
@@ -87,6 +88,7 @@ class NotifyManager:
 
     def __init__(self, log_file=None):
         self.toast_overlay = None
+        # setup logger
         self.logger = NotifyLogger(log_file)
         self._DEFAULT_TIMEOUTS = {
             NotifyLevel.INFO: 3,
@@ -95,6 +97,23 @@ class NotifyManager:
             NotifyLevel.ERROR: 5,
             NotifyLevel.DEBUG: 5,
         }
+        self.convenience_methods()
+
+    # dynamic convenience methods
+    def convenience_methods(self):
+        for level in NotifyLevel:
+            setattr(self, level.name.lower(), self._make_notify(level))
+
+    def _make_notify(self, level: NotifyLevel):
+        def notify_method(
+            message: str,
+            source: Optional[str] = None,
+            timeout: Optional[int] = None,
+            do_log: Optional[bool] = True,
+        ) -> bool:
+            return self.notify(message, level, source, timeout, do_log)
+
+        return notify_method
 
     def notify(
         self,
@@ -102,16 +121,20 @@ class NotifyManager:
         level: NotifyLevel = NotifyLevel.INFO,
         source: Optional[str] = None,
         timeout: Optional[int] = None,
+        do_log: Optional[bool] = True,
     ) -> bool:
         """show notification with specified level and optional custom icon"""
+        if isinstance(level, str):
+            level = NotifyLevel(level.lower())
         if not self.toast_overlay:
             print(f"[{level.value}] {message}")
             return False
 
         msg = NotifyMessage(message, level, source, timeout=timeout)
-        print(msg.full_str())
         # log to file
-        self.logger.log(msg)
+        if do_log:
+            self.logger.log(msg)
+            print(msg.full_str())
 
         GLib.idle_add(self._show_toast, msg)
         return True
@@ -171,47 +194,52 @@ class NotifyManager:
             print(f"message was: {msg.full_str()}")
 
     # convenience methods
-    def info(
-        self,
-        message: str,
-        source: Optional[str] = None,
-        timeout: Optional[int] = None,
-    ) -> bool:
-        """show info notification"""
-        return self.notify(message, NotifyLevel.INFO, source, timeout)
+    # def info(
+    #     self,
+    #     message: str,
+    #     source: Optional[str] = None,
+    #     timeout: Optional[int] = None,
+    #     do_log: Optional[bool] = True,
+    # ) -> bool:
+    #     """show info notification"""
+    #     return self.notify(message, NotifyLevel.INFO, source, timeout)
 
-    def success(
-        self,
-        message: str,
-        source: Optional[str] = None,
-        timeout: Optional[int] = None,
-    ) -> bool:
-        """show success notification"""
-        return self.notify(message, NotifyLevel.SUCCESS, source, timeout)
+    # def success(
+    #     self,
+    #     message: str,
+    #     source: Optional[str] = None,
+    #     timeout: Optional[int] = None,
+    #     do_log: Optional[bool] = True,
+    # ) -> bool:
+    #     """show success notification"""
+    #     return self.notify(message, NotifyLevel.SUCCESS, source, timeout)
 
-    def warning(
-        self,
-        message: str,
-        source: Optional[str] = None,
-        timeout: Optional[int] = None,
-    ) -> bool:
-        """show warning notification"""
-        return self.notify(message, NotifyLevel.WARNING, source, timeout)
+    # def warning(
+    #     self,
+    #     message: str,
+    #     source: Optional[str] = None,
+    #     timeout: Optional[int] = None,
+    #     do_log: Optional[bool] = True,
+    # ) -> bool:
+    #     """show warning notification"""
+    #     return self.notify(message, NotifyLevel.WARNING, source, timeout)
 
-    def error(
-        self,
-        message: str,
-        source: Optional[str] = None,
-        timeout: Optional[int] = None,
-    ) -> bool:
-        """show error notification"""
-        return self.notify(message, NotifyLevel.ERROR, source, timeout)
+    # def error(
+    #     self,
+    #     message: str,
+    #     source: Optional[str] = None,
+    #     timeout: Optional[int] = None,
+    #     do_log: Optional[bool] = True,
+    # ) -> bool:
+    #     """show error notification"""
+    #     return self.notify(message, NotifyLevel.ERROR, source, timeout)
 
-    def debug(
-        self,
-        message: str,
-        source: Optional[str] = None,
-        timeout: Optional[int] = None,
-    ) -> bool:
-        """show debug notification"""
-        return self.notify(message, NotifyLevel.DEBUG, source, timeout)
+    # def debug(
+    #     self,
+    #     message: str,
+    #     source: Optional[str] = None,
+    #     timeout: Optional[int] = None,
+    #     do_log: Optional[bool] = True,
+    # ) -> bool:
+    #     """show debug notification"""
+    #     return self.notify(message, NotifyLevel.DEBUG, source, timeout)

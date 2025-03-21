@@ -1,6 +1,6 @@
 # ruff: noqa: E402
 from ui.mainwindow import MainWindow
-from ui.notifyuser import NotifyManager
+from ui.notifymanager import NotifyManager
 import gi
 
 gi.require_version("Gtk", "4.0")
@@ -29,7 +29,7 @@ class AstrogtApp(Gtk.Application):
         win.set_child(toast_overlay)
         self.notify_manager.toast_overlay = toast_overlay
         # notification : code specific to this file
-        # self.notify_manager.success("astrogt app started", source="main.py", timeout=7)
+        self.notify_manager.notify("astrogt app started", source="main", timeout=2)
         win.present()
 
 

@@ -1,14 +1,14 @@
 # ruff: noqa: E402
-from typing import Dict, Callable, Optional
-from datetime import datetime, timezone, timedelta
-from ui.collapsepanel import CollapsePanel
-from swe.eventdata import EventData
-from swe.eventlocation import EventLocation
-from swe.swecore import SweCore
 import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
+from ui.collapsepanel import CollapsePanel
+from swe.eventdata import EventData
+from swe.eventlocation import EventLocation
+from swe.swecore import SweCore
+from datetime import datetime, timezone, timedelta
+from typing import Dict, Callable, Optional
 
 
 class SidePaneManager:

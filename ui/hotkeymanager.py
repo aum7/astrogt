@@ -20,7 +20,7 @@ class HotkeyManager:
         # store reference to window methods
         self.actions = {
             "toggle_pane": getattr(window, "on_toggle_pane", None),
-            "center_panes": self._center_all_panes,
+            "center_panes": getattr(window, "center_all_panes", None),
         }
         self.setup_controllers()
 
@@ -57,15 +57,31 @@ class HotkeyManager:
         # check for modifiers
         if self.active_modifiers[Gdk.KEY_Shift_L]:
             if action_name == "toggle_pane":
-                # handle shift-click
-                self._center_all_panes()
-                # hasattr(self, "center_all_panes")
-                gesture.set_state(Gtk.EventSequenceState.CLAIMED)
-
-                return
+                # handle shift-click, dynamically retrieve
+                action = getattr(self.window, "center_all_panes", None)
+                if callable(action):
+                    action()
+                    gesture.set_state(Gtk.EventSequenceState.CLAIMED)
+                    return
+                if action_name in self.actions:
+                    action = self.actions[action_name]
+                    if not callable(action):
+                        # fallback : dynamically fetch from window
+                        action = getattr(self.window, action_name, None)
+                        self.actions[action_name] = action
+                    if callable(action):
+                        action(button)
+                        gesture.set_state(Gtk.EventSequenceState.CLAIMED)
+                        return
         # no modifier or different action, trigger default action
-        if action_name in self.actions and self.actions[action_name]:
-            self.actions[action_name](button)
+        if action_name in self.actions:
+            action = self.actions[action_name]
+            # try fetch dynamically from window
+            if not callable(action):
+                action = getattr(self.window, action_name, None)
+                self.actions[action_name] = action
+            if callable(action):
+                action(button)
 
     def on_key_pressed(self, controller, keyval, keycode, state) -> bool:
         if keyval == Gdk.KEY_Control_L:

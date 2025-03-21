@@ -1,6 +1,7 @@
 # ruff: noqa: E402
 import sqlite3
 import gi
+# from ui.mainwindow import MainWindow
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
