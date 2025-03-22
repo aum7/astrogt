@@ -60,9 +60,11 @@ class SwePositions:
             flags |= swe.FLG_TOPOCTR
         if SWE_FLAG["equatorial"]:
             flags |= swe.FLG_EQUATORIAL
-        if SWE_FLAG.get("cartesian", False):
+        if SWE_FLAG.get("cartesian"):
+            # if SWE_FLAG.get("cartesian", False):
             flags |= swe.FLG_XYZ
-        if SWE_FLAG.get("radians", False):
+        if SWE_FLAG.get("radians"):
+            # if SWE_FLAG.get("radians", False):
             flags |= swe.FLG_RADIANS
 
         return flags
