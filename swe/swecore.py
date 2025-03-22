@@ -14,7 +14,6 @@ class SweCore:
     current_dir = os.path.dirname(os.path.abspath(__file__))
     ephe_path = os.path.join(current_dir, "ephe")
     swe.set_ephe_path(ephe_path)
-    # self._get_application = get_application or Gtk.get_application_default()
     # event one
     event_one_name = ""
     event_one_country = ""
@@ -29,6 +28,7 @@ class SweCore:
     event_two_date_time = ""
 
     def __init__(self, get_application=None):
+        print("initialising swisseph ...")
         # close swe after initialisation
         swe.close()
         self._get_application = get_application or Gtk.Application.get_default()
@@ -152,7 +152,7 @@ class SweCore:
                     source="swecore",
                     timeout=0.7,
                 )
-                return {}
+                # return {}
 
             if not event_two["name"]:
                 event_two["name"] = cls.event_one_name
