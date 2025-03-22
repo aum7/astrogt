@@ -1,31 +1,18 @@
 # set preferences
 OBJECTS = {
-    # calculate planets / objects
-    "su": ("sun", "surya", "sy"),
-    "mo": ("moon", "candra", "ca"),
-    "me": ("mercury", "budha", "bu"),
-    "ve": ("venus", "sukra", "sk"),
-    "ma": ("mars", "mangala", "ma"),
-    "ju": ("jupiter", "guru", "gu"),
-    "sa": ("saturn", "sani", "sa"),
-    "ur": ("uranus", "", ""),
-    "ne": ("neptune", "", ""),
-    "pl": ("pluto", "", ""),
-    "rat": ("true node", "rahu", "ra"),
-    "ram": ("mean node", "rahu", "ra"),
+    "su": (0, ("sun", "surya", "sy")),
+    "mo": (1, ("moon", "candra", "ca")),
+    "me": (2, ("mercury", "budha", "bu")),
+    "ve": (3, ("venus", "sukra", "sk")),
+    "ma": (4, ("mars", "mangala", "ma")),
+    "ju": (5, ("jupiter", "guru", "gu")),
+    "sa": (6, ("saturn", "sani", "sa")),
+    "ur": (7, ("uranus", "", "")),
+    "ne": (8, ("neptune", "", "")),
+    "pl": (9, ("pluto", "", "")),
+    "rat": (11, ("true node", "rahu", "ra")),
+    "ram": (10, ("mean node", "rahu", "ra")),
 }
-# add or remove houses as you please
-# https://astrorigin.com/pyswisseph/sphinx/programmers_manual/house_cusp_calculation.html?highlight=houses#swisseph.houses
-# below are most popular 7 out of 24+; arrange as you please
-HOUSE_SYSTEMS = [
-    ("E", "eqa: equal asc", "eqa"),
-    ("O", "prp: porphyry", "prp"),
-    ("P", "plc: placidus", "plc"),
-    ("R", "rgm: regiomontanus", "rgm"),
-    ("C", "cmp: campanus", "cmp"),
-    ("K", "kch: koch", "kch"),
-    ("W", "whs: whole sign", "whs"),  # makes no sense to draw it, same as signs
-]
 SWE_FLAG = {
     "swe_flag_default": r"swe.FLG_SWIEPH | swe.FLG_SPEED",
     # use sidereal (jyotisa) zodiac : else use tropical (western) zodiac
@@ -49,6 +36,18 @@ SWE_FLAG = {
     # return radians unit else degrees (default) unit
     "radians": False,  # FLG_RADIANS
 }
+# add or remove houses as you please
+# https://astrorigin.com/pyswisseph/sphinx/programmers_manual/house_cusp_calculation.html?highlight=houses#swisseph.houses
+# below are most popular 7 out of 24+; arrange as you please
+HOUSE_SYSTEMS = [
+    ("E", "eqa: equal asc", "eqa"),
+    ("O", "prp: porphyry", "prp"),
+    ("P", "plc: placidus", "plc"),
+    ("R", "rgm: regiomontanus", "rgm"),
+    ("C", "cmp: campanus", "cmp"),
+    ("K", "kch: koch", "kch"),
+    ("W", "whs: whole sign", "whs"),  # makes no sense to draw it, same as signs
+]
 FILES = {
     # path to ephemerides folder, with min semo_18.se1 & sepl_18.se1 files, or
     # a complete ephe folder https://github.com/aloistr/swisseph/tree/master/ephe

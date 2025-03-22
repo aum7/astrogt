@@ -440,20 +440,18 @@ only use [space] as separator
         self.EVENT_TWO = self.ensure_event_data(self.EVENT_TWO, self.clp_event_two)
         event_one_data = self.EVENT_ONE.get_event_data() if self.EVENT_ONE else None
         event_two_data = self.EVENT_TWO.get_event_data() if self.EVENT_TWO else None
-        self.swe_core.get_events_data(self, event_one_data, event_two_data)
+        self.swe_core.get_events_data(event_one_data, event_two_data)
 
     def get_selected_event_data(self, widget=None) -> None:
         """get data for selected event"""
         # print("get_selected_event_data called")
         if self.selected_event == "event one" and self.EVENT_ONE:
             self.swe_core.get_events_data(
-                self,
                 self.EVENT_ONE.get_event_data(),
                 None,
             )
         elif self.selected_event == "event two" and self.EVENT_TWO:
             self.swe_core.get_events_data(
-                self,
                 None,
                 self.EVENT_TWO.get_event_data(),
             )
