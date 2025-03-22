@@ -8,6 +8,7 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
+from typing import Optional, Union, Dict
 from sweph.swecore import SweCore
 from ui.notifymanager import NotifyManager
 from user.settings.settings import OBJECTS, SWE_FLAG
@@ -69,7 +70,51 @@ class SwePositions:
 
         return flags
 
-    def _parse_datetime(self, dt_str):
+    def _parse_location(
+        self, location_str: str
+    ) -> Optional[Dict[str, Union[float, int]]]:
+        """parse location string"""
+        try:
+            # expected format : lat, lon, alt or lat, lon
+            parts = location_str.strip().lower().split(" ")
+            if len(parts) < 8:
+                return None
+            # latitide
+            lat_deg = float(parts[0])
+            lat_min = float(parts[1])
+            lat_sec = float(parts[2])
+            lat_dir = parts[3]
+            # longitude
+            lon_deg = float(parts[4])
+            lon_min = float(parts[5])
+            lon_sec = float(parts[6])
+            lon_dir = parts[7]
+
+            alt = 0
+            if len(parts) == 9:
+                alt = int(parts[8])
+            # string to decimal degrees
+            lat = lat_deg + lat_min / 60 + lat_sec / 3600
+            if lat_dir == "s":
+                lat = -lat
+            lon = lon_deg + lon_min / 60 + lon_sec / 3600
+            if lon_dir == "w":
+                lon = -lon
+
+            return {
+                "lat": lat,
+                "lon": lon,
+                "alt": alt,
+            }
+        except Exception as e:
+            self.notify_user(
+                message=f"error parsing location '{location_str}'\n\tstr({e})",
+                source="swepositions",
+                level="error",
+            )
+            return None
+
+    def _parse_datetime(self, dt_str: str) -> Optional[Dict[str, int]]:
         """parse datetime string"""
         try:
             # expected format : YYYY-MM-DD HH:MM:SS
@@ -89,70 +134,6 @@ class SwePositions:
                 level="error",
             )
             return None
-
-    def _parse_location(self, location_str):
-        """parse location string"""
-        try:
-            # expected format : lat, lon, alt or lat, lon
-            parts = location_str.split(",")
-            if len(parts) >= 8:
-                # latitide
-                lat_deg = float(parts[0])
-                lat_min = float(parts[1])
-                lat_sec = float(parts[2])
-                lat_dir = parts[3].strip().lower()
-                # longitude
-                lon_deg = float(parts[4])
-                lon_min = float(parts[5])
-                lon_sec = float(parts[6])
-                lon_dir = parts[7].strip().lower()
-                if len(parts) == 9:
-                    alt = float(parts[8])
-                # string to decimal degrees
-                lat = lat_deg + lat_min / 60 + lat_sec / 3600
-                if lat_dir == "s":
-                    lat = -lat
-                lon = lon_deg + lon_min / 60 + lon_sec / 3600
-                if lon_dir == "w":
-                    lon = -lon
-
-                return {
-                    "lat": lat,
-                    "lon": lon,
-                    "alt": alt or 0,
-                }
-            else:
-                self.notify_user(
-                    message=f"invalid location format : '{location_str}'",
-                    source="swepositions",
-                    level="error",
-                )
-                return None
-
-        except Exception as e:
-            self.notify_user(
-                message=f"error parsing location '{location_str}'\n\tstr({e})",
-                source="swepositions",
-                level="error",
-            )
-            return None
-
-            # location = {
-            #     "lat": float(parts[0]),
-            #     "lon": float(parts[1]),
-            # }
-            # if len(parts) > 2:
-            #     location["alt"] = float(parts[2])
-            # else:
-            #     location["alt"] = 0
-            # return location
-        # except Exception as e:
-        #     self.notify_user(
-        #         message=f"error parsing location : {e}",
-        #         source="swepositions",
-        #         level="error",
-        #     )
-        #     return None
 
     def swe_events_data(self):
         """prepare event data for swe calculations"""

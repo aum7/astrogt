@@ -3,6 +3,7 @@ import unittest
 import sys
 import os
 from unittest.mock import patch, MagicMock, Mock
+from typing import cast, Dict, Any
 # import logging
 # from datetime import datetime
 
@@ -100,7 +101,7 @@ class TestSwePositionsIntegration(unittest.TestCase):
             self.assertTrue(mock_swe.calc_ut.called)
 
     # test 2
-    @patch("sweph.calculations.positions.Gtk.get_application_default")
+    @patch("sweph.calculations.positions.Gtk.Application.get_default")
     def test_parse_location_format(self, mock_get_default):
         """test the location parsing function"""
         mock_get_default.return_value = self.mock_app
@@ -109,6 +110,8 @@ class TestSwePositionsIntegration(unittest.TestCase):
         # test with valid location string
         location = positions._parse_location("37 47 59 s 145 00 00 e")
         self.assertIsNotNone(location)
+        # inform type checker that location is not None
+        location = cast(Dict[str, Any], location)
         self.assertAlmostEqual(location["lat"], -37.79972222222222, places=5)
         self.assertAlmostEqual(location["lon"], 145.0, places=5)
         # test with invalid location string
@@ -116,7 +119,7 @@ class TestSwePositionsIntegration(unittest.TestCase):
         self.assertIsNone(invalid_location)
 
     # test 3
-    @patch("sweph.calculations.positions.Gtk.get_application_default")
+    @patch("sweph.calculations.positions.Gtk.Application.get_default")
     def test_parse_datetime_format(self, mock_get_default):
         """test the datetime parsing function"""
         mock_get_default.return_value = self.mock_app
@@ -125,6 +128,8 @@ class TestSwePositionsIntegration(unittest.TestCase):
         # test with valid datetime string
         dt = positions._parse_datetime("2025-03-22 06:27:38")
         self.assertIsNotNone(dt)
+        # inform type checker that dt is not None
+        dt = cast(Dict[str, int], dt)
         self.assertEqual(dt["year"], 2025)
         self.assertEqual(dt["month"], 3)
         self.assertEqual(dt["day"], 22)
