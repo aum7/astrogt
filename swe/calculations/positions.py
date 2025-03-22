@@ -15,7 +15,7 @@ from user.settings import OBJECTS, SWE_FLAG
 class SwePositions:
     """get positions of planets"""
 
-    def __init__(self, ephe_path=None, get_application=None):
+    def __init__(self, get_application=None):
         self.get_application = get_application
         # configure flags
         self.swe_flag = self._get_swe_flags()

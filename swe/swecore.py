@@ -10,27 +10,28 @@ from gi.repository import Gtk  # type: ignore
 class SweCore:
     """note : swisseph calculations need be closed at the end of computations"""
 
+    # swiss ephemeris path
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    ephe_path = os.path.join(current_dir, "ephe")
+    swe.set_ephe_path(ephe_path)
+    # self._get_application = get_application or Gtk.get_application_default()
+    # event one
+    event_one_name = ""
+    event_one_country = ""
+    event_one_city = ""
+    event_one_location = ""
+    event_one_date_time = ""
+    # event two
+    event_two_name = ""
+    event_two_country = ""
+    event_two_city = ""
+    event_two_location = ""
+    event_two_date_time = ""
+
     def __init__(self, get_application=None):
-        # swiss ephemeris path
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        ephe_path = os.path.join(current_dir, "ephe")
-        swe.set_ephe_path(ephe_path)
         # close swe after initialisation
         swe.close()
         self._get_application = get_application or Gtk.Application.get_default()
-        # self._get_application = get_application or Gtk.get_application_default()
-        # event one
-        self.event_one_name = ""
-        self.event_one_country = ""
-        self.event_one_city = ""
-        self.event_one_location = ""
-        self.event_one_date_time = ""
-        # event two
-        self.event_two_name = ""
-        self.event_two_country = ""
-        self.event_two_city = ""
-        self.event_two_location = ""
-        self.event_two_date_time = ""
 
     def notify_user(self, message, level="info", **kwargs):
         """show app notification"""
@@ -95,11 +96,11 @@ class SweCore:
                     changed = True
             elif event_type == "event_two":
                 if (
-                    event_data["name"] != cls.event_two_name
-                    or event_data["date_time"] != cls.event_two_date_time
-                    or event_data["country"] != cls.event_two_country
-                    or event_data["city"] != cls.event_two_city
-                    or event_data["location"] != cls.event_two_location
+                    event_data["name"] != self.event_two_name
+                    or event_data["date_time"] != self.event_two_date_time
+                    or event_data["country"] != self.event_two_country
+                    or event_data["city"] != self.event_two_city
+                    or event_data["location"] != self.event_two_location
                 ):
                     changed = True
             return changed
