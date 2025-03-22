@@ -1,6 +1,6 @@
 /* adwaita toast */
 toastoverlay toast {
-  background-color: rgba(0, 0, 0, 0.8);
+  background-color: rgba(0, 0, 0, 0.9);
   border-radius: 9px;
   padding: 5px;
   margin: 7px;

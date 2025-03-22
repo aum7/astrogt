@@ -26,10 +26,16 @@ class SweCore:
         # todo : move to end or leave it
         swe.close()
         self.get_application = get_application
+        # event one
         self.event_one_name = ""
+        self.event_one_country = ""
+        self.event_one_city = ""
         self.event_one_location = ""
         self.event_one_date_time = ""
+        # event two
         self.event_two_name = ""
+        self.event_two_country = ""
+        self.event_two_city = ""
         self.event_two_location = ""
         self.event_two_date_time = ""
 
@@ -42,6 +48,8 @@ class SweCore:
             if (
                 not event_one["name"]
                 or not event_one["date_time"]
+                or not event_one["country"]
+                or not event_one["city"]
                 or not event_one["location"]
             ):
                 window.get_application().notify_manager.warning(
@@ -52,10 +60,17 @@ class SweCore:
             # data received
             SweCore.event_one_name = event_one["name"]
             SweCore.event_one_date_time = event_one["date_time"]
+            SweCore.event_one_country = event_one["country"]
+            SweCore.event_one_city = event_one["city"]
             SweCore.event_one_location = event_one["location"]
 
             window.get_application().notify_manager.success(
-                message=f"event one data received :\n\t{event_one['name']} : {event_one['date_time']} : {event_one['location']}",
+                message=f"event one data received :"
+                f"\n\tname : {event_one['name']}"
+                f"\n\tdatetime : {event_one['date_time']}"
+                f"\n\tcountry : {event_one['country']}"
+                f"\n\tcity : {event_one['city']}"
+                f"\n\tlocation : {event_one['location']}",
                 source="swecore",
             )
         if event_two:
@@ -72,24 +87,39 @@ class SweCore:
             if not event_two["name"]:
                 event_two["name"] = SweCore.event_one_name
             # if location not provided, use event one location
+            if not event_two["country"]:
+                event_two["country"] = SweCore.event_one_country
+            if not event_two["city"]:
+                event_two["city"] = SweCore.event_one_city
             if not event_two["location"]:
                 event_two["location"] = SweCore.event_one_location
             SweCore.event_two_name = event_two["name"]
             SweCore.event_two_date_time = event_two["date_time"]
+            SweCore.event_two_country = event_two["country"]
+            SweCore.event_two_city = event_two["city"]
             SweCore.event_two_location = event_two["location"]
 
             window.get_application().notify_manager.success(
-                message=f"event two data received :\n\t{event_two['name']} : {event_two['date_time']} : {event_two['location']}",
+                message=f"event two data received :"
+                f"\n\tname : {event_two['name']}"
+                f"\n\tdatetime : {event_two['date_time']}"
+                f"\n\tcountry : {event_two['country']}"
+                f"\n\tcity : {event_two['city']}"
+                f"\n\tlocation : {event_two['location']}",
                 source="swecore",
             )
             # todo test print
             window.get_application().notify_manager.debug(
-                message=f"self.event_one_name : {SweCore.event_one_name}"
-                f"\nself.event_one_date_time : {SweCore.event_one_date_time}"
-                f"\nself.event_one_location : {SweCore.event_one_location}"
-                f"\nself.event_two_name : {SweCore.event_two_name}"
-                f"\nself.event_two_date_time : {SweCore.event_two_date_time}"
-                f"\nself.event_two_location : {SweCore.event_two_location}",
+                message=f"swecore.event_one_name : {SweCore.event_one_name}"
+                f"\nswecore.event_one_date_time : {SweCore.event_one_date_time}"
+                f"\nswecore.event_one_country : {SweCore.event_one_country}"
+                f"\nswecore.event_one_city : {SweCore.event_one_city}"
+                f"\n\nswecore.event_one_location : {SweCore.event_one_location}"
+                f"\nswecore.event_two_name : {SweCore.event_two_name}"
+                f"\nswecore.event_two_date_time : {SweCore.event_two_date_time}"
+                f"\nswecore.event_two_country : {SweCore.event_two_country}"
+                f"\nswecore.event_two_city : {SweCore.event_two_city}"
+                f"\nswecore.event_two_location : {SweCore.event_two_location}",
                 source="swecore",
             )
 

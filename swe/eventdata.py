@@ -10,14 +10,26 @@ from datetime import datetime
 
 
 class EventData:
-    def __init__(self, event_name, date_time, location, get_application=None):
+    def __init__(
+        self,
+        event_name,
+        date_time,
+        location,
+        country=None,
+        city=None,
+        get_application=None,
+    ):
         """get user input and puf! puf! into sweph"""
         self.event_name = event_name
         self.date_time = date_time
         self.location = location
+        self.country = country
+        self.city = city
         self.old_name = ""
         self.old_date_time = ""
         self.old_location = ""
+        # self.old_country = ""
+        # self.old_city = ""
         self.get_application = get_application
 
         # focus wrapper
@@ -30,6 +42,8 @@ class EventData:
             (self.event_name, self.on_name_change),
             (self.date_time, self.on_date_time_change),
             (self.location, self.on_location_change),
+            # (self.country, self.on_country_change),
+            # (self.city, self.on_city_change),
         ]:
             widget.connect("activate", callback)  # [enter]
             widget.connect(
@@ -425,6 +439,20 @@ class EventData:
             )
             return False
 
+    # def on_country_change(self, dropdown):
+    #     country = dropdown.get_text().strip()
+    #     if not country or country == self.old_country:
+    #         return
+    #     self.old_country = country
+    #     self.notify_user(f"country : {country}", source="eventdata", level="info")
+
+    # def on_city_change(self, entry):
+    #     city = entry.get_text().strip()
+    #     if not city or city == self.old_city:
+    #         return
+    #     self.old_city = city
+    #     self.notify_user(f"city : {city}", source="eventdata", level="info")
+
     def decimal_to_dms(self, decimal):
         """convert decimal number to degree-minute-second"""
         min_, deg_ = modf(decimal)
@@ -438,10 +466,24 @@ class EventData:
 
     def get_event_data(self):
         """values from all entries needed for an event"""
+        country_value = None
+        city_value = None
+        # get country
+        if self.country:
+            selected = self.country.get_selected()
+            model = self.country.get_model()
+            if model and selected >= 0:
+                country_value = model.get_string(selected)
+        # get city
+        if self.city:
+            city_value = self.city.get_text().strip()
+
         return {
             "name": self.event_name.get_text().strip(),
             "date_time": self.date_time.get_text().strip(),
             "location": self.location.get_text().strip(),
+            "country": country_value,
+            "city": city_value,
         }
 
     def set_current_utc(self):

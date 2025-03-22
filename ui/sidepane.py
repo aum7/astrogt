@@ -206,6 +206,7 @@ if location two = location one"""
         countries = event_location.get_countries()
 
         ddn_country = Gtk.DropDown.new_from_strings(countries)
+        ddn_country.set_name("country")
         ddn_country.set_tooltip_text(
             """select country for location
 in astrogt/user/ folder there is file named
@@ -215,12 +216,17 @@ open it with text editor & un-comment any country of interest
 comment (add '# ' & save file) uninterested country"""
         )
         ddn_country.add_css_class("dropdown")
+        if event_name == "event one":
+            self.country_one = ddn_country
+        else:
+            self.country_two = ddn_country
 
         lbl_city = Gtk.Label(label="city")
         lbl_city.add_css_class("label")
         lbl_city.set_halign(Gtk.Align.START)
 
         ent_city = Gtk.Entry()
+        ent_city.set_name("city")
 
         def update_location(lat, lon, alt):
             ent_location.set_text(f"{lat} {lon} {alt}")
@@ -241,6 +247,10 @@ user needs to select the one of interest
             lambda entry, country: event_location.get_selected_city(entry, country),
             ddn_country,
         )
+        if event_name == "event one":
+            self.city_one = ent_city
+        else:
+            self.city_two = ent_city
         # latitude & longitude of event
         lbl_location = Gtk.Label(label="latitude & longitude")
         lbl_location.add_css_class("label")
@@ -331,6 +341,8 @@ only use [space] as separator
                 ent_event_name,
                 ent_datetime,
                 ent_location,
+                country=ddn_country,
+                city=ent_city,
                 get_application=self.get_application,
             )
         else:
@@ -338,6 +350,8 @@ only use [space] as separator
                 ent_event_name,
                 ent_datetime,
                 ent_location,
+                country=ddn_country,
+                city=ent_city,
                 get_application=self.get_application,
             )
         # main box for event panels
@@ -415,6 +429,8 @@ only use [space] as separator
                 collapse_panel.get_widget("event_name"),
                 collapse_panel.get_widget("date_time"),
                 collapse_panel.get_widget("location"),
+                collapse_panel.get_widget("country"),
+                collapse_panel.get_widget("city"),
                 get_application=self.get_application,
             )
         return event
