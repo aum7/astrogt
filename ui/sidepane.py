@@ -152,13 +152,8 @@ arrow key left / right : move time backward / forward
         """on dropdown time period changed / selected"""
         selected = dropdown.get_selected()
         value = self.time_periods_list[selected]
-        # print(f"dropdown selected : {value}")
         key = [k for k, v in self.CHANGE_TIME_PERIODS.items() if v == value][0]
         seconds = key.split("_")[-1]
-        # self.get_application().notify_manager.info(
-        #     f"selected period : {value} ({seconds} sec)", source="sidepane.py"
-        # )
-        # print(f"selected period : {seconds} seconds")
         self.CHANGE_TIME_SELECTED = seconds
 
     def setup_event(self, event_name: str, expand: bool) -> CollapsePanel:
@@ -294,8 +289,6 @@ only use [space] as separator
             else "name / title two",
             indent=14,
         )
-        # lbl_event_name = Gtk.Label(label="name / title")
-        # lbl_event_name.set_halign(Gtk.Align.START)
         ent_event_name = Gtk.Entry()
         ent_event_name.set_name("event_name")
         ent_event_name.set_placeholder_text(
@@ -422,8 +415,8 @@ only use [space] as separator
         return None
 
     # data handlers
+    # todo do we need this ?
     def ensure_event_data(self, event, collapse_panel):
-        # from swe.eventdata import EventData
         if isinstance(event, dict):
             return EventData(
                 collapse_panel.get_widget("event_name"),
@@ -433,11 +426,20 @@ only use [space] as separator
                 collapse_panel.get_widget("city"),
                 get_application=self.get_application,
             )
-        return event
+        # else:
+        return EventData(
+            collapse_panel.get_widget("event_name"),
+            collapse_panel.get_widget("date_time"),
+            collapse_panel.get_widget("location"),
+            collapse_panel.get_widget("country"),
+            collapse_panel.get_widget("city"),
+            get_application=self.get_application,
+        )
+        # return event
 
     def get_both_events_data(self, widget=None) -> None:
-        self.EVENT_ONE = self.ensure_event_data(self.EVENT_ONE, self.clp_event_one)
-        self.EVENT_TWO = self.ensure_event_data(self.EVENT_TWO, self.clp_event_two)
+        # self.EVENT_ONE = self.ensure_event_data(self.EVENT_ONE, self.clp_event_one)
+        # self.EVENT_TWO = self.ensure_event_data(self.EVENT_TWO, self.clp_event_two)
         event_one_data = self.EVENT_ONE.get_event_data() if self.EVENT_ONE else None
         event_two_data = self.EVENT_TWO.get_event_data() if self.EVENT_TWO else None
         self.swe_core.get_events_data(event_one_data, event_two_data)

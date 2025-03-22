@@ -28,8 +28,6 @@ class EventData:
         self.old_name = ""
         self.old_date_time = ""
         self.old_location = ""
-        # self.old_country = ""
-        # self.old_city = ""
         self.get_application = get_application
 
         # focus wrapper
@@ -42,8 +40,6 @@ class EventData:
             (self.event_name, self.on_name_change),
             (self.date_time, self.on_date_time_change),
             (self.location, self.on_location_change),
-            # (self.country, self.on_country_change),
-            # (self.city, self.on_city_change),
         ]:
             widget.connect("activate", callback)  # [enter]
             widget.connect(
@@ -439,20 +435,6 @@ class EventData:
             )
             return False
 
-    # def on_country_change(self, dropdown):
-    #     country = dropdown.get_text().strip()
-    #     if not country or country == self.old_country:
-    #         return
-    #     self.old_country = country
-    #     self.notify_user(f"country : {country}", source="eventdata", level="info")
-
-    # def on_city_change(self, entry):
-    #     city = entry.get_text().strip()
-    #     if not city or city == self.old_city:
-    #         return
-    #     self.old_city = city
-    #     self.notify_user(f"city : {city}", source="eventdata", level="info")
-
     def decimal_to_dms(self, decimal):
         """convert decimal number to degree-minute-second"""
         min_, deg_ = modf(decimal)
@@ -490,4 +472,3 @@ class EventData:
         current_utc = datetime.now(pytz.UTC)
         formatted_utc = current_utc.strftime("%Y-%m-%d %H:%M:%S")
         self.date_time.set_text(formatted_utc)
-        # print(f"current utc : {formatted_utc}")

@@ -5,6 +5,9 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
+from typing import Optional, Union, Dict
+from user.settings.settings import SWE_FLAG  # ,OBJECTS
+from datetime import datetime
 
 
 class SweCore:
@@ -18,17 +21,19 @@ class SweCore:
     event_one_name = ""
     event_one_country = ""
     event_one_city = ""
+    # need be parsed
     event_one_location = ""
     event_one_date_time = ""
     # event two
     event_two_name = ""
     event_two_country = ""
     event_two_city = ""
+    # need be parsed
     event_two_location = ""
     event_two_date_time = ""
 
     def __init__(self, get_application=None):
-        print("initialising swisseph ...")
+        print("swecore : initialising swisseph ...")
         # close swe after initialisation
         swe.close()
         self._get_application = get_application or Gtk.Application.get_default()
@@ -52,37 +57,9 @@ class SweCore:
             print(f"swecore : notification failed\n{message}")
 
     @classmethod
-    def swe_ready_data(cls):
-        """prepare event data for swe calculations"""
-        # event one
-        e1_name = cls.event_one_name
-        e1_country = cls.event_one_country
-        e1_city = cls.event_one_city
-        e1_location = cls.event_one_location
-        e1_datetime = cls.event_one_date_time
-        # event two
-        e2_name = cls.event_two_name
-        e2_country = cls.event_two_country
-        e2_city = cls.event_two_city
-        e2_location = cls.event_two_location
-        e2_datetime = cls.event_two_date_time
-
-        cls().notify_user(
-            message=f"swisseph data ready : {e1_name}",
-            source="swecore",
-            level="debug",
-        )
-
-        return {
-            e1_name: [e1_country, e1_city, e1_location, e1_datetime],
-            e2_name: [e2_country, e2_city, e2_location, e2_datetime],
-        }
-
-    @classmethod
     def get_events_data(cls, event_one=None, event_two=None):
-        """process event data using swisseph ; parent window / widget (optional)"""
+        """process event data using swisseph"""
 
-        # @classmethod
         def has_data_changed(self, event_data, event_type):
             changed = False
             if event_type == "event_one":
@@ -143,17 +120,25 @@ class SweCore:
                     f"\n\tlocation : {event_one['location']}",
                     source="swecore",
                 )
+            else:
+                cls().notify_user(
+                    message="event one : data NOT changed",
+                    source="swecore",
+                )
         if event_two:
             print("processing event two :")
             # for event two only datetime is mandatory
             if not event_two["date_time"]:
                 cls().notify_user(
-                    message="event two : datetime missing",
+                    message="event two : datetime missing : setting to datetime now utc",
                     source="swecore",
-                    timeout=0.7,
+                    timeout=1,
                 )
-                # return {}
-
+                event_two["date_time"] = cls.event_one_date_time
+                # not good solution
+                # event_two["date_time"] = datetime.now(timezone.utc).strftime(
+                #     "%Y-%m-%d %H:%M:%S"
+                # )
             if not event_two["name"]:
                 event_two["name"] = cls.event_one_name
             # if location not provided, use event one location
@@ -187,18 +172,133 @@ class SweCore:
                     f"\n\tlocation : {event_two['location']}",
                     source="swecore",
                 )
-        # todo test print
-        # window.get_application().notify_manager.debug(
-        #     message="\n"
-        #     f"swecore.event_one_name : {SweCore.event_one_name}"
-        #     f"\nswecore.event_one_date_time : {SweCore.event_one_date_time}"
-        #     f"\nswecore.event_one_country : {SweCore.event_one_country}"
-        #     f"\nswecore.event_one_city : {SweCore.event_one_city}"
-        #     f"\nswecore.event_one_location : {SweCore.event_one_location}"
-        #     f"\n\nswecore.event_two_name : {SweCore.event_two_name}"
-        #     f"\nswecore.event_two_date_time : {SweCore.event_two_date_time}"
-        #     f"\nswecore.event_two_country : {SweCore.event_two_country}"
-        #     f"\nswecore.event_two_city : {SweCore.event_two_city}"
-        #     f"\nswecore.event_two_location : {SweCore.event_two_location}",
-        #     source="swecore",
-        # )
+            else:
+                cls().notify_user(
+                    message="event two : data NOT changed",
+                    source="swecore",
+                )
+
+    @classmethod
+    def swe_ready_data(cls):
+        """prepare event data for swe calculations"""
+        # event one
+        e1_name = cls.event_one_name
+        e1_country = cls.event_one_country
+        e1_city = cls.event_one_city
+        # this need be parsed to lat, lon, alt
+        e1_location = cls.event_one_location
+        _e1_location = cls()._parse_location(e1_location)
+        print(f"_e1_location : {_e1_location}")
+        # this need be parsed to julian day / year, month, day, hour, minute, second
+        e1_datetime = cls.event_one_date_time
+        _e1_datetime = cls()._parse_datetime(e1_datetime)
+        print(f"_e1_datetime : {_e1_datetime}")
+        # event two
+        e2_name = cls.event_two_name
+        e2_country = cls.event_two_country
+        e2_city = cls.event_two_city
+        e2_location = cls.event_two_location
+        _e2_location = cls()._parse_location(e2_location)
+        print(f"_e2_location : {_e2_location}")
+        e2_datetime = cls.event_two_date_time
+        _e2_datetime = cls()._parse_datetime(e2_datetime)
+        print(f"_e2_datetime : {_e2_datetime}")
+
+        cls().notify_user(
+            message="data ready",
+            source="swecore",
+            level="debug",
+        )
+
+        return {
+            e1_name: [e1_country, e1_city, e1_location, e1_datetime],
+            e2_name: [e2_country, e2_city, e2_location, e2_datetime],
+        }
+
+    def _parse_location(
+        self, location_str: str
+    ) -> Optional[Dict[str, Union[float, int]]]:
+        """parse location string"""
+        try:
+            # expected format : lat, lon, alt or lat, lon
+            parts = location_str.strip().lower().split(" ")
+            if len(parts) < 8:
+                return None
+            # latitide
+            lat_deg = float(parts[0])
+            lat_min = float(parts[1])
+            lat_sec = float(parts[2])
+            lat_dir = parts[3]
+            # longitude
+            lon_deg = float(parts[4])
+            lon_min = float(parts[5])
+            lon_sec = float(parts[6])
+            lon_dir = parts[7]
+
+            alt = 0
+            if len(parts) == 9:
+                alt = int(parts[8])
+            # string to decimal degrees
+            lat = lat_deg + lat_min / 60 + lat_sec / 3600
+            if lat_dir == "s":
+                lat = -lat
+            lon = lon_deg + lon_min / 60 + lon_sec / 3600
+            if lon_dir == "w":
+                lon = -lon
+
+            return {
+                "lat": lat,
+                "lon": lon,
+                "alt": alt,
+            }
+        except Exception as e:
+            self.notify_user(
+                message=f"error parsing location '{location_str}'\n\tstr({e})",
+                source="swepositions",
+                level="error",
+            )
+            return None
+
+    def _parse_datetime(self, dt_str: str) -> Optional[Dict[str, int]]:
+        """parse datetime string"""
+        try:
+            # expected format : YYYY-MM-DD HH:MM:SS
+            dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
+            return {
+                "year": dt.year,
+                "month": dt.month,
+                "day": dt.day,
+                "hour": dt.hour,
+                "minute": dt.minute,
+                "second": dt.second,
+            }
+        except Exception as e:
+            self.notify_user(
+                message=f"error parsing datetime : {e}",
+                source="swepositions",
+                level="error",
+            )
+            return None
+
+    def _get_swe_flags(self):
+        """configure swisseph flags"""
+        flags = SWE_FLAG["swe_flag_default"]
+
+        if SWE_FLAG["sidereal_zodiac"]:
+            flags |= swe.FLG_SIDEREAL
+        if SWE_FLAG["nutation"]:
+            flags |= swe.FLG_NONUT
+        if SWE_FLAG["heliocentric"]:
+            flags |= swe.FLG_HELCTR
+        if SWE_FLAG["true_positions"]:
+            flags |= swe.FLG_TRUEPOS
+        if SWE_FLAG["topocentric"]:
+            flags |= swe.FLG_TOPOCTR
+        if SWE_FLAG["equatorial"]:
+            flags |= swe.FLG_EQUATORIAL
+        if SWE_FLAG.get("cartesian"):
+            flags |= swe.FLG_XYZ
+        if SWE_FLAG.get("radians"):
+            flags |= swe.FLG_RADIANS
+
+        return flags
