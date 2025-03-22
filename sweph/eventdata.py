@@ -262,7 +262,7 @@ class EventData:
                 lat_parts = parts[: lat_dir_idx + 1]
                 lon_parts = parts[lat_dir_idx + 1 : lon_dir_idx + 1]
                 # get optional altitude
-                alt = "/"
+                alt = "0"
                 if len(parts) > lon_dir_idx + 1:
                     alt = parts[lon_dir_idx + 1]
                 # check if d-m-s or decimal
@@ -391,21 +391,21 @@ class EventData:
                 alt = str(int(alt))
             except ValueError:
                 self.notify_user(
-                    "missing altitude value ; setting alt to /",
+                    "missing altitude value ; setting alt to 0",
                     source="eventdata",
                     level="info",
                     do_log=False,
                 )
                 # print("invalid altitude value ; setting alt to /")
-                alt = "/"
+                alt = "0"
             # format final string
             location_formatted = (
                 f"{lat_deg:02d} {lat_min:02d} {lat_sec:02d} {lat_dir} "
                 f"{lon_deg:03d} {lon_min:02d} {lon_sec:02d} {lon_dir} "
                 f"{alt.zfill(4)} m"
-                if alt != "/"
+                if alt != "0"
                 else f"{lat_deg:02d} {lat_min:02d} {lat_sec:02d} {lat_dir} "
-                f"{lon_deg:03d} {lon_min:02d} {lon_sec:02d} {lon_dir} /"
+                f"{lon_deg:03d} {lon_min:02d} {lon_sec:02d} {lon_dir} 0"
             )
             # update entry if text changed
             if location != location_formatted:
@@ -422,7 +422,7 @@ class EventData:
 
         except Exception as e:
             self.notify_user(
-                "invalid location format : we accept :"
+                "invalid location format : we accept"
                 "\n1. deg-min-(sec) with direction : 32 21 (9) n 77 66 (11) w (alt)"
                 "\n\tsec & alt are optional"
                 "\n2. decimal with direction : 33.77 n 124.87 e (alt)"

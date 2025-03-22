@@ -4,15 +4,19 @@ import swisseph as swe
 import gi
 
 gi.require_version("Gtk", "4.0")
-from gi.repository import Gtk  # type: ignore
+from gi.repository import Gtk, GObject  # type: ignore
 from typing import Optional, Union, Dict
 from user.settings.settings import SWE_FLAG  # ,OBJECTS
 from datetime import datetime
 
 
-class SweCore:
+class SweCore(GObject.Object):
     """note : swisseph calculations need be closed at the end of computations"""
 
+    # custom signal
+    __gsignals__ = {
+        "data-changed": (GObject.SignalFlags.RUN_FIRST, None, ()),
+    }
     # swiss ephemeris path
     current_dir = os.path.dirname(os.path.abspath(__file__))
     ephe_path = os.path.join(current_dir, "ephe")
@@ -33,7 +37,6 @@ class SweCore:
     event_two_date_time = ""
 
     def __init__(self, get_application=None):
-        print("swecore : initialising swisseph ...")
         # close swe after initialisation
         swe.close()
         self._get_application = get_application or Gtk.Application.get_default()
@@ -60,6 +63,8 @@ class SweCore:
     def get_events_data(cls, event_one=None, event_two=None):
         """process event data using swisseph"""
 
+        _data_changed = SweCore(Gtk.Application.get_default())
+
         def has_data_changed(self, event_data, event_type):
             changed = False
             if event_type == "event_one":
@@ -83,7 +88,7 @@ class SweCore:
             return changed
 
         if event_one:
-            print("processing event one :")
+            print("processing event one")
             if (
                 not event_one["name"]
                 or not event_one["date_time"]
@@ -98,10 +103,10 @@ class SweCore:
                 return {}
             # check if data has changed
             if has_data_changed(cls(), event_one, "event_one"):
-                cls().notify_user(
-                    message="event one : data changed",
-                    source="swecore",
-                )
+                # cls().notify_user(
+                #     message="event one : data changed",
+                #     source="swecore",
+                # )
                 # data received
                 cls.event_one_name = event_one["name"]
                 cls.event_one_date_time = event_one["date_time"]
@@ -110,23 +115,25 @@ class SweCore:
                 cls.event_one_location = event_one["location"]
                 # process data
                 cls.swe_ready_data()
+                # emit signal for positions, houses, aspects etc
+                _data_changed.emit("data-changed")
 
-                cls().notify_user(
-                    message=f"event one data received :"
-                    f"\n\tname : {event_one['name']}"
-                    f"\n\tdatetime : {event_one['date_time']}"
-                    f"\n\tcountry : {event_one['country']}"
-                    f"\n\tcity : {event_one['city']}"
-                    f"\n\tlocation : {event_one['location']}",
-                    source="swecore",
-                )
+                # cls().notify_user(
+                #     message=f"event one data received :"
+                #     f"\n\tname : {event_one['name']}"
+                #     f"\n\tdatetime : {event_one['date_time']}"
+                #     f"\n\tcountry : {event_one['country']}"
+                #     f"\n\tcity : {event_one['city']}"
+                #     f"\n\tlocation : {event_one['location']}",
+                #     source="swecore",
+                # )
             else:
                 cls().notify_user(
                     message="event one : data NOT changed",
                     source="swecore",
                 )
         if event_two:
-            print("processing event two :")
+            print("processing event two")
             # for event two only datetime is mandatory
             if not event_two["date_time"]:
                 cls().notify_user(
@@ -150,10 +157,10 @@ class SweCore:
                 event_two["location"] = cls.event_one_location
             # check if data has changed
             if has_data_changed(cls(), event_two, "event_two"):
-                cls().notify_user(
-                    message="event two : data changed ...",
-                    source="swecore",
-                )
+                # cls().notify_user(
+                #     message="event two : data changed ...",
+                #     source="swecore",
+                # )
                 # data received
                 cls.event_two_name = event_two["name"]
                 cls.event_two_date_time = event_two["date_time"]
@@ -162,16 +169,18 @@ class SweCore:
                 cls.event_two_location = event_two["location"]
                 # process data
                 cls().swe_ready_data()
+                # emit signal for positions, houses, aspects etc
+                _data_changed.emit("data-changed")
 
-                cls().notify_user(
-                    message=f"event two data received :"
-                    f"\n\tname : {event_two['name']}"
-                    f"\n\tdatetime : {event_two['date_time']}"
-                    f"\n\tcountry : {event_two['country']}"
-                    f"\n\tcity : {event_two['city']}"
-                    f"\n\tlocation : {event_two['location']}",
-                    source="swecore",
-                )
+                # cls().notify_user(
+                #     message=f"event two data received :"
+                #     f"\n\tname : {event_two['name']}"
+                #     f"\n\tdatetime : {event_two['date_time']}"
+                #     f"\n\tcountry : {event_two['country']}"
+                #     f"\n\tcity : {event_two['city']}"
+                #     f"\n\tlocation : {event_two['location']}",
+                #     source="swecore",
+                # )
             else:
                 cls().notify_user(
                     message="event two : data NOT changed",
@@ -188,21 +197,25 @@ class SweCore:
         # this need be parsed to lat, lon, alt
         e1_location = cls.event_one_location
         _e1_location = cls()._parse_location(e1_location)
-        print(f"_e1_location : {_e1_location}")
+        # print(f"_e1_location : {_e1_location}")
         # this need be parsed to julian day / year, month, day, hour, minute, second
         e1_datetime = cls.event_one_date_time
         _e1_datetime = cls()._parse_datetime(e1_datetime)
-        print(f"_e1_datetime : {_e1_datetime}")
+        # print(f"_e1_datetime : {_e1_datetime}")
         # event two
         e2_name = cls.event_two_name
         e2_country = cls.event_two_country
         e2_city = cls.event_two_city
         e2_location = cls.event_two_location
-        _e2_location = cls()._parse_location(e2_location)
-        print(f"_e2_location : {_e2_location}")
+        _e2_location = (
+            cls()._parse_location(e2_location) if e2_location else _e1_location
+        )
+        # print(f"_e2_location : {_e2_location}")
         e2_datetime = cls.event_two_date_time
-        _e2_datetime = cls()._parse_datetime(e2_datetime)
-        print(f"_e2_datetime : {_e2_datetime}")
+        _e2_datetime = (
+            cls()._parse_datetime(e2_datetime) if e2_datetime else _e1_datetime
+        )
+        # print(f"_e2_datetime : {_e2_datetime}")
 
         cls().notify_user(
             message="data ready",
@@ -211,8 +224,13 @@ class SweCore:
         )
 
         return {
-            e1_name: [e1_country, e1_city, e1_location, e1_datetime],
-            e2_name: [e2_country, e2_city, e2_location, e2_datetime],
+            e1_name: [e1_country, e1_city, _e1_location, _e1_datetime],
+            e2_name: [
+                e2_country or e1_country,
+                e2_city or e1_city,
+                _e2_location or _e1_location,
+                _e2_datetime or _e1_datetime,
+            ],
         }
 
     def _parse_location(
@@ -259,20 +277,43 @@ class SweCore:
             )
             return None
 
-    def _parse_datetime(self, dt_str: str) -> Optional[Dict[str, int]]:
+    def _parse_datetime(self, dt_str: str) -> Optional[float]:
         """parse datetime string"""
         try:
             # expected format : YYYY-MM-DD HH:MM:SS
             dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
-            return {
-                "year": dt.year,
-                "month": dt.month,
-                "day": dt.day,
-                "hour": dt.hour,
-                "minute": dt.minute,
-                "second": dt.second,
-            }
+            # julianday with swisseph
+            jd_ut_swe = swe.julday(
+                dt.year, dt.month, dt.day, dt.hour + dt.minute / 60 + dt.second / 3600
+            )
+            return jd_ut_swe
         except Exception as e:
+            print(f"error parsing datetime : {e}")
+
+            return None
+            # todo should we also return julianday ?
+            # julianday with python : convert to days since epoch & add date offset
+            # jd_offset = 2440587.5
+            # seconds_in_day = 86400.0
+            # jd_python = (
+            #     jd_offset + (dt - datetime(1970, 1, 1)).total_seconds() / seconds_in_day
+            # )
+            # test both julianday
+            # jd_diff = abs(jd_python - jd_ut_swe)
+            # if jd_diff > 0.000001:  # 0.000001 days = 0.0864 seconds
+            # print(f"juliandays : py={jd_python} | swe={jd_ut_swe} | diff={jd_diff}")
+
+            # return {
+            # "jd_py": jd_python,
+            # "jd_swe": jd_ut_swe,
+            # "year": dt.year,
+            # "month": dt.month,
+            # "day": dt.day,
+            # "hour": dt.hour,
+            # "minute": dt.minute,
+            # "second": dt.second,
+            # }
+            # except Exception as e:
             self.notify_user(
                 message=f"error parsing datetime : {e}",
                 source="swepositions",
