@@ -108,20 +108,21 @@ class SweCore:
                 f"\n\tlocation : {event_two['location']}",
                 source="swecore",
             )
-            # todo test print
-            window.get_application().notify_manager.debug(
-                message=f"swecore.event_one_name : {SweCore.event_one_name}"
-                f"\nswecore.event_one_date_time : {SweCore.event_one_date_time}"
-                f"\nswecore.event_one_country : {SweCore.event_one_country}"
-                f"\nswecore.event_one_city : {SweCore.event_one_city}"
-                f"\n\nswecore.event_one_location : {SweCore.event_one_location}"
-                f"\nswecore.event_two_name : {SweCore.event_two_name}"
-                f"\nswecore.event_two_date_time : {SweCore.event_two_date_time}"
-                f"\nswecore.event_two_country : {SweCore.event_two_country}"
-                f"\nswecore.event_two_city : {SweCore.event_two_city}"
-                f"\nswecore.event_two_location : {SweCore.event_two_location}",
-                source="swecore",
-            )
+        # todo test print
+        window.get_application().notify_manager.debug(
+            message="\n"
+            f"swecore.event_one_name : {SweCore.event_one_name}"
+            f"\nswecore.event_one_date_time : {SweCore.event_one_date_time}"
+            f"\nswecore.event_one_country : {SweCore.event_one_country}"
+            f"\nswecore.event_one_city : {SweCore.event_one_city}"
+            f"\nswecore.event_one_location : {SweCore.event_one_location}"
+            f"\n\nswecore.event_two_name : {SweCore.event_two_name}"
+            f"\nswecore.event_two_date_time : {SweCore.event_two_date_time}"
+            f"\nswecore.event_two_country : {SweCore.event_two_country}"
+            f"\nswecore.event_two_city : {SweCore.event_two_city}"
+            f"\nswecore.event_two_location : {SweCore.event_two_location}",
+            source="swecore",
+        )
 
     # print(f"swecore : OBJECTS : {OBJECTS}")
     # print(f"swecore : HOUSE_SYSTEMS : {HOUSE_SYSTEMS}")
