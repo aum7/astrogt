@@ -6,7 +6,7 @@ import os
 # import logging
 # from datetime import datetime
 
-# Add project root to path
+# add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # mock issues
 sys.modules["user.settings"] = Mock()
@@ -39,9 +39,9 @@ class TestSwePositionsIntegration(unittest.TestCase):
         """Set up test environment"""
         self.mock_app = MagicMock()
         mock_get_default.return_value = self.mock_app
-        # Create instances with mocked dependencies
+        # create instances with mocked dependencies
         self.swe_core = SweCore()
-        # Reset class variables to ensure clean state
+        # reset class variables to ensure clean state
         SweCore.event_one_name = ""
         SweCore.event_one_country = ""
         SweCore.event_one_city = ""
@@ -61,6 +61,7 @@ class TestSwePositionsIntegration(unittest.TestCase):
         # self, mock_calc_ut, mock_julday_ut
     ):
         """Test that data is properly transferred from SweCore to SwePositions"""
+        # from astrogt.sweph.calculations import SwePositions
         from sweph.calculations.positions import SwePositions
 
         # Set up mock return values
