@@ -24,17 +24,17 @@ sys.modules["user.settings"].SWE_FLAG = {
     "topocentric": False,
     "equatorial": False,
 }
-from swe.swecore import SweCore
+from sweph.swecore import SweCore
 
 
-@patch("swe.calculations.positions.OBJECTS", sys.modules["user.settings"].OBJECTS)
-@patch("swe.calculations.positions.SWE_FLAG", sys.modules["user.settings"].SWE_FLAG)
+@patch("sweph.calculations.positions.OBJECTS", sys.modules["user.settings"].OBJECTS)
+@patch("sweph.calculations.positions.SWE_FLAG", sys.modules["user.settings"].SWE_FLAG)
 # logger = logging.getLogger("test_swecore_positions")
 class TestSwePositionsIntegration(unittest.TestCase):
     """test the integration between SweCore and SwePositions"""
 
-    @patch("swe.swecore.swe.close")
-    @patch("swe.swecore.Gtk.Application.get_default")
+    @patch("sweph.swecore.swe.close")
+    @patch("sweph.swecore.Gtk.Application.get_default")
     def setUp(self, mock_get_default, mock_swe_close):
         """Set up test environment"""
         self.mock_app = MagicMock()
@@ -53,7 +53,7 @@ class TestSwePositionsIntegration(unittest.TestCase):
         SweCore.event_two_location = ""
         SweCore.event_two_date_time = ""
 
-    @patch("swe.calculations.positions.swe")
+    @patch("sweph.calculations.positions.swe")
     # @patch("swe.calculations.positions.swe.calc_ut")
     def test_data_transfer_from_swecore_to_positions(
         self,
@@ -61,7 +61,7 @@ class TestSwePositionsIntegration(unittest.TestCase):
         # self, mock_calc_ut, mock_julday_ut
     ):
         """Test that data is properly transferred from SweCore to SwePositions"""
-        from swe.calculations.positions import SwePositions
+        from sweph.calculations.positions import SwePositions
 
         # Set up mock return values
         mock_swe.julday_ut.return_value = 2460000.5
@@ -82,7 +82,7 @@ class TestSwePositionsIntegration(unittest.TestCase):
         self.assertEqual(SweCore.event_one_date_time, test_data["date_time"])
         # now create swepositions and verify it can access the data
         with patch(
-            "swe.calculations.positions.Gtk.Application.get_default",
+            "sweph.calculations.positions.Gtk.Application.get_default",
             return_value=self.mock_app,
         ):
             positions = SwePositions()

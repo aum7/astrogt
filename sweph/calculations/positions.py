@@ -10,7 +10,7 @@ gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from swe.swecore import SweCore
 from ui.notifymanager import NotifyManager
-from user.settings import OBJECTS, SWE_FLAG
+from user.settings.settings import OBJECTS, SWE_FLAG
 
 
 class SwePositions:
@@ -60,9 +60,9 @@ class SwePositions:
             flags |= swe.FLG_TOPOCTR
         if SWE_FLAG["equatorial"]:
             flags |= swe.FLG_EQUATORIAL
-        if SWE_FLAG["cartesian"]:
+        if SWE_FLAG.get("cartesian", False):
             flags |= swe.FLG_XYZ
-        if SWE_FLAG["radians"]:
+        if SWE_FLAG.get("radians", False):
             flags |= swe.FLG_RADIANS
 
         return flags

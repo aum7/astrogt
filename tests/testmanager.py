@@ -3,7 +3,7 @@ import sys
 
 # import os
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Configure logging
 logging.basicConfig(
@@ -33,7 +33,7 @@ class TestManager:
     def run_tests(self, verbosity=2):
         """Run all registered test suites"""
         logger.info(
-            f"Starting test run at {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC"
+            f"Starting test run at {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC"
         )
 
         runner = unittest.TextTestRunner(verbosity=verbosity)
