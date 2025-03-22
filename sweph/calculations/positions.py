@@ -8,7 +8,7 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
-from swe.swecore import SweCore
+from sweph.swecore import SweCore
 from ui.notifymanager import NotifyManager
 from user.settings.settings import OBJECTS, SWE_FLAG
 

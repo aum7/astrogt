@@ -4,9 +4,9 @@ import gi
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from ui.collapsepanel import CollapsePanel
-from swe.eventdata import EventData
-from swe.eventlocation import EventLocation
-from swe.swecore import SweCore
+from sweph.eventdata import EventData
+from sweph.eventlocation import EventLocation
+from sweph.swecore import SweCore
 from datetime import datetime, timezone, timedelta
 from typing import Dict, Callable, Optional
 

@@ -68,7 +68,7 @@ class MainWindow(
             "\nesc : discard message\n\nhotkeys (hk)"
             "\nh : show help (this message)"
             "\ns : toggle side pane"
-            "\ne : select event for time change"
+            "\ne : toggle selected event for time change"
             "\nc : center all panes"
             "\narrow keys : up/down = change period | left/right = change time"
             "\n\tfor selected event"

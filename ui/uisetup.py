@@ -91,7 +91,7 @@ class UISetup:
         self.btn_toggle_pane.set_halign(Gtk.Align.START)
         self.btn_toggle_pane.set_valign(Gtk.Align.START)
         self.btn_toggle_pane.set_tooltip_text(
-            """toggle side pane (hk : e)
+            """toggle side pane (hk : s)
 [shift-click] : center all panes (hk : c)"""
         )
         self.btn_toggle_pane.connect("clicked", self.on_toggle_pane)
