@@ -14,7 +14,8 @@ from typing import Dict, Callable, Optional
 class SidePaneManager:
     """mixin class for managing the side pane"""
 
-    get_application: Callable[[], Gtk.Application]
+    _app: Callable[[], Gtk.Application]
+    # get_application: Callable[[], Gtk.Application]
     selected_event = "event one"
     EVENT_ONE = None
     EVENT_TWO = None
@@ -53,13 +54,19 @@ class SidePaneManager:
     }
 
     def __init__(self, *args, **kwargs):
-        app = kwargs.get("app") or (
-            hasattr(self, "get_application") and self.get_application()
-        )
-        if not app:
-            raise ValueError("sidepanemanager : app instance not available")
-        self._notify = app.notify_manager
-        self.swe_core = SweCore(app)
+        # self._app = kwargs.get("app") or (
+        #     hasattr(self, "get_application") and self._app()
+        # )
+        # elif hasattr(self, "get_application"):
+        #     self._app = self.get_application()
+        if "app" in kwargs:
+            self._app = kwargs["app"]
+        else:
+            app_getter = getattr(self, "get_application", None)
+            if callable(app_getter):
+                self._app = app_getter()  # type: ignore
+        self._notify = self._app.notify_manager
+        self.swe_core = SweCore(self._app)
 
     def setup_side_pane(self):
         # main box for widgets
@@ -206,7 +213,7 @@ if location two = location one"""
         lbl_country.add_css_class("label")
         lbl_country.set_halign(Gtk.Align.START)
 
-        event_location = EventLocation(self, get_application=self.get_application)
+        event_location = EventLocation(self, app=self._app)
         countries = event_location.get_countries()
 
         ddn_country = Gtk.DropDown.new_from_strings(countries)
@@ -346,7 +353,7 @@ only use [space] as separator
                 ent_location,
                 country=ddn_country,
                 city=ent_city,
-                get_application=self.get_application,
+                app=self._app,
             )
         else:
             self.EVENT_TWO = EventData(
@@ -355,7 +362,7 @@ only use [space] as separator
                 ent_location,
                 country=ddn_country,
                 city=ent_city,
-                get_application=self.get_application,
+                app=self._app,
             )
         # main box for event panels
         box_event = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)

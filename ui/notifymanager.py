@@ -79,7 +79,6 @@ class NotifyLogger:
             NotifyLevel.ERROR: logging.ERROR,
             NotifyLevel.DEBUG: logging.DEBUG,
         }
-
         self.logger.log(log_level[msg.level], msg.full_str())
 
 
@@ -160,7 +159,6 @@ class NotifyManager:
                     "notify",
                     f"{icon_name}.svg",
                 )
-
                 if os.path.exists(icon_path):
                     icon.set_from_file(icon_path)
                 else:
@@ -173,7 +171,6 @@ class NotifyManager:
                         NotifyLevel.DEBUG: "preferences-system",
                     }
                     icon.set_from_icon_name(fallback_icons[msg.level])
-
                 box.append(icon)
                 # label with message
                 label = Gtk.Label(label=str(msg))
@@ -187,60 +184,8 @@ class NotifyManager:
                     toast.set_timeout(msg.timeout)
                 else:
                     toast.set_timeout(self._DEFAULT_TIMEOUTS[msg.level])
-
                 self.toast_overlay.add_toast(toast)
 
         except Exception as e:
             print(f"error in toast notification: {str(e)}")
             print(f"message was: {msg.full_str()}")
-
-    # convenience methods
-    # def info(
-    #     self,
-    #     message: str,
-    #     source: Optional[str] = None,
-    #     timeout: Optional[int] = None,
-    #     do_log: Optional[bool] = True,
-    # ) -> bool:
-    #     """show info notification"""
-    #     return self.notify(message, NotifyLevel.INFO, source, timeout)
-
-    # def success(
-    #     self,
-    #     message: str,
-    #     source: Optional[str] = None,
-    #     timeout: Optional[int] = None,
-    #     do_log: Optional[bool] = True,
-    # ) -> bool:
-    #     """show success notification"""
-    #     return self.notify(message, NotifyLevel.SUCCESS, source, timeout)
-
-    # def warning(
-    #     self,
-    #     message: str,
-    #     source: Optional[str] = None,
-    #     timeout: Optional[int] = None,
-    #     do_log: Optional[bool] = True,
-    # ) -> bool:
-    #     """show warning notification"""
-    #     return self.notify(message, NotifyLevel.WARNING, source, timeout)
-
-    # def error(
-    #     self,
-    #     message: str,
-    #     source: Optional[str] = None,
-    #     timeout: Optional[int] = None,
-    #     do_log: Optional[bool] = True,
-    # ) -> bool:
-    #     """show error notification"""
-    #     return self.notify(message, NotifyLevel.ERROR, source, timeout)
-
-    # def debug(
-    #     self,
-    #     message: str,
-    #     source: Optional[str] = None,
-    #     timeout: Optional[int] = None,
-    #     do_log: Optional[bool] = True,
-    # ) -> bool:
-    #     """show debug notification"""
-    #     return self.notify(message, NotifyLevel.DEBUG, source, timeout)

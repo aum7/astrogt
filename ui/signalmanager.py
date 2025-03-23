@@ -6,9 +6,9 @@ from gi.repository import Gtk  # type: ignore
 
 
 class SignalManager:
-    def __init__(self, get_application=None):
+    def __init__(self, app=None):
         # store handlers
-        self._get_application = get_application or Gtk.Application.get_default()
+        self._app = app or Gtk.Application.get_default()
         self._handlers = {}
 
     def _emit(self, signal_name, *args):

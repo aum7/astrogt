@@ -17,9 +17,11 @@ class EventData:
         location,
         country=None,
         city=None,
-        get_application=None,
+        app=None,
     ):
         """get user input and puf! puf! into sweph"""
+        self._app = app or Gtk.Application.get_default()
+        self._notify = self._app.notify_manager
         self.event_name = event_name
         self.date_time = date_time
         self.location = location
@@ -28,7 +30,6 @@ class EventData:
         self.old_name = ""
         self.old_date_time = ""
         self.old_location = ""
-        self.get_application = get_application
 
         # focus wrapper
         def focus_wrapper(widget, pspec, callback):
@@ -47,33 +48,23 @@ class EventData:
                 lambda w, p, cb=callback: focus_wrapper(w, p, cb),
             )  # focus lost ?
 
-    def notify_user(self, message, **kwargs):
-        app = (
-            self.get_application()
-            if self.get_application
-            else Gtk.get_application_default()
-        )
-        if app and hasattr(app, "notify_manager"):
-            app.notify_manager.notify(message=message, **kwargs)
-        else:
-            print(f"eventdata : {message}")
-
     def on_name_change(self, entry):
         """process title / name"""
         name = entry.get_text().strip()
         if not name or name == self.old_name:
             return
         if len(name) > 30:
-            if hasattr(self, "get_application") and self.get_application:
-                self.get_application().notify_manager.warning(
-                    "name too long : max 30 characters"
+            if self._notify:
+                self._notify.warning(
+                    "name too long : max 30 characters",
+                    source="eventdata",
+                    do_log=False,
                 )
             else:
                 print("name too long : max 30 characters")
             return
 
         self.old_name = name
-        # print(f"event name : {name}")
 
     def on_date_time_change(self, entry):
         """process date & time"""
@@ -86,9 +77,8 @@ class EventData:
             valid_chars = set("0123456789 -/.:")
             invalid_chars = set(date_time) - valid_chars
             if invalid_chars:
-                self.notify_user(
+                self._notify.warning(
                     f"date-time : characters {sorted(invalid_chars)} not allowed",
-                    level="warning",
                     source="eventdata",
                     do_log=False,
                 )
@@ -97,12 +87,10 @@ class EventData:
             is_year_negative = date_time.lstrip().startswith("-")
             # print(f"eventdata : year negative : {is_year_negative}")
             parts = [p for p in re.split("[ -/.:]+", date_time) if p]
-            # print(f"parts : {parts}")
             if len(parts) < 5 or len(parts) > 6:
-                self.notify_user(
+                self._notify.warning(
                     "wrong data count : 6 or 5 (if no seconds) time units expected"
                     "\n\tie 1999 11 12 13 14",
-                    level="warning",
                     source="eventdata",
                     do_log=False,
                 )
@@ -115,18 +103,16 @@ class EventData:
                 # print(f"year : {year}")
                 # swiseph year range
                 if not -13200 <= year <= 17191:
-                    self.notify_user(
+                    self._notify.warning(
                         "year out of sweph range (-13.200 - 17.191)",
-                        level="warning",
                         source="eventdata",
                         do_log=False,
                     )
                     return
 
             except ValueError:
-                self.notify_user(
+                self._notify.error(
                     "invalid year format",
-                    level="error",
                     source="eventdata",
                     do_log=False,
                 )
@@ -162,10 +148,9 @@ class EventData:
                 return 1 <= month <= 12 and 1 <= day <= day_count_for_month[month]
 
             if not is_valid_date(year, month, day):
-                self.notify_user(
+                self._notify.warning(
                     f"{year}-{month}-{day} : date not valid"
                     "\ncheck month & day : february has 28 or 29 days",
-                    level="warning",
                     source="eventdata",
                     do_log=False,
                 )
@@ -175,9 +160,8 @@ class EventData:
                 return 0 <= hour <= 23 and 0 <= minute <= 59 and 0 <= second <= 59
 
             if not is_valid_time(hour, minute, second):
-                self.notify_user(
+                self._notify.warning(
                     f"{hour}:{minute}:{second} : time not valid",
-                    level="warning",
                     source="eventdata",
                     do_log=False,
                 )
@@ -206,20 +190,18 @@ class EventData:
                 return formatted, date_time_final
 
             except ValueError as e:
-                self.notify_user(
+                self._notify.error(
                     f"invalid date-time : {str(e)}",
-                    level="error",
                     source="eventdata",
                     do_log=False,
                 )
                 return
 
         except Exception:
-            self.notify_user(
+            self._notify.error(
                 "wrong date-time format"
                 "\nwe only accept space-separated : yyyy mm dd HH MM SS"
                 "\nand - / . : for separators",
-                level="error",
                 source="eventdata",
                 do_log=False,
             )
@@ -236,7 +218,6 @@ class EventData:
         location = entry.get_text().strip()
         if not location or location == self.old_location:
             return
-
         try:
             parts = location.lower().split()
             # detect direction (e, s, n, w)
@@ -251,10 +232,9 @@ class EventData:
                     elif part in "ew":
                         lon_dir_idx = i
                 if lat_dir_idx == -1 or lon_dir_idx == -1:
-                    self.notify_user(
+                    self._notify.warning(
                         "missing direction indicators (n/s & e/w)",
                         source="eventdata",
-                        level="warning",
                         do_log=False,
                     )
                     return False
@@ -279,10 +259,9 @@ class EventData:
                     else:
                         # d-m-s format : seconds are optional
                         if len(lat_parts) < 3 or len(lon_parts) < 3:
-                            self.notify_user(
+                            self._notify.warning(
                                 "invalid deg-min-(sec) n/s e/w format",
                                 source="eventdata",
-                                level="warning",
                                 do_log=False,
                             )
                             return False
@@ -298,10 +277,9 @@ class EventData:
                         lon_dir = lon_parts[-1]
 
                 except (ValueError, IndexError) as e:
-                    self.notify_user(
+                    self._notify.error(
                         f"error parsing coordinates :\n\t{str(e)}",
                         source="eventdata",
-                        level="error",
                         do_log=False,
                     )
                     return False
@@ -309,9 +287,8 @@ class EventData:
                 # signed decimal format
                 try:
                     if len(parts) < 2:
-                        self.notify_user(
+                        self._notify.warning(
                             "need min latitude & longitude",
-                            level="warning",
                             source="eventdata",
                             do_log=False,
                         )
@@ -329,59 +306,52 @@ class EventData:
                     lon_deg, lon_min, lon_sec = self.decimal_to_dms(abs(lon))
 
                 except ValueError as e:
-                    self.notify_user(
+                    self._notify.error(
                         f"invalid decimal coordinates :\n\t{str(e)}",
-                        level="error",
                         source="eventdata",
                         do_log=False,
                     )
                     return False
             # validate ranges
             if not (0 <= lat_deg <= 89):
-                self.notify_user(
+                self._notify.warning(
                     "latitude degrees must be between 0 & 90",
-                    level="warning",
                     source="eventdata",
                     do_log=False,
                 )
                 return False
             if not (0 <= lat_min <= 59) or not (0 <= lat_sec <= 59):
-                self.notify_user(
+                self._notify.warning(
                     "minutes & seconds must be between 0 & 59",
-                    level="warning",
                     source="eventdata",
                     do_log=False,
                 )
                 return False
             if lat_dir not in ["n", "s"]:
-                self.notify_user(
+                self._notify.warning(
                     "latitude direction must be n(orth) or s(outh)",
-                    level="warning",
                     source="eventdata",
                     do_log=False,
                 )
                 return False
 
             if not (0 <= lon_deg <= 179):
-                self.notify_user(
+                self._notify.warning(
                     "longitude degrees must be between 0 and 179",
-                    level="warning",
                     source="eventdata",
                     do_log=False,
                 )
                 return False
             if not (0 <= lon_min <= 59) or not (0 <= lon_sec <= 59):
-                self.notify_user(
+                self._notify.warning(
                     "minutes & seconds must be between 0 & 59",
-                    level="warning",
                     source="eventdata",
                     do_log=False,
                 )
                 return False
             if lon_dir not in ["e", "w"]:
-                self.notify_user(
+                self._notify.warning(
                     "longitude direction must be e(ast) or w(est)",
-                    level="warning",
                     source="eventdata",
                     do_log=False,
                 )
@@ -390,13 +360,11 @@ class EventData:
             try:
                 alt = str(int(alt))
             except ValueError:
-                self.notify_user(
+                self._notify.info(
                     "missing altitude value ; setting alt to 0",
                     source="eventdata",
-                    level="info",
                     do_log=False,
                 )
-                # print("invalid altitude value ; setting alt to /")
                 alt = "0"
             # format final string
             location_formatted = (
@@ -412,16 +380,15 @@ class EventData:
                 entry.set_text(location_formatted)
 
             self.old_location = location_formatted
-            self.notify_user(
+            self._notify.success(
                 "location valid & formatted",
                 source="eventdata",
-                level="success",
                 do_log=False,
             )
             return True
 
         except Exception as e:
-            self.notify_user(
+            self._notify.error(
                 "invalid location format : we accept"
                 "\n1. deg-min-(sec) with direction : 32 21 (9) n 77 66 (11) w (alt)"
                 "\n\tsec & alt are optional"
@@ -429,7 +396,6 @@ class EventData:
                 "\n3. decimal signed : -16.76 -72.678 (alt)"
                 "\n\talt is optional"
                 f"error :\n\t{str(e)}",
-                level="error",
                 source="eventdata",
                 do_log=False,
             )
@@ -442,7 +408,6 @@ class EventData:
         deg = int(deg_)
         min = int(min_ * 60)
         sec = int(sec_ * 60)
-        # print(f"decimal_to_dms : d-m-s : {deg} - {min} - {sec}")
 
         return deg, min, sec
 

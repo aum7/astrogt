@@ -3,12 +3,11 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
+from gi.repository import Gtk, Adw  # type: ignore
 from ui.mainwindow import MainWindow
 from ui.notifymanager import NotifyManager
-
 from ui.signalmanager import SignalManager
 from sweph.calculations.positions import SwePositions
-from gi.repository import Gtk, Adw  # type: ignore
 
 
 class AstrogtApp(Gtk.Application):

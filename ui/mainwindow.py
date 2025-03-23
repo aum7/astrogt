@@ -1,13 +1,13 @@
 # ruff: noqa: E402
+import gi
+
+gi.require_version("Gtk", "4.0")
+from gi.repository import Gtk  # type: ignore
 from typing import Any, Optional
 from .handlers import ContextManager
 from .sidepane import SidePaneManager
 from .uisetup import UISetup
 from .hotkeymanager import HotkeyManager
-import gi
-
-gi.require_version("Gtk", "4.0")
-from gi.repository import Gtk  # type: ignore
 
 
 class MainWindow(
@@ -22,17 +22,18 @@ class MainWindow(
         """initialize the main window"""
         Gtk.ApplicationWindow.__init__(self, *args, **kwargs)
         SidePaneManager.__init__(self, app=self.get_application())
+        self._app = self.get_application() or Gtk.Application.get_default()
+        self._notify = self._app.notify_manager
         self.set_title("astrogt")
         self.set_default_size(800, 600)
-        # setup ui
-        # side pane
+        # setup ui : side pane
         self.setup_revealer()
         self.setup_css()
         # 4 resizable panes for charts & tables etc
         self.setup_main_panes()
         self.setup_context_controllers()
         # hotkey manager
-        self.hotkey_manager = HotkeyManager(self)
+        self._hotkeys = HotkeyManager(self)
         self.setup_hotkeys()
         # intercept toggle pane button
         self.hotkey_manager.intercept_button_controller(
@@ -50,19 +51,19 @@ class MainWindow(
 
     def setup_hotkeys(self):
         # register additional hotkeys
-        self.hotkey_manager.register_hotkey("h", self.show_help)
-        self.hotkey_manager.register_hotkey("s", self.on_toggle_pane)
-        self.hotkey_manager.register_hotkey("c", self.center_all_panes)
-        self.hotkey_manager.register_hotkey("Up", self.obc_arrow_up)
-        self.hotkey_manager.register_hotkey("Down", self.obc_arrow_dn)
-        self.hotkey_manager.register_hotkey("Left", self.obc_arrow_l)
-        self.hotkey_manager.register_hotkey("Right", self.obc_arrow_r)
-        self.hotkey_manager.register_hotkey("n", self.obc_time_now)
-        self.hotkey_manager.register_hotkey("e", self.event_toggle_selected)
+        self._hotkey.register_hotkey("h", self.show_help)
+        self._hotkey.register_hotkey("s", self.on_toggle_pane)
+        self._hotkey.register_hotkey("c", self.center_all_panes)
+        self._hotkey.register_hotkey("Up", self.obc_arrow_up)
+        self._hotkey.register_hotkey("Down", self.obc_arrow_dn)
+        self._hotkey.register_hotkey("Left", self.obc_arrow_l)
+        self._hotkey.register_hotkey("Right", self.obc_arrow_r)
+        self._hotkey.register_hotkey("n", self.obc_time_now)
+        self._hotkey.register_hotkey("e", self.event_toggle_selected)
 
     # hotkey action functions
     def show_help(self):
-        self.show_notification(
+        self._notify.debug(
             "manual\n"
             "\nhover mouse over buttons & text = show tooltips"
             "\nhover mouse over notification message = persist message"
@@ -77,26 +78,11 @@ class MainWindow(
             "\ntab/shift+tab : navigate between widgets in side pane"
             "\nspace/enter : activate button / dropdown when focused"
             "\n\nnote : if entry (text) field is focused, hotkeys will not work",
-            level="debug",
             source="help",
             timeout=5,
         )
 
     # hotkey actions end
-    def show_notification(
-        self, message, level=None, source=None, timeout=3, do_log: bool = False
-    ):
-        """helper method to access notifictions from app instance"""
-        app = self.get_application()
-        if app and hasattr(app, "notify_manager"):
-            app.notify_manager.notify(
-                message=message,
-                level=level,
-                source=source,
-                timeout=timeout,
-                do_log=do_log,
-            )
-
     def center_all_panes(self) -> None:
         """center all 4 main panes"""
         if (

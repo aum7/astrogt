@@ -7,25 +7,15 @@ from gi.repository import Gtk  # type: ignore
 
 
 class EventLocation:
-    def __init__(self, parent=None, get_application=None):
+    def __init__(self, parent=None, app=None):
         self.parent = parent
-        self.get_application = get_application
+        self._app = app or Gtk.Application.get_default()
+        self._notify = self._app.notify_manager
         self.location_callback = None
         self.countries = []
         self.country_map = {}
         self.selected_city = ""
         self.entry = None
-
-    def notify_user(self, message, **kwargs):
-        app = (
-            self.get_application()
-            if self.get_application
-            else Gtk.get_application_default()
-        )
-        if app and hasattr(app, "notify_manager"):
-            app.notify_manager.notify(message=message, **kwargs)
-        else:
-            print(f"eventdata : {message}")
 
     def set_location_callback(self, callback):
         self.location_callback = callback
@@ -79,31 +69,27 @@ class EventLocation:
             self.check_cities(sorted(cities))
 
         except Exception as e:
-            self.notify_user(
-                f"atlas db error : {str(e)}",
-                level="error",
+            self._notify.error(
+                f"atlas db error\n\t{e}",
                 source="eventlocation",
             )
 
     def check_cities(self, cities):
         if len(cities) == 0:
-            self.notify_user(
+            self._notify.warning(
                 "city not found",
-                level="warning",
                 source="eventlocation",
                 do_log=False,
             )
             return
 
         elif len(cities) == 1:
-            # print(f"check_cities : found 1 city : {cities[0]}")
             city, lat, lon, alt = cities[0]
             city_str = f"{city}, {lat}, {lon}, {alt}"
             self.selected_city = city_str
             self.update_entries(city_str)
 
         elif len(cities) > 1:
-            # print(f"check_cities : found multiple cities :\n\t{cities}")
             self.show_city_dialog(cities)
 
     def update_entries(self, city_str):
@@ -123,7 +109,6 @@ class EventLocation:
 
     def show_city_dialog(self, found_cities):
         """present list of found cities for user to select one (modal)"""
-        # print(f"select_city : found_cities passed :\n\t{found_cities}")
         dialog = Gtk.Dialog(
             title="select city : name | latitude | longitude | altitude [- = s / w ]",
             modal=True,
@@ -146,7 +131,6 @@ class EventLocation:
                 if isinstance(label, Gtk.Label):
                     selected = label.get_text()
                     self.selected_city = selected
-                    # print(f"pick_city : {self.selected_city} selected")
                     self.update_entries(selected)
                     dialog.close()
 
@@ -167,5 +151,4 @@ class EventLocation:
 
     def get_selected_city(self, entry, dropdown):
         self.get_city_from_atlas(entry, dropdown)
-        # print(f"get_selected_city : {self.selected_city}")
         return self.selected_city

@@ -36,7 +36,7 @@ class ContextManager:
 
     def on_gesture_begin(self, gesture: Gtk.GestureClick, sequence: Any) -> None:
         """handle gesture begin to prevent drag"""
-        # mouse drag gives $ gtk.error
+        # mouse drag gives gtk.error
         # Gtk-WARNING **: 19:02:06.608: Broken accounting of active state for widget 0x20de5cb0(GtkPopover)
         gesture.set_state(Gtk.EventSequenceState.CLAIMED)
 
@@ -120,15 +120,6 @@ class ContextManager:
             callback = getattr(self, callback_name)
             # print(f"{action} triggered from {position}")
             callback(button, f"{action}_{position}")
-
-    # def on_toggle_pane(self, button: Optional[Gtk.Button] = None) -> None:
-    #     revealed = self.rvl_side_pane.get_child_revealed()
-    #     if revealed:
-    #         self.rvl_side_pane.set_reveal_child(False)
-    #         self.rvl_side_pane.set_visible(False)
-    #     else:
-    #         self.rvl_side_pane.set_visible(True)
-    #         self.rvl_side_pane.set_reveal_child(True)
 
     # # widget hierarchy
     # current = picked
