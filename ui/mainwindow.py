@@ -88,6 +88,6 @@ class MainWindow(
             and hasattr(self, "pnd_top_h")
             and hasattr(self, "pnd_btm_h")
         ):
-            self.pnd_main_v.set_position(self.pnd_main_v.get_allocated_height() // 2)
-            self.pnd_top_h.set_position(self.pnd_top_h.get_allocated_width() // 2)
-            self.pnd_btm_h.set_position(self.pnd_btm_h.get_allocated_width() // 2)
+            self.pnd_main_v.set_position(self.pnd_main_v.get_height() // 2)
+            self.pnd_top_h.set_position(self.pnd_top_h.get_width() // 2)
+            self.pnd_btm_h.set_position(self.pnd_btm_h.get_width() // 2)

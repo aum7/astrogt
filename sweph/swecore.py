@@ -55,7 +55,10 @@ class SweCore(GObject.Object):
 
     def get_event_one_data(self, event=None):
         if event:
-            print("processing event one")
+            self._notify.warning(
+                "processing event one", source="swecore I getevent1data", timeout=1
+            )
+            # print("processing event one")
             if (
                 not event["name"]
                 or not event["country"]
@@ -99,7 +102,10 @@ class SweCore(GObject.Object):
 
     def get_event_two_data(self, event=None):
         if event:
-            print("processing event two")
+            self._notify.warning(
+                "processing event two", source="swecore I getevent2data", timeout=1
+            )
+            # print("processing event two")
             # if data nor provided, use event one data
             if not event["name"]:
                 event["name"] = self.event_one_name
@@ -151,11 +157,20 @@ class SweCore(GObject.Object):
         e1_country = self.event_one_country
         e1_city = self.event_one_city
         # this need be parsed to lat, lon, alt
-        e1_location = self._parse_location(self.event_one_location)
+        e1_location = self._parse_location(self.event_one_location) or {}
+        e1_lat = e1_location.get("lat")
+        e1_lon = e1_location.get("lon")
+        e1_alt = e1_location.get("alt")
         # this need be parsed to julian day
         e1_datetime = self._parse_datetime(self.event_one_date_time)
         e1_data = {
-            e1_name: [e1_country, e1_city, e1_location, e1_datetime],
+            "name": e1_name,
+            "country": e1_country,
+            "city": e1_city,
+            "lat": e1_lat,
+            "lon": e1_lon,
+            "alt": e1_alt,
+            "datetime": e1_datetime,
         }
         # store data as attribute
         self.swe_e1_data = e1_data
@@ -168,11 +183,21 @@ class SweCore(GObject.Object):
         e2_country = self.event_two_country
         e2_city = self.event_two_city
         # this need be parsed to lat, lon, alt
-        e2_location = self._parse_location(self.event_two_location)
+        e2_location = self._parse_location(self.event_two_location) or {}
+        e2_lat = e2_location.get("lat")
+        e2_lon = e2_location.get("lon")
+        e2_alt = e2_location.get("alt")
         # this need be parsed to julian day
         e2_datetime = self._parse_datetime(self.event_two_date_time)
+        # also get flags
         e2_data = {
-            e2_name: [e2_country, e2_city, e2_location, e2_datetime],
+            "name": e2_name,
+            "country": e2_country,
+            "city": e2_city,
+            "lat": e2_lat,
+            "lon": e2_lon,
+            "alt": e2_alt,
+            "datetime": e2_datetime,
         }
         # store data as attribute
         self.swe_e2_data = e2_data
@@ -229,6 +254,7 @@ class SweCore(GObject.Object):
         if not dt_str:
             return
         try:
+            # todo ensure timezone-aware datetime
             # expected format : YYYY-MM-DD HH:MM:SS
             dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
             # julianday with swisseph
@@ -244,10 +270,11 @@ class SweCore(GObject.Object):
 
     def _get_swe_flags(self):
         """configure swisseph flags"""
-        flags = SWE_FLAG["swe_flag_default"]
-
+        flags = 0
+        SWE_FLAG["swe_flag_default"]
         if SWE_FLAG["sidereal_zodiac"]:
             flags |= swe.FLG_SIDEREAL
+            # flags |= swe.FLG_SIDEREAL
         if SWE_FLAG["nutation"]:
             flags |= swe.FLG_NONUT
         if SWE_FLAG["heliocentric"]:
