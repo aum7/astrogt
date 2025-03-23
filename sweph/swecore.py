@@ -7,9 +7,9 @@ gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk, GObject  # type: ignore
 from typing import Optional, Union, Dict
 from user.settings.settings import SWE_FLAG  # ,OBJECTS
-from datetime import datetime
-from ui.notifymanager import NotifyManager
-from ui.signalmanager import SignalManager
+from datetime import datetime, timezone
+# from ui.notifymanager import NotifyManager
+# from ui.signalmanager import SignalManager
 
 
 class SweCore(GObject.Object):
@@ -37,8 +37,10 @@ class SweCore(GObject.Object):
     def __init__(self, get_application=None):
         super().__init__()
         self._get_application = get_application or Gtk.Application.get_default()
-        self.notify_manager = NotifyManager(self._get_application)
-        self.signal_manager = SignalManager(self._get_application)
+        self.notify_manager = self._get_application.notify_manager
+        # self.notify_manager = NotifyManager(self._get_application)
+        self.signal_manager = self._get_application.signal_manager
+        # self.signal_manager = SignalManager(self._get_application)
         # event one
         self.event_one_name = ""
         self.event_one_country = ""
@@ -126,10 +128,10 @@ class SweCore(GObject.Object):
                 return {}
             # check if data has changed
             if has_data_changed(event_one, "event_one"):
-                # self.notify_user(
-                #     message="event one : data changed",
-                #     source="swecore",
-                # )
+                self.notify_user(
+                    message="event one : data changed ...",
+                    source="swecore",
+                )
                 # data received
                 self.event_one_name = event_one["name"]
                 self.event_one_date_time = event_one["date_time"]
@@ -137,10 +139,9 @@ class SweCore(GObject.Object):
                 self.event_one_city = event_one["city"]
                 self.event_one_location = event_one["location"]
                 # process data
-                self.swe_ready_data()
+                data = self.swe_ready_data()
                 # emit signal for positions, houses, aspects etc
-                self.emit("event-one-changed", self)
-                print("swecore : emitted event-one-changed")
+                self.signal_manager._emit("event-one-changed", data)
 
                 # self.notify_user(
                 #     message=f"event one data received :"
@@ -161,15 +162,11 @@ class SweCore(GObject.Object):
             # for event two only datetime is mandatory
             if not event_two["date_time"]:
                 self.notify_user(
-                    message="event two : datetime missing : setting to event one datetime",
+                    message="event two : datetime missing : setting to event one",
                     source="swecore",
                     timeout=1,
                 )
                 event_two["date_time"] = self.event_one_date_time
-                # not good solution
-                # event_two["date_time"] = datetime.now(timezone.utc).strftime(
-                #     "%Y-%m-%d %H:%M:%S"
-                # )
             if not event_two["name"]:
                 event_two["name"] = self.event_one_name
             # if location not provided, use event one location
@@ -181,10 +178,10 @@ class SweCore(GObject.Object):
                 event_two["location"] = self.event_one_location
             # check if data has changed
             if has_data_changed(event_two, "event_two"):
-                # self.notify_user(
-                #     message="event two : data changed ...",
-                #     source="swecore",
-                # )
+                self.notify_user(
+                    message="event two : data changed ...",
+                    source="swecore",
+                )
                 # data received
                 self.event_two_name = event_two["name"]
                 self.event_two_date_time = event_two["date_time"]
@@ -192,10 +189,9 @@ class SweCore(GObject.Object):
                 self.event_two_city = event_two["city"]
                 self.event_two_location = event_two["location"]
                 # process data
-                self.swe_ready_data()
+                data = self.swe_ready_data()
                 # emit signal for positions, houses, aspects etc
-                self.emit("event-two-changed", self)
-                print("swecore : emitted event-two-changed")
+                self.signal_manager._emit("event-two-changed", data)
 
                 # self.notify_user(
                 #     message=f"event two data received :"
@@ -219,43 +215,47 @@ class SweCore(GObject.Object):
         e1_country = self.event_one_country
         e1_city = self.event_one_city
         # this need be parsed to lat, lon, alt
-        e1_location = self.event_one_location
-        _e1_location = self._parse_location(e1_location)
+        e1_location = self._parse_location(self.event_one_location)
+        e1_datetime = self._parse_datetime(self.event_one_date_time)
+        # e1_location = self.event_one_location
+        # _e1_location = self._parse_location(e1_location)
         # print(f"_e1_location : {_e1_location}")
         # this need be parsed to julian day / year, month, day, hour, minute, second
-        e1_datetime = self.event_one_date_time
-        _e1_datetime = self._parse_datetime(e1_datetime)
+        # e1_datetime = self.event_one_date_time
+        # _e1_datetime = self._parse_datetime(e1_datetime)
         # print(f"_e1_datetime : {_e1_datetime}")
         # event two
         e2_name = self.event_two_name
         e2_country = self.event_two_country
         e2_city = self.event_two_city
-        e2_location = self.event_two_location
-        _e2_location = (
-            self._parse_location(e2_location) if e2_location else _e1_location
-        )
+        e2_location = self._parse_location(self.event_two_location)
+        e2_datetime = self._parse_datetime(self.event_two_date_time)
+        # _e2_location = (
+        #     self._parse_location(e2_location) if e2_location else _e1_location
+        # )
         # print(f"_e2_location : {_e2_location}")
-        e2_datetime = self.event_two_date_time
-        _e2_datetime = (
-            self._parse_datetime(e2_datetime) if e2_datetime else _e1_datetime
-        )
+        # e2_datetime = self.event_two_date_time
+        # _e2_datetime = (
+        #     self._parse_datetime(e2_datetime) if e2_datetime else _e1_datetime
+        # )
         # print(f"_e2_datetime : {_e2_datetime}")
 
-        self.notify_user(
-            message="data ready",
-            source="swecore",
-            level="debug",
-        )
-
-        return {
-            e1_name: [e1_country, e1_city, _e1_location, _e1_datetime],
-            e2_name: [
-                e2_country or e1_country,
-                e2_city or e1_city,
-                _e2_location or _e1_location,
-                _e2_datetime or _e1_datetime,
-            ],
+        # return {
+        data = {
+            e1_name: [e1_country, e1_city, e1_location, e1_datetime],
+            e2_name: [e2_country, e2_city, e2_location, e2_datetime],
         }
+        # print(f"swedataready\n\t{data}")
+        # store data as attribute
+        self.swe_data = data
+        # print(f"swedata (should match swedataready)\n\t{self.swe_data}")
+
+        self.notify_manager.debug(
+            message="data ready\n-------",
+            source="swecore",
+            # level="debug",
+        )
+        return data
 
     def _parse_location(
         self, location_str: str
@@ -303,6 +303,11 @@ class SweCore(GObject.Object):
 
     def _parse_datetime(self, dt_str: str) -> Optional[float]:
         """parse datetime string"""
+        print(f"_parsedatetime : dt_str : {dt_str}")
+        if not dt_str:
+            return
+            dt_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+            print(f"_parsedatetime : set datetime to utc now\n\t{dt_str}")
         try:
             # expected format : YYYY-MM-DD HH:MM:SS
             dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
@@ -310,12 +315,11 @@ class SweCore(GObject.Object):
             jd_ut_swe = swe.julday(
                 dt.year, dt.month, dt.day, dt.hour + dt.minute / 60 + dt.second / 3600
             )
-            # print(f"_parsedatetime : jd_ut_swe : {jd_ut_swe}")
+            print(f"_parsedatetime : jd_ut_swe : {jd_ut_swe}")
             return jd_ut_swe
 
         except Exception as e:
-            print(f"error parsing datetime : {e}")
-
+            print(f"error parsing datetime\n\t{e}")
             return None
 
     def _get_swe_flags(self):

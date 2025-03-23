@@ -18,7 +18,6 @@ class SidePaneManager:
     selected_event = "event one"
     EVENT_ONE = None
     EVENT_TWO = None
-    swe_core = SweCore()
     margin_end = 7
 
     PANE_BUTTONS: Dict[str, str] = {
@@ -52,6 +51,14 @@ class SidePaneManager:
         "period_10": "10 seconds",
         "period_1": "1 second",
     }
+
+    def __init__(self, *args, **kwargs):
+        app = kwargs.get("app") or (
+            hasattr(self, "get_application") and self.get_application()
+        )
+        if not app:
+            raise ValueError("sidepanemanager : app instance not available")
+        self.swe_core = SweCore(app)
 
     def setup_side_pane(self):
         # main box for widgets

@@ -20,7 +20,8 @@ class MainWindow(
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """initialize the main window"""
-        super().__init__(*args, **kwargs)
+        Gtk.ApplicationWindow.__init__(self, *args, **kwargs)
+        SidePaneManager.__init__(self, app=self.get_application())
         self.set_title("astrogt")
         self.set_default_size(800, 600)
         # setup ui
