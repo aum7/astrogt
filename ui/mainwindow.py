@@ -36,9 +36,7 @@ class MainWindow(
         self._hotkeys = HotkeyManager(self)
         self.setup_hotkeys()
         # intercept toggle pane button
-        self.hotkey_manager.intercept_button_controller(
-            self.btn_toggle_pane, "toggle_pane"
-        )
+        self._hotkeys.intercept_button_controller(self.btn_toggle_pane, "toggle_pane")
 
     def on_toggle_pane(self, button: Optional[Gtk.Button] = None) -> None:
         revealed = self.rvl_side_pane.get_child_revealed()
@@ -51,15 +49,15 @@ class MainWindow(
 
     def setup_hotkeys(self):
         # register additional hotkeys
-        self._hotkey.register_hotkey("h", self.show_help)
-        self._hotkey.register_hotkey("s", self.on_toggle_pane)
-        self._hotkey.register_hotkey("c", self.center_all_panes)
-        self._hotkey.register_hotkey("Up", self.obc_arrow_up)
-        self._hotkey.register_hotkey("Down", self.obc_arrow_dn)
-        self._hotkey.register_hotkey("Left", self.obc_arrow_l)
-        self._hotkey.register_hotkey("Right", self.obc_arrow_r)
-        self._hotkey.register_hotkey("n", self.obc_time_now)
-        self._hotkey.register_hotkey("e", self.event_toggle_selected)
+        self._hotkeys.register_hotkey("h", self.show_help)
+        self._hotkeys.register_hotkey("s", self.on_toggle_pane)
+        self._hotkeys.register_hotkey("c", self.center_all_panes)
+        self._hotkeys.register_hotkey("Up", self.obc_arrow_up)
+        self._hotkeys.register_hotkey("Down", self.obc_arrow_dn)
+        self._hotkeys.register_hotkey("Left", self.obc_arrow_l)
+        self._hotkeys.register_hotkey("Right", self.obc_arrow_r)
+        self._hotkeys.register_hotkey("n", self.obc_time_now)
+        self._hotkeys.register_hotkey("e", self.event_toggle_selected)
 
     # hotkey action functions
     def show_help(self):

@@ -21,7 +21,6 @@ class SwePositions:
         self.swe_core = SweCore(self._app)
         self.event_one_data = self.swe_core.event_one_swe_ready()
         self.event_two_data = self.swe_core.event_two_swe_ready()
-        # self.swe_data()
 
     def on_event_one_changed(self, data, *args):
         self.event_one_data = data
