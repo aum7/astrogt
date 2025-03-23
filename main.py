@@ -1,10 +1,13 @@
 # ruff: noqa: E402
-from ui.mainwindow import MainWindow
-from ui.notifymanager import NotifyManager
 import gi
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
+from ui.mainwindow import MainWindow
+from ui.notifymanager import NotifyManager
+
+# from ui.signalmanager import SignalManager
+from sweph.calculations.positions import SwePositions
 from gi.repository import Gtk, Adw  # type: ignore
 
 
@@ -14,6 +17,7 @@ class AstrogtApp(Gtk.Application):
             application_id="aum.astrogt.app",
         )
         self.notify_manager = NotifyManager()
+        self.swe_positions = SwePositions(get_application=self)
 
     def do_activate(self):
         win = MainWindow(application=self)

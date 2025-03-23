@@ -89,7 +89,7 @@ class SidePaneManager:
     def setup_change_time(self) -> CollapsePanel:
         """setup widget for changing time of the event one or two"""
         # main container of change time widget
-        clp_change_time = CollapsePanel(title="change time", expanded=False)
+        clp_change_time = CollapsePanel(title="change time", expanded=True)
         clp_change_time.set_margin_end(self.margin_end)
         clp_change_time.set_title_tooltip(
             """change time period for selected event (one or two)
@@ -191,6 +191,7 @@ if location two = location one"""
         # location nested panel
         subpnl_location = CollapsePanel(
             title="location one" if event_name == "event one" else "location two",
+            expanded=True if event_name == "event one" else False,
             indent=14,
         )
         lbl_country = Gtk.Label(label="country")
@@ -287,6 +288,7 @@ only use [space] as separator
             title="name / title one"
             if event_name == "event one"
             else "name / title two",
+            expanded=True if event_name == "event one" else False,
             indent=14,
         )
         ent_event_name = Gtk.Entry()

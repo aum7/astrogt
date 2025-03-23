@@ -86,7 +86,8 @@ class NotifyLogger:
 class NotifyManager:
     """notification manager with level-specific toasts"""
 
-    def __init__(self, log_file=None):
+    def __init__(self, get_application=None, log_file=None):
+        self.get_application = get_application or Gtk.Application.get_default()
         self.toast_overlay = None
         # setup logger
         self.logger = NotifyLogger(log_file)

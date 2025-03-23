@@ -9,15 +9,26 @@ from typing import Optional, Union, Dict
 from user.settings.settings import SWE_FLAG  # ,OBJECTS
 from datetime import datetime
 from ui.notifymanager import NotifyManager
+from ui.signalmanager import SignalManager
 
 
 class SweCore(GObject.Object):
     """note : swisseph calculations need be closed at the end of computations"""
 
-    # custom signal
+    # signals
     __gsignals__ = {
-        "data-changed": (GObject.SignalFlags.RUN_FIRST, None, ()),
+        "event-one-changed": (
+            GObject.SignalFlags.RUN_FIRST,
+            None,
+            (GObject.TYPE_PYOBJECT,),
+        ),
+        "event-two-changed": (
+            GObject.SignalFlags.RUN_FIRST,
+            None,
+            (GObject.TYPE_PYOBJECT,),
+        ),
     }
+
     # swiss ephemeris path
     current_dir = os.path.dirname(os.path.abspath(__file__))
     ephe_path = os.path.join(current_dir, "ephe")
@@ -26,7 +37,8 @@ class SweCore(GObject.Object):
     def __init__(self, get_application=None):
         super().__init__()
         self._get_application = get_application or Gtk.Application.get_default()
-        self.notify_manager = NotifyManager()
+        self.notify_manager = NotifyManager(self._get_application)
+        self.signal_manager = SignalManager(self._get_application)
         # event one
         self.event_one_name = ""
         self.event_one_country = ""
@@ -127,8 +139,8 @@ class SweCore(GObject.Object):
                 # process data
                 self.swe_ready_data()
                 # emit signal for positions, houses, aspects etc
-                self.emit("data-changed")
-                print("swecore : e1 emitted data-changed")
+                self.emit("event-one-changed", self)
+                print("swecore : emitted event-one-changed")
 
                 # self.notify_user(
                 #     message=f"event one data received :"
@@ -182,8 +194,8 @@ class SweCore(GObject.Object):
                 # process data
                 self.swe_ready_data()
                 # emit signal for positions, houses, aspects etc
-                self.emit("data-changed")
-                print("swecore : e2 emitted data-changed")
+                self.emit("event-two-changed", self)
+                print("swecore : emitted event-two-changed")
 
                 # self.notify_user(
                 #     message=f"event two data received :"
@@ -209,11 +221,11 @@ class SweCore(GObject.Object):
         # this need be parsed to lat, lon, alt
         e1_location = self.event_one_location
         _e1_location = self._parse_location(e1_location)
-        print(f"_e1_location : {_e1_location}")
+        # print(f"_e1_location : {_e1_location}")
         # this need be parsed to julian day / year, month, day, hour, minute, second
         e1_datetime = self.event_one_date_time
         _e1_datetime = self._parse_datetime(e1_datetime)
-        print(f"_e1_datetime : {_e1_datetime}")
+        # print(f"_e1_datetime : {_e1_datetime}")
         # event two
         e2_name = self.event_two_name
         e2_country = self.event_two_country
@@ -222,12 +234,12 @@ class SweCore(GObject.Object):
         _e2_location = (
             self._parse_location(e2_location) if e2_location else _e1_location
         )
-        print(f"_e2_location : {_e2_location}")
+        # print(f"_e2_location : {_e2_location}")
         e2_datetime = self.event_two_date_time
         _e2_datetime = (
             self._parse_datetime(e2_datetime) if e2_datetime else _e1_datetime
         )
-        print(f"_e2_datetime : {_e2_datetime}")
+        # print(f"_e2_datetime : {_e2_datetime}")
 
         self.notify_user(
             message="data ready",
@@ -298,7 +310,7 @@ class SweCore(GObject.Object):
             jd_ut_swe = swe.julday(
                 dt.year, dt.month, dt.day, dt.hour + dt.minute / 60 + dt.second / 3600
             )
-            print(f"_parsedatetime : jd_ut_swe : {jd_ut_swe}")
+            # print(f"_parsedatetime : jd_ut_swe : {jd_ut_swe}")
             return jd_ut_swe
 
         except Exception as e:
