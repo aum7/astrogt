@@ -58,6 +58,7 @@ class SidePaneManager:
         )
         if not app:
             raise ValueError("sidepanemanager : app instance not available")
+        self._notify = app.notify_manager
         self.swe_core = SweCore(app)
 
     def setup_side_pane(self):
@@ -333,7 +334,7 @@ only use [space] as separator
         )
         ent_datetime.connect(
             "activate",
-            lambda widget: self.get_both_events_data(),
+            lambda widget, en=event_name: self.get_focused_event_data(en),
         )
         # put widgets into sub-panel
         subpnl_datetime.add_widget(ent_datetime)
@@ -424,46 +425,25 @@ only use [space] as separator
         return None
 
     # data handlers
-    # todo do we need this ?
-    def ensure_event_data(self, event, collapse_panel):
-        if isinstance(event, dict):
-            return EventData(
-                collapse_panel.get_widget("event_name"),
-                collapse_panel.get_widget("date_time"),
-                collapse_panel.get_widget("location"),
-                collapse_panel.get_widget("country"),
-                collapse_panel.get_widget("city"),
-                get_application=self.get_application,
-            )
-        # else:
-        return EventData(
-            collapse_panel.get_widget("event_name"),
-            collapse_panel.get_widget("date_time"),
-            collapse_panel.get_widget("location"),
-            collapse_panel.get_widget("country"),
-            collapse_panel.get_widget("city"),
-            get_application=self.get_application,
-        )
-        # return event
-
-    def get_both_events_data(self, widget=None) -> None:
-        # self.EVENT_ONE = self.ensure_event_data(self.EVENT_ONE, self.clp_event_one)
-        # self.EVENT_TWO = self.ensure_event_data(self.EVENT_TWO, self.clp_event_two)
-        event_one_data = self.EVENT_ONE.get_event_data() if self.EVENT_ONE else None
-        event_two_data = self.EVENT_TWO.get_event_data() if self.EVENT_TWO else None
-        self.swe_core.get_events_data(event_one_data, event_two_data)
+    def get_focused_event_data(self, event_name: str, widget=None) -> None:
+        """get data for focused event on datetime entry"""
+        # print("get_focused_event_data called")
+        if event_name == "event one":
+            event_one_data = self.EVENT_ONE.get_event_data() if self.EVENT_ONE else None
+            self.swe_core.get_event_one_data(event_one_data)
+        elif event_name == "event two":
+            event_two_data = self.EVENT_TWO.get_event_data() if self.EVENT_TWO else None
+            self.swe_core.get_event_two_data(event_two_data)
 
     def get_selected_event_data(self, widget=None) -> None:
         """get data for selected event"""
         # print("get_selected_event_data called")
         if self.selected_event == "event one" and self.EVENT_ONE:
-            self.swe_core.get_events_data(
+            self.swe_core.get_event_one_data(
                 self.EVENT_ONE.get_event_data(),
-                None,
             )
         elif self.selected_event == "event two" and self.EVENT_TWO:
-            self.swe_core.get_events_data(
-                None,
+            self.swe_core.get_event_two_data(
                 self.EVENT_TWO.get_event_data(),
             )
 
@@ -500,10 +480,7 @@ only use [space] as separator
         print(f"{data} clicked : obc_default()")
 
     def obc_settings(self, widget, data):
-        # print(f"{data} clicked")
-        self.get_application().notify_manager.debug(
-            "settings clicked", source="sidepane.py"
-        )
+        self._notify.debug(f"{data} clicked", source="sidepane.py")
 
     def obc_file_save(self, widget, data):
         print(f"{data} clicked")
@@ -517,18 +494,14 @@ only use [space] as separator
     ):
         self._adjust_event_time(-int(self.CHANGE_TIME_SELECTED))
         self.get_selected_event_data()
-        # self.get_application().notify_manager.success(
-        #     "time change backward", source="sidepane.py"
-        # )
+        # self._notify.success(message="time change backward", source="sidepane.py")
 
     def obc_arrow_r(
         self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
     ):
         self._adjust_event_time(int(self.CHANGE_TIME_SELECTED))
         self.get_selected_event_data()
-        # self.get_application().notify_manager.success(
-        #     "time change forward", source="sidepane.py"
-        # )
+        # self._notify.success(message="time change forward", source="sidepane.py")
 
     def obc_time_now(
         self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
@@ -554,7 +527,6 @@ only use [space] as separator
         current_key = next(
             (k for k, v in self.CHANGE_TIME_PERIODS.items() if v == current_value), None
         )
-
         if current_key:
             current_index = period_keys.index(current_key)
             new_index = (current_index + direction) % len(period_keys)
@@ -564,8 +536,8 @@ only use [space] as separator
             dropdown_index = period_values.index(new_value)
             self.ddn_time_periods.set_selected(dropdown_index)
             # notify new value
-            # self.get_application().notify_manager.info(
-            #     f"selected period : {new_value}", source="time change", timeout=5
+            # self._notify.info(
+            #     f"selected period : {new_value}", source="time change", timeout=3
             # )
             seconds = new_key.split("_")[-1]
             self.CHANGE_TIME_SELECTED = seconds
@@ -575,7 +547,7 @@ only use [space] as separator
     ):
         """select previous time period"""
         self._change_time_period(direction=-1)
-        # self.get_application().notify_manager.info(
+        # self._notify.info(
         #     "previous time period selected",
         #     source="sidepane.py",
         # )
@@ -584,7 +556,7 @@ only use [space] as separator
         self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
     ):
         self._change_time_period(direction=1)
-        # self.get_application().notify_manager.info(
+        # self._notify.info(
         #     "next time period selected",
         #     source="sidepane.py",
         # )
@@ -599,7 +571,7 @@ only use [space] as separator
         current_text = entry.get_text().strip()
         # if empty, use current utc
         if not current_text:
-            self.get_application().notify_manager.warning(
+            self._notify.warning(
                 "datetime None", source="sidepane.py [adjust_event_time]"
             )
             current_utc = datetime.now(timezone.utc)
@@ -610,8 +582,8 @@ only use [space] as separator
                 # assume utc todo
                 current_utc = current_utc.replace(tzinfo=timezone.utc)
             except ValueError:
-                self.get_application().notify_manager.error(
-                    "invalid datetime format, using datetime.now utc",
+                self._notify.error(
+                    "adjusteventtime : invalid datetime format, using datetime.now utc",
                     source="sidepane.py",
                 )
                 current_utc = datetime.now(timezone.utc)

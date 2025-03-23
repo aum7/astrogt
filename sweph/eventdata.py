@@ -462,10 +462,10 @@ class EventData:
 
         return {
             "name": self.event_name.get_text().strip(),
-            "date_time": self.date_time.get_text().strip(),
-            "location": self.location.get_text().strip(),
             "country": country_value,
             "city": city_value,
+            "location": self.location.get_text().strip(),
+            "date_time": self.date_time.get_text().strip(),
         }
 
     def set_current_utc(self):

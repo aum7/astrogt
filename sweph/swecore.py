@@ -7,9 +7,7 @@ gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk, GObject  # type: ignore
 from typing import Optional, Union, Dict
 from user.settings.settings import SWE_FLAG  # ,OBJECTS
-from datetime import datetime, timezone
-# from ui.notifymanager import NotifyManager
-# from ui.signalmanager import SignalManager
+from datetime import datetime
 
 
 class SweCore(GObject.Object):
@@ -28,19 +26,16 @@ class SweCore(GObject.Object):
             (GObject.TYPE_PYOBJECT,),
         ),
     }
-
     # swiss ephemeris path
     current_dir = os.path.dirname(os.path.abspath(__file__))
     ephe_path = os.path.join(current_dir, "ephe")
     swe.set_ephe_path(ephe_path)
 
-    def __init__(self, get_application=None):
+    def __init__(self, app=None):
         super().__init__()
-        self._get_application = get_application or Gtk.Application.get_default()
-        self.notify_manager = self._get_application.notify_manager
-        # self.notify_manager = NotifyManager(self._get_application)
-        self.signal_manager = self._get_application.signal_manager
-        # self.signal_manager = SignalManager(self._get_application)
+        self._app = app or Gtk.Application.get_default()
+        self._notify = self._app.notify_manager
+        self._signal = self._app.signal_manager
         # event one
         self.event_one_name = ""
         self.event_one_country = ""
@@ -58,204 +53,131 @@ class SweCore(GObject.Object):
         # close swe after initialisation
         swe.close()
 
-    def notify_user(self, message, level="info", **kwargs):
-        """show app notification"""
-        try:
-            if self._get_application and hasattr(
-                self._get_application, "notify_manager"
-            ):
-                if level == "info":
-                    self._get_application.notify_manager.info(message=message, **kwargs)
-                elif level == "warning":
-                    self._get_application.notify_manager.warning(
-                        message=message, **kwargs
-                    )
-                elif level == "error":
-                    self._get_application.notify_manager.error(
-                        message=message, **kwargs
-                    )
-                elif level == "success":
-                    self._get_application.notify_manager.success(
-                        message=message, **kwargs
-                    )
-                elif level == "debug":
-                    self._get_application.notify_manager.debug(
-                        message=message, **kwargs
-                    )
-                else:
-                    print(f"unknown level : {level}")
-        except Exception as e:
-            print(f"swecore : notification failed\n{e}")
-
-    def get_events_data(self, event_one=None, event_two=None):
-        """process event data using swisseph"""
-
-        def has_data_changed(event_data, event_type):
-            changed = False
-            if event_type == "event_one":
-                if (
-                    event_data["name"] != self.event_one_name
-                    or event_data["date_time"] != self.event_one_date_time
-                    or event_data["country"] != self.event_one_country
-                    or event_data["city"] != self.event_one_city
-                    or event_data["location"] != self.event_one_location
-                ):
-                    changed = True
-            elif event_type == "event_two":
-                if (
-                    event_data["name"] != self.event_two_name
-                    or event_data["date_time"] != self.event_two_date_time
-                    or event_data["country"] != self.event_two_country
-                    or event_data["city"] != self.event_two_city
-                    or event_data["location"] != self.event_two_location
-                ):
-                    changed = True
-            return changed
-
-        if event_one:
+    def get_event_one_data(self, event=None):
+        if event:
             print("processing event one")
             if (
-                not event_one["name"]
-                or not event_one["date_time"]
-                or not event_one["country"]
-                or not event_one["city"]
-                or not event_one["location"]
+                not event["name"]
+                or not event["country"]
+                or not event["city"]
+                or not event["location"]
+                or not event["date_time"]
             ):
-                self.notify_user(
+                self._notify.warning(
                     message="event one : data missing",
                     source="swecore",
                 )
                 return {}
             # check if data has changed
-            if has_data_changed(event_one, "event_one"):
-                self.notify_user(
-                    message="event one : data changed ...",
-                    source="swecore",
-                )
-                # data received
-                self.event_one_name = event_one["name"]
-                self.event_one_date_time = event_one["date_time"]
-                self.event_one_country = event_one["country"]
-                self.event_one_city = event_one["city"]
-                self.event_one_location = event_one["location"]
-                # process data
-                data = self.swe_ready_data()
-                # emit signal for positions, houses, aspects etc
-                self.signal_manager._emit("event-one-changed", data)
-
-                # self.notify_user(
-                #     message=f"event one data received :"
-                #     f"\n\tname : {event_one['name']}"
-                #     f"\n\tdatetime : {event_one['date_time']}"
-                #     f"\n\tcountry : {event_one['country']}"
-                #     f"\n\tcity : {event_one['city']}"
-                #     f"\n\tlocation : {event_one['location']}",
+            if (
+                event["name"] != self.event_one_name
+                or event["country"] != self.event_one_country
+                or event["city"] != self.event_one_city
+                or event["location"] != self.event_one_location
+                or event["date_time"] != self.event_one_date_time
+            ):
+                # event one data has changed
+                # self._notify.info(
+                #     message="event one : data changed ...",
                 #     source="swecore",
                 # )
+                # data received
+                self.event_one_name = event["name"]
+                self.event_one_country = event["country"]
+                self.event_one_city = event["city"]
+                self.event_one_location = event["location"]
+                self.event_one_date_time = event["date_time"]
+                # process data
+                data = self.event_one_swe_ready()
+                # emit signal for positions, houses, aspects etc
+                self._signal._emit("event-one-changed", data)
             else:
-                self.notify_user(
+                self._notify.info(
                     message="event one : data NOT changed",
                     source="swecore",
                 )
-        if event_two:
+
+    def get_event_two_data(self, event=None):
+        if event:
             print("processing event two")
+            # if data nor provided, use event one data
+            if not event["name"]:
+                event["name"] = self.event_one_name
+            if not event["country"]:
+                event["country"] = self.event_one_country
+            if not event["city"]:
+                event["city"] = self.event_one_city
+            if not event["location"]:
+                event["location"] = self.event_one_location
             # for event two only datetime is mandatory
-            if not event_two["date_time"]:
-                self.notify_user(
+            if not event["date_time"]:
+                self._notify.info(
                     message="event two : datetime missing : setting to event one",
                     source="swecore",
                     timeout=1,
                 )
-                event_two["date_time"] = self.event_one_date_time
-            if not event_two["name"]:
-                event_two["name"] = self.event_one_name
-            # if location not provided, use event one location
-            if not event_two["country"]:
-                event_two["country"] = self.event_one_country
-            if not event_two["city"]:
-                event_two["city"] = self.event_one_city
-            if not event_two["location"]:
-                event_two["location"] = self.event_one_location
+                event["date_time"] = self.event_one_date_time
             # check if data has changed
-            if has_data_changed(event_two, "event_two"):
-                self.notify_user(
-                    message="event two : data changed ...",
-                    source="swecore",
-                )
-                # data received
-                self.event_two_name = event_two["name"]
-                self.event_two_date_time = event_two["date_time"]
-                self.event_two_country = event_two["country"]
-                self.event_two_city = event_two["city"]
-                self.event_two_location = event_two["location"]
-                # process data
-                data = self.swe_ready_data()
-                # emit signal for positions, houses, aspects etc
-                self.signal_manager._emit("event-two-changed", data)
-
-                # self.notify_user(
-                #     message=f"event two data received :"
-                #     f"\n\tname : {event_two['name']}"
-                #     f"\n\tdatetime : {event_two['date_time']}"
-                #     f"\n\tcountry : {event_two['country']}"
-                #     f"\n\tcity : {event_two['city']}"
-                #     f"\n\tlocation : {event_two['location']}",
+            if (
+                event["name"] != self.event_two_name
+                or event["country"] != self.event_two_country
+                or event["city"] != self.event_two_city
+                or event["location"] != self.event_two_location
+                or event["date_time"] != self.event_two_date_time
+            ):
+                # self._notify.info(
+                #     message="event two : data changed ...",
                 #     source="swecore",
                 # )
+                # data received
+                self.event_two_name = event["name"]
+                self.event_two_country = event["country"]
+                self.event_two_city = event["city"]
+                self.event_two_location = event["location"]
+                self.event_two_date_time = event["date_time"]
+                # process data
+                data = self.event_two_swe_ready()
+                # emit signal for positions, houses, aspects etc
+                self._signal._emit("event-two-changed", data)
             else:
-                self.notify_user(
+                self._notify.info(
                     message="event two : data NOT changed",
                     source="swecore",
                 )
 
-    def swe_ready_data(self):
-        """prepare event data for swe calculations"""
-        # event one
+    def event_one_swe_ready(self):
+        """prepare event one data for swe calculations"""
         e1_name = self.event_one_name
         e1_country = self.event_one_country
         e1_city = self.event_one_city
         # this need be parsed to lat, lon, alt
         e1_location = self._parse_location(self.event_one_location)
+        # this need be parsed to julian day
         e1_datetime = self._parse_datetime(self.event_one_date_time)
-        # e1_location = self.event_one_location
-        # _e1_location = self._parse_location(e1_location)
-        # print(f"_e1_location : {_e1_location}")
-        # this need be parsed to julian day / year, month, day, hour, minute, second
-        # e1_datetime = self.event_one_date_time
-        # _e1_datetime = self._parse_datetime(e1_datetime)
-        # print(f"_e1_datetime : {_e1_datetime}")
-        # event two
+        e1_data = {
+            e1_name: [e1_country, e1_city, e1_location, e1_datetime],
+        }
+        # store data as attribute
+        self.swe_e1_data = e1_data
+        # self._notify.debug("event 1 data ready -------", source="swecore")
+        return e1_data
+
+    def event_two_swe_ready(self):
+        """prepare event two data for swe calculations"""
         e2_name = self.event_two_name
         e2_country = self.event_two_country
         e2_city = self.event_two_city
+        # this need be parsed to lat, lon, alt
         e2_location = self._parse_location(self.event_two_location)
+        # this need be parsed to julian day
         e2_datetime = self._parse_datetime(self.event_two_date_time)
-        # _e2_location = (
-        #     self._parse_location(e2_location) if e2_location else _e1_location
-        # )
-        # print(f"_e2_location : {_e2_location}")
-        # e2_datetime = self.event_two_date_time
-        # _e2_datetime = (
-        #     self._parse_datetime(e2_datetime) if e2_datetime else _e1_datetime
-        # )
-        # print(f"_e2_datetime : {_e2_datetime}")
-
-        # return {
-        data = {
-            e1_name: [e1_country, e1_city, e1_location, e1_datetime],
+        e2_data = {
             e2_name: [e2_country, e2_city, e2_location, e2_datetime],
         }
-        # print(f"swedataready\n\t{data}")
         # store data as attribute
-        self.swe_data = data
-        # print(f"swedata (should match swedataready)\n\t{self.swe_data}")
-
-        self.notify_manager.debug(
-            message="data ready\n-------",
-            source="swecore",
-            # level="debug",
-        )
-        return data
+        self.swe_e2_data = e2_data
+        # self._notify.debug("event 2 data ready -------", source="swecore")
+        return e2_data
 
     def _parse_location(
         self, location_str: str
@@ -303,11 +225,9 @@ class SweCore(GObject.Object):
 
     def _parse_datetime(self, dt_str: str) -> Optional[float]:
         """parse datetime string"""
-        print(f"_parsedatetime : dt_str : {dt_str}")
+        # print(f"_parsedatetime : dt_str : {dt_str}")
         if not dt_str:
             return
-            dt_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
-            print(f"_parsedatetime : set datetime to utc now\n\t{dt_str}")
         try:
             # expected format : YYYY-MM-DD HH:MM:SS
             dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
@@ -315,7 +235,7 @@ class SweCore(GObject.Object):
             jd_ut_swe = swe.julday(
                 dt.year, dt.month, dt.day, dt.hour + dt.minute / 60 + dt.second / 3600
             )
-            print(f"_parsedatetime : jd_ut_swe : {jd_ut_swe}")
+            # print(f"_parsedatetime : jd_ut_swe : {jd_ut_swe}")
             return jd_ut_swe
 
         except Exception as e:

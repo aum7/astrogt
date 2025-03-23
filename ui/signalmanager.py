@@ -12,14 +12,14 @@ class SignalManager:
         self._handlers = {}
 
     def _emit(self, signal_name, *args):
-        print(f"signalmanager : emitting signal {signal_name}")
+        # print(f"signalmanager : emitting signal {signal_name}")
         if signal_name not in self._handlers:
             return
         for handler in self._handlers[signal_name]:
             handler(*args)
 
     def _connect(self, signal_name, handler):
-        print(f"signalmanager : connecting signal {signal_name}")
+        # print(f"signalmanager : connecting signal {signal_name}")
         if signal_name not in self._handlers:
             self._handlers[signal_name] = []
         self._handlers[signal_name].append(handler)
