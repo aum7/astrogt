@@ -6,7 +6,7 @@ gi.require_version("Adw", "1")
 from ui.mainwindow import MainWindow
 from ui.notifymanager import NotifyManager
 
-# from ui.signalmanager import SignalManager
+from ui.signalmanager import SignalManager
 from sweph.calculations.positions import SwePositions
 from gi.repository import Gtk, Adw  # type: ignore
 
@@ -16,8 +16,9 @@ class AstrogtApp(Gtk.Application):
         super().__init__(
             application_id="aum.astrogt.app",
         )
-        self.notify_manager = NotifyManager()
-        self.swe_positions = SwePositions(get_application=self)
+        self.signal_manager = SignalManager(self)
+        self.notify_manager = NotifyManager(self)
+        self.swe_positions = SwePositions(self)
 
     def do_activate(self):
         win = MainWindow(application=self)
