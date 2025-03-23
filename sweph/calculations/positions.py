@@ -15,18 +15,18 @@ class SwePositions:
     def __init__(self, get_application=None):
         print("swepositions : initialising swepositions ...")
         self.get_application = get_application or Gtk.Application.get_default()
-        # self.swe_core = SweCore()
         self.notify_manager = NotifyManager()
-        self.data = SweCore.swe_ready_data()
+        # self.data = SweCore.swe_ready_data()
         # subscribe to data-changed signal
-        _data_changed = SweCore(Gtk.Application.get_default())
-        _data_changed.connect("data-changed", self.on_data_changed)
-
+        # use single swecore instance for state & signaling
+        self.swe_core = SweCore(self.get_application)
+        self.swe_core.connect("data-changed", self.on_data_changed)
+        self.data = self.swe_core.swe_ready_data()
         self.swe_data()
 
     def on_data_changed(self, sender):
-        self.data = SweCore.swe_ready_data()
-        self.swe_data()
+        self.data = self.swe_core.swe_ready_data()
+        print(f"ondatachanged : {self.data}")
         # self.swe_data()
         # self.notify_user(
         #     f"e1 name : {self.data.event_one_name}",
