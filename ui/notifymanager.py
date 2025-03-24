@@ -22,7 +22,7 @@ class NotifyLevel(Enum):
     DEBUG = "debug"
 
 
-class NotifySwitch(Enum):
+class NotifyRoute(Enum):
     """switch for notification routing"""
 
     NONE = "none"
@@ -42,14 +42,14 @@ class NotifyMessage:
         source: Optional[str] = None,
         timestamp: Optional[datetime] = None,
         timeout: Optional[int] = None,
-        switch: Optional[list] = None,
+        route: Optional[list] = None,
     ):
         self.level = level if isinstance(level, NotifyLevel) else NotifyLevel.INFO
         self.message = message
         self.source = source or "sys"
         self.timestamp = timestamp or datetime.now(timezone.utc)
         self.timeout = timeout
-        self.switch = switch or [NotifySwitch.ALL.value]
+        self.route = route or [NotifyRoute.ALL.value]
 
     def __str__(self):
         return f"{self.source} : {self.message}"
@@ -83,11 +83,11 @@ class NotifyLogger:
     def log(self, msg: NotifyMessage):
         """log notification message"""
 
-        if NotifySwitch.NONE.value in msg.switch:
+        if NotifyRoute.NONE.value in msg.route:
             return
         if (
-            NotifySwitch.LOG.value not in msg.switch
-            and NotifySwitch.ALL.value not in msg.switch
+            NotifyRoute.LOG.value not in msg.route
+            and NotifyRoute.ALL.value not in msg.route
         ):
             return
         log_level = {
@@ -115,7 +115,7 @@ class NotifyManager:
             NotifyLevel.ERROR: 5,
             NotifyLevel.DEBUG: 5,
         }
-        self.default_switch = [NotifySwitch.ALL.value]
+        self.default_route = [NotifyRoute.ALL.value]
         self.convenience_methods()
 
     # dynamic convenience methods
@@ -128,9 +128,9 @@ class NotifyManager:
             message: str,
             source: Optional[str] = None,
             timeout: Optional[int] = None,
-            switch: Optional[list] = None,
+            route: Optional[list] = None,
         ) -> bool:
-            return self.notify(message, level, source, timeout, switch)
+            return self.notify(message, level, source, timeout, route)
 
         return notify_method
 
@@ -140,34 +140,30 @@ class NotifyManager:
         level: NotifyLevel = NotifyLevel.INFO,
         source: Optional[str] = None,
         timeout: Optional[int] = None,
-        switch: Optional[list] = None,
+        route: Optional[list] = None,
     ) -> bool:
         """show notification with specified level and optional custom icon"""
-        switch = switch or self.default_switch
-        # validate switch
-        valid_switches = {item.value for item in NotifySwitch}
-        if not all(val in valid_switches for val in switch):
-            print(f"notifymanager : invalid switch values in {switch} : using default")
-            switch = self.default_switch
-        if switch == [NotifySwitch.NONE.value]:
+        route = route or self.default_route
+        # validate route
+        valid_routes = {item.value for item in NotifyRoute}
+        if not all(val in valid_routes for val in route):
+            print(f"notifymanager : invalid route values in {route} : using default")
+            route = self.default_route
+        if route == [NotifyRoute.NONE.value]:
             return False
         if isinstance(level, str):
             level = NotifyLevel(level.lower())
 
-        notify_user = (
-            NotifySwitch.USER.value in switch or NotifySwitch.ALL.value in switch
-        )
+        notify_user = NotifyRoute.USER.value in route or NotifyRoute.ALL.value in route
         print_terminal = (
-            NotifySwitch.TERMINAL.value in switch or NotifySwitch.ALL.value in switch
+            NotifyRoute.TERMINAL.value in route or NotifyRoute.ALL.value in route
         )
-        log_to_file = (
-            NotifySwitch.LOG.value in switch or NotifySwitch.ALL.value in switch
-        )
+        log_to_file = NotifyRoute.LOG.value in route or NotifyRoute.ALL.value in route
         if not self.toast_overlay and notify_user:
             print(f"[{level.value}] {message}")
             return False
 
-        msg = NotifyMessage(message, level, source, timeout=timeout, switch=switch)
+        msg = NotifyMessage(message, level, source, timeout=timeout, route=route)
         # log to file
         if log_to_file:
             self.logger.log(msg)

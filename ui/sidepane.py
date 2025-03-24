@@ -4,6 +4,7 @@ import gi
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from ui.collapsepanel import CollapsePanel
+from user.settings.settings import OBJECTS
 from sweph.eventdata import EventData
 from sweph.eventlocation import EventLocation
 from sweph.swecore import SweCore
@@ -91,7 +92,6 @@ class SidePaneManager:
         scw_side_pane_widgets = Gtk.ScrolledWindow()
         scw_side_pane_widgets.set_size_request(-1, -1)
         scw_side_pane_widgets.set_hexpand(False)
-        scw_side_pane_widgets.set_vexpand(False)
         scw_side_pane_widgets.set_propagate_natural_width(True)
         scw_side_pane_widgets.set_child(box_side_pane_widgets)
 
@@ -417,34 +417,90 @@ only use [space] as separator
         clp_settings = CollapsePanel(title="settings", expanded=False)
         clp_settings.set_margin_end(self.margin_end)
         clp_settings.set_title_tooltip("""application & chart settings""")
-
         # main box for settings
         box_settings = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        # sub-panel objects
+        # sub-panel objects --------------------
         subpnl_objects = CollapsePanel(
             title="objects / planets",
             indent=14,
             expanded=False,
         )
-        # sub-panel flags
+        subpnl_objects.set_title_tooltip("select objects to display on chart")
+        # main container
+        box_objects = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
+        box_objects.set_margin_top(self.margin_end)
+        box_objects.set_margin_bottom(self.margin_end)
+        box_objects.set_margin_start(self.margin_end)
+        box_objects.set_margin_end(self.margin_end)
+        # button box at top
+        box_button = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        box_button.set_halign(Gtk.Align.START)
+        box_objects.append(box_button)
+        # select all button
+        btn_select_all = Gtk.Button(label="all")
+        btn_select_all.set_tooltip_text("select all objects")
+        btn_select_all.connect("clicked", self.objects_select_all)
+        box_button.append(btn_select_all)
+        # deselect all button
+        btn_select_none = Gtk.Button(label="none")
+        btn_select_none.set_tooltip_text("select none object")
+        btn_select_none.connect("clicked", self.objects_select_none)
+        box_button.append(btn_select_none)
+        # list box for multiple selection
+        self.listbox = Gtk.ListBox()
+        # we'll manage selection with checkboxes
+        self.listbox.set_selection_mode(Gtk.SelectionMode.NONE)
+        box_objects.append(self.listbox)
+        # track selected objects
+        self.selected_objects = set()
+
+        for _, obj_data in OBJECTS.items():
+            row = Gtk.ListBoxRow()
+            # set tooltip on the row
+            name = obj_data[0]
+            tooltip = obj_data[1]
+            row.set_tooltip_text(tooltip)
+            # create horizontal box for each row
+            hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=7)
+            margin_ = 7
+            hbox.set_margin_top(margin_)
+            hbox.set_margin_bottom(margin_)
+            hbox.set_margin_start(margin_)
+            hbox.set_margin_end(margin_)
+            # create checkbox for selection
+            check = Gtk.CheckButton()
+            check.connect("toggled", self.objects_toggled, name)
+            hbox.append(check)
+            # add label with the option name
+            label = Gtk.Label(label=name)
+            label.set_halign(Gtk.Align.START)
+            # label.set_hexpand(True)
+            hbox.append(label)
+
+            row.set_child(hbox)
+            self.listbox.append(row)
+        # add box to sub-panel
+        subpnl_objects.add_widget(box_objects)
+        # subpnl_objects.add_widget(box_objects)
+        # sub-panel flags --------------------
         subpnl_flags = CollapsePanel(
             title="flags",
             indent=14,
             expanded=False,
         )
-        # sub-panel house system
+        # sub-panel house system --------------------
         subpnl_housesys = CollapsePanel(
             title="house system",
             indent=14,
             expanded=False,
         )
-        # sub-panel chart settings
+        # sub-panel chart settings --------------------
         subpnl_chart_settings = CollapsePanel(
             title="chart settings",
             indent=14,
             expanded=False,
         )
-        # sub-panel year & month lengths
+        # sub-panel year & month lengths --------------------
         subpnl_solar_lunar_periods = CollapsePanel(
             title="solar & lunar periods",
             indent=14,
@@ -469,7 +525,7 @@ only use [space] as separator
         box_solar_lunar_periods.append(subsubpnl_lunar_month)
         # put box into sub-panel
         subpnl_solar_lunar_periods.add_widget(box_solar_lunar_periods)
-        # sub-panel ayanamsa
+        # sub-panel ayanamsa --------------------
         subpnl_ayanamsa = CollapsePanel(
             title="ayanamsa",
             indent=14,
@@ -708,3 +764,47 @@ only use [space] as separator
         elif self.selected_event == "event two" and self.EVENT_TWO:
             return self.EVENT_TWO.date_time
         return None
+
+    def objects_toggled(self, checkbutton, option_name):
+        if checkbutton.get_active():
+            self.selected_objects.add(option_name)
+        else:
+            self.selected_objects.discard(option_name)
+        self._notify.debug(
+            f"{option_name} toggled : {checkbutton.get_active()}"
+            f"\n\tselected objects : {self.selected_objects}",
+            source="sidepane",
+            route=["terminal"],
+        )
+
+    def objects_select_all(self, button):
+        list_box = self.listbox
+        i = 0
+        while True:
+            row = list_box.get_row_at_index(i)
+            if row is None:
+                break
+            inner = row.get_child()
+            if inner:
+                child = inner.get_first_child()
+                while child is not None:
+                    if isinstance(child, Gtk.CheckButton):
+                        child.set_active(True)
+                    child = child.get_next_sibling()
+            i += 1
+
+    def objects_select_none(self, button):
+        list_box = self.listbox
+        i = 0
+        while True:
+            row = list_box.get_row_at_index(i)
+            if row is None:
+                break
+            inner = row.get_child()
+            if inner:
+                child = inner.get_first_child()
+                while child is not None:
+                    if isinstance(child, Gtk.CheckButton):
+                        child.set_active(False)
+                    child = child.get_next_sibling()
+            i += 1

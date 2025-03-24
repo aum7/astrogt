@@ -1,17 +1,16 @@
 # set preferences
 OBJECTS = {
-    "su": (0, ("sun", "surya", "sy")),
-    "mo": (1, ("moon", "candra", "ca")),
-    "me": (2, ("mercury", "budha", "bu")),
-    "ve": (3, ("venus", "sukra", "sk")),
-    "ma": (4, ("mars", "mangala", "ma")),
-    "ju": (5, ("jupiter", "guru", "gu")),
-    "sa": (6, ("saturn", "sani", "sa")),
-    "ur": (7, ("uranus", "", "ur")),
-    "ne": (8, ("neptune", "", "ne")),
-    "pl": (9, ("pluto", "", "pl")),
-    "ram": (10, ("mean node", "rahu", "ra")),
-    "rat": (11, ("true node", "rahu", "ra")),
+    "su": ("sun", "surya", "sy", 0),
+    "mo": ("moon", "candra", "ca", 1),
+    "me": ("mercury", "budha", "bu", 2),
+    "ve": ("venus", "sukra", "sk", 3),
+    "ma": ("mars", "mangala", "ma", 4),
+    "ju": ("jupiter", "guru", "gu", 5),
+    "sa": ("saturn", "sani", "sa", 6),
+    "ur": ("uranus", "", "ur", 7),
+    "ne": ("neptune", "", "ne", 8),
+    "pl": ("pluto", "", "pl", 9),
+    "ra": ("mean node", "rahu", "ra", 10),
 }
 SWE_FLAG = {
     "swe_flag_default": r"swe.FLG_SWIEPH | swe.FLG_SPEED",
