@@ -22,6 +22,16 @@ class NotifyLevel(Enum):
     DEBUG = "debug"
 
 
+class NotifySwitch(Enum):
+    """switch for notification routing"""
+
+    NONE = "none"
+    ALL = "all"
+    USER = "user"
+    TERMINAL = "terminal"
+    LOG = "log"
+
+
 class NotifyMessage:
     """notification message object, implemented via adw.toastoverlay"""
 
@@ -32,14 +42,14 @@ class NotifyMessage:
         source: Optional[str] = None,
         timestamp: Optional[datetime] = None,
         timeout: Optional[int] = None,
-        do_log: Optional[bool] = True,
+        switch: Optional[list] = None,
     ):
         self.level = level if isinstance(level, NotifyLevel) else NotifyLevel.INFO
         self.message = message
         self.source = source or "sys"
         self.timestamp = timestamp or datetime.now(timezone.utc)
         self.timeout = timeout
-        self.do_log = do_log
+        self.switch = switch or [NotifySwitch.ALL.value]
 
     def __str__(self):
         return f"{self.source} : {self.message}"
@@ -72,6 +82,14 @@ class NotifyLogger:
 
     def log(self, msg: NotifyMessage):
         """log notification message"""
+
+        if NotifySwitch.NONE.value in msg.switch:
+            return
+        if (
+            NotifySwitch.LOG.value not in msg.switch
+            and NotifySwitch.ALL.value not in msg.switch
+        ):
+            return
         log_level = {
             NotifyLevel.INFO: logging.INFO,
             NotifyLevel.SUCCESS: logging.INFO,
@@ -85,8 +103,8 @@ class NotifyLogger:
 class NotifyManager:
     """notification manager with level-specific toasts"""
 
-    def __init__(self, get_application=None, log_file=None):
-        self.get_application = get_application or Gtk.Application.get_default()
+    def __init__(self, app=None, log_file=None):
+        self._app = app or Gtk.Application.get_default()
         self.toast_overlay = None
         # setup logger
         self.logger = NotifyLogger(log_file)
@@ -97,6 +115,7 @@ class NotifyManager:
             NotifyLevel.ERROR: 5,
             NotifyLevel.DEBUG: 5,
         }
+        self.default_switch = [NotifySwitch.ALL.value]
         self.convenience_methods()
 
     # dynamic convenience methods
@@ -109,9 +128,9 @@ class NotifyManager:
             message: str,
             source: Optional[str] = None,
             timeout: Optional[int] = None,
-            do_log: Optional[bool] = True,
+            switch: Optional[list] = None,
         ) -> bool:
-            return self.notify(message, level, source, timeout, do_log)
+            return self.notify(message, level, source, timeout, switch)
 
         return notify_method
 
@@ -121,22 +140,41 @@ class NotifyManager:
         level: NotifyLevel = NotifyLevel.INFO,
         source: Optional[str] = None,
         timeout: Optional[int] = None,
-        do_log: Optional[bool] = True,
+        switch: Optional[list] = None,
     ) -> bool:
         """show notification with specified level and optional custom icon"""
+        switch = switch or self.default_switch
+        # validate switch
+        valid_switches = {item.value for item in NotifySwitch}
+        if not all(val in valid_switches for val in switch):
+            print(f"notifymanager : invalid switch values in {switch} : using default")
+            switch = self.default_switch
+        if switch == [NotifySwitch.NONE.value]:
+            return False
         if isinstance(level, str):
             level = NotifyLevel(level.lower())
-        if not self.toast_overlay:
+
+        notify_user = (
+            NotifySwitch.USER.value in switch or NotifySwitch.ALL.value in switch
+        )
+        print_terminal = (
+            NotifySwitch.TERMINAL.value in switch or NotifySwitch.ALL.value in switch
+        )
+        log_to_file = (
+            NotifySwitch.LOG.value in switch or NotifySwitch.ALL.value in switch
+        )
+        if not self.toast_overlay and notify_user:
             print(f"[{level.value}] {message}")
             return False
 
-        msg = NotifyMessage(message, level, source, timeout=timeout)
+        msg = NotifyMessage(message, level, source, timeout=timeout, switch=switch)
         # log to file
-        if do_log:
+        if log_to_file:
             self.logger.log(msg)
+        if print_terminal:
             print(msg.full_str())
-
-        GLib.idle_add(self._show_toast, msg)
+        if notify_user:
+            GLib.idle_add(self._show_toast, msg)
         return True
 
     def _show_toast(self, msg: NotifyMessage) -> None:

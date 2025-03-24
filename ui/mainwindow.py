@@ -78,6 +78,7 @@ class MainWindow(
             "\n\nnote : if entry (text) field is focused, hotkeys will not work",
             source="help",
             timeout=5,
+            switch=["user"],
         )
 
     # hotkey actions end
