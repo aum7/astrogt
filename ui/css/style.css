@@ -7,18 +7,6 @@ toastoverlay toast {
   font-size: 16px;
 }
 
-/* .heading { */
-/*   font-size: 30px; */
-/*   font-family: "Ubuntu Thin"; */
-/*   padding: 3px; */
-/* } */
-
-/* toastoverlay toast label { */
-/* below not working properly */
-/* color: white; */
-/* font-family: "Ubuntu Thin"; */
-/* } */
-
 tooltip {
   background-color: rgba(0, 100, 0, 0.9);
   color: white;
@@ -46,13 +34,14 @@ label {
   margin: 0px;
 }
 
-.label-frame {
+.label-event {
   font-size: 16px;
   padding-top: 0px;
   padding-bottom: 0px;
+  color: dodgerblue;
 }
 
-.label-frame-sel {
+.label-event-selected {
   font-size: 18px;
   padding-top: 0px;
   padding-bottom: 0px;

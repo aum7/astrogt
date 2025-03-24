@@ -7,11 +7,11 @@ OBJECTS = {
     "ma": (4, ("mars", "mangala", "ma")),
     "ju": (5, ("jupiter", "guru", "gu")),
     "sa": (6, ("saturn", "sani", "sa")),
-    "ur": (7, ("uranus", "", "")),
-    "ne": (8, ("neptune", "", "")),
-    "pl": (9, ("pluto", "", "")),
-    "rat": (11, ("true node", "rahu", "ra")),
+    "ur": (7, ("uranus", "", "ur")),
+    "ne": (8, ("neptune", "", "ne")),
+    "pl": (9, ("pluto", "", "pl")),
     "ram": (10, ("mean node", "rahu", "ra")),
+    "rat": (11, ("true node", "rahu", "ra")),
 }
 SWE_FLAG = {
     "swe_flag_default": r"swe.FLG_SWIEPH | swe.FLG_SPEED",
@@ -48,18 +48,6 @@ HOUSE_SYSTEMS = [
     ("K", "kch: koch", "kch"),
     ("W", "whs: whole sign", "whs"),  # makes no sense to draw it, same as signs
 ]
-FILES = {
-    # path to ephemerides folder, with min semo_18.se1 & sepl_18.se1 files, or
-    # a complete ephe folder https://github.com/aloistr/swisseph/tree/master/ephe
-    "ephe_path": "/swe/ephe/",
-    # fonts for glyphs = astro_font & for ie tables = mono_font
-    "astro_font": "/ui/fonts/osla/open_sans_light_astro.ttf",
-    "mono_font": "/ui/fonts/victor/VictorMonoNerdFont-Light.ttf",
-    # construct your own 'filename' format: allowed fields:\n1: {event} name | 2: event {date} | 3: {time}: separate fields with '_' underscore\nfor short time format (no seconds) use {time[:5]}\nsee default value [mouse-over-backspace] as example",
-    "custom_filename": r"{event}_{date}_{time[:5]}",
-    # path to eventsdb (birth charts) database folder; inside go saved charts
-    "events_db": "/user/eventsdb/",
-}
 CHART_SETTINGS = {
     # toggle glyphs visibility shortcut
     "enable_glyphs": True,
@@ -167,4 +155,16 @@ CUSTOM_AYANAMSA = {
     # default is 23.76694444 (23° 46' 01"), as per richard houck's book
     # 'astrology of death', for 2000-01-01
     "custom_ayanamsa": "23.76694444",
+}
+FILES = {
+    # path to ephemerides folder, with min semo_18.se1 & sepl_18.se1 files, or
+    # a complete ephe folder https://github.com/aloistr/swisseph/tree/master/ephe
+    "ephe_path": "/swe/ephe/",
+    # fonts for glyphs = astro_font & for ie tables = mono_font
+    "astro_font": "/ui/fonts/osla/open_sans_light_astro.ttf",
+    "mono_font": "/ui/fonts/victor/VictorMonoNerdFont-Light.ttf",
+    # construct your own 'filename' format: allowed fields:\n1: {event} name | 2: event {date} | 3: {time}: separate fields with '_' underscore\nfor short time format (no seconds) use {time[:5]}\nsee default value [mouse-over-backspace] as example",
+    "custom_filename": r"{event}_{date}_{time[:5]}",
+    # path to eventsdb (birth charts) database folder; inside go saved charts
+    "events_db": "/user/eventsdb/",
 }

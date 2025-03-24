@@ -72,19 +72,22 @@ class SidePaneManager:
         # main box for widgets
         box_side_pane_widgets = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         box_side_pane_widgets.set_size_request(-1, -1)
-        # put widgets into box widgets
+        # create & put widgets into box widgets
         self.clp_change_time = self.setup_change_time()
         self.clp_event_one = self.setup_event("event one", True)
         if self.selected_event == "event one":
-            self.clp_event_one.add_title_css_class("label-frame-sel")
+            self.clp_event_one.add_title_css_class("label-event-selected")
         self.clp_event_two = self.setup_event("event two", False)
         # tools
         self.clp_tools = self.setup_tools()
+        # settings
+        self.clp_settings = self.setup_settings()
         # append to box
         box_side_pane_widgets.append(self.clp_change_time)
         box_side_pane_widgets.append(self.clp_event_one)
         box_side_pane_widgets.append(self.clp_event_two)
         box_side_pane_widgets.append(self.clp_tools)
+        box_side_pane_widgets.append(self.clp_settings)
         # main container scrolled window for collapse panels
         scw_side_pane_widgets = Gtk.ScrolledWindow()
         scw_side_pane_widgets.set_hexpand(False)
@@ -178,6 +181,7 @@ arrow key left / right : move time backward / forward
             expanded=expand,
         )
         panel.set_margin_end(self.margin_end)
+        panel.add_title_css_class("label-event")
         lbl_event = panel.get_title()
         lbl_event.set_tooltip_text(
             """main event ie natal / event chart
@@ -407,6 +411,100 @@ only use [space] as separator
 
         return clp_tools
 
+    def setup_settings(self) -> CollapsePanel:
+        """setup widget for settings, ie objects, glyphs etc"""
+        clp_settings = CollapsePanel(title="settings", expanded=False)
+        clp_settings.set_margin_end(self.margin_end)
+        clp_settings.set_title_tooltip("""application & chart settings""")
+
+        # main box for settings
+        box_settings = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        # sub-panel objects
+        subpnl_objects = CollapsePanel(
+            title="objects / planets",
+            indent=14,
+            expanded=False,
+        )
+        # sub-panel flags
+        subpnl_flags = CollapsePanel(
+            title="flags",
+            indent=14,
+            expanded=False,
+        )
+        # sub-panel house system
+        subpnl_housesys = CollapsePanel(
+            title="house system",
+            indent=14,
+            expanded=False,
+        )
+        # sub-panel chart settings
+        subpnl_chart_settings = CollapsePanel(
+            title="chart settings",
+            indent=14,
+            expanded=False,
+        )
+        # sub-panel year & month lengths
+        subpnl_solar_lunar_periods = CollapsePanel(
+            title="solar & lunar periods",
+            indent=14,
+            expanded=False,
+        )
+        # sub-sub-panel solar year
+        subsubpnl_solar_year = CollapsePanel(
+            title="solar year",
+            indent=21,
+            expanded=False,
+        )
+        # sub-sub-panel lunar month
+        subsubpnl_lunar_month = CollapsePanel(
+            title="lunar month",
+            indent=21,
+            expanded=False,
+        )
+        # box for sub-sub-panels
+        box_solar_lunar_periods = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        # add sub-sub-panels
+        box_solar_lunar_periods.append(subsubpnl_solar_year)
+        box_solar_lunar_periods.append(subsubpnl_lunar_month)
+        # put box into sub-panel
+        subpnl_solar_lunar_periods.add_widget(box_solar_lunar_periods)
+        # sub-panel ayanamsa
+        subpnl_ayanamsa = CollapsePanel(
+            title="ayanamsa",
+            indent=14,
+            expanded=False,
+        )
+        # sub-sub-panel custom ayanamsa
+        subsubpnl_custom_ayanamsa = CollapsePanel(
+            title="custom ayanamsa",
+            indent=21,
+            expanded=False,
+        )
+        # box for sub-panels ayanamse
+        box_ayanamsa = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        # add sub-sub-panels
+        box_ayanamsa.append(subsubpnl_custom_ayanamsa)
+        # sub-panel files
+        subpnl_files = CollapsePanel(
+            title="files & paths",
+            indent=14,
+            expanded=False,
+        )
+        # main box for settings panels
+        box_settings = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        # add sub-panels
+        box_settings.append(subpnl_objects)
+        box_settings.append(subpnl_flags)
+        box_settings.append(subpnl_housesys)
+        box_settings.append(subpnl_chart_settings)
+        box_settings.append(subpnl_solar_lunar_periods)
+        box_settings.append(subpnl_ayanamsa)
+        box_settings.append(subpnl_files)
+
+        clp_settings.add_widget(box_settings)
+
+        return clp_settings
+
     # todo do we need this & next func ?
     def handle_city_selection(self, entry, country, event_location):
         selected = event_location.get_selected_city(entry, country)
@@ -460,13 +558,13 @@ only use [space] as separator
         if self.selected_event == "event one":
             self.selected_event = "event two"
             print(f"event_toggle_selected : {self.selected_event} selected")
-            self.clp_event_one.remove_title_css_class("label-frame-sel")
-            self.clp_event_two.add_title_css_class("label-frame-sel")
+            self.clp_event_one.remove_title_css_class("label-event-selected")
+            self.clp_event_two.add_title_css_class("label-event-selected")
         elif self.selected_event == "event two":
             self.selected_event = "event one"
             print(f"event_toggle_selected : {self.selected_event} selected")
-            self.clp_event_two.remove_title_css_class("label-frame-sel")
-            self.clp_event_one.add_title_css_class("label-frame-sel")
+            self.clp_event_two.remove_title_css_class("label-event-selected")
+            self.clp_event_one.add_title_css_class("label-event-selected")
 
     def obc_event_selection(self, gesture, n_press, x, y, event_name):
         """handle event selection"""
@@ -475,13 +573,13 @@ only use [space] as separator
             if self.selected_event == "event one":
                 # todo comment
                 print(f"event_selection : {self.selected_event} selected")
-                self.clp_event_two.remove_title_css_class("label-frame-sel")
-                self.clp_event_one.add_title_css_class("label-frame-sel")
+                self.clp_event_two.remove_title_css_class("label-event-selected")
+                self.clp_event_one.add_title_css_class("label-event-selected")
             if self.selected_event == "event two":
                 # todo comment
                 print(f"event_selection : {self.selected_event} selected")
-                self.clp_event_one.remove_title_css_class("label-frame-sel")
-                self.clp_event_two.add_title_css_class("label-frame-sel")
+                self.clp_event_one.remove_title_css_class("label-event-selected")
+                self.clp_event_two.add_title_css_class("label-event-selected")
 
     def obc_default(self, widget, data):
         print(f"{data} clicked : obc_default()")
