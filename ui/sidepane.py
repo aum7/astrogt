@@ -71,7 +71,6 @@ class SidePaneManager:
     def setup_side_pane(self):
         # main box for widgets
         box_side_pane_widgets = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        box_side_pane_widgets.set_size_request(-1, -1)
         # create & put widgets into box widgets
         self.clp_change_time = self.setup_change_time()
         self.clp_event_one = self.setup_event("event one", True)
@@ -90,11 +89,13 @@ class SidePaneManager:
         box_side_pane_widgets.append(self.clp_settings)
         # main container scrolled window for collapse panels
         scw_side_pane_widgets = Gtk.ScrolledWindow()
+        scw_side_pane_widgets.set_size_request(-1, -1)
         scw_side_pane_widgets.set_hexpand(False)
+        scw_side_pane_widgets.set_vexpand(False)
         scw_side_pane_widgets.set_propagate_natural_width(True)
         scw_side_pane_widgets.set_child(box_side_pane_widgets)
 
-        return box_side_pane_widgets
+        return scw_side_pane_widgets
 
     def create_pane_icon(self, icon_name):
         icons_pane = "ui/imgs/icons/pane/"
