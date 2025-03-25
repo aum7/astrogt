@@ -240,19 +240,19 @@ def obc_event_selection(gesture, n_press, x, y, event_name, manager):
             manager.clp_event_two.add_title_css_class("label-event-selected")
 
 
-def get_focused_event_data(manager, event_name: str, widget=None) -> None:
-    """get data for focused event on datetime entry"""
-    # print("get_focused_event_data called")
-    if event_name == "event one":
-        event_one_data = (
-            manager.EVENT_ONE.get_event_data() if manager.EVENT_ONE else None
-        )
-        manager.swe_core.get_event_one_data(event_one_data)
-    elif event_name == "event two":
-        event_two_data = (
-            manager.EVENT_TWO.get_event_data() if manager.EVENT_TWO else None
-        )
-        manager.swe_core.get_event_two_data(event_two_data)
+# def get_focused_event_data(manager, event_name: str, widget=None) -> None:
+#     """get data for focused event on datetime entry"""
+#     # print("get_focused_event_data called")
+#     if event_name == "event one":
+#         event_one_data = (
+#             manager.EVENT_ONE.get_event_data() if manager.EVENT_ONE else None
+#         )
+#         manager.swe_core.get_event_one_data(event_one_data)
+#     elif event_name == "event two":
+#         event_two_data = (
+#             manager.EVENT_TWO.get_event_data() if manager.EVENT_TWO else None
+#         )
+#         manager.swe_core.get_event_two_data(event_two_data)
 
 
 def get_selected_event_data(manager, widget=None) -> None:

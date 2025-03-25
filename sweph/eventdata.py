@@ -58,7 +58,7 @@ class EventData:
                 self._notify.warning(
                     "name too long : max 30 characters",
                     source="eventdata",
-                    do_log=False,
+                    route=["user"],
                 )
             else:
                 print("name too long : max 30 characters")
@@ -80,7 +80,7 @@ class EventData:
                 self._notify.warning(
                     f"date-time : characters {sorted(invalid_chars)} not allowed",
                     source="eventdata",
-                    do_log=False,
+                    route=["user"],
                 )
                 return
             # huston we have data
@@ -92,7 +92,7 @@ class EventData:
                     "wrong data count : 6 or 5 (if no seconds) time units expected"
                     "\n\tie 1999 11 12 13 14",
                     source="eventdata",
-                    do_log=False,
+                    route=["user"],
                 )
                 return
                 # handle year
@@ -106,7 +106,7 @@ class EventData:
                     self._notify.warning(
                         "year out of sweph range (-13.200 - 17.191)",
                         source="eventdata",
-                        do_log=False,
+                        route=["user"],
                     )
                     return
 
@@ -114,7 +114,7 @@ class EventData:
                 self._notify.error(
                     "invalid year format",
                     source="eventdata",
-                    do_log=False,
+                    route=["user"],
                 )
                 return
 
@@ -152,7 +152,7 @@ class EventData:
                     f"{year}-{month}-{day} : date not valid"
                     "\ncheck month & day : february has 28 or 29 days",
                     source="eventdata",
-                    do_log=False,
+                    route=["user"],
                 )
                 return
 
@@ -163,7 +163,7 @@ class EventData:
                 self._notify.warning(
                     f"{hour}:{minute}:{second} : time not valid",
                     source="eventdata",
-                    do_log=False,
+                    route=["user"],
                 )
                 return
 
@@ -193,7 +193,7 @@ class EventData:
                 self._notify.error(
                     f"invalid date-time : {str(e)}",
                     source="eventdata",
-                    do_log=False,
+                    route=["user"],
                 )
                 return
 
@@ -203,7 +203,7 @@ class EventData:
                 "\nwe only accept space-separated : yyyy mm dd HH MM SS"
                 "\nand - / . : for separators",
                 source="eventdata",
-                do_log=False,
+                route=["user"],
             )
             return
 
@@ -235,7 +235,7 @@ class EventData:
                     self._notify.warning(
                         "missing direction indicators (n/s & e/w)",
                         source="eventdata",
-                        do_log=False,
+                        route=["user"],
                     )
                     return False
                 # split into latitude & longitude
@@ -262,7 +262,7 @@ class EventData:
                             self._notify.warning(
                                 "invalid deg-min-(sec) n/s e/w format",
                                 source="eventdata",
-                                do_log=False,
+                                route=["user"],
                             )
                             return False
 
@@ -280,7 +280,7 @@ class EventData:
                     self._notify.error(
                         f"error parsing coordinates :\n\t{str(e)}",
                         source="eventdata",
-                        do_log=False,
+                        route=["user"],
                     )
                     return False
             else:
@@ -290,7 +290,7 @@ class EventData:
                         self._notify.warning(
                             "need min latitude & longitude",
                             source="eventdata",
-                            do_log=False,
+                            route=["user"],
                         )
                         return False
 
@@ -309,7 +309,7 @@ class EventData:
                     self._notify.error(
                         f"invalid decimal coordinates :\n\t{str(e)}",
                         source="eventdata",
-                        do_log=False,
+                        route=["user"],
                     )
                     return False
             # validate ranges
@@ -317,21 +317,21 @@ class EventData:
                 self._notify.warning(
                     "latitude degrees must be between 0 & 90",
                     source="eventdata",
-                    do_log=False,
+                    route=["user"],
                 )
                 return False
             if not (0 <= lat_min <= 59) or not (0 <= lat_sec <= 59):
                 self._notify.warning(
                     "minutes & seconds must be between 0 & 59",
                     source="eventdata",
-                    do_log=False,
+                    route=["user"],
                 )
                 return False
             if lat_dir not in ["n", "s"]:
                 self._notify.warning(
                     "latitude direction must be n(orth) or s(outh)",
                     source="eventdata",
-                    do_log=False,
+                    route=["user"],
                 )
                 return False
 
@@ -339,21 +339,21 @@ class EventData:
                 self._notify.warning(
                     "longitude degrees must be between 0 and 179",
                     source="eventdata",
-                    do_log=False,
+                    route=["user"],
                 )
                 return False
             if not (0 <= lon_min <= 59) or not (0 <= lon_sec <= 59):
                 self._notify.warning(
                     "minutes & seconds must be between 0 & 59",
                     source="eventdata",
-                    do_log=False,
+                    route=["user"],
                 )
                 return False
             if lon_dir not in ["e", "w"]:
                 self._notify.warning(
                     "longitude direction must be e(ast) or w(est)",
                     source="eventdata",
-                    do_log=False,
+                    route=["user"],
                 )
                 return False
             # try to convert altitude to int if present
@@ -363,7 +363,7 @@ class EventData:
                 self._notify.info(
                     "missing altitude value ; setting alt to 0",
                     source="eventdata",
-                    do_log=False,
+                    route=["user"],
                 )
                 alt = "0"
             # format final string
@@ -383,7 +383,7 @@ class EventData:
             self._notify.success(
                 "location valid & formatted",
                 source="eventdata",
-                do_log=False,
+                route=["user", "terminal"],
             )
             return True
 
@@ -397,7 +397,7 @@ class EventData:
                 "\n\talt is optional"
                 f"error :\n\t{str(e)}",
                 source="eventdata",
-                do_log=False,
+                route=["user"],
             )
             return False
 

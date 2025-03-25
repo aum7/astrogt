@@ -60,6 +60,16 @@ class MainWindow(
         self._hotkeys.register_hotkey("n", self.obc_time_now)
         self._hotkeys.register_hotkey("e", self.event_toggle_selected)
 
+    def get_focused_event_data(self, event_name: str, widget=None) -> None:
+        """get data for focused event on datetime entry"""
+        # print("get_focused_event_data called")
+        if event_name == "event one":
+            event_one_data = self.EVENT_ONE.get_event_data() if self.EVENT_ONE else None
+            self.swe_core.get_event_one_data(event_one_data)
+        elif event_name == "event two":
+            event_two_data = self.EVENT_TWO.get_event_data() if self.EVENT_TWO else None
+            self.swe_core.get_event_two_data(event_two_data)
+
     # hotkey action functions
     def show_help(self):
         self._notify.debug(
@@ -69,14 +79,16 @@ class MainWindow(
             "\nesc : discard message\n\nhotkeys (hk)"
             "\nh : show help (this message)"
             "\ns : toggle side pane"
+            "\nc : center main panes"
             "\ne : toggle selected event for time change"
-            "\nc : center all panes"
             "\narrow keys : up/down = change period | left/right = change time"
             "\n\tfor selected event"
             "\nn : set time now (utc) for selected event"
+            "\n\ttime now is set for event location, not your computer local time"
             "\ntab/shift+tab : navigate between widgets in side pane"
             "\nspace/enter : activate button / dropdown when focused"
-            "\n\nnote : if entry (text) field is focused, hotkeys will not work",
+            "\n\nnote : if entry (text) field is focused, hotkeys will not work"
+            "\n\t(text field will 'consume' key press)",
             source="help",
             timeout=5,
             route=["user"],
