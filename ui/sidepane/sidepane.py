@@ -220,7 +220,7 @@ arrow key left / right : move time backward / forward
         print(f"{data} clicked : obc_default()")
 
     def obc_settings(self, widget, data):
-        self._notify.debug(f"{data} clicked", source="sidepane.py")
+        self._notify.debug(f"{data} clicked", source="sidepane")
 
     def obc_file_save(self, widget, data):
         print(f"{data} clicked")
@@ -234,14 +234,14 @@ arrow key left / right : move time backward / forward
     ):
         self._adjust_event_time(-int(self.CHANGE_TIME_SELECTED))
         get_selected_event_data(self)
-        # self._notify.success(message="time change backward", source="sidepane.py")
+        # self._notify.success(message="time change backward", source="sidepane")
 
     def obc_arrow_r(
         self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
     ):
         self._adjust_event_time(int(self.CHANGE_TIME_SELECTED))
         get_selected_event_data(self)
-        # self._notify.success(message="time change forward", source="sidepane.py")
+        # self._notify.success(message="time change forward", source="sidepane")
 
     def obc_time_now(
         self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
@@ -289,7 +289,7 @@ arrow key left / right : move time backward / forward
         self._change_time_period(direction=-1)
         # self._notify.info(
         #     "previous time period selected",
-        #     source="sidepane.py",
+        #     source="sidepane",
         # )
 
     def obc_arrow_dn(
@@ -298,7 +298,7 @@ arrow key left / right : move time backward / forward
         self._change_time_period(direction=1)
         # self._notify.info(
         #     "next time period selected",
-        #     source="sidepane.py",
+        #     source="sidepane",
         # )
 
     def _adjust_event_time(self, sec_delta):
@@ -311,9 +311,7 @@ arrow key left / right : move time backward / forward
         current_text = entry.get_text().strip()
         # if empty, use current utc
         if not current_text:
-            self._notify.warning(
-                "datetime None", source="sidepane.py [adjust_event_time]"
-            )
+            self._notify.warning("datetime None", source="sidepane [adjust_event_time]")
             current_utc = datetime.now(timezone.utc)
         else:
             try:
@@ -324,7 +322,7 @@ arrow key left / right : move time backward / forward
             except ValueError:
                 self._notify.error(
                     "adjusteventtime : invalid datetime format, using datetime.now utc",
-                    source="sidepane.py",
+                    source="sidepane",
                 )
                 current_utc = datetime.now(timezone.utc)
         # apply delta

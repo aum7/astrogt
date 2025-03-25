@@ -1,12 +1,13 @@
 # ruff: noqa: E402
 import re
-import pytz
+
+# import pytz
 import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from math import modf
-from datetime import datetime
+# from datetime import datetime
 
 
 class EventData:
@@ -47,165 +48,6 @@ class EventData:
                 "notify::has-focus",
                 lambda w, p, cb=callback: focus_wrapper(w, p, cb),
             )  # focus lost ?
-
-    def on_name_change(self, entry):
-        """process title / name"""
-        name = entry.get_text().strip()
-        if not name or name == self.old_name:
-            return
-        if len(name) > 30:
-            if self._notify:
-                self._notify.warning(
-                    "name too long : max 30 characters",
-                    source="eventdata",
-                    route=["user"],
-                )
-            else:
-                print("name too long : max 30 characters")
-            return
-
-        self.old_name = name
-
-    def on_date_time_change(self, entry):
-        """process date & time"""
-        date_time = entry.get_text().strip()
-        if not date_time or date_time == self.old_date_time:
-            return
-        # validate datetime
-        try:
-            # check characters
-            valid_chars = set("0123456789 -/.:")
-            invalid_chars = set(date_time) - valid_chars
-            if invalid_chars:
-                self._notify.warning(
-                    f"date-time : characters {sorted(invalid_chars)} not allowed",
-                    source="eventdata",
-                    route=["user"],
-                )
-                return
-            # huston we have data
-            is_year_negative = date_time.lstrip().startswith("-")
-            # print(f"eventdata : year negative : {is_year_negative}")
-            parts = [p for p in re.split("[ -/.:]+", date_time) if p]
-            if len(parts) < 5 or len(parts) > 6:
-                self._notify.warning(
-                    "wrong data count : 6 or 5 (if no seconds) time units expected"
-                    "\n\tie 1999 11 12 13 14",
-                    source="eventdata",
-                    route=["user"],
-                )
-                return
-                # handle year
-            try:
-                year = int(parts[0])
-                if is_year_negative:
-                    year = -abs(year)
-                # print(f"year : {year}")
-                # swiseph year range
-                if not -13200 <= year <= 17191:
-                    self._notify.warning(
-                        "year out of sweph range (-13.200 - 17.191)",
-                        source="eventdata",
-                        route=["user"],
-                    )
-                    return
-
-            except ValueError:
-                self._notify.error(
-                    "invalid year format",
-                    source="eventdata",
-                    route=["user"],
-                )
-                return
-
-            if len(parts) == 5:
-                # add seconds
-                parts.append("00")
-
-            _, month, day, hour, minute, second = map(int, parts)
-
-            # check if date_time is valid day
-            def is_valid_date(year, month, day):
-                day_count_for_month = [
-                    # 0 added to match number with month
-                    0,
-                    31,
-                    28,
-                    31,
-                    30,
-                    31,
-                    30,
-                    31,
-                    31,
-                    30,
-                    31,
-                    30,
-                    31,
-                ]
-                if year % 4 == 0 and (year % 100 != 0 or year % 400 == 0):
-                    day_count_for_month[2] = 29
-
-                return 1 <= month <= 12 and 1 <= day <= day_count_for_month[month]
-
-            if not is_valid_date(year, month, day):
-                self._notify.warning(
-                    f"{year}-{month}-{day} : date not valid"
-                    "\ncheck month & day : february has 28 or 29 days",
-                    source="eventdata",
-                    route=["user"],
-                )
-                return
-
-            def is_valid_time(hour, minute, second):
-                return 0 <= hour <= 23 and 0 <= minute <= 59 and 0 <= second <= 59
-
-            if not is_valid_time(hour, minute, second):
-                self._notify.warning(
-                    f"{hour}:{minute}:{second} : time not valid",
-                    source="eventdata",
-                    route=["user"],
-                )
-                return
-
-            try:
-                if year <= -10000:
-                    y_ = f"-{abs(year)}"
-                elif year < 0:
-                    y_ = f"-{abs(year):04d}"
-                elif year >= 0:
-                    y_ = f"{year:04d}"
-                m_ = f"{month:02d}"
-                d_ = f"{day:02d}"
-                h_ = f"{hour:02d}"
-                mi_ = f"{minute:02d}"
-                s_ = f"{second:02d}"
-
-                formatted = f"{y_}-{m_}-{d_} {h_}:{mi_}:{s_}"
-                # print(f"formatted dt : \n\t{formatted}")
-                entry.set_text(formatted)
-                date_time_final = f"{year} {month} {day} {hour} {minute} {second}"
-                # print(f"final date_time : \n\t{date_time_final}")
-
-                entry.set_text(formatted)
-                return formatted, date_time_final
-
-            except ValueError as e:
-                self._notify.error(
-                    f"invalid date-time : {str(e)}",
-                    source="eventdata",
-                    route=["user"],
-                )
-                return
-
-        except Exception:
-            self._notify.error(
-                "wrong date-time format"
-                "\nwe only accept space-separated : yyyy mm dd HH MM SS"
-                "\nand - / . : for separators",
-                source="eventdata",
-                route=["user"],
-            )
-            return
 
     def on_location_change(self, entry):
         """process location data (as string)
@@ -401,6 +243,165 @@ class EventData:
             )
             return False
 
+    def on_name_change(self, entry):
+        """process title / name"""
+        name = entry.get_text().strip()
+        if not name or name == self.old_name:
+            return
+        if len(name) > 30:
+            if self._notify:
+                self._notify.warning(
+                    "name too long : max 30 characters",
+                    source="eventdata",
+                    route=["user"],
+                )
+            else:
+                print("name too long : max 30 characters")
+            return
+
+        self.old_name = name
+
+    def on_date_time_change(self, entry):
+        """process date & time"""
+        date_time = entry.get_text().strip()
+        if not date_time or date_time == self.old_date_time:
+            return
+        # validate datetime
+        try:
+            # check characters
+            valid_chars = set("0123456789 -/.:")
+            invalid_chars = set(date_time) - valid_chars
+            if invalid_chars:
+                self._notify.warning(
+                    f"date-time : characters {sorted(invalid_chars)} not allowed",
+                    source="eventdata",
+                    route=["user"],
+                )
+                return
+            # huston we have data
+            is_year_negative = date_time.lstrip().startswith("-")
+            # print(f"eventdata : year negative : {is_year_negative}")
+            parts = [p for p in re.split("[ -/.:]+", date_time) if p]
+            if len(parts) < 5 or len(parts) > 6:
+                self._notify.warning(
+                    "wrong data count : 6 or 5 (if no seconds) time units expected"
+                    "\n\tie 1999 11 12 13 14",
+                    source="eventdata",
+                    route=["user"],
+                )
+                return
+                # handle year
+            try:
+                year = int(parts[0])
+                if is_year_negative:
+                    year = -abs(year)
+                # print(f"year : {year}")
+                # swiseph year range
+                if not -13200 <= year <= 17191:
+                    self._notify.warning(
+                        "year out of sweph range (-13.200 - 17.191)",
+                        source="eventdata",
+                        route=["user"],
+                    )
+                    return
+
+            except ValueError:
+                self._notify.error(
+                    "invalid year format",
+                    source="eventdata",
+                    route=["user"],
+                )
+                return
+
+            if len(parts) == 5:
+                # add seconds
+                parts.append("00")
+
+            _, month, day, hour, minute, second = map(int, parts)
+
+            # check if date_time is valid day
+            def is_valid_date(year, month, day):
+                day_count_for_month = [
+                    # 0 added to match number with month
+                    0,
+                    31,
+                    28,
+                    31,
+                    30,
+                    31,
+                    30,
+                    31,
+                    31,
+                    30,
+                    31,
+                    30,
+                    31,
+                ]
+                if year % 4 == 0 and (year % 100 != 0 or year % 400 == 0):
+                    day_count_for_month[2] = 29
+
+                return 1 <= month <= 12 and 1 <= day <= day_count_for_month[month]
+
+            if not is_valid_date(year, month, day):
+                self._notify.warning(
+                    f"{year}-{month}-{day} : date not valid"
+                    "\ncheck month & day : february has 28 or 29 days",
+                    source="eventdata",
+                    route=["user"],
+                )
+                return
+
+            def is_valid_time(hour, minute, second):
+                return 0 <= hour <= 23 and 0 <= minute <= 59 and 0 <= second <= 59
+
+            if not is_valid_time(hour, minute, second):
+                self._notify.warning(
+                    f"{hour}:{minute}:{second} : time not valid",
+                    source="eventdata",
+                    route=["user"],
+                )
+                return
+
+            try:
+                if year <= -10000:
+                    y_ = f"-{abs(year)}"
+                elif year < 0:
+                    y_ = f"-{abs(year):04d}"
+                elif year >= 0:
+                    y_ = f"{year:04d}"
+                m_ = f"{month:02d}"
+                d_ = f"{day:02d}"
+                h_ = f"{hour:02d}"
+                mi_ = f"{minute:02d}"
+                s_ = f"{second:02d}"
+
+                formatted = f"{y_}-{m_}-{d_} {h_}:{mi_}:{s_}"
+                # print(f"formatted dt : \n\t{formatted}")
+                entry.set_text(formatted)
+                date_time_final = f"{year} {month} {day} {hour} {minute} {second}"
+                # print(f"final date_time : \n\t{date_time_final}")
+
+                entry.set_text(formatted)
+                return formatted, date_time_final
+
+            except ValueError as e:
+                self._notify.error(
+                    f"invalid date-time : {str(e)}",
+                    source="eventdata",
+                    route=["user"],
+                )
+                return
+
+        except Exception:
+            self._notify.error(
+                "wrong date-time format"
+                "\nwe only accept space-separated : yyyy mm dd HH MM SS"
+                "\nand - / . : for separators",
+                source="eventdata",
+                route=["user"],
+            )
+            return
+
     def decimal_to_dms(self, decimal):
         """convert decimal number to degree-minute-second"""
         min_, deg_ = modf(decimal)
@@ -433,7 +434,7 @@ class EventData:
             "date_time": self.date_time.get_text().strip(),
         }
 
-    def set_current_utc(self):
-        current_utc = datetime.now(pytz.UTC)
-        formatted_utc = current_utc.strftime("%Y-%m-%d %H:%M:%S")
-        self.date_time.set_text(formatted_utc)
+    # def set_current_utc(self):
+    #     current_utc = datetime.now(pytz.UTC)
+    #     formatted_utc = current_utc.strftime("%Y-%m-%d %H:%M:%S")
+    #     self.date_time.set_text(formatted_utc)

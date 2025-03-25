@@ -1,9 +1,11 @@
 # ruff: noqa: E402
 import gi
+import pytz
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from typing import Any, Optional
+from datetime import datetime
 from .handlers import ContextManager
 from .sidepane.sidepane import SidePaneManager
 from .uisetup import UISetup
@@ -57,7 +59,8 @@ class MainWindow(
         self._hotkeys.register_hotkey("Down", self.obc_arrow_dn)
         self._hotkeys.register_hotkey("Left", self.obc_arrow_l)
         self._hotkeys.register_hotkey("Right", self.obc_arrow_r)
-        self._hotkeys.register_hotkey("n", self.obc_time_now)
+        self._hotkeys.register_hotkey("n", self.on_time_now)
+        # self._hotkeys.register_hotkey("n", self.obc_time_now)
         self._hotkeys.register_hotkey("e", self.event_toggle_selected)
 
     def get_focused_event_data(self, event_name: str, widget=None) -> None:
@@ -83,8 +86,8 @@ class MainWindow(
             "\ne : toggle selected event for time change"
             "\narrow keys : up/down = change period | left/right = change time"
             "\n\tfor selected event"
-            "\nn : set time now (utc) for selected event"
-            "\n\ttime now is set for event location, not your computer local time"
+            "\nn : set time now for selected event"
+            "\n\tnote : time now is set for event location, converted from your computer time"
             "\ntab/shift+tab : navigate between widgets in side pane"
             "\nspace/enter : activate button / dropdown when focused"
             "\n\nnote : if entry (text) field is focused, hotkeys will not work"
@@ -102,6 +105,19 @@ class MainWindow(
             and hasattr(self, "pnd_top_h")
             and hasattr(self, "pnd_btm_h")
         ):
-            self.pnd_main_v.set_position(self.pnd_main_v.get_allocated_height() // 2)
-            self.pnd_top_h.set_position(self.pnd_top_h.get_allocated_width() // 2)
-            self.pnd_btm_h.set_position(self.pnd_btm_h.get_allocated_width() // 2)
+            self.pnd_main_v.set_position(self.pnd_main_v.get_height() // 2)
+            self.pnd_top_h.set_position(self.pnd_top_h.get_width() // 2)
+            self.pnd_btm_h.set_position(self.pnd_btm_h.get_width() // 2)
+
+    def on_time_now(self):
+        """set time now for selected event location & update entry"""
+        if self.selected_event == "event one" and self.EVENT_ONE:
+            current_utc = datetime.now(pytz.utc)
+            formatted_utc = current_utc.strftime("%Y-%m-%d %H:%M:%S")
+            self.EVENT_ONE.date_time.set_text(formatted_utc)
+            self.EVENT_ONE.on_date_time_change(self.EVENT_ONE.date_time)
+        elif self.selected_event == "event two" and self.EVENT_TWO:
+            current_utc = datetime.now(pytz.utc)
+            formatted_utc = current_utc.strftime("%Y-%m-%d %H:%M:%S")
+            self.EVENT_TWO.date_time.set_text(formatted_utc)
+            self.EVENT_TWO.on_date_time_change(self.EVENT_TWO.date_time)
