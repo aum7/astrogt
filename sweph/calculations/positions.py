@@ -5,7 +5,7 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
-from sweph.swecore import SweCore  # event data
+# from sweph.swecore import SweCore  # event data
 
 
 class SwePositions:
@@ -18,7 +18,7 @@ class SwePositions:
         # connect to data-changed signal
         self._signal._connect("event-one-changed", self.on_event_one_changed)
         self._signal._connect("event-two-changed", self.on_event_two_changed)
-        self.swe_core = SweCore(self._app)
+        self.swe_core = self._app.swe_core
         self.event_one_data = self.swe_core.event_one_swe_ready()
         self.event_two_data = self.swe_core.event_two_swe_ready()
 

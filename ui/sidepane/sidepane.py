@@ -191,28 +191,28 @@ arrow key left / right : move time backward / forward
         self.CHANGE_TIME_SELECTED = seconds
 
     # todo do we need this & next func ?
-    def handle_city_selection(self, entry, country, event_location):
-        selected = event_location.get_selected_city(entry, country)
-        if selected:
-            # update location entry
-            location_entry = self.find_location_entry(entry)
-            if location_entry:
-                lat, lon, alt = [x.strip() for x in selected.split(", ")[1:]]
-                location_entry.set_text(f"{lat} {lon} {alt}")
+    # def handle_city_selection(self, entry, country, event_location):
+    #     selected = event_location.get_selected_city(entry, country)
+    #     if selected:
+    #         # update location entry
+    #         location_entry = self.find_location_entry(entry)
+    #         if location_entry:
+    #             lat, lon, alt = [x.strip() for x in selected.split(", ")[1:]]
+    #             location_entry.set_text(f"{lat} {lon} {alt}")
 
-    def find_location_entry(self, ent_city_):
-        # find corresponding ent_location in same event panel
-        parent = ent_city_.get_parent()
-        while parent:
-            location_entry = (
-                parent.get_child().get_widget("location")
-                if hasattr(parent, "get_widget")
-                else None
-            )
-            if location_entry:
-                return location_entry
-            parent = parent.get_parent()
-        return None
+    # def find_location_entry(self, ent_city_):
+    #     # find corresponding ent_location in same event panel
+    #     parent = ent_city_.get_parent()
+    #     while parent:
+    #         location_entry = (
+    #             parent.get_child().get_widget("location")
+    #             if hasattr(parent, "get_widget")
+    #             else None
+    #         )
+    #         if location_entry:
+    #             return location_entry
+    #         parent = parent.get_parent()
+    #     return None
 
     # button handlers
 
@@ -233,14 +233,14 @@ arrow key left / right : move time backward / forward
         self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
     ):
         self._adjust_event_time(-int(self.CHANGE_TIME_SELECTED))
-        get_selected_event_data()
+        get_selected_event_data(self)
         # self._notify.success(message="time change backward", source="sidepane.py")
 
     def obc_arrow_r(
         self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
     ):
         self._adjust_event_time(int(self.CHANGE_TIME_SELECTED))
-        get_selected_event_data()
+        get_selected_event_data(self)
         # self._notify.success(message="time change forward", source="sidepane.py")
 
     def obc_time_now(
