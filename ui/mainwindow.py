@@ -5,7 +5,7 @@ gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from typing import Any, Optional
 from .handlers import ContextManager
-from .sidepane import SidePaneManager
+from .sidepane.sidepane import SidePaneManager
 from .uisetup import UISetup
 from .hotkeymanager import HotkeyManager
 

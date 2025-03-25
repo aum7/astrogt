@@ -7,6 +7,7 @@ from gi.repository import Gtk, Adw  # type: ignore
 from ui.mainwindow import MainWindow
 from ui.notifymanager import NotifyManager
 from ui.signalmanager import SignalManager
+from sweph.swecore import SweCore
 from sweph.calculations.positions import SwePositions
 
 
@@ -19,6 +20,7 @@ class AstrogtApp(Gtk.Application):
         self.notify_manager = NotifyManager(self)
         # todo do we need this here ?
         self.swe_positions = SwePositions(self)
+        self.swe_core = SweCore(self)
 
     def do_activate(self):
         win = MainWindow(application=self)
