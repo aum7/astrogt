@@ -15,7 +15,8 @@ OBJECTS = {
 SWE_FLAG = {
     "swe_flag_default": r"swe.FLG_SWIEPH | swe.FLG_SPEED",
     # use sidereal (jyotisa) zodiac : else use tropical (western) zodiac
-    "sidereal_zodiac": True,  # FLG_SIDEREAL vs FLG_TROPICAL
+    "sidereal_zodiac": True,
+    # swe.FLG_SIDEREAL vs FLG_TROPICAL
     # use nutation : small irregularity in the precession of the equinoxes
     "nutation": True,  # FLG_NONUT
     # calculate heliocentric positions : astrology uses geocentric positions
@@ -52,9 +53,9 @@ CHART_SETTINGS = {
     "enable_glyphs": True,
     # harmonics division ring : 0 hide | 1 egypt. terms (bounds)
     # 7, 9 (navamsa), 11 etc ; not all harmonics are available ;
-    # add them if you need them
+    # add them if you need them | 2 rings are possible
     # !!! those are simple divisions, similar but NOT all equal to varga
-    "harmonics_ring": 0,
+    "harmonics_ring": {0},
     # show true midheaven & imum coeli when equal or whole house system is
     # selected : true mc / ic can differ by upto 2 signs in those cases
     "true_mc_ic": True,
@@ -151,7 +152,7 @@ CUSTOM_AYANAMSA = {
     # if needed, get julian day utc online, then copy-paste the number here
     "custom_utc_julian_day": "2451545.00000",
     # user-defined custom ayanamsa : must be decimal degrees
-    # default is 23.76694444 (23° 46' 01"), as per richard houck's book
+    # default is 23.76694445 (23° 46' 01"), as per richard houck's book
     # 'astrology of death', for 2000-01-01
     "custom_ayanamsa": "23.76694444",
 }

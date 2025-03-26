@@ -16,9 +16,18 @@ class SwePositions:
         # connect to data-changed signal
         self._signal._connect("event-one-changed", self.on_event_one_changed)
         self._signal._connect("event-two-changed", self.on_event_two_changed)
+<<<<<<< HEAD
         self.swe_core = self._app.swe_core
         self.e1data = self.swe_core.event_one_swe_ready()
         self.e2data = self.swe_core.event_two_swe_ready()
+=======
+        # get all needed data from swe core
+        self.swe_core = SweCore(self._app)
+        self.event_one_data = self.swe_core.event_one_swe_ready()
+        self.event_two_data = self.swe_core.event_two_swe_ready()
+        self.flags = self.swe_core._get_swe_flags()
+        print(f"flags : {self.flags}")
+>>>>>>> 9031895f95a4cdfa5335dfe07018a4de20f701e4
 
     def on_event_one_changed(self, data, *args):
         self.e1data = data

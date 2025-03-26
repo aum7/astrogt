@@ -5,7 +5,6 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk, GObject  # type: ignore
-from user.settings.settings import SWE_FLAG  # ,OBJECTS
 from ui.helpers import _parse_location, _parse_datetime
 
 
@@ -54,7 +53,10 @@ class SweCore(GObject.Object):
 
     def process_event_one(self, event=None):
         if event:
-            print("processing event one")
+            self._notify.warning(
+                "processing event one", source="swecore I getevent1data", timeout=1
+            )
+            # print("processing event one")
             if (
                 not event["name"]
                 or not event["country"]
@@ -98,7 +100,10 @@ class SweCore(GObject.Object):
 
     def process_event_two(self, event=None):
         if event:
-            print("processing event two")
+            self._notify.warning(
+                "processing event two", source="swecore I getevent2data", timeout=1
+            )
+            # print("processing event two")
             # if data nor provided, use event one data
             if not event["name"]:
                 event["name"] = self.event_one_name
@@ -162,7 +167,16 @@ class SweCore(GObject.Object):
         e1_datetime = _parse_datetime(
             self, self.event_one_date_time, e1_lat, e1_lon, caller="e1"
         )
-        e1_data = [e1_name, e1_country, e1_city, e1_lat, e1_lon, e1_alt, e1_datetime]
+        # e1_data = [e1_name, e1_country, e1_city, e1_lat, e1_lon, e1_alt, e1_datetime]
+        e1_data = {
+            "name": e1_name,
+            "country": e1_country,
+            "city": e1_city,
+            "lat": e1_lat,
+            "lon": e1_lon,
+            "alt": e1_alt,
+            "datetime": e1_datetime,
+        }
         # store data as attribute
         self.swe_e1_data = e1_data
         # self._notify.debug("event 1 data ready -------", source="swecore")
@@ -186,31 +200,18 @@ class SweCore(GObject.Object):
         e2_datetime = _parse_datetime(
             self, self.event_two_date_time, e2_lat, e2_lon, caller="e2"
         )
-        e2_data = [e2_name, e2_country, e2_city, e2_lat, e2_lon, e2_alt, e2_datetime]
+        # e2_data = [e2_name, e2_country, e2_city, e2_lat, e2_lon, e2_alt, e2_datetime]
+        # also get flags
+        e2_data = {
+            "name": e2_name,
+            "country": e2_country,
+            "city": e2_city,
+            "lat": e2_lat,
+            "lon": e2_lon,
+            "alt": e2_alt,
+            "datetime": e2_datetime,
+        }
         # store data as attribute
         self.swe_e2_data = e2_data
         # self._notify.debug("event 2 data ready -------", source="swecore")
         return e2_data
-
-    def _get_swe_flags(self):
-        """configure swisseph flags"""
-        flags = SWE_FLAG["swe_flag_default"]
-
-        if SWE_FLAG["sidereal_zodiac"]:
-            flags |= swe.FLG_SIDEREAL
-        if SWE_FLAG["nutation"]:
-            flags |= swe.FLG_NONUT
-        if SWE_FLAG["heliocentric"]:
-            flags |= swe.FLG_HELCTR
-        if SWE_FLAG["true_positions"]:
-            flags |= swe.FLG_TRUEPOS
-        if SWE_FLAG["topocentric"]:
-            flags |= swe.FLG_TOPOCTR
-        if SWE_FLAG["equatorial"]:
-            flags |= swe.FLG_EQUATORIAL
-        if SWE_FLAG["cartesian"]:
-            flags |= swe.FLG_XYZ
-        if SWE_FLAG["radians"]:
-            flags |= swe.FLG_RADIANS
-
-        return flags
