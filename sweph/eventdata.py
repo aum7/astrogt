@@ -1,23 +1,20 @@
 # ruff: noqa: E402
 import re
-
-# import pytz
 import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
-from math import modf
-# from datetime import datetime
+from ui.helpers import _decimal_to_dms  # type: ignore
 
 
 class EventData:
     def __init__(
         self,
         event_name,
-        date_time,
-        location,
-        country=None,
-        city=None,
+        country,
+        city,
+        location=None,
+        date_time=None,
         app=None,
     ):
         """get user input and puf! puf! into sweph"""
@@ -96,8 +93,8 @@ class EventData:
                         lon = float(lon_parts[0])
                         lon_dir = lon_parts[1]
                         # convert to deg-min-sec
-                        lat_deg, lat_min, lat_sec = self.decimal_to_dms(abs(lat))
-                        lon_deg, lon_min, lon_sec = self.decimal_to_dms(abs(lon))
+                        lat_deg, lat_min, lat_sec = _decimal_to_dms(abs(lat))
+                        lon_deg, lon_min, lon_sec = _decimal_to_dms(abs(lon))
                     else:
                         # d-m-s format : seconds are optional
                         if len(lat_parts) < 3 or len(lon_parts) < 3:
@@ -144,8 +141,8 @@ class EventData:
                     lat_dir = "s" if lat < 0 else "n"
                     lon_dir = "w" if lon < 0 else "e"
                     # convert to d-m-s
-                    lat_deg, lat_min, lat_sec = self.decimal_to_dms(abs(lat))
-                    lon_deg, lon_min, lon_sec = self.decimal_to_dms(abs(lon))
+                    lat_deg, lat_min, lat_sec = _decimal_to_dms(abs(lat))
+                    lon_deg, lon_min, lon_sec = _decimal_to_dms(abs(lon))
 
                 except ValueError as e:
                     self._notify.error(
@@ -402,20 +399,10 @@ class EventData:
             )
             return
 
-    def decimal_to_dms(self, decimal):
-        """convert decimal number to degree-minute-second"""
-        min_, deg_ = modf(decimal)
-        sec_, _ = modf(min_ * 60)
-        deg = int(deg_)
-        min = int(min_ * 60)
-        sec = int(sec_ * 60)
-
-        return deg, min, sec
-
-    def get_event_data(self):
+    def collect_event_data(self):
         """values from all entries needed for an event"""
+        name_value = self.event_name.get_text().strip() if self.event_name else ""
         country_value = None
-        city_value = None
         # get country
         if self.country:
             selected = self.country.get_selected()
@@ -423,18 +410,17 @@ class EventData:
             if model and selected >= 0:
                 country_value = model.get_string(selected)
         # get city
+        city_value = None
         if self.city:
             city_value = self.city.get_text().strip()
+        # check for empty values
+        location_value = self.location.get_text().strip() if self.location else ""
+        date_time_value = self.date_time.get_text().strip() if self.date_time else ""
 
         return {
-            "name": self.event_name.get_text().strip(),
+            "name": name_value,
             "country": country_value,
             "city": city_value,
-            "location": self.location.get_text().strip(),
-            "date_time": self.date_time.get_text().strip(),
+            "location": location_value,
+            "date_time": date_time_value,
         }
-
-    # def set_current_utc(self):
-    #     current_utc = datetime.now(pytz.UTC)
-    #     formatted_utc = current_utc.strftime("%Y-%m-%d %H:%M:%S")
-    #     self.date_time.set_text(formatted_utc)

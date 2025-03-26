@@ -1,9 +1,9 @@
 # ruff: noqa: E402
-from typing import Callable
 import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk, Gdk  # type: ignore
+from typing import Callable
 
 
 class UISetup:
@@ -77,7 +77,7 @@ class UISetup:
         self.rvl_side_pane.set_child(self.frm_side_pane)
 
     def setup_menu_button(self):
-        ico_menu = Gtk.Image.new_from_file("ui/imgs/icons/menu.svg")
+        ico_menu = Gtk.Image.new_from_file("ui/imgs/icons/hicolor/scalable/menu.svg")
         ico_menu.set_icon_size(Gtk.IconSize.LARGE)
         icon_hmargin = icon_vmargin = 0
         ico_menu.set_margin_start(icon_hmargin)

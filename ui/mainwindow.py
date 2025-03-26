@@ -1,15 +1,14 @@
 # ruff: noqa: E402
 import gi
-import pytz
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from typing import Any, Optional
-from datetime import datetime
-from .handlers import ContextManager
+from .contextmanager import ContextManager
 from .sidepane.sidepane import SidePaneManager
 from .uisetup import UISetup
 from .hotkeymanager import HotkeyManager
+from ui.helpers import _on_time_now, _event_selection
 
 
 class MainWindow(
@@ -59,19 +58,19 @@ class MainWindow(
         self._hotkeys.register_hotkey("Down", self.obc_arrow_dn)
         self._hotkeys.register_hotkey("Left", self.obc_arrow_l)
         self._hotkeys.register_hotkey("Right", self.obc_arrow_r)
-        self._hotkeys.register_hotkey("n", self.on_time_now)
-        # self._hotkeys.register_hotkey("n", self.obc_time_now)
-        self._hotkeys.register_hotkey("e", self.event_toggle_selected)
-
-    def get_focused_event_data(self, event_name: str, widget=None) -> None:
-        """get data for focused event on datetime entry"""
-        # print("get_focused_event_data called")
-        if event_name == "event one":
-            event_one_data = self.EVENT_ONE.get_event_data() if self.EVENT_ONE else None
-            self.swe_core.get_event_one_data(event_one_data)
-        elif event_name == "event two":
-            event_two_data = self.EVENT_TWO.get_event_data() if self.EVENT_TWO else None
-            self.swe_core.get_event_two_data(event_two_data)
+        # call helper function
+        self._hotkeys.register_hotkey("n", lambda: _on_time_now(self))
+        self._hotkeys.register_hotkey(
+            "e",
+            lambda gesture, n_press, x, y: _event_selection(
+                gesture,
+                n_press,
+                x,
+                y,
+                "event one" if self.selected_event == "event two" else "event two",
+                self,
+            ),
+        )
 
     # hotkey action functions
     def show_help(self):
@@ -108,16 +107,3 @@ class MainWindow(
             self.pnd_main_v.set_position(self.pnd_main_v.get_height() // 2)
             self.pnd_top_h.set_position(self.pnd_top_h.get_width() // 2)
             self.pnd_btm_h.set_position(self.pnd_btm_h.get_width() // 2)
-
-    def on_time_now(self):
-        """set time now for selected event location & update entry"""
-        if self.selected_event == "event one" and self.EVENT_ONE:
-            current_utc = datetime.now(pytz.utc)
-            formatted_utc = current_utc.strftime("%Y-%m-%d %H:%M:%S")
-            self.EVENT_ONE.date_time.set_text(formatted_utc)
-            self.EVENT_ONE.on_date_time_change(self.EVENT_ONE.date_time)
-        elif self.selected_event == "event two" and self.EVENT_TWO:
-            current_utc = datetime.now(pytz.utc)
-            formatted_utc = current_utc.strftime("%Y-%m-%d %H:%M:%S")
-            self.EVENT_TWO.date_time.set_text(formatted_utc)
-            self.EVENT_TWO.on_date_time_change(self.EVENT_TWO.date_time)

@@ -1,11 +1,9 @@
 # ruff: noqa: E402
 # ruff: noqa: E701
-# import swisseph as swe
 import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
-# from sweph.swecore import SweCore  # event data
 
 
 class SwePositions:
@@ -24,7 +22,6 @@ class SwePositions:
 
     def on_event_one_changed(self, data, *args):
         self.e1data = data
-        # event = self.data.get("event one")
         print(f"event 1 changed : {self.e1data}")
         # self.swe_one_data()
         # self._notify.success(
@@ -35,10 +32,7 @@ class SwePositions:
     def on_event_two_changed(self, data, *args):
         self.e2data = data
         print(f"event 2 changed : {self.e2data}")
+        print(f"\t[0] : {self.e2data[0]}")
         # process data
-        for event_name, event_data in self.e2data.items():
-            if event_data and len(event_data) >= 4:
-                jd_ut = event_data[3]
-                if isinstance(jd_ut, float):  # and'jd_ut_swe' in datetime_dict:
-                    print(f"e2 : {event_name} | jd_ut : {jd_ut}")
-        return self.e1data
+        jd_ut = self.e2data[-1]
+        print(f"e2 : jd_ut : {jd_ut}")

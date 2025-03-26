@@ -1,8 +1,4 @@
 # ruff: noqa: E402
-from datetime import datetime, timezone
-from enum import Enum
-from typing import Optional
-from pathlib import Path
 import os
 import logging
 import gi
@@ -10,6 +6,11 @@ import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Gtk, Adw, GLib  # type: ignore
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Optional
+from pathlib import Path
+from ui.helpers import _create_icon
 
 
 class NotifyLevel(Enum):
@@ -181,20 +182,19 @@ class NotifyManager:
                 box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
                 box.set_margin_start(3)
                 box.set_margin_end(5)
-                # icon based on level
-                icon = Gtk.Image()
-                icon.set_pixel_size(24)
                 # try to load custom icon
-                icon_name = f"notify-{msg.level.value}"
-                icon_path = os.path.join(
+                icon_name = f"notify-{msg.level.value}.svg"
+                icons_path = os.path.join(
                     os.path.dirname(__file__),
                     "imgs",
                     "icons",
+                    "hicolor",
+                    "scalable",
                     "notify",
-                    f"{icon_name}.svg",
+                    "",
                 )
-                if os.path.exists(icon_path):
-                    icon.set_from_file(icon_path)
+                if os.path.exists(f"{icons_path}{icon_name}"):
+                    icon = _create_icon(self, icons_path, icon_name)
                 else:
                     # fallback to system icons
                     fallback_icons = {
@@ -204,11 +204,12 @@ class NotifyManager:
                         NotifyLevel.ERROR: "dialog-error",
                         NotifyLevel.DEBUG: "preferences-system",
                     }
+                    icon = Gtk.Image()
                     icon.set_from_icon_name(fallback_icons[msg.level])
+                icon.set_pixel_size(24)
                 box.append(icon)
                 # label with message
                 label = Gtk.Label(label=str(msg))
-                # label.add_css_class("heading")
                 box.append(label)
                 # create toast
                 toast = Adw.Toast.new("")
