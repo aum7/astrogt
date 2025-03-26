@@ -1,16 +1,17 @@
 # ruff: noqa: E402
+import swisseph as swe
 import pytz
 import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
-from math import modf
 from datetime import datetime, timezone, timedelta
-from typing import Optional
+from timezonefinder import TimezoneFinder
+from typing import Optional, Dict, Union
+from math import modf
 
 
 def _create_icon(manager, icons_path, icon_name):
-    # icons_path = icons_path
     return Gtk.Image.new_from_file(f"{icons_path}{icon_name}")
 
 
@@ -27,22 +28,32 @@ def _decimal_to_dms(decimal):
 
 def _on_time_now(manager):
     """set time now for selected event location & update entry"""
-    print(f"ontimenow : {manager.selected_event}")
-    if manager.selected_event == "event one" and manager.EVENT_ONE:
-        current_utc = datetime.now(pytz.utc)
-        formatted_utc = current_utc.strftime("%Y-%m-%d %H:%M:%S")
-        manager.EVENT_ONE.date_time.set_text(formatted_utc)
-        manager.EVENT_ONE.on_date_time_change(manager.EVENT_ONE.date_time)
-    elif manager.selected_event == "event two" and manager.EVENT_TWO:
-        current_utc = datetime.now(pytz.utc)
-        formatted_utc = current_utc.strftime("%Y-%m-%d %H:%M:%S")
-        manager.EVENT_TWO.date_time.set_text(formatted_utc)
-        manager.EVENT_TWO.on_date_time_change(manager.EVENT_TWO.date_time)
+    manager._notify.debug(
+        "collecting application / computer time ...",
+        source="_on_time_now",
+        route=["terminal", "user"],
+        timeout=1,
+    )
+    # get datetime compoter now
+    dt_app = datetime.now()
+    # puf! puf! to utc
+    dt_utc = dt_app.astimezone(pytz.utc)
+    # format & set new value
+    dt_utc_str = dt_utc.strftime("%Y-%m-%d %H:%M:%S %z (%Z)")
+    manager._notify.debug(
+        f"time now dt_app : {dt_app}"
+        f"\n\tformatted : {dt_app.strftime('%Y-%m-%d %H:%M:%S %z (%Z)')}"
+        f"\ntime now dt_utc : {dt_utc}"
+        f"\n\tformatted : {dt_utc.strftime('%Y-%m-%d %H:%M:%S %z (%Z)')}",
+        source="_on_time_now",
+        route=["terminal", "user"],
+        timeout=1,
+    )
+    _parse_datetime(manager, dt_utc_str, is_utc=True)
 
 
 def _process_event(manager, event_name: Optional[str]) -> None:
     """get data for event on datetime entry"""
-    print("_process_event_data called")
     if event_name is None or event_name == "":
         event_name = manager.selected_event
     if event_name == "event one":
@@ -84,9 +95,9 @@ def _change_event_time(manager, sec_delta):
     else:
         entry = None
         manager._notify.debug(
-            "adjusteventtime : no event selected for entry",
-            source="sidepane",
-            route=["terminal"],
+            "no event selected for entry",
+            source="_change_event_time",
+            route=["terminal", "user"],
         )
     if not entry:
         return
@@ -95,8 +106,9 @@ def _change_event_time(manager, sec_delta):
     # if empty, use current utc
     if not current_text:
         manager._notify.warning(
-            "dadjusteventtime : datetime None : using utc",
-            source="sidepane [adjust_event_time]",
+            "datetime None : using utc",
+            source="_change_event_time",
+            route=["terminal", "user"],
         )
         current_utc = datetime.now(timezone.utc)
     else:
@@ -107,8 +119,9 @@ def _change_event_time(manager, sec_delta):
             current_utc = current_utc.replace(tzinfo=timezone.utc)
         except ValueError:
             manager._notify.error(
-                "adjusteventtime : invalid datetime format, using datetime.now utc",
-                source="sidepane",
+                "invalid datetime format, using datetime now utc",
+                source="_change_event_time",
+                route=["terminal", "user"],
             )
             current_utc = datetime.now(timezone.utc)
     # apply delta
@@ -149,3 +162,183 @@ def _change_time_period(
         # )
         seconds = new_key.split("_")[-1]
         manager.CHANGE_TIME_SELECTED = seconds
+
+
+def _parse_location(
+    manager, location_str: str
+) -> Optional[Dict[str, Union[float, int]]]:
+    """parse location string"""
+    try:
+        # expected format : lat, lon, alt or lat, lon
+        parts = location_str.strip().lower().split(" ")
+        if len(parts) < 8:
+            return None
+        # latitide
+        lat_deg = float(parts[0])
+        lat_min = float(parts[1])
+        lat_sec = float(parts[2])
+        lat_dir = parts[3]
+        # longitude
+        lon_deg = float(parts[4])
+        lon_min = float(parts[5])
+        lon_sec = float(parts[6])
+        lon_dir = parts[7]
+
+        alt = 0
+        if len(parts) == 9:
+            alt = int(parts[8])
+        # string to decimal degrees
+        lat = lat_deg + lat_min / 60 + lat_sec / 3600
+        if lat_dir == "s":
+            lat = -lat
+        lon = lon_deg + lon_min / 60 + lon_sec / 3600
+        if lon_dir == "w":
+            lon = -lon
+
+        return {
+            "lat": lat,
+            "lon": lon,
+            "alt": alt,
+        }
+    except Exception as e:
+        manager._notify.error(
+            message=f"error parsing location '{location_str}'\n\t{e}",
+            source="_parselocation",
+            route=["terminal", "user"],
+        )
+        return None
+
+
+def _parse_datetime(
+    manager,
+    dt_str: str,
+    lat: Optional[float] = None,
+    lon: Optional[float] = None,
+    caller: Optional[str] = None,
+    is_utc: bool = False,
+) -> Optional[float]:
+    """parse datetime string & return julian day utc"""
+    # print(f"_parsedatetime : dt_str : {dt_str}")
+    # dt_str = dt_str
+    # lat = lat
+    # lon = lon
+    if not dt_str:
+        manager._notify.error(
+            "datetime string is None : exiting ...",
+            source="_parsedatetime",
+            route=["terminal", "user"],
+        )
+        return None
+    try:
+        # expected format without timezone : YYYY-MM-DD HH:MM:SS
+        dt_naive = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
+        if is_utc:
+            # computer time in  utc, can be anywhere on planet earth
+            # we have datetime utc > calculate julianday
+            dt_utc = dt_naive.replace(tzinfo=pytz.utc)
+            manager._notify.debug(
+                f"using received utc time : {dt_utc.strftime('%Y-%m-%d %H:%M:%S %z (%Z)')}",
+                source="_parsedatetime",
+                route=["terminal", "user"],
+                # __to_jd_utc(manager, dt_utc)
+            )
+        # else we need convert event location to utc
+        else:
+            # check lat & lon
+            if (lat is None or lon is None) and caller:
+                if caller == "e1":
+                    location = _parse_location(manager, manager.event_one_location)
+                elif caller == "e2":
+                    location = _parse_location(manager, manager.event_two_location)
+                else:
+                    location = None
+                if location:
+                    lat = location["lat"]
+                    lon = location["lon"]
+            # convert to timezone-aware datetime
+            if lat is not None and lon is not None:
+                # find timezone of location
+                tf = TimezoneFinder()
+                timezone_str = tf.timezone_at(lat=lat, lng=lon)
+                if timezone_str:
+                    timezone = pytz.timezone(timezone_str)
+                    # convert to timezone-aware datetime : format differs from ours
+                    dt_event = timezone.localize(dt_naive)
+                    dt_event_str = dt_event.strftime("%Y-%m-%d %H:%M:%S %z (%Z)")
+                    manager._notify.debug(
+                        f"dt_event :\t{dt_event_str}",
+                        source="_parsedatetime",
+                        route=["terminal", "user"],
+                    )
+                    # to utc
+                    dt_utc = dt_event.astimezone(pytz.utc)
+                    dt_utc_event_str = dt_utc.strftime("%Y-%m-%d %H:%M:%S %z (%Z)")
+                    # print(f"dt_utc_str : {dt_utc_str}")
+                    manager._notify.debug(
+                        f"\ndt_utc for event (astimezone) :\t{dt_utc_event_str}",
+                        f"\n\t\tdt_utc_event_str :\t{dt_utc_event_str}",
+                        source="_parsedatetime",
+                        route=["terminal", "user"],
+                    )
+                    # __to_jd_utc(dt_utc)
+                    # __set_ent_text(manager, dt_utc, caller):
+                else:
+                    # timezone not found : fallback - should be logged
+                    manager._notify.warning(
+                        "timezone not found, using utc",
+                        source="_parsedatetime",
+                        route=["terminal", "user"],
+                    )
+                    dt_utc = dt_naive.replace(tzinfo=pytz.utc)
+            else:
+                # no coordinates provided : fallback - should be logged
+                manager._notify.warning(
+                    "coordinates missing, using utc",
+                    source="_parsedatetime",
+                    route=["terminal", "user"],
+                )
+                # conver original string
+                # dt_str_utc = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S %z (%Z)")
+                dt_utc = dt_naive.replace(tzinfo=pytz.utc)
+
+        # update entry text if needed
+        __set_entry_text(manager, dt_utc, caller)
+
+        # julianday with swisseph
+        jd_ut = swe.julday(
+            dt_utc.year,
+            dt_utc.month,
+            dt_utc.day,
+            dt_utc.hour + dt_utc.minute / 60 + dt_utc.second / 3600,
+        )
+        manager._notify.debug(
+            f"jd_ut calculated : {jd_ut}",
+            source="_parsedatetime",
+            route=["terminal", "user"],
+        )
+        return jd_ut
+
+    except Exception as e:
+        manager._notify.error(
+            f"error parsing datetime\n\t{e}",
+            source="_parsedatetime",
+        )
+        # print(f"error parsing datetime\n\t{e}")
+        return None
+
+
+def __set_entry_text(manager, dt_utc, caller):
+    if (
+        caller == "e1"
+        and hasattr(manager, "EVENT_ONE")
+        and manager.EVENT_ONE
+        and hasattr(manager.EVENT_ONE, "date_time")
+    ):
+        manager.EVENT_ONE.date_time.set_text(dt_utc.strftime("%Y-%m-%d %H:%M:%S"))
+    elif (
+        caller == "e2"
+        and hasattr(manager, "EVENT_TWO")
+        and manager.EVENT_TWO
+        and hasattr(manager.EVENT_TWO, "date_time")
+    ):
+        manager.EVENT_TWO.date_time.set_text(dt_utc.strftime("%Y-%m-%d %H:%M:%S"))

@@ -2,14 +2,11 @@
 import os
 import swisseph as swe
 import gi
-import pytz
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk, GObject  # type: ignore
-from typing import Optional, Union, Dict
 from user.settings.settings import SWE_FLAG  # ,OBJECTS
-from datetime import datetime
-from timezonefinder import TimezoneFinder
+from ui.helpers import _parse_location, _parse_datetime
 
 
 class SweCore(GObject.Object):
@@ -153,7 +150,7 @@ class SweCore(GObject.Object):
         e1_country = self.event_one_country
         e1_city = self.event_one_city
         # this need be parsed to lat, lon, alt
-        e1_location = self._parse_location(self.event_one_location)
+        e1_location = _parse_location(self, self.event_one_location)
         e1_lat = None
         e1_lon = None
         e1_alt = None
@@ -162,8 +159,8 @@ class SweCore(GObject.Object):
             e1_lon = e1_location["lon"]
             e1_alt = e1_location["alt"]
         # this need be parsed to julian day
-        e1_datetime = self._parse_datetime(
-            self.event_one_date_time, e1_lat, e1_lon, caller="e1"
+        e1_datetime = _parse_datetime(
+            self, self.event_one_date_time, e1_lat, e1_lon, caller="e1"
         )
         e1_data = [e1_name, e1_country, e1_city, e1_lat, e1_lon, e1_alt, e1_datetime]
         # store data as attribute
@@ -177,7 +174,7 @@ class SweCore(GObject.Object):
         e2_country = self.event_two_country
         e2_city = self.event_two_city
         # this need be parsed to lat, lon, alt
-        e2_location = self._parse_location(self.event_two_location)
+        e2_location = _parse_location(self, self.event_two_location)
         e2_lat = None
         e2_lon = None
         e2_alt = None
@@ -186,129 +183,14 @@ class SweCore(GObject.Object):
             e2_lon = e2_location["lon"]
             e2_alt = e2_location["alt"]
         # this need be parsed to julian day
-        e2_datetime = self._parse_datetime(
-            self.event_two_date_time, e2_lat, e2_lon, caller="e2"
+        e2_datetime = _parse_datetime(
+            self, self.event_two_date_time, e2_lat, e2_lon, caller="e2"
         )
         e2_data = [e2_name, e2_country, e2_city, e2_lat, e2_lon, e2_alt, e2_datetime]
         # store data as attribute
         self.swe_e2_data = e2_data
         # self._notify.debug("event 2 data ready -------", source="swecore")
         return e2_data
-
-    def _parse_location(
-        self, location_str: str
-    ) -> Optional[Dict[str, Union[float, int]]]:
-        """parse location string"""
-        try:
-            # expected format : lat, lon, alt or lat, lon
-            parts = location_str.strip().lower().split(" ")
-            if len(parts) < 8:
-                return None
-            # latitide
-            lat_deg = float(parts[0])
-            lat_min = float(parts[1])
-            lat_sec = float(parts[2])
-            lat_dir = parts[3]
-            # longitude
-            lon_deg = float(parts[4])
-            lon_min = float(parts[5])
-            lon_sec = float(parts[6])
-            lon_dir = parts[7]
-
-            alt = 0
-            if len(parts) == 9:
-                alt = int(parts[8])
-            # string to decimal degrees
-            lat = lat_deg + lat_min / 60 + lat_sec / 3600
-            if lat_dir == "s":
-                lat = -lat
-            lon = lon_deg + lon_min / 60 + lon_sec / 3600
-            if lon_dir == "w":
-                lon = -lon
-
-            return {
-                "lat": lat,
-                "lon": lon,
-                "alt": alt,
-            }
-        except Exception as e:
-            self.notify_user(
-                message=f"error parsing location '{location_str}'\n\tstr({e})",
-                source="swepositions",
-                level="error",
-            )
-            return None
-
-    def _parse_datetime(
-        self,
-        dt_str: str,
-        lat: Optional[float] = None,
-        lon: Optional[float] = None,
-        caller: Optional[str] = None,
-    ) -> Optional[float]:
-        """parse datetime string"""
-        # print(f"_parsedatetime : dt_str : {dt_str}")
-        lat = lat
-        lon = lon
-        if not dt_str:
-            return None
-        try:
-            # expected format : YYYY-MM-DD HH:MM:SS
-            dt_local = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
-            # check lat & lon
-            if (lat is None or lon is None) and caller:
-                if caller == "e1":
-                    location = self._parse_location(self.event_one_location)
-                elif caller == "e2":
-                    location = self._parse_location(self.event_two_location)
-                else:
-                    location = None
-                if location:
-                    lat = location["lat"]
-                    lon = location["lon"]
-            # convert to timezone aware datetime
-            if lat is not None and lon is not None:
-                # find timezone of location
-                tf = TimezoneFinder()
-                timezone_str = tf.timezone_at(lat=lat, lng=lon)
-                if timezone_str:
-                    timezone = pytz.timezone(timezone_str)
-                    # convert to timezone aware datetime
-                    dt_local = timezone.localize(dt_local)
-                    # to utc
-                    dt_utc = dt_local.astimezone(pytz.utc)
-                    dt_utc_str = dt_utc.strftime("%Y-%m-%d %H:%M:%S %z (%Z)")
-                    print(f"dt_utc_str : {dt_utc_str}")
-                else:
-                    # timezone not found : fallback - should be logged
-                    self._notify.warning(
-                        "timezone not found, using utc", source="swecore"
-                    )
-                    dt_utc = dt_local.replace(tzinfo=pytz.utc)
-            else:
-                # no coordinates provided : fallback - should be logged
-                self._notify.warning(
-                    "coordinates missing, using utc",
-                    source="swecore",
-                )
-                dt_utc = dt_local.replace(tzinfo=pytz.utc)
-            # julianday with swisseph
-            jd_ut = swe.julday(
-                dt_utc.year,
-                dt_utc.month,
-                dt_utc.day,
-                dt_utc.hour + dt_utc.minute / 60 + dt_utc.second / 3600,
-            )
-            # print(f"_parsedatetime : jd_ut_swe : {jd_ut_swe}")
-            return jd_ut
-
-        except Exception as e:
-            self._notify.error(
-                f"error parsing datetime\n\t{e}",
-                source="swecore",
-            )
-            # print(f"error parsing datetime\n\t{e}")
-            return None
 
     def _get_swe_flags(self):
         """configure swisseph flags"""
