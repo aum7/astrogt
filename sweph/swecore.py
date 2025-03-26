@@ -53,10 +53,12 @@ class SweCore(GObject.Object):
 
     def process_event_one(self, event=None):
         if event:
-            self._notify.warning(
-                "processing event one", source="swecore I getevent1data", timeout=1
+            self._notify.info(
+                "processing event one",
+                source="swecore",
+                route=["terminal", "user"],
+                timeout=1,
             )
-            # print("processing event one")
             if (
                 not event["name"]
                 or not event["country"]
@@ -101,9 +103,11 @@ class SweCore(GObject.Object):
     def process_event_two(self, event=None):
         if event:
             self._notify.warning(
-                "processing event two", source="swecore I getevent2data", timeout=1
+                "processing event two",
+                source="swecore",
+                route=["terminal", "user"],
+                timeout=1,
             )
-            # print("processing event two")
             # if data nor provided, use event one data
             if not event["name"]:
                 event["name"] = self.event_one_name
