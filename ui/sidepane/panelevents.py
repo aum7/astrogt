@@ -6,6 +6,7 @@ from gi.repository import Gtk  # type: ignore
 from ui.collapsepanel import CollapsePanel
 from sweph.eventdata import EventData
 from sweph.eventlocation import EventLocation
+from ui.helpers import _process_event, _event_selection
 
 
 def setup_event(event_name: str, expand: bool, manager) -> CollapsePanel:
@@ -36,7 +37,7 @@ if location two = location one"""
     gesture = Gtk.GestureClick.new()
     gesture.connect(
         "pressed",
-        lambda g, n, x, y: obc_event_selection(g, n, x, y, event_name, manager),
+        lambda g, n, x, y: _event_selection(g, n, x, y, event_name, manager),
     )
     panel.add_title_controller(gesture)
     # location nested panel
@@ -175,27 +176,28 @@ only use [space] as separator
     )
     ent_datetime.connect(
         "activate",
-        lambda widget, en=event_name: manager.get_focused_event_data(en),
+        lambda widget, en=event_name: _process_event(manager, en),
     )
     # put widgets into sub-panel
     subpnl_datetime.add_widget(ent_datetime)
     # create eventdata instance
+    # todo below code assigns widgets to EVENT_ONE or EVENT_TWO
     if event_name == "event one":
         manager.EVENT_ONE = EventData(
             ent_event_name,
-            ent_datetime,
-            ent_location,
             country=ddn_country,
             city=ent_city,
+            location=ent_location,
+            date_time=ent_datetime,
             app=manager._app,
         )
     else:
         manager.EVENT_TWO = EventData(
             ent_event_name,
-            ent_datetime,
-            ent_location,
             country=ddn_country,
             city=ent_city,
+            location=ent_location,
+            date_time=ent_datetime,
             app=manager._app,
         )
     # main box for event panels
@@ -208,61 +210,3 @@ only use [space] as separator
     panel.add_widget(box_event)
 
     return panel
-
-
-# def event_toggle_selected(manager):
-#     """toggle selected event"""
-#     if manager.selected_event == "event one":
-#         manager.selected_event = "event two"
-#         print(f"event_toggle_selected : {manager.selected_event} selected")
-#         manager.clp_event_one.remove_title_css_class("label-event-selected")
-#         manager.clp_event_two.add_title_css_class("label-event-selected")
-#     elif manager.selected_event == "event two":
-#         manager.selected_event = "event one"
-#         print(f"event_toggle_selected : {manager.selected_event} selected")
-#         manager.clp_event_two.remove_title_css_class("label-event-selected")
-#         manager.clp_event_one.add_title_css_class("label-event-selected")
-
-
-def obc_event_selection(gesture, n_press, x, y, event_name, manager):
-    """handle event selection"""
-    if manager.selected_event != event_name:
-        manager.selected_event = event_name
-        if manager.selected_event == "event one":
-            # todo comment
-            print(f"event_selection : {manager.selected_event} selected")
-            manager.clp_event_two.remove_title_css_class("label-event-selected")
-            manager.clp_event_one.add_title_css_class("label-event-selected")
-        if manager.selected_event == "event two":
-            # todo comment
-            print(f"event_selection : {manager.selected_event} selected")
-            manager.clp_event_one.remove_title_css_class("label-event-selected")
-            manager.clp_event_two.add_title_css_class("label-event-selected")
-
-
-def get_focused_event_data(manager, event_name: str, widget=None) -> None:
-    """get data for focused event on datetime entry"""
-    # print("get_focused_event_data called")
-    if event_name == "event one":
-        event_one_data = (
-            manager.EVENT_ONE.get_event_data() if manager.EVENT_ONE else None
-        )
-        manager.swe_core.get_event_one_data(event_one_data)
-    elif event_name == "event two":
-        event_two_data = (
-            manager.EVENT_TWO.get_event_data() if manager.EVENT_TWO else None
-        )
-        manager.swe_core.get_event_two_data(event_two_data)
-
-
-def get_selected_event_data(manager, widget=None) -> None:
-    """get data for selected event"""
-    # print("get_selected_event_data called")
-    if manager.selected_event == "event one" and manager.EVENT_ONE:
-        manager.swe_core.get_event_one_data(
-            manager.EVENT_ONE.get_event_data(),
-        )
-    elif manager.selected_event == "event two" and manager.EVENT_TWO:
-        manager.swe_core.get_event_two_data(
-            manager.EVENT_TWO.get_event_data(),
-        )

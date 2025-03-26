@@ -1,10 +1,11 @@
 # ruff: noqa: E402
-from typing import Dict, Callable
+import inspect
 import gi
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Gdk", "4.0")
 from gi.repository import Gtk, Gdk  # type: ignore
+from typing import Dict, Callable
 
 
 class HotkeyManager:
@@ -121,7 +122,17 @@ class HotkeyManager:
 
     def _trigger_hotkey(self, shortcut: str) -> bool:
         if shortcut and shortcut in self.hotkey_map:
-            self.hotkey_map[shortcut]()
+            # check what function expects
+            sig = inspect.signature(self.hotkey_map[shortcut])
+            param_count = len(sig.parameters)
+            if param_count <= 1:  # just self
+                self.hotkey_map[shortcut]()
+            elif param_count <= 2:  # self, widget
+                self.hotkey_map[shortcut](None)
+            elif param_count <= 3:  # self, widget, data
+                self.hotkey_map[shortcut](None, None, None)
+            else:  # default : try withouth params
+                self.hotkey_map[shortcut](None, 1, 0, 0)
             return True
 
         return False

@@ -55,7 +55,7 @@ class SweCore(GObject.Object):
         # close swe after initialisation
         swe.close()
 
-    def get_event_one_data(self, event=None):
+    def process_event_one(self, event=None):
         if event:
             print("processing event one")
             if (
@@ -99,7 +99,7 @@ class SweCore(GObject.Object):
                     source="swecore",
                 )
 
-    def get_event_two_data(self, event=None):
+    def process_event_two(self, event=None):
         if event:
             print("processing event two")
             # if data nor provided, use event one data

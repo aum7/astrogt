@@ -19,8 +19,9 @@ class AstrogtApp(Gtk.Application):
         self.signal_manager = SignalManager(self)
         self.notify_manager = NotifyManager(self)
         # todo do we need this here ?
-        self.swe_positions = SwePositions(self)
         self.swe_core = SweCore(self)
+        self.swe_positions = SwePositions(self)
+        self.swe_positions.swe_core = self.swe_core
 
     def do_activate(self):
         win = MainWindow(application=self)

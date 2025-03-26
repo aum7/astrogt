@@ -79,7 +79,7 @@ class EventLocation:
             self._notify.warning(
                 "city not found",
                 source="eventlocation",
-                do_log=False,
+                route=["user"],
             )
             return
 
