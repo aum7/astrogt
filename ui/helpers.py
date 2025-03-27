@@ -213,56 +213,40 @@ def _parse_datetime(
     is_utc: bool = False,
 ) -> Optional[float]:
     """parse datetime string & return julian day utc"""
-    if not dt_str:
-        if not is_utc:
-            manager._notify.error(
-                f"datetime string is none ({caller}): exiting ...",
-                source="_parsedatetime",
-                route=["terminal"],
-            )
-            return None
-        manager._notify.warning(
-            "dt_str missing, using utc",
+    if not dt_str and not is_utc:
+        manager._notify.error(
+            f"datetime string is none ({caller}): exiting ...",
             source="_parsedatetime",
             route=["terminal"],
         )
-        dt_str = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+        return None
     event = manager.selected_event
     _event = None
+    timezone_str = None
     if event in ["event one", "event two"]:
         _event = getattr(manager, event.upper().replace(" ", "_"))
-
         # get latitude & longitude
-        if lat is None or lon is None:
-            event = manager.selected_event
-            _location = _event.location.get_text()
-            location = _parse_location(manager, _location) if _location else {}
-            if location:
-                lat, lon = location["lat"], location["lon"]
-    try:
-        # parse naive datetim
-        dt_naive = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
-        # manager._notify.debug(
-        #     f"---------\n\treceived dt_naive : {dt_naive.strftime('%Y-%m-%d %H:%M:%S')}"
-        #     f"\n\tis_utc : {is_utc}",
-        #     source="_parsedatetime",
-        #     route=["terminal"],
-        # )
+    if lat is None or lon is None:
+        _location = event.location.get_text()
+        location = _parse_location(manager, _location) if _location else {}
+        if location:
+            lat, lon = location["lat"], location["lon"]
         # get timezon info
-        timezone_str = None
         if lat is not None and lon is not None:
             tzf = TimezoneFinder()
             timezone_str = tzf.timezone_at(lat=lat, lng=lon)
         if not timezone_str:
             # timezone not found : fallback - should be logged
-            manager._notify.warning(
-                "timezone not found, using datetime utc",
+            manager._notify.error(
+                "timezone not found, exiting ...",
                 source="_parsedatetime",
-                route=["terminal"],
+                route=["all"],
             )
+            return None
+    try:
         if is_utc:
             # computer time in utc, can be anywhere on planet earth
-            dt_utc = dt_naive.replace(tzinfo=timezone.utc)
+            dt_utc = datetime.now(timezone.utc)
             # need update entry text
             if _event:
                 _event.date_time.set_text(dt_utc.strftime("%Y-%m-%d %H:%M:%S"))
@@ -276,10 +260,18 @@ def _parse_datetime(
                 source="_parsedatetime",
                 route=["terminal"],
             )
+        elif dt_str:
+            # parse naive datetim
+            dt_naive = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
+            # manager._notify.debug(
+            #     f"---------\n\treceived dt_naive : {dt_naive.strftime('%Y-%m-%d %H:%M:%S')}"
+            #     f"\n\tis_utc : {is_utc}",
+            #     source="_parsedatetime",
+            #     route=["terminal"],
+            # )
             # else we need convert event location to utc
-        elif timezone_str:
-            # convert to timezone-aware datetime
-            dt_event = dt_naive.astimezone(ZoneInfo(timezone_str))
+            if timezone_str:
+                dt_event = dt_naive.astimezone(ZoneInfo(timezone_str))
             manager._notify.debug(
                 f"\n\tdt_event (astimezone({timezone_str})) : "
                 f"{dt_event.strftime('%Y-%m-%d %H:%M:%S %z (%Z)')}"
@@ -297,9 +289,10 @@ def _parse_datetime(
             )
         else:
             # no timezone found : set naive datetime
-            dt_utc = dt_naive.replace(tzinfo=timezone.utc)
+            # todo no timezone = use event one
+            dt_utc = datetime.now(timezone.utc)
             manager._notify.warning(
-                "no timezone found, using datetime utc",
+                "no timezone found (event two ?), using datetime utc",
                 source="_parsedatetime",
                 route=["terminal"],
             )
@@ -311,7 +304,7 @@ def _parse_datetime(
             dt_utc.hour + dt_utc.minute / 60 + dt_utc.second / 3600,
         )
         manager._notify.debug(
-            f"jd_ut calculated : {jd_ut}",
+            f"\n\tdt_utc ({dt_utc}) : jd_ut calculated : {jd_ut}",
             source="_parsedatetime",
             route=["terminal"],
         )
