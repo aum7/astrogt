@@ -10,7 +10,7 @@ from ui.helpers import _decimal_to_dms  # type: ignore
 class EventData:
     def __init__(
         self,
-        event_name,
+        name,
         country,
         city,
         location=None,
@@ -20,11 +20,11 @@ class EventData:
         """get user input and puf! puf! into sweph"""
         self._app = app or Gtk.Application.get_default()
         self._notify = self._app.notify_manager
-        self.event_name = event_name
-        self.date_time = date_time
-        self.location = location
         self.country = country
         self.city = city
+        self.location = location
+        self.name = name
+        self.date_time = date_time
         self.old_name = ""
         self.old_date_time = ""
         self.old_location = ""
@@ -36,7 +36,7 @@ class EventData:
 
         # connect signals for entry completion
         for widget, callback in [
-            (self.event_name, self.on_name_change),
+            (self.name, self.on_name_change),
             (self.date_time, self.on_date_time_change),
             (self.location, self.on_location_change),
         ]:
@@ -203,6 +203,7 @@ class EventData:
                     "missing altitude value ; setting alt to 0",
                     source="eventdata",
                     route=["user"],
+                    timeout=3,
                 )
                 alt = "0"
             # format final string
@@ -246,14 +247,11 @@ class EventData:
         if not name or name == self.old_name:
             return
         if len(name) > 30:
-            if self._notify:
-                self._notify.warning(
-                    "name too long : max 30 characters",
-                    source="eventdata",
-                    route=["user"],
-                )
-            else:
-                print("name too long : max 30 characters")
+            self._notify.warning(
+                "name too long : max 30 characters",
+                source="eventdata",
+                route=["user"],
+            )
             return
 
         self.old_name = name
@@ -361,25 +359,23 @@ class EventData:
 
             try:
                 if year <= -10000:
-                    y_ = f"-{abs(year)}"
+                    Y = f"-{abs(year)}"
                 elif year < 0:
-                    y_ = f"-{abs(year):04d}"
+                    Y = f"-{abs(year):04d}"
                 elif year >= 0:
-                    y_ = f"{year:04d}"
-                m_ = f"{month:02d}"
-                d_ = f"{day:02d}"
-                h_ = f"{hour:02d}"
-                mi_ = f"{minute:02d}"
-                s_ = f"{second:02d}"
+                    Y = f"{year:04d}"
+                M = f"{month:02d}"
+                D = f"{day:02d}"
+                h = f"{hour:02d}"
+                m = f"{minute:02d}"
+                s = f"{second:02d}"
 
-                formatted = f"{y_}-{m_}-{d_} {h_}:{mi_}:{s_}"
+                formatted = f"{Y}-{M}-{D} {h}:{m}:{s}"
                 # print(f"formatted dt : \n\t{formatted}")
                 entry.set_text(formatted)
-                date_time_final = f"{year} {month} {day} {hour} {minute} {second}"
-                # print(f"final date_time : \n\t{date_time_final}")
-
                 entry.set_text(formatted)
-                return formatted, date_time_final
+
+                return formatted
 
             except ValueError as e:
                 self._notify.error(
@@ -390,7 +386,7 @@ class EventData:
                 return
 
         except Exception:
-            self._notify.error(
+            self._notify.warning(
                 "wrong date-time format"
                 "\nwe only accept space-separated : yyyy mm dd HH MM SS"
                 "\nand - / . : for separators",
@@ -401,7 +397,7 @@ class EventData:
 
     def collect_event_data(self):
         """values from all entries needed for an event"""
-        name_value = self.event_name.get_text().strip() if self.event_name else ""
+        name_value = self.name.get_text().strip() if self.name else ""
         country_value = None
         # get country
         if self.country:

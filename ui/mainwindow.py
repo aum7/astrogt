@@ -77,7 +77,7 @@ class MainWindow(
         self._notify.debug(
             "manual\n"
             "\nhover mouse over buttons & text = show tooltips"
-            "\nhover mouse over notification message = persist message"
+            "\nhover mouse over notification message = do not hide message"
             "\nesc : discard message\n\nhotkeys (hk)"
             "\nh : show help (this message)"
             "\ns : toggle side pane"
@@ -89,14 +89,16 @@ class MainWindow(
             "\n\tnote : time now is set for event location, converted from your computer time"
             "\ntab/shift+tab : navigate between widgets in side pane"
             "\nspace/enter : activate button / dropdown when focused"
-            "\n\nnote : if entry (text) field is focused, hotkeys will not work"
-            "\n\t(text field will 'consume' key press)",
+            "\n\nnote : if entry / text field is focused, hotkeys will not work"
+            "\n\t(text field will 'consume' key press)"
+            "\n\nwhen manually changing event data make sure"
+            "\n\tproper event is selected (green text)",
             source="help",
             timeout=5,
             route=["user"],
         )
 
-    # hotkey actions end
+    # center all panes
     def center_all_panes(self) -> None:
         """center all 4 main panes"""
         if (

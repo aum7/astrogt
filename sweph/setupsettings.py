@@ -1,7 +1,8 @@
 # prepare settings for application, from settings.py
 import swisseph as swe
-from swisseph import contrib as swh
-from user.settings.settings import SWE_FLAG  # ,OBJECTS
+
+# from swisseph import contrib as swh
+from user.settings import SWE_FLAG  # ,OBJECTS
 
 
 class SetupSettings:

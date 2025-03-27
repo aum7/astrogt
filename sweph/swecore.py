@@ -24,10 +24,6 @@ class SweCore(GObject.Object):
             (GObject.TYPE_PYOBJECT,),
         ),
     }
-    # swiss ephemeris path
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    ephe_path = os.path.join(current_dir, "ephe")
-    swe.set_ephe_path(ephe_path)
 
     def __init__(self, app=None):
         super().__init__()
@@ -48,6 +44,10 @@ class SweCore(GObject.Object):
         # need be parsed
         self.event_two_location = ""
         self.event_two_date_time = ""
+        # swiss ephemeris path
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        ephe_path = os.path.join(current_dir, "ephe")
+        swe.set_ephe_path(ephe_path)
         # close swe after initialisation
         swe.close()
 
@@ -171,7 +171,6 @@ class SweCore(GObject.Object):
         e1_datetime = _parse_datetime(
             self, self.event_one_date_time, e1_lat, e1_lon, caller="e1"
         )
-        # e1_data = [e1_name, e1_country, e1_city, e1_lat, e1_lon, e1_alt, e1_datetime]
         e1_data = {
             "name": e1_name,
             "country": e1_country,
@@ -204,7 +203,6 @@ class SweCore(GObject.Object):
         e2_datetime = _parse_datetime(
             self, self.event_two_date_time, e2_lat, e2_lon, caller="e2"
         )
-        # e2_data = [e2_name, e2_country, e2_city, e2_lat, e2_lon, e2_alt, e2_datetime]
         # also get flags
         e2_data = {
             "name": e2_name,

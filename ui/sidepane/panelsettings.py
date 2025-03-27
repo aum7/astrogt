@@ -4,7 +4,7 @@ import gi
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from ui.collapsepanel import CollapsePanel
-from user.settings.settings import OBJECTS
+from user.settings import OBJECTS
 
 
 def setup_settings(manager) -> CollapsePanel:

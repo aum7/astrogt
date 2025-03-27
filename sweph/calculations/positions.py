@@ -4,7 +4,7 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
-from user.settings.setupsettings import SetupSettings
+from sweph.setupsettings import SetupSettings
 
 
 class SwePositions:
@@ -22,21 +22,20 @@ class SwePositions:
         self.e2data = self.swe_core.event_two_swe_ready()
         # todo this is in user/settings/setupsettings.py
         self.flags = SetupSettings()._get_swe_flags()
-        print(f"flags : {self.flags}")
+        # print(f"flags : {self.flags}")
 
     def on_event_one_changed(self, data, *args):
         self.e1data = data
-        print(f"event 1 changed : {self.e1data}")
-        # self.swe_one_data()
-        # self._notify.success(
-        #     f"e1 name : {self.data.event_one_name}",
-        #     source="swepositions",
-        # )
+        self._notify.info(
+            f"event 1 changed\n\t{self.e1data}",
+            source="swepositions",
+            route=["terminal"],
+        )
 
     def on_event_two_changed(self, data, *args):
         self.e2data = data
-        print(f"event 2 changed : {self.e2data}")
-        print(f"\t[0] : {self.e2data[0]}")
-        # process data
-        jd_ut = self.e2data[-1]
-        print(f"e2 : jd_ut : {jd_ut}")
+        self._notify.info(
+            f"event 2 changed\n\t{self.e2data}",
+            source="swepositions",
+            route=["terminal"],
+        )

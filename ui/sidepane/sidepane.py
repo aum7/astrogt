@@ -7,7 +7,7 @@ from typing import Dict, Optional
 from ui.collapsepanel import CollapsePanel
 from ui.helpers import (
     _on_time_now,
-    _process_event,
+    # _process_event,
     _change_event_time,
     _change_time_period,
     _create_icon,
@@ -180,15 +180,13 @@ arrow key left / right : move time backward / forward
         self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
     ):
         _change_event_time(self, -int(self.CHANGE_TIME_SELECTED))
-        _process_event(self, self.selected_event)
-        # self._notify.success(message="time change backward", source="sidepane")
+        # _process_event(self, self.selected_event)
 
     def obc_arrow_r(
         self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
     ):
         _change_event_time(self, int(self.CHANGE_TIME_SELECTED))
-        _process_event(self, self.selected_event)
-        # self._notify.success(message="time change forward", source="sidepane")
+        # _process_event(self, self.selected_event)
 
     def obc_time_now(
         self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
