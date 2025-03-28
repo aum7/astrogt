@@ -225,9 +225,27 @@ def _parse_datetime(
     timezone_str = None
     if event in ["event one", "event two"]:
         _event = getattr(manager, event.upper().replace(" ", "_"))
-        # get latitude & longitude
+    # get latitude & longitude
     if lat is None or lon is None:
-        _location = event.location.get_text()
+        if event == "event one" and hasattr(manager, "EVENT_ONE") and manager.EVENT_ONE:
+            _location = manager.EVENT_ONE.location.get_text()
+        elif (
+            event == "event two" and hasattr(manager, "EVENT_TWO") and manager.EVENT_TWO
+        ):
+            _location = manager.EVENT_TWO.location.get_text()
+            if not _location and hasattr(manager, "EVENT_ONE") and manager.EVENT_ONE:
+                _location = manager.EVENT_ONE.location.get_text()
+                manager._notify.debug(
+                    "using event one location for event two",
+                    source="_parsedatetime",
+                    route=["terminal"],
+                )
+        else:
+            _location = ""
+            manager._notify.error(
+                f"no location found for {event}, exiting ...",
+            )
+            return None
         location = _parse_location(manager, _location) if _location else {}
         if location:
             lat, lon = location["lat"], location["lon"]
@@ -272,6 +290,8 @@ def _parse_datetime(
             # else we need convert event location to utc
             if timezone_str:
                 dt_event = dt_naive.astimezone(ZoneInfo(timezone_str))
+                if _event:
+                    _event.date_time.set_text(dt_event.strftime("%Y-%m-%d %H:%M:%S"))
             manager._notify.debug(
                 f"\n\tdt_event (astimezone({timezone_str})) : "
                 f"{dt_event.strftime('%Y-%m-%d %H:%M:%S %z (%Z)')}"
