@@ -26,9 +26,6 @@ class SidePaneManager:
         self._app = app or Gtk.Application.get_default()
         self._notify = self._app.notify_manager
         # initialize attributes
-        # self.selected_event = "event one"
-        # self.EVENT_ONE = None
-        # self.EVENT_TWO = None
         self.margin_end = 7
         # intialize panels
         self.sidepane = self.setup_side_pane()
@@ -155,13 +152,11 @@ arrow key left / right : move time backward / forward
         self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
     ):
         self._app.time_manager.change_event_time(-int(self._app.CHANGE_TIME_SELECTED))
-        # _process_event(self, self.selected_event)
 
     def obc_arrow_r(
         self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
     ):
         self._app.time_manager.change_event_time(int(self._app.CHANGE_TIME_SELECTED))
-        # _process_event(self, self.selected_event)
 
     def obc_time_now(
         self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
@@ -175,16 +170,8 @@ arrow key left / right : move time backward / forward
     ):
         """select previous time period"""
         self._app.time_manager.change_time_period(direction=-1)
-        # self._notify.info(
-        #     "previous time period selected",
-        #     source="sidepane",
-        # )
 
     def obc_arrow_dn(
         self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
     ):
         self._app.time_manager.change_time_period(direction=1)
-        # self._notify.info(
-        #     "next time period selected",
-        #     source="sidepane",
-        # )

@@ -20,6 +20,7 @@ class EventData:
         """get user input and puf! puf! into sweph"""
         self._app = app or Gtk.Application.get_default()
         self._notify = self._app.notify_manager
+        # attributes
         self.country = country
         self.city = city
         self.location = location
@@ -30,22 +31,18 @@ class EventData:
         self.old_date_time = ""
         self.old_location = ""
 
-        # focus wrapper
-        def focus_wrapper(widget, pspec, callback):
-            if not widget.has_focus():
-                callback(widget)
-
         # connect signals for entry completion
         for widget, callback in [
             (self.name, self.on_name_change),
-            (self.date_time, self.on_datetime_change),
             (self.location, self.on_location_change),
+            (self.date_time, self.on_datetime_change),
         ]:
             widget.connect("activate", callback)  # [enter]
-            widget.connect(
-                "notify::has-focus",
-                lambda w, p, cb=callback: focus_wrapper(w, p, cb),
-            )  # focus lost ?
+            focus_controller = Gtk.EventControllerFocus.new()
+            widget.add_controller(focus_controller)
+            focus_controller.connect(  # on focus lost
+                "leave", lambda ctrl, cb=callback: cb(ctrl.get_widget())
+            )
 
     def on_location_change(self, entry):
         """process location data (as string)
@@ -54,6 +51,7 @@ class EventData:
         2. decimal : "33.72 n 124.876 e"
         3. signed decimal : "-16.75 -72.678"
         south & west are -ve : -16.75 -72.678"""
+        print(f"location : {entry.get_name()}")
 
         location = entry.get_text().strip()
         if not location or location == self.old_location:
@@ -244,6 +242,7 @@ class EventData:
 
     def on_name_change(self, entry):
         """process title / name"""
+        print(f"name : {entry.get_name()}")
         name = entry.get_text().strip()
         if not name or name == self.old_name:
             return
@@ -259,6 +258,13 @@ class EventData:
 
     def on_datetime_change(self, entry):
         """process date & time"""
+        print(f"datetime : {entry.get_name()}")
+        mainwindow = self._app.get_active_window()
+        country1 = getattr(mainwindow, "country_one")
+        print(f"country one : {country1}")
+        country2 = getattr(mainwindow, "country_two")
+        print(f"country two : {country2}")
+
         date_time = entry.get_text().strip()
         if not date_time or date_time == self.old_date_time:
             return
@@ -341,7 +347,7 @@ class EventData:
             if not is_valid_date(year, month, day):
                 self._notify.warning(
                     f"{year}-{month}-{day} : date not valid"
-                    "\ncheck month & day : february has 28 or 29 days",
+                    "\n\tcheck month & day : february has 28 or 29 days",
                     source="eventdata",
                     route=["user"],
                 )
@@ -379,7 +385,7 @@ class EventData:
 
             except ValueError as e:
                 self._notify.error(
-                    f"invalid date-time : {str(e)}",
+                    f"invalid date-time\n\t{e}",
                     source="eventdata",
                     route=["user"],
                 )
@@ -388,8 +394,8 @@ class EventData:
         except Exception:
             self._notify.warning(
                 "wrong date-time format"
-                "\nwe only accept space-separated : yyyy mm dd HH MM SS"
-                "\nand - / . : for separators",
+                "\n\twe only accept space-separated : yyyy mm dd HH MM SS"
+                "\n\tand - / . : for separators",
                 source="eventdata",
                 route=["user"],
             )

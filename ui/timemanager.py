@@ -25,20 +25,21 @@ class TimeManager:
                 route=["terminal"],
             )
             return None
-        entry = event.date_time
+        dt_entry = event.date_time
         name = event.name.get_text().strip()
-        dt = event.date_time.get_text().strip()
+        dt = dt_entry.get_text().strip()
         location = event.location.get_text().strip()
-        self._notify.debug(
-            f"\n\tselected event : {name}\n\tdt : {dt}\n\tlocation : {location}",
-            source="timemanager",
-            route=["terminal"],
-        )
-        # create object with dt & location attributes
-        from collections import namedtuple
+        # self._notify.debug(
+        #     f"\n\tselected event : {name}\n\tdt : {dt}\n\tlocation : {location}",
+        #     source="timemanager",
+        #     route=["terminal"],
+        # )
+        # create object with attributes
+        from types import SimpleNamespace
 
-        selected = namedtuple("selected", ["event", "entry", "dt", "location"])
-        return selected(event, entry, dt, location)
+        return SimpleNamespace(
+            event=event, dt_entry=dt_entry, name=name, dt=dt, location=location
+        )
 
     def parse_location(self):
         """parse location string to lat/lon/alt/timezone dict"""
@@ -95,9 +96,15 @@ class TimeManager:
         selected = self.get_selected()
         if selected is None:
             return None
-        entry = selected.entry
-        # entry = self.get_selected.entry
+        dt_entry = selected.dt_entry
         event_location = self.parse_location()
+        if event_location is None:
+            self._notify.warning(
+                "data missing (no location)",
+                source="timemanager",
+                route=["terminal", "user"],
+            )
+            return None
         try:
             if event_location:
                 timezone_ = event_location["timezone"]
@@ -107,8 +114,8 @@ class TimeManager:
                 dt_utc = dt_utc_now
                 dt_event = dt_utc_now.astimezone(ZoneInfo(timezone_))
                 # update datetime entry
-                if entry:
-                    entry.set_text(dt_event.strftime("%Y-%m-%d %H:%M:%S"))
+                if dt_entry:
+                    dt_entry.set_text(dt_event.strftime("%Y-%m-%d %H:%M:%S"))
                 self._notify.debug(
                     f"\nparsed application time now utc : {dt_utc_now}"
                     f"\nset event location time now : {dt_event}",
@@ -124,8 +131,8 @@ class TimeManager:
                 dt_event = dt_naive.astimezone(timezone_)
                 dt_utc = dt_event.astimezone(timezone.utc)
                 # update datetime entry
-                if entry:
-                    entry.set_text(dt_event.strftime("%Y-%m-%d %H:%M:%S"))
+                if dt_entry:
+                    dt_entry.set_text(dt_event.strftime("%Y-%m-%d %H:%M:%S"))
                 self._notify.debug(
                     f"\nparsed & set event datetime : {dt_event}\ndt_utc : {dt_utc}",
                     source="timemanager",
@@ -153,20 +160,12 @@ class TimeManager:
         period_keys = list(self._app.CHANGE_TIME_PERIODS.keys())
         period_values = list(self._app.CHANGE_TIME_PERIODS.values())
         # get current selected
-        # current_value = period_values[
-        #     self._app.get_active_window().ddn_time_periods.get_selected()
-        # ]
-        current_value = self._app.CHANGE_TIME_SELECTED
-        # current_key = next(
-        #     (k for k, v in self._app.CHANGE_TIME_PERIODS.items() if v == current_value),
-        #     None,
-        # )
+        current_value = period_values[
+            self._app.get_active_window().ddn_time_periods.get_selected()
+        ]
         current_key = next(
-            (
-                k
-                for k in period_keys
-                if k.split("__")[-1] == str(self._app.CHANGE_TIME_SELECTED)
-            )
+            (k for k, v in self._app.CHANGE_TIME_PERIODS.items() if v == current_value),
+            None,
         )
         if current_key:
             current_index = period_keys.index(current_key)
@@ -190,16 +189,12 @@ class TimeManager:
         if selected is None:
             return None
         if selected.dt == "":
-            dt_now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            selected.entry.set_text(dt_now)
-            self._notify.debug(
-                "set datetime to now",
-                source="timemanager",
-                route=["terminal"],
-            )
-        entry = selected.entry
+            dt_now = datetime.now().replace(microsecond=0).strftime("%Y-%m-%d %H:%M:%S")
+            selected.dt_entry.set_text(dt_now)
+            return
+        dt_entry = selected.dt_entry
         # get current datetime
-        current_text = selected.dt
+        current_text = dt_entry.get_text()
         if not current_text:
             self._notify.error(
                 "cannot change time : no datetime : exiting ...",
@@ -213,13 +208,12 @@ class TimeManager:
             new_naive = dt_naive + timedelta(seconds=int(sec_delta))
             new_text = new_naive.strftime("%Y-%m-%d %H:%M:%S")
             # update entry with new text
-            entry.set_text(new_text)
+            dt_entry.set_text(new_text)
             # process the event with the new time
-            # self._app.process_event(self._app.selected_event)
         except ValueError:
             self._notify.error(
                 "invalid datetime format, exiting ...",
-                source="time_manager",
+                source="timemanager",
                 route=["terminal"],
             )
             return

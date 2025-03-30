@@ -54,7 +54,7 @@ if location two = location one"""
     countries = event_location.get_countries()
 
     ddn_country = Gtk.DropDown.new_from_strings(countries)
-    ddn_country.set_name("country")
+    ddn_country.set_name("country one" if event_name == "event one" else "country two")
     ddn_country.set_tooltip_text(
         """select country for location
 in astrogt/user/ folder there is file named
@@ -65,16 +65,33 @@ comment (add '# ' & save file) uninterested country"""
     )
     ddn_country.add_css_class("dropdown")
     if event_name == "event one":
-        manager.country_one = ddn_country
+        manager.country_one = ddn_country.get_selected_item().get_string()
+        ddn_country.connect(
+            "notify::selected",
+            lambda widget, pspec: print(
+                f"country one changed : {widget.get_selected_item().get_string()}"
+                if widget.get_selected_item()
+                else "none"
+            ),
+        )
     else:
-        manager.country_two = ddn_country
+        manager.country_two = ddn_country.get_selected_item().get_string()
+        ddn_country.connect(
+            "notify::selected",
+            lambda widget, pspec: print(
+                f"country two changed : {widget.get_selected_item().get_string()}"
+                if widget.get_selected_item()
+                else "none"
+            ),
+        )
+        # access as : country2 = getattr(self._app, "country_two")
 
     lbl_city = Gtk.Label(label="city")
     lbl_city.add_css_class("label")
     lbl_city.set_halign(Gtk.Align.START)
 
     ent_city = Gtk.Entry()
-    ent_city.set_name("city")
+    ent_city.set_name("city one" if event_name == "event one" else "city two")
 
     def update_location(lat, lon, alt):
         ent_location.set_text(f"{lat} {lon} {alt}")
@@ -97,15 +114,29 @@ user needs to select the one of interest
     )
     if event_name == "event one":
         manager.city_one = ent_city
+        ent_city.connect(
+            "notify::text",
+            # "activate",
+            lambda widget, pspec: print(f"city one changed : {widget.get_text()}"),
+            # lambda widget, pspec: print(f"city one changed : {widget.get_text()}"),
+        )
     else:
         manager.city_two = ent_city
+        ent_city.connect(
+            "notify::text",
+            # "activate",
+            lambda widget, pspec: print(f"city two changed : {widget.get_text()}"),
+            # lambda widget, pspec: print(f"city two changed : {widget.get_text()}"),
+        )
     # latitude & longitude of event
     lbl_location = Gtk.Label(label="latitude & longitude")
     lbl_location.add_css_class("label")
     lbl_location.set_halign(Gtk.Align.START)
 
     ent_location = Gtk.Entry()
-    ent_location.set_name("location")
+    ent_location.set_name(
+        "location one" if event_name == "event one" else "location two"
+    )
     ent_location.set_placeholder_text(
         "deg min (sec) n / s deg  min (sec) e / w",
     )
@@ -142,7 +173,7 @@ only use [space] as separator
         indent=14,
     )
     ent_event_name = Gtk.Entry()
-    ent_event_name.set_name("name")
+    ent_event_name.set_name("name one" if event_name == "event one" else "name two")
     ent_event_name.set_placeholder_text(
         "event one name" if event_name == "event one" else "event two name"
     )
@@ -162,7 +193,9 @@ only use [space] as separator
     )
 
     ent_datetime = Gtk.Entry()
-    ent_datetime.set_name("date_time")
+    ent_datetime.set_name(
+        "datetime one" if event_name == "event one" else "datetime two"
+    )
     ent_datetime.set_placeholder_text("yyyy mm dd HH MM (SS)")
     ent_datetime.set_tooltip_text(
         """year month day hour minute (second)
@@ -173,10 +206,6 @@ only use [space] as separator
 
 [enter] = apply & process data
 [tab] / [shift-tab] = next / previous entry"""
-    )
-    ent_datetime.connect(
-        "activate",
-        lambda widget, en=event_name: manager.on_datetime_change(manager, en),
     )
     # put widgets into sub-panel
     subpnl_datetime.add_widget(ent_datetime)

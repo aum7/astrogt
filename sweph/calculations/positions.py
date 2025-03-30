@@ -1,5 +1,4 @@
-# ruff: noqa: E402
-# ruff: noqa: E701
+# ruff: noqa: E402, E701
 import gi
 
 gi.require_version("Gtk", "4.0")
