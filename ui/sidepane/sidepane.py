@@ -204,9 +204,7 @@ arrow key left / right : move time backward / forward
         period_keys = list(self.CHANGE_TIME_PERIODS.keys())
         period_values = list(self.CHANGE_TIME_PERIODS.values())
         # get current selected
-        current_value = period_values[
-            self._app.get_active_window().ddn_time_periods.get_selected()
-        ]
+        current_value = period_values[self.ddn_time_periods.get_selected()]
         current_key = next(
             (k for k, v in self.CHANGE_TIME_PERIODS.items() if v == current_value),
             None,
@@ -218,7 +216,7 @@ arrow key left / right : move time backward / forward
             new_value = self.CHANGE_TIME_PERIODS[new_key]
             # set new value
             dropdown_index = period_values.index(new_value)
-            self._app.get_active_window().ddn_time_periods.set_selected(dropdown_index)
+            self.ddn_time_periods.set_selected(dropdown_index)
             # notify new value
             # manager._notify.info(
             #     f"selected period : {new_value}", source="time change", timeout=3

@@ -273,7 +273,7 @@ class EventData:
                     f"\n\ttimezone : {timezone_}"
                 )
             self._notify.success(
-                msg=f"{msg_}",
+                f"{msg_}",
                 source="eventdata",
                 route=["terminal"],
             )
@@ -333,7 +333,7 @@ class EventData:
 
     def on_datetime_change(self, entry):
         """process date & time"""
-        mainwindow = self._app.get_active_window()
+        # mainwindow = self._app.get_active_window()
         # country1 = getattr(mainwindow, "country_one")
         # print(f"country one : {country1.get_selected_item().get_string()}")
         # city1 = getattr(mainwindow, "city_one")
@@ -451,20 +451,6 @@ class EventData:
                 return
 
             try:
-                # if year <= -10000:
-                #     Y = f"-{abs(year)}"
-                # elif year < 0:
-                #     Y = f"-{abs(year):04d}"
-                # elif year >= 0:
-                #     Y = f"{year:04d}"
-                # M = f"{month:02d}"
-                # D = f"{day:02d}"
-                # h = f"{hour:02d}"
-                # m = f"{minute:02d}"
-                # s = f"{second:02d}"
-
-                # formatted = f"{Y}-{M}-{D} {h}:{m}:{s}"
-                # dt_utc = None
                 # parse datetime : utc vs event vs computer time
                 if self.is_utc:
                     # get computer time
@@ -539,30 +525,3 @@ class EventData:
                 route=["user"],
             )
             return
-
-    # def collect_event_data(self):
-    #     """values from all entries needed for an event"""
-    #     name_value = self.name.get_text().strip() if self.name else ""
-    #     country_value = None
-    #     # get country
-    #     if self.country:
-    #         selected = self.country.get_selected()
-    #         model = self.country.get_model()
-    #         if model and selected >= 0:
-    #             country_value = model.get_string(selected)
-    #     # get city
-    #     city_value = None
-    #     if self.city:
-    #         city_value = self.city.get_text().strip()
-    #     # check for empty values
-    #     location_value = self.location.get_text().strip() if self.location else ""
-    #     date_time_value = self.date_time.get_text().strip() if self.date_time else ""
-    #     jd_ut_value = self.jd_ut
-    #     return {
-    #         "name": name_value,
-    #         "country": country_value,
-    #         "city": city_value,
-    #         "location": location_value,
-    #         "date_time": date_time_value,
-    #         "jd_ut": jd_ut_value,
-    #     }
