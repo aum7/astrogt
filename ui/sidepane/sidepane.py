@@ -21,6 +21,24 @@ class SidePaneManager:
         "arrow_up": "select previous time period (hk : arrow up)",
         "arrow_dn": "select next time period (hk : arrow down)",
     }
+    # value for selected change time
+    CHANGE_TIME_SELECTED = 0
+    # time periods in seconds, used for time change todo years give weird results
+    CHANGE_TIME_PERIODS = {
+        "period_315360000": "10 years",
+        "period_31536000": "1 year",
+        "period_7776000": "3 months (90 d)",
+        "period_2592000": "1 month (30 d)",
+        "period_2360592": "1 month (27.3 d)",
+        "period_604800": "1 week",
+        "period_86400": "1 day",
+        "period_21600": "6 hours",
+        "period_3600": "1 hour",
+        "period_600": "10 minutes",
+        "period_60": "1 minute",
+        "period_10": "10 seconds",
+        "period_1": "1 second",
+    }
 
     def __init__(self, app=None, *args, **kwargs):
         self._app = app or Gtk.Application.get_default()
@@ -106,7 +124,7 @@ arrow key left / right : move time backward / forward
         # box for icons & dropdown for selecting time period
         box_change_time = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         # dropdown time periods list
-        self.time_periods_list = list(self._app.CHANGE_TIME_PERIODS.values())
+        self.time_periods_list = list(self.CHANGE_TIME_PERIODS.values())
         # create dropdown
         self.ddn_time_periods = Gtk.DropDown.new_from_strings(self.time_periods_list)
         self.ddn_time_periods.set_tooltip_text(
@@ -116,7 +134,7 @@ arrow key left / right : move time backward / forward
         # set default time period : 1 day & seconds
         default_period = self.time_periods_list.index("1 day")
         self.ddn_time_periods.set_selected(default_period)
-        self._app.CHANGE_TIME_SELECTED = 86400
+        self.CHANGE_TIME_SELECTED = 86400
         self.ddn_time_periods.connect("notify::selected", self.odd_time_period)
         # put label & buttons & dropdown into box
         box_change_time.append(box_time_icons)
@@ -130,9 +148,9 @@ arrow key left / right : move time backward / forward
         """on dropdown time period changed / selected"""
         selected = dropdown.get_selected()
         value = self.time_periods_list[selected]
-        key = [k for k, v in self._app.CHANGE_TIME_PERIODS.items() if v == value][0]
+        key = [k for k, v in self.CHANGE_TIME_PERIODS.items() if v == value][0]
         seconds = key.split("_")[-1]
-        self._app.CHANGE_TIME_SELECTED = seconds
+        self.CHANGE_TIME_SELECTED = seconds
 
     # button handlers
     def obc_default(self, widget, data):
@@ -151,12 +169,14 @@ arrow key left / right : move time backward / forward
     def obc_arrow_l(
         self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
     ):
-        self._app.time_manager.change_event_time(-int(self._app.CHANGE_TIME_SELECTED))
+        """move selected event time backward"""
+        self.change_event_time(-int(self.CHANGE_TIME_SELECTED))
 
     def obc_arrow_r(
         self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
     ):
-        self._app.time_manager.change_event_time(int(self._app.CHANGE_TIME_SELECTED))
+        """move selected event time forward"""
+        self.change_event_time(int(self.CHANGE_TIME_SELECTED))
 
     def obc_time_now(
         self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
@@ -169,9 +189,74 @@ arrow key left / right : move time backward / forward
         self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
     ):
         """select previous time period"""
-        self._app.time_manager.change_time_period(direction=-1)
+        self.change_time_period(direction=-1)
 
     def obc_arrow_dn(
         self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
     ):
-        self._app.time_manager.change_time_period(direction=1)
+        """select next time period"""
+        self.change_time_period(direction=1)
+
+    def change_time_period(self, direction=1):
+        """change time period ; direction -1 / 1 for previous / next"""
+        # get list of periods
+        period_keys = list(self.CHANGE_TIME_PERIODS.keys())
+        period_values = list(self.CHANGE_TIME_PERIODS.values())
+        # get current selected
+        current_value = period_values[
+            self._app.get_active_window().ddn_time_periods.get_selected()
+        ]
+        current_key = next(
+            (k for k, v in self.CHANGE_TIME_PERIODS.items() if v == current_value),
+            None,
+        )
+        if current_key:
+            current_index = period_keys.index(current_key)
+            new_index = (current_index + direction) % len(period_keys)
+            new_key = period_keys[new_index]
+            new_value = self.CHANGE_TIME_PERIODS[new_key]
+            # set new value
+            dropdown_index = period_values.index(new_value)
+            self._app.get_active_window().ddn_time_periods.set_selected(dropdown_index)
+            # notify new value
+            # manager._notify.info(
+            #     f"selected period : {new_value}", source="time change", timeout=3
+            # )
+            seconds = new_key.split("_")[-1]
+            self.CHANGE_TIME_SELECTED = seconds
+
+    def change_event_time(self, sec_delta):
+        """adjust event time by given seconds"""
+        # get active entry based on selected event
+        # selected = self.get_selected()
+        # if selected is None:
+        #     return None
+        # if selected.dt == "":
+        #     dt_now = datetime.now().replace(microsecond=0).strftime("%Y-%m-%d %H:%M:%S")
+        #     selected.dt_entry.set_text(dt_now)
+        #     return
+        # dt_entry = selected.dt_entry
+        # get current datetime
+        current_text = dt_entry.get_text()
+        if not current_text:
+            self._notify.error(
+                "cannot change time : no datetime : exiting ...",
+                source="timemanager",
+                route=["terminal"],
+            )
+            return
+        try:
+            # increment the naive datetime and let parse_datetime handle rest
+            dt_naive = datetime.strptime(current_text, "%Y-%m-%d %H:%M:%S")
+            new_naive = dt_naive + timedelta(seconds=int(sec_delta))
+            new_text = new_naive.strftime("%Y-%m-%d %H:%M:%S")
+            # update entry with new text
+            dt_entry.set_text(new_text)
+            # process the event with the new time
+        except ValueError:
+            self._notify.error(
+                "invalid datetime format, exiting ...",
+                source="timemanager",
+                route=["terminal"],
+            )
+            return

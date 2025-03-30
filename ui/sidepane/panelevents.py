@@ -65,7 +65,7 @@ comment (add '# ' & save file) uninterested country"""
     )
     ddn_country.add_css_class("dropdown")
     if event_name == "event one":
-        manager.country_one = ddn_country.get_selected_item().get_string()
+        manager.country_one = ddn_country  # .get_selected_item().get_string()
         ddn_country.connect(
             "notify::selected",
             lambda widget, pspec: print(
@@ -75,7 +75,7 @@ comment (add '# ' & save file) uninterested country"""
             ),
         )
     else:
-        manager.country_two = ddn_country.get_selected_item().get_string()
+        manager.country_two = ddn_country  # .get_selected_item().get_string()
         ddn_country.connect(
             "notify::selected",
             lambda widget, pspec: print(
@@ -84,7 +84,7 @@ comment (add '# ' & save file) uninterested country"""
                 else "none"
             ),
         )
-        # access as : country2 = getattr(self._app, "country_two")
+        # access as : country2 = getattr(mainwindow, "country_two")
 
     lbl_city = Gtk.Label(label="city")
     lbl_city.add_css_class("label")

@@ -239,7 +239,7 @@
 # ("UG", "Uganda", "UGA"),
 # ("UA", "Ukraine", "UKR"),
 # ("AE", "United Arab Emirates", "ARE"),
-("GB", "United Kingdom (GB & N Ire. (Ch. Isl., IoM)", "GBR"),
+("GB", "United Kingdom (GB & N Ire.)", "GBR"),
 # ("UM", "United States Minor Outlying Islands", "UMI"),
 ("US", "United States of America", "USA"),
 # ("UY", "Uruguay", "URY"),
