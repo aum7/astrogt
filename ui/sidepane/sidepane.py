@@ -6,6 +6,7 @@ from gi.repository import Gtk  # type: ignore
 from typing import Dict, Optional
 from ui.collapsepanel import CollapsePanel
 from ui.helpers import _on_time_now, _create_icon
+from datetime import datetime, timedelta
 from .panelevents import setup_event
 from .paneltools import setup_tools
 from .panelsettings import setup_settings
@@ -228,14 +229,10 @@ arrow key left / right : move time backward / forward
     def change_event_time(self, sec_delta):
         """adjust event time by given seconds"""
         # get active entry based on selected event
-        # selected = self.get_selected()
-        # if selected is None:
-        #     return None
-        # if selected.dt == "":
-        #     dt_now = datetime.now().replace(microsecond=0).strftime("%Y-%m-%d %H:%M:%S")
-        #     selected.dt_entry.set_text(dt_now)
-        #     return
-        # dt_entry = selected.dt_entry
+        if self._app.selected_event == "event one" and self._app.EVENT_ONE:
+            dt_entry = self._app.EVENT_ONE.date_time
+        elif self._app.selected_event == "event two" and self._app.EVENT_TWO:
+            dt_entry = self._app.EVENT_TWO.date_time
         # get current datetime
         current_text = dt_entry.get_text()
         if not current_text:
