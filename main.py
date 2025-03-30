@@ -7,6 +7,7 @@ from gi.repository import Gtk, Adw  # type: ignore
 from ui.mainwindow import MainWindow
 from ui.notifymanager import NotifyManager
 from ui.signalmanager import SignalManager
+from ui.timemanager import TimeManager
 from sweph.swecore import SweCore
 from sweph.calculations.positions import SwePositions
 
@@ -16,8 +17,34 @@ class AstrogtApp(Gtk.Application):
         super().__init__(
             application_id="aum.astrogt.app",
         )
+        # global APP
+        # APP = self
+        # initialize attributes first
+        self.selected_event = "event one"
+        self.EVENT_ONE = None
+        self.EVENT_TWO = None
+        # global value for selected change time
+        self.CHANGE_TIME_SELECTED = 0
+        # time periods in seconds, used for time change todo years give weird results
+        self.CHANGE_TIME_PERIODS = {
+            "period_315360000": "10 years",
+            "period_31536000": "1 year",
+            "period_7776000": "3 months (90 d)",
+            "period_2592000": "1 month (30 d)",
+            "period_2360592": "1 month (27.3 d)",
+            "period_604800": "1 week",
+            "period_86400": "1 day",
+            "period_21600": "6 hours",
+            "period_3600": "1 hour",
+            "period_600": "10 minutes",
+            "period_60": "1 minute",
+            "period_10": "10 seconds",
+            "period_1": "1 second",
+        }
+        # managers
         self.signal_manager = SignalManager(self)
         self.notify_manager = NotifyManager(self)
+        self.time_manager = TimeManager(self)
         # todo do we need this here ?
         self.swe_core = SweCore(self)
         self.swe_positions = SwePositions(self)

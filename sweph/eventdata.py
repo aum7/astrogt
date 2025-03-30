@@ -25,6 +25,7 @@ class EventData:
         self.location = location
         self.name = name
         self.date_time = date_time
+        self.jd_ut = None
         self.old_name = ""
         self.old_date_time = ""
         self.old_location = ""
@@ -37,7 +38,7 @@ class EventData:
         # connect signals for entry completion
         for widget, callback in [
             (self.name, self.on_name_change),
-            (self.date_time, self.on_date_time_change),
+            (self.date_time, self.on_datetime_change),
             (self.location, self.on_location_change),
         ]:
             widget.connect("activate", callback)  # [enter]
@@ -256,7 +257,7 @@ class EventData:
 
         self.old_name = name
 
-    def on_date_time_change(self, entry):
+    def on_datetime_change(self, entry):
         """process date & time"""
         date_time = entry.get_text().strip()
         if not date_time or date_time == self.old_date_time:
@@ -373,7 +374,6 @@ class EventData:
                 formatted = f"{Y}-{M}-{D} {h}:{m}:{s}"
                 # print(f"formatted dt : \n\t{formatted}")
                 entry.set_text(formatted)
-                entry.set_text(formatted)
 
                 return formatted
 
@@ -412,11 +412,12 @@ class EventData:
         # check for empty values
         location_value = self.location.get_text().strip() if self.location else ""
         date_time_value = self.date_time.get_text().strip() if self.date_time else ""
-
+        jd_ut_value = self.jd_ut
         return {
             "name": name_value,
             "country": country_value,
             "city": city_value,
             "location": location_value,
             "date_time": date_time_value,
+            "jd_ut": jd_ut_value,
         }

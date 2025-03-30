@@ -63,12 +63,12 @@ class MainWindow(
         self._hotkeys.register_hotkey(
             "e",
             lambda gesture, n_press, x, y: _event_selection(
+                self,
                 gesture,
                 n_press,
                 x,
                 y,
-                "event one" if self.selected_event == "event two" else "event two",
-                self,
+                "event one" if self._app.selected_event == "event two" else "event two",
             ),
         )
 
@@ -91,8 +91,7 @@ class MainWindow(
             "\nspace/enter : activate button / dropdown when focused"
             "\n\nnote : if entry / text field is focused, hotkeys will not work"
             "\n\t(text field will 'consume' key press)"
-            "\n\nwhen manually changing event data make sure"
-            "\n\tproper event is selected (green text)",
+            "\n\nmake sure you only change event data for selected event (green 'event' text)",
             source="help",
             timeout=5,
             route=["user"],

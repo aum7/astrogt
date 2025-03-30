@@ -5,7 +5,6 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk, GObject  # type: ignore
-from ui.helpers import _parse_location, _parse_datetime
 
 
 class SweCore(GObject.Object):
@@ -159,7 +158,7 @@ class SweCore(GObject.Object):
         e1_country = self.event_one_country
         e1_city = self.event_one_city
         # this need be parsed to lat, lon, alt
-        e1_location = _parse_location(self, self.event_one_location)
+        e1_location = self._app.time_manager.parse_location()
         e1_lat = None
         e1_lon = None
         e1_alt = None
@@ -168,9 +167,7 @@ class SweCore(GObject.Object):
             e1_lon = e1_location["lon"]
             e1_alt = e1_location["alt"]
         # this need be parsed to julian day
-        e1_datetime = _parse_datetime(
-            self, self.event_one_date_time, e1_lat, e1_lon, caller="e1"
-        )
+        e1_datetime = self._app.time_manager.parse_datetime(is_utc=False)
         e1_data = {
             "name": e1_name,
             "country": e1_country,
@@ -191,7 +188,7 @@ class SweCore(GObject.Object):
         e2_country = self.event_two_country
         e2_city = self.event_two_city
         # this need be parsed to lat, lon, alt
-        e2_location = _parse_location(self, self.event_two_location)
+        e2_location = self._app.time_manager.parse_location()
         e2_lat = None
         e2_lon = None
         e2_alt = None
@@ -200,9 +197,7 @@ class SweCore(GObject.Object):
             e2_lon = e2_location["lon"]
             e2_alt = e2_location["alt"]
         # this need be parsed to julian day
-        e2_datetime = _parse_datetime(
-            self, self.event_two_date_time, e2_lat, e2_lon, caller="e2"
-        )
+        e2_datetime = self._app.time_manager.parse_datetime(is_utc=False)
         # also get flags
         e2_data = {
             "name": e2_name,

@@ -5,13 +5,7 @@ gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from typing import Dict, Optional
 from ui.collapsepanel import CollapsePanel
-from ui.helpers import (
-    _on_time_now,
-    # _process_event,
-    _change_event_time,
-    _change_time_period,
-    _create_icon,
-)
+from ui.helpers import _on_time_now, _create_icon
 from .panelevents import setup_event
 from .paneltools import setup_tools
 from .panelsettings import setup_settings
@@ -23,37 +17,18 @@ class SidePaneManager:
     CHANGE_TIME_BUTTONS: Dict[str, str] = {
         "arrow_l": "move time backward (hk : arrow left)",
         "arrow_r": "move time forward (hk : arrow right)",
-        "time_now": "time now (hk : n)\nset time now for selected ",
+        "time_now": "time now (hk : n)\nset time now for selected event",
         "arrow_up": "select previous time period (hk : arrow up)",
         "arrow_dn": "select next time period (hk : arrow down)",
-    }
-    # global value for selected change time
-    CHANGE_TIME_SELECTED = 0
-    # time periods in seconds, used for time change
-    # 10 years will vary +- 3 days todo change actual years
-    CHANGE_TIME_PERIODS: Dict[str, str] = {
-        "period_315360000": "10 years",
-        "period_31536000": "1 year",
-        "period_7776000": "3 months (90 d)",
-        "period_2592000": "1 month (30 d)",
-        "period_2360592": "1 month (27.3 d)",
-        "period_604800": "1 week",
-        "period_86400": "1 day",
-        "period_21600": "6 hours",
-        "period_3600": "1 hour",
-        "period_600": "10 minutes",
-        "period_60": "1 minute",
-        "period_10": "10 seconds",
-        "period_1": "1 second",
     }
 
     def __init__(self, app=None, *args, **kwargs):
         self._app = app or Gtk.Application.get_default()
         self._notify = self._app.notify_manager
         # initialize attributes
-        self.selected_event = "event one"
-        self.EVENT_ONE = None
-        self.EVENT_TWO = None
+        # self.selected_event = "event one"
+        # self.EVENT_ONE = None
+        # self.EVENT_TWO = None
         self.margin_end = 7
         # intialize panels
         self.sidepane = self.setup_side_pane()
@@ -69,7 +44,7 @@ class SidePaneManager:
         self.clp_change_time = self.setup_change_time()
         # 2 events
         self.clp_event_one = setup_event("event one", True, self)
-        if self.selected_event == "event one":
+        if self._app.selected_event == "event one":
             self.clp_event_one.add_title_css_class("label-event-selected")
         self.clp_event_two = setup_event("event two", False, self)
         # tools
@@ -134,7 +109,7 @@ arrow key left / right : move time backward / forward
         # box for icons & dropdown for selecting time period
         box_change_time = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         # dropdown time periods list
-        self.time_periods_list = list(self.CHANGE_TIME_PERIODS.values())
+        self.time_periods_list = list(self._app.CHANGE_TIME_PERIODS.values())
         # create dropdown
         self.ddn_time_periods = Gtk.DropDown.new_from_strings(self.time_periods_list)
         self.ddn_time_periods.set_tooltip_text(
@@ -144,7 +119,7 @@ arrow key left / right : move time backward / forward
         # set default time period : 1 day & seconds
         default_period = self.time_periods_list.index("1 day")
         self.ddn_time_periods.set_selected(default_period)
-        self.CHANGE_TIME_SELECTED = 86400
+        self._app.CHANGE_TIME_SELECTED = 86400
         self.ddn_time_periods.connect("notify::selected", self.odd_time_period)
         # put label & buttons & dropdown into box
         box_change_time.append(box_time_icons)
@@ -158,9 +133,9 @@ arrow key left / right : move time backward / forward
         """on dropdown time period changed / selected"""
         selected = dropdown.get_selected()
         value = self.time_periods_list[selected]
-        key = [k for k, v in self.CHANGE_TIME_PERIODS.items() if v == value][0]
+        key = [k for k, v in self._app.CHANGE_TIME_PERIODS.items() if v == value][0]
         seconds = key.split("_")[-1]
-        self.CHANGE_TIME_SELECTED = seconds
+        self._app.CHANGE_TIME_SELECTED = seconds
 
     # button handlers
     def obc_default(self, widget, data):
@@ -179,13 +154,13 @@ arrow key left / right : move time backward / forward
     def obc_arrow_l(
         self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
     ):
-        _change_event_time(self, -int(self.CHANGE_TIME_SELECTED))
+        self._app.time_manager.change_event_time(-int(self._app.CHANGE_TIME_SELECTED))
         # _process_event(self, self.selected_event)
 
     def obc_arrow_r(
         self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
     ):
-        _change_event_time(self, int(self.CHANGE_TIME_SELECTED))
+        self._app.time_manager.change_event_time(int(self._app.CHANGE_TIME_SELECTED))
         # _process_event(self, self.selected_event)
 
     def obc_time_now(
@@ -199,7 +174,7 @@ arrow key left / right : move time backward / forward
         self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
     ):
         """select previous time period"""
-        _change_time_period(self, direction=-1)
+        self._app.time_manager.change_time_period(direction=-1)
         # self._notify.info(
         #     "previous time period selected",
         #     source="sidepane",
@@ -208,7 +183,7 @@ arrow key left / right : move time backward / forward
     def obc_arrow_dn(
         self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
     ):
-        _change_time_period(self, direction=1)
+        self._app.time_manager.change_time_period(direction=1)
         # self._notify.info(
         #     "next time period selected",
         #     source="sidepane",

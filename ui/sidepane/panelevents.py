@@ -6,7 +6,7 @@ from gi.repository import Gtk  # type: ignore
 from ui.collapsepanel import CollapsePanel
 from sweph.eventdata import EventData
 from sweph.eventlocation import EventLocation
-from ui.helpers import _process_event, _event_selection
+from ui.helpers import _event_selection
 
 
 def setup_event(event_name: str, expand: bool, manager) -> CollapsePanel:
@@ -37,7 +37,7 @@ if location two = location one"""
     gesture = Gtk.GestureClick.new()
     gesture.connect(
         "pressed",
-        lambda g, n, x, y: _event_selection(g, n, x, y, event_name, manager),
+        lambda g, n, x, y: _event_selection(manager, g, n, x, y, event_name),
     )
     panel.add_title_controller(gesture)
     # location nested panel
@@ -142,7 +142,7 @@ only use [space] as separator
         indent=14,
     )
     ent_event_name = Gtk.Entry()
-    ent_event_name.set_name("event_name")
+    ent_event_name.set_name("name")
     ent_event_name.set_placeholder_text(
         "event one name" if event_name == "event one" else "event two name"
     )
@@ -176,14 +176,13 @@ only use [space] as separator
     )
     ent_datetime.connect(
         "activate",
-        lambda widget, en=event_name: _process_event(manager, en),
+        lambda widget, en=event_name: manager.on_datetime_change(manager, en),
     )
     # put widgets into sub-panel
     subpnl_datetime.add_widget(ent_datetime)
     # create eventdata instance
-    # todo below code assigns widgets to EVENT_ONE or EVENT_TWO
     if event_name == "event one":
-        manager.EVENT_ONE = EventData(
+        manager._app.EVENT_ONE = EventData(
             ent_event_name,
             country=ddn_country,
             city=ent_city,
@@ -192,7 +191,7 @@ only use [space] as separator
             app=manager._app,
         )
     else:
-        manager.EVENT_TWO = EventData(
+        manager._app.EVENT_TWO = EventData(
             ent_event_name,
             country=ddn_country,
             city=ent_city,
