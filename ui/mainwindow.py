@@ -25,7 +25,6 @@ class MainWindow(
         SidePaneManager.__init__(self, app=self.get_application())
         self._app = self.get_application() or Gtk.Application.get_default()
         self._notify = self._app.notify_manager
-        self.swe_core = self._app.swe_core
         self.set_title("astrogt")
         self.set_default_size(800, 600)
         # setup ui : side pane

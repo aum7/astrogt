@@ -256,24 +256,24 @@ class EventData:
                 self.e1_swe["alt"] = alt
                 self.e1_chart["timezone"] = timezone_
                 self.e1_chart["location"] = location_formatted
-                msg_ = {
+                msg_ = (
                     f"event 1 data updated\n\tlat : {lat}\n\tlon : {lon}"
                     f"\n\talt : {alt}\n\tlocation : {location_formatted}"
                     f"\n\ttimezone : {timezone_}"
-                }
+                )
             else:
                 self.e2_swe["lat"] = lat
                 self.e2_swe["lon"] = lon
                 self.e2_swe["alt"] = alt
                 self.e2_chart["timezone"] = timezone_
                 self.e2_chart["location"] = location_formatted
-                msg_ = {
+                msg_ = (
                     f"event 2 data updated\n\tlat : {lat}\n\tlon : {lon}"
                     f"\n\talt : {alt}\n\tlocation : {location_formatted}"
                     f"\n\ttimezone : {timezone_}"
-                }
+                )
             self._notify.success(
-                msg_,
+                msg=f"{msg_}",
                 source="eventdata",
                 route=["terminal"],
             )

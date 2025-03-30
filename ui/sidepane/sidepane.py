@@ -236,10 +236,12 @@ arrow key left / right : move time backward / forward
         # get current datetime
         current_text = dt_entry.get_text()
         if not current_text:
-            self._notify.error(
-                "cannot change time : no datetime : exiting ...",
-                source="timemanager",
-                route=["terminal"],
+            dt_now = datetime.now().replace(microsecond=0)
+            dt_entry.set_text(dt_now.strftime("%Y-%m-%d %H:%M:%S"))
+            self._notify.info(
+                f"date-time set to now : {dt_now}",
+                source="sidepane",
+                route=["terminal", "user"],
             )
             return
         try:
@@ -252,8 +254,9 @@ arrow key left / right : move time backward / forward
             # process the event with the new time
         except ValueError:
             self._notify.error(
+                # "cannot change time : no datetime : exiting ...",
                 "invalid datetime format, exiting ...",
-                source="timemanager",
+                source="sidepane",
                 route=["terminal"],
             )
             return
