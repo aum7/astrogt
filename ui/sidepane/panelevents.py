@@ -23,16 +23,14 @@ def setup_event(event_name: str, expand: bool, manager) -> CollapsePanel:
 click to set focus to event one
 so change time will apply to it
 
-note : location one + title one
-+ time one are mandatory"""
+note : latitude & longitude (location) one + title one + date-time one are mandatory"""
         if event_name == "event one"
         else """secondary event ie transit / progression etc
 click to set focus to event two
 so change time will apply to it
 
-note : leave location two empty
-(both city + latitude & longitude)
-if location two = location one"""
+note : leave location two empty (both city + latitude & longitude) if location two = location one
+    same for name / title two"""
     )
     gesture = Gtk.GestureClick.new()
     gesture.connect(
@@ -64,27 +62,11 @@ open it with text editor & un-comment any country of interest
 comment (add '# ' & save file) uninterested country"""
     )
     ddn_country.add_css_class("dropdown")
+    # store as widget so we access fresh data later
     if event_name == "event one":
-        manager.country_one = ddn_country  # .get_selected_item().get_string()
-        # ddn_country.connect(
-        #     "notify::selected",
-        #     lambda widget, pspec: print(
-        #         f"country one changed : {widget.get_selected_item().get_string()}"
-        #         if widget.get_selected_item()
-        #         else "none"
-        #     ),
-        # )
+        manager.country_one = ddn_country
     else:
-        manager.country_two = ddn_country  # .get_selected_item().get_string()
-        # ddn_country.connect(
-        #     "notify::selected",
-        #     lambda widget, pspec: print(
-        #         f"country two changed : {widget.get_selected_item().get_string()}"
-        #         if widget.get_selected_item()
-        #         else "none"
-        #     ),
-        # )
-        # access as : country2 = getattr(mainwindow, "country_two")
+        manager.country_two = ddn_country
 
     lbl_city = Gtk.Label(label="city")
     lbl_city.add_css_class("label")
@@ -112,20 +94,11 @@ user needs to select the one of interest
         lambda entry, country: event_location.get_selected_city(entry, country),
         ddn_country,
     )
+    # store as widget so we access fresh data later
     if event_name == "event one":
         manager.city_one = ent_city
-        # ent_city.connect(
-        #     "notify::text",  # dont like it, triggers on every key press
-        #     # "activate",
-        #     lambda widget, pspec: print(f"city one changed : {widget.get_text()}"),
-        # )
     else:
         manager.city_two = ent_city
-        # ent_city.connect(
-        #     "notify::text",  # dont like it, triggers on every key press
-        #     # "activate",
-        #     lambda widget, pspec: print(f"city two changed : {widget.get_text()}"),
-        # )
     # latitude & longitude of event
     lbl_location = Gtk.Label(label="latitude & longitude")
     lbl_location.add_css_class("label")
@@ -139,23 +112,27 @@ user needs to select the one of interest
         "deg min (sec) n / s deg  min (sec) e / w",
     )
     ent_location.set_tooltip_text(
-        """latitude & longitude
+        """latitude & longitude (location)
 
-if country & city are filled, this field should be filled auto-magically
-user can also enter or fine-tune geo coordinates manually
+if country & city are selected, this field auto-populates
+then fine-tune or enter geo coordinates manually
 
 clearest form is :
-    deg min (sec) n(orth) / s(outh) & e(ast) / w(est) (altitude m)
-    32 21 09 n 77 66 w 113 m
-will accept also decimal degree : 33.72 n 124.876 e
-and also a sign ('-') for south & west : -16.75 -72.678
-    note : positive values (without '-') are for north & east
-        16.75 72.678
+    deg min (sec) n(orth) / s(outh) & e(ast) / w(est) (alt (m))
+1.  dms : 32 21 09 n 77 66 w 113 m
+also accepting :
+2.  decimal with direction : 33.72 n 124.876 e 428
+3.  signed -ve south & west : -16.75 -72.678 +
+    signed +ve north & east : 16.75 72.678
+    note : be aware some data has reverse east & west
+latitude then longitude
 seconds & altitude are optional
+some cities in database are missing altitude - no worries
 only use [space] as separator
 
 [enter] = accept data
-[tab] / [shift-tab] = next / previous entry"""
+[tab] / [shift-tab] = next / previous entry
+sselria gniylf rof uoy knaht"""
     )
     # put widgets into sub-panel
     subpnl_location.add_widget(lbl_country)
@@ -179,7 +156,7 @@ only use [space] as separator
         """will be used for filename when saving
     max 30 characters
 
-[enter] = apply data
+[enter] = accept data
 [tab] / [shift-tab] = next / previous entry"""
     )
     # put widgets into sub-panel
@@ -199,15 +176,15 @@ only use [space] as separator
         """year month day hour minute (second)
     2010 9 11 22 55
 second is optional
-24 hour time format
+24 hour time (iso) format
 only use [space] as separator
 
-[enter] = apply & process data
+[enter] = accept & process data
 [tab] / [shift-tab] = next / previous entry"""
     )
     # put widgets into sub-panel
     subpnl_datetime.add_widget(ent_datetime)
-    # create eventdata instance
+    # create eventdata instance & store widgets
     if event_name == "event one":
         manager._app.EVENT_ONE = EventData(
             name=ent_event_name,

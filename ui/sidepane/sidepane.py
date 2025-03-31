@@ -237,7 +237,7 @@ arrow key left / right : move time backward / forward
             dt_now = datetime.now().replace(microsecond=0)
             dt_entry.set_text(dt_now.strftime("%Y-%m-%d %H:%M:%S"))
             self._notify.info(
-                f"date-time set to now : {dt_now}",
+                f"changeeventtime : date-time set to now : {dt_now}",
                 source="sidepane",
                 route=["terminal", "user"],
             )
