@@ -242,6 +242,21 @@ class EventData:
             tzf = TimezoneFinder()
             timezone_ = tzf.timezone_at(lat=lat, lng=lon)
             self.timezone = timezone_
+            # also grab country & city
+            # if entry.get_name() == "location one":
+            #     if hasattr(self._app, "country_one"):
+            #         country = self._app.country_one.get_selected_item().get_string()
+            #     if hasattr(self._app, "city_one"):
+            #         city = self._app.city_one.get_text()
+            #     self.e1_chart["country"] = country
+            #     self.e1_chart["city"] = city
+            # elif entry.get_name() == "location two":
+            #     if hasattr(self._app, "country_two"):
+            #         country = self._app.country_two.get_selected_item().get_string()
+            #     if hasattr(self._app, "city_two"):
+            #         city = self._app.city_two.get_text()
+            #     self.e2_chart["country"] = country
+            #     self.e2_chart["city"] = city
 
             self.old_location = location_formatted
             # self._notify.success(
@@ -251,6 +266,12 @@ class EventData:
             # )
             # save data by event
             if entry.get_name() == "location one":
+                if hasattr(self._app, "country_one"):
+                    country = self._app.country_one.get_selected_item().get_string()
+                if hasattr(self._app, "city_one"):
+                    city = self._app.city_one.get_text()
+                self.e1_chart["country"] = country
+                self.e1_chart["city"] = city
                 self.e1_swe["lat"] = lat
                 self.e1_swe["lon"] = lon
                 self.e1_swe["alt"] = alt
@@ -262,6 +283,12 @@ class EventData:
                     f"\n\ttimezone : {timezone_}"
                 )
             else:
+                if hasattr(self._app, "country_two"):
+                    country = self._app.country_two.get_selected_item().get_string()
+                if hasattr(self._app, "city_two"):
+                    city = self._app.city_two.get_text()
+                self.e2_chart["country"] = country
+                self.e2_chart["city"] = city
                 self.e2_swe["lat"] = lat
                 self.e2_swe["lon"] = lon
                 self.e2_swe["alt"] = alt
@@ -333,12 +360,12 @@ class EventData:
 
     def on_datetime_change(self, entry):
         """process date & time"""
+        print(f"ondatatimechange : name : {entry.get_name()}")
         # mainwindow = self._app.get_active_window()
         # country1 = getattr(mainwindow, "country_one")
         # print(f"country one : {country1.get_selected_item().get_string()}")
         # city1 = getattr(mainwindow, "city_one")
         # print(f"city one : {city1.get_text()}")
-
         date_time = entry.get_text().strip()
         if not date_time:
             self._notify.warning(
@@ -449,7 +476,6 @@ class EventData:
                     route=["user"],
                 )
                 return
-
             try:
                 # parse datetime : utc vs event vs computer time
                 if self.is_utc:

@@ -29,7 +29,12 @@ def _event_selection(manager, gesture, n_press, x, y, event_name):
 
 def _on_time_now(manager):
     """get time now (utc) for computer / app location & send it to _parse_datetime"""
-    manager._app.time_manager.parse_datetime(is_utc=True)
+    if manager._app.selected_event == "event one" and manager._app.EVENT_ONE:
+        entry = manager._app.EVENT_ONE.date_time
+        manager._app.EVENT_ONE.on_datetime_change(entry)
+    elif manager._app.selected_event == "event two" and manager._app.EVENT_TWO:
+        entry = manager._app.EVENT_TWO.date_time
+        manager._app.EVENT_TWO.on_datetime_change(entry)
 
 
 def _decimal_to_dms(decimal):

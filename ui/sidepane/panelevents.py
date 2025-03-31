@@ -66,24 +66,24 @@ comment (add '# ' & save file) uninterested country"""
     ddn_country.add_css_class("dropdown")
     if event_name == "event one":
         manager.country_one = ddn_country  # .get_selected_item().get_string()
-        ddn_country.connect(
-            "notify::selected",
-            lambda widget, pspec: print(
-                f"country one changed : {widget.get_selected_item().get_string()}"
-                if widget.get_selected_item()
-                else "none"
-            ),
-        )
+        # ddn_country.connect(
+        #     "notify::selected",
+        #     lambda widget, pspec: print(
+        #         f"country one changed : {widget.get_selected_item().get_string()}"
+        #         if widget.get_selected_item()
+        #         else "none"
+        #     ),
+        # )
     else:
         manager.country_two = ddn_country  # .get_selected_item().get_string()
-        ddn_country.connect(
-            "notify::selected",
-            lambda widget, pspec: print(
-                f"country two changed : {widget.get_selected_item().get_string()}"
-                if widget.get_selected_item()
-                else "none"
-            ),
-        )
+        # ddn_country.connect(
+        #     "notify::selected",
+        #     lambda widget, pspec: print(
+        #         f"country two changed : {widget.get_selected_item().get_string()}"
+        #         if widget.get_selected_item()
+        #         else "none"
+        #     ),
+        # )
         # access as : country2 = getattr(mainwindow, "country_two")
 
     lbl_city = Gtk.Label(label="city")
@@ -114,20 +114,18 @@ user needs to select the one of interest
     )
     if event_name == "event one":
         manager.city_one = ent_city
-        ent_city.connect(
-            "notify::text",
-            # "activate",
-            lambda widget, pspec: print(f"city one changed : {widget.get_text()}"),
-            # lambda widget, pspec: print(f"city one changed : {widget.get_text()}"),
-        )
+        # ent_city.connect(
+        #     "notify::text",  # dont like it, triggers on every key press
+        #     # "activate",
+        #     lambda widget, pspec: print(f"city one changed : {widget.get_text()}"),
+        # )
     else:
         manager.city_two = ent_city
-        ent_city.connect(
-            "notify::text",
-            # "activate",
-            lambda widget, pspec: print(f"city two changed : {widget.get_text()}"),
-            # lambda widget, pspec: print(f"city two changed : {widget.get_text()}"),
-        )
+        # ent_city.connect(
+        #     "notify::text",  # dont like it, triggers on every key press
+        #     # "activate",
+        #     lambda widget, pspec: print(f"city two changed : {widget.get_text()}"),
+        # )
     # latitude & longitude of event
     lbl_location = Gtk.Label(label="latitude & longitude")
     lbl_location.add_css_class("label")
@@ -212,7 +210,7 @@ only use [space] as separator
     # create eventdata instance
     if event_name == "event one":
         manager._app.EVENT_ONE = EventData(
-            ent_event_name,
+            name=ent_event_name,
             country=ddn_country,
             city=ent_city,
             location=ent_location,
@@ -221,7 +219,7 @@ only use [space] as separator
         )
     else:
         manager._app.EVENT_TWO = EventData(
-            ent_event_name,
+            name=ent_event_name,
             country=ddn_country,
             city=ent_city,
             location=ent_location,
