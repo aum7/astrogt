@@ -32,12 +32,12 @@ def _on_time_now(manager):
     if manager._app.selected_event == "event one" and manager._app.EVENT_ONE:
         entry = manager._app.EVENT_ONE.date_time
         manager._app.EVENT_ONE.is_utc_now = True
-        print("ontimenow : got entry for event one : set is_utc true")
+        # print("ontimenow : got entry for event one : set is_utc_now true")
         manager._app.EVENT_ONE.on_datetime_change(entry)
     elif manager._app.selected_event == "event two" and manager._app.EVENT_TWO:
         entry = manager._app.EVENT_TWO.date_time
         manager._app.EVENT_TWO.is_utc_now = True
-        print("ontimenow : got entry for event two : set is_utc true")
+        # print("ontimenow : got entry for event two : set is_utc_now true")
         manager._app.EVENT_TWO.on_datetime_change(entry)
 
 
