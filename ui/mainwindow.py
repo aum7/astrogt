@@ -90,7 +90,7 @@ class MainWindow(
             "\nspace/enter : activate button / dropdown when focused"
             "\n\nnote : if entry / text field is focused, hotkeys will not work"
             "\n\t(text field will 'consume' key press)"
-            "\n\nmake sure you only change event data for selected event (green 'event' text)",
+            "\n\nmake sure you only change event data for selected event (green 'event ...' text)",
             source="help",
             timeout=5,
             route=["user"],

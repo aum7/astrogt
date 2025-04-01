@@ -17,12 +17,12 @@ def _event_selection(manager, gesture, n_press, x, y, event_name):
         manager._app.selected_event = event_name
         if manager._app.selected_event == "event one":
             # todo comment
-            print(f"event_selection : {manager._app.selected_event} selected")
+            print(f"\tevent_selection : {manager._app.selected_event} selected")
             manager.clp_event_two.remove_title_css_class("label-event-selected")
             manager.clp_event_one.add_title_css_class("label-event-selected")
         if manager._app.selected_event == "event two":
             # todo comment
-            print(f"event_selection : {manager._app.selected_event} selected")
+            print(f"\tevent_selection : {manager._app.selected_event} selected")
             manager.clp_event_one.remove_title_css_class("label-event-selected")
             manager.clp_event_two.add_title_css_class("label-event-selected")
 

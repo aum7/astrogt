@@ -269,10 +269,15 @@ class EventData:
                 self.e1_chart["timezone"] = timezone_
                 self.e1_chart["location"] = location_formatted
                 msg_ = (
-                    "event 1 location data updated"
-                    # f"event 1 data updated\n\tlat : {lat} | lon : {lon} | alt : {alt}"
-                    # f"\n\tlocation : {location_formatted}"
-                    # f"\n\tcountry : {country} | city : {city} | timezone : {timezone_}"
+                    # "event 1 location data updated"
+                    "event 1 location updated"
+                    f"\n\tlat : {self.e1_swe.get('lat')} "
+                    f"| lon : {self.e1_swe.get('lon')} "
+                    f"| alt : {self.e1_swe.get('alt')}"
+                    f"\n\tlocation : {self.e1_chart.get('location')}"
+                    f"\n\tcountry : {self.e1_chart.get('country')} "
+                    f"| city : {self.e1_chart.get('city')} "
+                    f"| timezone : {self.e1_chart.get('timezone')}"
                 )
             else:
                 # grab country & city
@@ -289,10 +294,15 @@ class EventData:
                 self.e2_chart["timezone"] = timezone_ or ""
                 self.e2_chart["location"] = location_formatted or ""
                 msg_ = (
-                    "event 2 location data updated"
-                    # f"event 2 data updated\n\tlat : {lat} | lon : {lon} | alt : {alt}"
-                    # f"\n\tlocation : {location_formatted}"
-                    # f"\n\tcountry : {country} | city : {city} | timezone : {timezone_}"
+                    # "event 2 location data updated"
+                    "event 2 location updated"
+                    f"\n\tlat : {self.e2_swe.get('lat')} "
+                    f"| lon : {self.e2_swe.get('lon')} "
+                    f"| alt : {self.e2_swe.get('alt')}"
+                    f"\n\tlocation : {self.e2_chart.get('location')}"
+                    f"\n\tcountry : {self.e2_chart.get('country')} "
+                    f"| city : {self.e2_chart.get('city')} "
+                    f"| timezone : {self.e2_chart.get('timezone')}"
                 )
             self._notify.success(
                 msg_,
@@ -345,10 +355,10 @@ class EventData:
         # save by event
         if name_name == "name one":
             self.e1_chart["name"] = name
-            msg_ = f"event 1 name updated : {name}"
+            msg_ = f"event 1 name updated : {self.e1_chart.get('name')}"
         else:
             self.e2_chart["name"] = name or ""
-            msg_ = f"event 2 name updated : {name}"
+            msg_ = f"event 2 name updated : {self.e2_chart.get('name')}"
         self._notify.success(
             msg_,
             source="eventdata",
@@ -519,11 +529,12 @@ class EventData:
                         entry.set_text(dt_event_str)
                         if datetime_name == "datetime one":
                             self.e1_chart["datetime"] = dt_event_str
+                            msg_ = f"event 1 datetime updated : {self.e1_chart.get('datetime')}"
                         else:
                             self.e2_chart["datetime"] = dt_event_str or ""
+                            msg_ = f"event 2 datetime updated : {self.e2_chart.get('datetime')}"
                         self._notify.debug(
-                            # f"parsing {datetime_name} event ..."
-                            f"\n\tset event datetime : {dt_event}\n\tdt_utc : {dt_utc}",
+                            msg_,
                             source="eventdata",
                             route=["terminal"],
                         )
@@ -560,10 +571,24 @@ class EventData:
         )
         if datetime_name == "datetime one":
             self.e1_swe["jd_ut"] = jd_ut
+            jd_ut_ = self.e1_swe.get("jd_ut")
+            if (
+                jd_ut_ is not None
+                and isinstance(jd_ut_, (tuple, list))
+                and len(jd_ut_) > 1
+            ):
+                msg_ = f"event 1 julian day updated : {jd_ut_[1]}"
         else:
             self.e2_swe["jd_ut"] = jd_ut or None
+            jd_ut_ = self.e2_swe.get("jd_ut")
+            if (
+                jd_ut_ is not None
+                and isinstance(jd_ut_, (tuple, list))
+                and len(jd_ut_) > 1
+            ):
+                msg_ = f"event 2 julian day updated : {jd_ut_[1]}"
         self._notify.debug(
-            f"collected {datetime_name} julian day : {jd_ut}\n\n\tREADY TO ROCK",
+            f"{msg_}\n\n\tREADY TO ROCK",
             source="eventdata",
             route=["terminal"],
         )
@@ -585,18 +610,20 @@ class EventData:
                 route=["terminal"],
             )
             self.e2_chart["country"] = self.e2_chart.get(
-                "country", ""
-            ) or self.e1_chart.get("country", "")
-            self.e2_chart["city"] = self.e2_chart.get("city", "") or self.e1_chart.get(
-                "city", ""
+                "country"
+                # "country", ""
+            ) or self.e1_chart.get("country")
+            # ) or self.e1_chart.get("country", "")
+            self.e2_chart["city"] = self.e2_chart.get("city") or self.e1_chart.get(
+                "city"
             )
             self.e2_chart["location"] = self.e2_chart.get(
-                "location", ""
+                "location"
             ) or self.e1_chart.get("location")
             self.e2_chart["timezone"] = self.e2_chart.get(
-                "timezone", ""
+                "timezone"
             ) or self.e1_chart.get("timezone")
-            self.e2_chart["name"] = self.e2_chart.get("name", "") or self.e1_chart.get(
+            self.e2_chart["name"] = self.e2_chart.get("name") or self.e1_chart.get(
                 "name"
             )
             self.e2_swe["lat"] = self.e2_swe.get("lat") or self.e1_swe.get("lat")
@@ -608,12 +635,14 @@ class EventData:
                 source="eventdata",
                 route=["terminal"],
             )
-            # debug-print all data
-            self._notify.debug(
-                f"\ne1 chart\t{self.e1_chart}"
-                f"\ne1 swe\t{self.e1_swe}"
-                f"\n\ne2 chart\t{self.e2_chart}"
-                f"\ne2 swe\t{self.e2_swe}",
-                source="eventdata",
-                route=["terminal"],
-            )
+        # debug-print all data
+        self._notify.debug(
+            "\n\n----- COLLECTED DATA -----"
+            f"\ne1 chart\t{self.e1_chart}"
+            f"\ne1 swe\t\t{self.e1_swe}"
+            f"\n\ne2 chart\t{self.e2_chart}"
+            f"\ne2 swe\t\t{self.e2_swe}"
+            "\n\n--------------------------",
+            source="eventdata",
+            route=["terminal"],
+        )

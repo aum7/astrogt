@@ -7,9 +7,6 @@ from gi.repository import Gtk, Adw  # type: ignore
 from ui.mainwindow import MainWindow
 from ui.notifymanager import NotifyManager
 from ui.signalmanager import SignalManager
-# from ui.timemanager import TimeManager
-# from sweph.swecore import SweCore
-# from sweph.calculations.positions import SwePositions
 
 
 class AstrogtApp(Gtk.Application):
@@ -24,11 +21,6 @@ class AstrogtApp(Gtk.Application):
         # managers
         self.signal_manager = SignalManager(self)
         self.notify_manager = NotifyManager(self)
-        # self.time_manager = TimeManager(self)
-        # todo do we need this here ?
-        # self.swe_core = SweCore(self)
-        # self.swe_positions = SwePositions(self)
-        # self.swe_positions.swe_core = self.swe_core
 
     def do_activate(self):
         win = MainWindow(application=self)
