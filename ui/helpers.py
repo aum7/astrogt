@@ -59,19 +59,18 @@ def _validate_datetime(manager, date_time):
         manager._notify.warning(
             f"date-time : characters {sorted(invalid_chars)} not allowed",
             source="helpers",
-            route=["user"],
+            route=["terminal", "user"],
         )
         return False
     is_year_negative = date_time.lstrip().startswith("-")
     # print(f"helpers : year negative : {is_year_negative}")
-    parts = [p for p in re.split(r"[ -:]+", date_time) if p]
-    # parts = [p for p in re.split("[ -/.:]+", date_time) if p]
+    parts = [p for p in re.split(r"[- :]+", date_time) if p]
     if len(parts) < 5 or len(parts) > 6:
         manager._notify.warning(
             "wrong data count : 6 or 5 (if no seconds) time units expected"
             "\n\tie 1999 11 12 13 14",
             source="helpers",
-            route=["user"],
+            route=["terminal", "user"],
         )
         return False
         # handle year
@@ -83,9 +82,9 @@ def _validate_datetime(manager, date_time):
         # swiseph year range
         if not -13200 <= year <= 17191:
             manager._notify.warning(
-                "year out of sweph range (-13.200 - 17.191)",
+                f"year ({year}) out of sweph range (-13.200 - 17.191)",
                 source="helpers",
-                route=["user"],
+                route=["terminal", "user"],
             )
             return False
 
@@ -93,7 +92,7 @@ def _validate_datetime(manager, date_time):
         manager._notify.error(
             "invalid year format",
             source="helpers",
-            route=["user"],
+            route=["terminal", "user"],
         )
         return False
 
@@ -131,7 +130,7 @@ def _validate_datetime(manager, date_time):
             f"{year}-{month}-{day} : date not valid"
             "\n\tcheck month & day : ie february has 28 or 29 days",
             source="helpers",
-            route=["user"],
+            route=["terminal", "user"],
         )
         return False
 

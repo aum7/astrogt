@@ -52,7 +52,9 @@ class MainWindow(
         # register additional hotkeys
         self._hotkeys.register_hotkey("h", self.show_help)
         self._hotkeys.register_hotkey("s", self.on_toggle_pane)
-        self._hotkeys.register_hotkey("c", self.center_all_panes)
+        self._hotkeys.register_hotkey("shift+exclam", self.panes_single)
+        self._hotkeys.register_hotkey("shift+quotedbl", self.panes_double)
+        self._hotkeys.register_hotkey("shift+numbersign", self.panes_all)
         self._hotkeys.register_hotkey("Up", self.obc_arrow_up)
         self._hotkeys.register_hotkey("Down", self.obc_arrow_dn)
         self._hotkeys.register_hotkey("Left", self.obc_arrow_l)
@@ -96,9 +98,9 @@ class MainWindow(
             route=["user"],
         )
 
-    # center all panes
-    def center_all_panes(self) -> None:
-        """center all 4 main panes"""
+    # panes show all
+    def panes_all(self) -> None:
+        """show & center all 4 main panes"""
         if (
             hasattr(self, "pnd_main_v")
             and hasattr(self, "pnd_top_h")
@@ -107,3 +109,18 @@ class MainWindow(
             self.pnd_main_v.set_position(self.pnd_main_v.get_height() // 2)
             self.pnd_top_h.set_position(self.pnd_top_h.get_width() // 2)
             self.pnd_btm_h.set_position(self.pnd_btm_h.get_width() // 2)
+
+    # panes show 2
+    def panes_double(self) -> None:
+        """show & center bottom 2 panes (hide top 2)"""
+        if hasattr(self, "pnd_main_v") and hasattr(self, "pnd_btm_h"):
+            # separator position in pixels, from top-left | -ve = unset | def 0
+            self.pnd_main_v.set_position(0)
+            self.pnd_btm_h.set_position(self.pnd_btm_h.get_width() // 2)
+
+    # panes show single pane : shift-triple-click / shift+1
+    def panes_single(self) -> None:
+        """show single pane : bottom right"""
+        if hasattr(self, "pnd_main_v") and hasattr(self, "pnd_btm_h"):
+            self.pnd_main_v.set_position(0)
+            self.pnd_btm_h.set_position(0)

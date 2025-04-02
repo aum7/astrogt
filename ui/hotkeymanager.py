@@ -21,7 +21,9 @@ class HotkeyManager:
         # store reference to window methods
         self.actions = {
             "toggle_pane": getattr(window, "on_toggle_pane", None),
-            "center_panes": getattr(window, "center_all_panes", None),
+            "panes_all": getattr(window, "panes_all", None),
+            "panes_double": getattr(window, "panes_double", None),
+            "panes_single": getattr(window, "panes_single", None),
         }
         self.setup_controllers()
 
@@ -56,24 +58,26 @@ class HotkeyManager:
     def _handle_button_press(self, gesture, n_press, x, y, button, action_name):
         """handle button press with modifier awareness"""
         # check for modifiers
-        if self.active_modifiers[Gdk.KEY_Shift_L]:
-            if action_name == "toggle_pane":
-                # handle shift-click, dynamically retrieve
-                action = getattr(self.window, "center_all_panes", None)
-                if callable(action):
-                    action()
-                    gesture.set_state(Gtk.EventSequenceState.CLAIMED)
-                    return
-                if action_name in self.actions:
-                    action = self.actions[action_name]
-                    if not callable(action):
-                        # fallback : dynamically fetch from window
-                        action = getattr(self.window, action_name, None)
-                        self.actions[action_name] = action
-                    if callable(action):
-                        action(button)
-                        gesture.set_state(Gtk.EventSequenceState.CLAIMED)
-                        return
+        if self.active_modifiers[Gdk.KEY_Shift_L] and n_press in (1, 2, 3):
+            if n_press == 1:
+                action_func = getattr(self.window, "panes_single", None)
+            elif n_press == 2:
+                action_func = getattr(self.window, "panes_double", None)
+            elif n_press == 3:
+                action_func = getattr(self.window, "panes_all", None)
+            if callable(action_func):
+                action_func()
+                gesture.set_state(Gtk.EventSequenceState.CLAIMED)
+                return
+            # fallback if not callable
+            action_func = self.actions.get(action_name)
+            if not callable(action_func):
+                action_func = getattr(self.window, action_name, None)
+                self.actions[action_name] = action_func
+            if callable(action_func):
+                action_func(button)
+                gesture.set_state(Gtk.EventSequenceState.CLAIMED)
+                return
         # no modifier or different action, trigger default action
         if action_name in self.actions:
             action = self.actions[action_name]

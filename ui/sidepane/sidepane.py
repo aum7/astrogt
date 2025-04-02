@@ -19,7 +19,7 @@ class SidePaneManager:
     CHANGE_TIME_BUTTONS: Dict[str, str] = {
         "arrow_l": "move time backward (hk : arrow left)",
         "arrow_r": "move time forward (hk : arrow right)",
-        "time_now": "time now (hk : n)\nset time now for selected event",
+        "time_now": "time now (hk : shift+n)\nset time now for selected event",
         "arrow_up": "select previous time period (hk : arrow up)",
         "arrow_dn": "select next time period (hk : arrow down)",
     }
@@ -239,7 +239,7 @@ arrow key left / right : move time backward / forward
             dt_now = datetime.now().replace(microsecond=0)
             entry.set_text(dt_now.strftime("%Y-%m-%d %H:%M:%S"))
             self._notify.info(
-                f"{datetime_name} set to now : {dt_now}",
+                f"{datetime_name} set to now (computer) : {dt_now}",
                 source="sidepane",
                 route=["terminal", "user"],
             )
@@ -248,17 +248,33 @@ arrow key left / right : move time backward / forward
             # increment the naive datetime and let on_datetime_change handle rest
             dt_naive = datetime.strptime(current_text, "%Y-%m-%d %H:%M:%S")
             new_naive = dt_naive + timedelta(seconds=int(sec_delta))
-            if new_naive.year < 1000:
+            if new_naive.year >= 1000:
+                # from astropy.time import Time
+                new_text = new_naive.strftime("%Y-%m-%d %H:%M:%S")
+            # py datetime does not handle years < 1000 nor negative years
+            # todo handle those with custom func - try date_conversion 1st
+            # set flag ? would need handle hotkeys too
+            elif new_naive.year < 1000:
                 # convert to decimal hour
+                # jump into nonpydatetime dimension
+                time_naive = new_naive
                 decimal_hour = (
-                    new_naive.hour + new_naive.minute / 60 + new_naive.second / 3600
+                    time_naive.hour + time_naive.minute / 60 + time_naive.second / 3600
                 )
-                isvalid, jd, dt_corr = swe.date_conversion(
-                    new_naive.year, new_naive.month, new_naive.day, decimal_hour, b"g"
+                isvalid, _, dt_corr = swe.date_conversion(
+                    time_naive.year,
+                    time_naive.month,
+                    time_naive.day,
+                    decimal_hour,
+                    b"g",
+                )
+                self._notify.debug(
+                    f"\n\tdateconversion :\n\t{datetime_name}\n\t\t{time_naive}"
+                    f"valid : {isvalid}\n\t\t\t{dt_corr}",
                 )
                 if not isvalid:
                     self._notify.warning(
-                        f"date conversion : input datetime was corrected : {dt_corr}",
+                        f"date conversion : {datetime_name} corrected : {dt_corr}",
                         source="sidepane",
                         route=["terminal"],
                     )
@@ -268,9 +284,6 @@ arrow key left / right : move time backward / forward
                 second = int(round((((dt_corr[3] - hour_int) * 60) - minute) * 60))
                 new_text = f"{dt_corr[0]:04d}-{dt_corr[1]:02d}-{dt_corr[2]:02d} "
                 f"{hour_int:02d}:{minute:02d}:{second:02d}"
-            else:
-                # from astropy.time import Time
-                new_text = new_naive.strftime("%Y-%m-%d %H:%M:%S")
             # update entry with new text
             entry.set_text(new_text)
             # set flag for hotkey arrow
@@ -282,7 +295,7 @@ arrow key left / right : move time backward / forward
                 self._app.EVENT_TWO.on_datetime_change(entry)
         except ValueError as e:
             self._notify.error(
-                f"\n\terror\n\t{e}\n\tinvalid datetime format, exiting ...",
+                f"\n\t{datetime_name} error\n\t{e}\n\texiting ...",
                 source="sidepane",
                 route=["terminal"],
             )
