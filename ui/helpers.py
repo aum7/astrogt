@@ -1,4 +1,5 @@
 # ruff: noqa: E402
+import re
 import gi
 
 gi.require_version("Gtk", "4.0")
@@ -28,16 +29,14 @@ def _event_selection(manager, gesture, n_press, x, y, event_name):
 
 
 def _on_time_now(manager):
-    """get time now (utc) for computer / app location & send it to parse_datetime"""
+    """get time now (utc) for computer / app location & send it to on_datetime_change"""
     if manager._app.selected_event == "event one" and manager._app.EVENT_ONE:
         entry = manager._app.EVENT_ONE.date_time
         manager._app.EVENT_ONE.is_utc_now = True
-        # print("ontimenow : got entry for event one : set is_utc_now true")
         manager._app.EVENT_ONE.on_datetime_change(entry)
     elif manager._app.selected_event == "event two" and manager._app.EVENT_TWO:
         entry = manager._app.EVENT_TWO.date_time
         manager._app.EVENT_TWO.is_utc_now = True
-        # print("ontimenow : got entry for event two : set is_utc_now true")
         manager._app.EVENT_TWO.on_datetime_change(entry)
 
 
@@ -50,3 +49,100 @@ def _decimal_to_dms(decimal):
     sec = int(sec_ * 60)
 
     return deg, min, sec
+
+
+def _validate_datetime(manager, date_time):
+    # check characters
+    valid_chars = set("0123456789 -:")
+    invalid_chars = set(date_time) - valid_chars
+    if invalid_chars:
+        manager._notify.warning(
+            f"date-time : characters {sorted(invalid_chars)} not allowed",
+            source="helpers",
+            route=["user"],
+        )
+        return False
+    is_year_negative = date_time.lstrip().startswith("-")
+    # print(f"helpers : year negative : {is_year_negative}")
+    parts = [p for p in re.split(r"[ -:]+", date_time) if p]
+    # parts = [p for p in re.split("[ -/.:]+", date_time) if p]
+    if len(parts) < 5 or len(parts) > 6:
+        manager._notify.warning(
+            "wrong data count : 6 or 5 (if no seconds) time units expected"
+            "\n\tie 1999 11 12 13 14",
+            source="helpers",
+            route=["user"],
+        )
+        return False
+        # handle year
+    try:
+        year = int(parts[0])
+        if is_year_negative:
+            year = -abs(year)
+        # print(f"year : {year}")
+        # swiseph year range
+        if not -13200 <= year <= 17191:
+            manager._notify.warning(
+                "year out of sweph range (-13.200 - 17.191)",
+                source="helpers",
+                route=["user"],
+            )
+            return False
+
+    except ValueError:
+        manager._notify.error(
+            "invalid year format",
+            source="helpers",
+            route=["user"],
+        )
+        return False
+
+    if len(parts) == 5:
+        # add seconds
+        parts.append("00")
+
+    _, month, day, hour, minute, second = map(int, parts)
+
+    # check if date_time is valid day
+    def is_valid_date(year, month, day):
+        day_count_for_month = [
+            # 0 added to match number with month
+            0,
+            31,
+            28,
+            31,
+            30,
+            31,
+            30,
+            31,
+            31,
+            30,
+            31,
+            30,
+            31,
+        ]
+        if year % 4 == 0 and (year % 100 != 0 or year % 400 == 0):
+            day_count_for_month[2] = 29
+
+        return 1 <= month <= 12 and 1 <= day <= day_count_for_month[month]
+
+    if not is_valid_date(year, month, day):
+        manager._notify.warning(
+            f"{year}-{month}-{day} : date not valid"
+            "\n\tcheck month & day : ie february has 28 or 29 days",
+            source="helpers",
+            route=["user"],
+        )
+        return False
+
+    def is_valid_time(hour, minute, second):
+        return 0 <= hour <= 23 and 0 <= minute <= 59 and 0 <= second <= 59
+
+    if not is_valid_time(hour, minute, second):
+        manager._notify.warning(
+            f"{hour}:{minute}:{second} : time not valid",
+            source="helpers",
+            route=["user"],
+        )
+        return False
+    return year, month, day, hour, minute, second

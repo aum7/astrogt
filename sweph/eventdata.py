@@ -1,6 +1,5 @@
 # ruff: noqa: E402
 import swisseph as swe
-import re
 import gi
 
 gi.require_version("Gtk", "4.0")
@@ -8,7 +7,7 @@ from gi.repository import Gtk  # type: ignore
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 from timezonefinder import TimezoneFinder
-from ui.helpers import _decimal_to_dms
+from ui.helpers import _decimal_to_dms, _validate_datetime
 
 
 class EventData:
@@ -32,15 +31,17 @@ class EventData:
         self.date_time = date_time
         self.timezone = None
         self.is_utc_now = False
+        # flag for no validation needed
+        self.is_hotkey_arrow = False
         # self.jd_ut = None
         self.old_name = ""
         self.old_date_time = ""
         self.old_location = ""
         # separate data by event
-        self.e1_swe = {}
-        self.e1_chart = {}
-        self.e2_swe = {}
-        self.e2_chart = {}
+        self._app.e1_swe = {}
+        self._app.e1_chart = {}
+        self._app.e2_swe = {}
+        self._app.e2_chart = {}
         # connect signals for entry completion
         for widget, callback in [
             (self.name, self.on_name_change),
@@ -66,14 +67,14 @@ class EventData:
         location = entry.get_text().strip()
         if location_name == "location one" and not location:
             self._notify.warning(
-                f"\n\tmandatory data missing ({location_name})",
+                f"\n\tmandatory data missing : {location_name}",
                 source="eventdata",
                 route=["terminal", "user"],
             )
             return
         if location == self.old_location:
             self._notify.debug(
-                "location not changed",
+                f"{location_name} not changed",
                 source="eventdata",
                 route=["terminal"],
             )
@@ -83,7 +84,9 @@ class EventData:
             valid_chars = set("0123456789 -.nsewm")
             invalid_chars = set(location.lower()) - valid_chars
             if invalid_chars:
-                raise ValueError(f"characters {sorted(invalid_chars)} not allowed")
+                raise ValueError(
+                    f"{location_name} characters {sorted(invalid_chars)} not allowed"
+                )
             # break string into parts
             parts = location.lower().split()
             # detect direction : e(ast), s(outh), n(orth), w(est))
@@ -109,12 +112,14 @@ class EventData:
                     alt = parts[lon_dir_idx + 1]
                     if not int(alt):
                         raise ValueError(
-                            "altitude invalid : space between number & unit ?"
+                            f"{location_name} altitude invalid : space between number & unit ?"
                         )
                 # check if d-m-s or decimal
                 try:
                     if not len(lat_parts) == len(lon_parts):
-                        raise ValueError("latitude or longitude part missing")
+                        raise ValueError(
+                            f"{location_name} latitude or longitude part missing"
+                        )
                     elif len(lat_parts) == 2 and len(lon_parts) == 2:
                         # decimal with direction format
                         lat = float(lat_parts[0])
@@ -127,7 +132,9 @@ class EventData:
                     else:
                         # d-m-s format : seconds are optional
                         if len(lat_parts) not in [3, 4] or len(lon_parts) not in [3, 4]:
-                            raise ValueError("invalid deg-min-(sec) n/s e/w format")
+                            raise ValueError(
+                                f"{location_name} invalid deg-min-(sec) n/s e/w format"
+                            )
                         lat_deg = int(lat_parts[0])
                         lat_min = int(lat_parts[1])
                         lat_sec = int(lat_parts[2]) if len(lat_parts) > 3 else 0
@@ -148,7 +155,9 @@ class EventData:
                 # signed decimal format
                 try:
                     if len(parts) < 2:
-                        raise ValueError("need at least latitude & longitude")
+                        raise ValueError(
+                            f"{location_name} : need at least latitude & longitude"
+                        )
                     lat = float(parts[0])
                     lon = float(parts[1])
                     # get optional altitude
@@ -166,42 +175,42 @@ class EventData:
             # validate ranges & notify user on error
             if not (0 <= lat_deg <= 89):
                 self._notify.warning(
-                    "latitude degrees must be between 0 & 90",
+                    f"{location_name}\n\tlatitude degrees must be between 0 & 90",
                     source="eventdata",
                     route=["user"],
                 )
                 return
             if not (0 <= lat_min <= 59) or not (0 <= lat_sec <= 59):
                 self._notify.warning(
-                    "latitude minutes & seconds must be between 0 & 59",
+                    f"{location_name}\n\tlatitude minutes & seconds must be between 0 & 59",
                     source="eventdata",
                     route=["user"],
                 )
                 return
             if lat_dir not in ["n", "s"]:
                 self._notify.warning(
-                    "latitude direction must be n(orth) or s(outh)",
+                    f"{location_name}\n\tlatitude direction must be n(orth) or s(outh)",
                     source="eventdata",
                     route=["user"],
                 )
                 return
             if not (0 <= lon_deg <= 179):
                 self._notify.warning(
-                    "longitude degrees must be between 0 and 179",
+                    f"{location_name}\n\tlongitude degrees must be between 0 and 179",
                     source="eventdata",
                     route=["user"],
                 )
                 return
             if not (0 <= lon_min <= 59) or not (0 <= lon_sec <= 59):
                 self._notify.warning(
-                    "longitude minutes & seconds must be between 0 & 59",
+                    f"{location_name}\n\tlongitude minutes & seconds must be between 0 & 59",
                     source="eventdata",
                     route=["user"],
                 )
                 return
             if lon_dir not in ["e", "w"]:
                 self._notify.warning(
-                    "longitude direction must be e(ast) or w(est)",
+                    f"{location_name}\n\tlongitude direction must be e(ast) or w(est)",
                     source="eventdata",
                     route=["user"],
                 )
@@ -209,15 +218,16 @@ class EventData:
             try:
                 # validate as integer
                 int(alt)
-                self._notify.info(
-                    f"int(alt) : {int(alt)}",
-                    source="eventdata",
-                    route=["terminal", "user"],
-                    timeout=4,
-                )
+                if not int(alt):
+                    self._notify.error(
+                        f"{location_name} int(alt) : {int(alt)} failed",
+                        source="eventdata",
+                        route=["terminal", "user"],
+                        timeout=4,
+                    )
             except ValueError:
                 self._notify.info(
-                    "invalid altitude value : setting alt to 0 (string)",
+                    f"{location_name}\n\tinvalid altitude value : setting alt to 0 (string)",
                     source="eventdata",
                     route=["terminal", "user"],
                     timeout=4,
@@ -260,24 +270,24 @@ class EventData:
                     country = mainwindow.country_one.get_selected_item().get_string()
                 if hasattr(mainwindow, "city_one"):
                     city = mainwindow.city_one.get_text()
-                self.e1_chart["country"] = country
-                self.e1_chart["city"] = city or ""
+                self._app.e1_chart["country"] = country
+                self._app.e1_chart["city"] = city or ""
                 # received data
-                self.e1_swe["lat"] = lat
-                self.e1_swe["lon"] = lon
-                self.e1_swe["alt"] = int(alt)
-                self.e1_chart["timezone"] = timezone_
-                self.e1_chart["location"] = location_formatted
+                self._app.e1_swe["lat"] = lat
+                self._app.e1_swe["lon"] = lon
+                self._app.e1_swe["alt"] = int(alt)
+                self._app.e1_chart["timezone"] = timezone_
+                self._app.e1_chart["location"] = location_formatted
                 msg_ = (
                     # "event 1 location data updated"
                     "event 1 location updated"
-                    f"\n\tlat : {self.e1_swe.get('lat')} "
-                    f"| lon : {self.e1_swe.get('lon')} "
-                    f"| alt : {self.e1_swe.get('alt')}"
-                    f"\n\tlocation : {self.e1_chart.get('location')}"
-                    f"\n\tcountry : {self.e1_chart.get('country')} "
-                    f"| city : {self.e1_chart.get('city')} "
-                    f"| timezone : {self.e1_chart.get('timezone')}"
+                    f"\n\tlat : {self._app.e1_swe.get('lat')} "
+                    f"| lon : {self._app.e1_swe.get('lon')} "
+                    f"| alt : {self._app.e1_swe.get('alt')}"
+                    f"\n\tlocation : {self._app.e1_chart.get('location')}"
+                    f"\n\tcountry : {self._app.e1_chart.get('country')} "
+                    f"| city : {self._app.e1_chart.get('city')} "
+                    f"| timezone : {self._app.e1_chart.get('timezone')}"
                 )
             else:
                 # grab country & city
@@ -285,24 +295,24 @@ class EventData:
                     country = mainwindow.country_two.get_selected_item().get_string()
                 if hasattr(mainwindow, "city_two"):
                     city = mainwindow.city_two.get_text()
-                self.e2_chart["country"] = country
-                self.e2_chart["city"] = city or ""
+                self._app.e2_chart["country"] = country
+                self._app.e2_chart["city"] = city or ""
                 # received data
-                self.e2_swe["lat"] = lat
-                self.e2_swe["lon"] = lon
-                self.e2_swe["alt"] = int(alt)
-                self.e2_chart["timezone"] = timezone_ or ""
-                self.e2_chart["location"] = location_formatted or ""
+                self._app.e2_swe["lat"] = lat
+                self._app.e2_swe["lon"] = lon
+                self._app.e2_swe["alt"] = int(alt)
+                self._app.e2_chart["timezone"] = timezone_ or ""
+                self._app.e2_chart["location"] = location_formatted or ""
                 msg_ = (
                     # "event 2 location data updated"
                     "event 2 location updated"
-                    f"\n\tlat : {self.e2_swe.get('lat')} "
-                    f"| lon : {self.e2_swe.get('lon')} "
-                    f"| alt : {self.e2_swe.get('alt')}"
-                    f"\n\tlocation : {self.e2_chart.get('location')}"
-                    f"\n\tcountry : {self.e2_chart.get('country')} "
-                    f"| city : {self.e2_chart.get('city')} "
-                    f"| timezone : {self.e2_chart.get('timezone')}"
+                    f"\n\tlat : {self._app.e2_swe.get('lat')} "
+                    f"| lon : {self._app.e2_swe.get('lon')} "
+                    f"| alt : {self._app.e2_swe.get('alt')}"
+                    f"\n\tlocation : {self._app.e2_chart.get('location')}"
+                    f"\n\tcountry : {self._app.e2_chart.get('country')} "
+                    f"| city : {self._app.e2_chart.get('city')} "
+                    f"| timezone : {self._app.e2_chart.get('timezone')}"
                 )
             self._notify.success(
                 msg_,
@@ -331,14 +341,14 @@ class EventData:
         name = entry.get_text().strip()
         if name_name == "name one" and not name:
             self._notify.warning(
-                f"\n\tmandatory data missing ({name_name})",
+                f"\n\tmandatory data missing : {name_name}",
                 source="eventdata",
                 route=["terminal", "user"],
             )
             return
         if name == self.old_name:
             self._notify.debug(
-                "name not changed",
+                f"{name_name} not changed",
                 source="eventdata",
                 route=["terminal"],
             )
@@ -354,11 +364,11 @@ class EventData:
         self.old_name = name
         # save by event
         if name_name == "name one":
-            self.e1_chart["name"] = name
-            msg_ = f"event 1 name updated : {self.e1_chart.get('name')}"
+            self._app.e1_chart["name"] = name
+            msg_ = f"event 1 name updated : {self._app.e1_chart.get('name')}"
         else:
-            self.e2_chart["name"] = name or ""
-            msg_ = f"event 2 name updated : {self.e2_chart.get('name')}"
+            self._app.e2_chart["name"] = name or ""
+            msg_ = f"event 2 name updated : {self._app.e2_chart.get('name')}"
         self._notify.success(
             msg_,
             source="eventdata",
@@ -369,280 +379,250 @@ class EventData:
         """process date & time"""
         datetime_name = entry.get_name()
         date_time = entry.get_text().strip()
+        # we need datetime utc & for event location
+        dt_utc = None
+        dt_event = None
         # calling from ontimenow
         if self.is_utc_now:
-            # get computer time
+            """get computer time"""
             dt_utc = datetime.now(timezone.utc).replace(microsecond=0)
             if self.timezone:
                 dt_event = dt_utc.astimezone(ZoneInfo(self.timezone))
-                print(f"timezone found : dt_event : {dt_event}")
+                self._notify.info(
+                    f"\n\t{datetime_name} timezone found"
+                    f"\n\tusing utc now : "
+                    f"\n\t{dt_event.strftime('%Y-%m-%d %H:%M:%S')}"
+                    "\n\tlocation should be set to calculate timezone",
+                    source="eventdata",
+                    route=["terminal", "user"],
+                )
             else:
                 dt_event = dt_utc
-                print(f"no timezone found : using dt_utc for dt_event : {dt_event}")
-            # update datetime entry
-            dt_event_str = dt_event.strftime("%Y-%m-%d %H:%M:%S")
-            entry.set_text(dt_event_str)
-            # save by event
-            if datetime_name == "datetime one":
-                self.e1_chart["datetime"] = dt_event_str
-            else:
-                self.e2_chart["datetime"] = dt_event_str or ""
-            self._notify.debug(
-                # f"parsing {datetime_name} utc ..."
-                # f"\n\tparsed application time now utc : {dt_utc.strftime('%Y-%m-%d %H:%M:%S')}"
-                f"\n\tset event location time now : {dt_event_str}",
-                source="eventdata",
-                route=["terminal"],
-            )
+                self._notify.info(
+                    f"\n\t{datetime_name} no timezone found"
+                    f"\n\tusing utc now : "
+                    f"\n\t{dt_event.strftime('%Y-%m-%d %H:%M:%S')}"
+                    "\n\tlocation should be set to calculate timezone",
+                    source="eventdata",
+                    route=["terminal", "user"],
+                )
             self.is_utc_now = False
-        # not calling from ontimenow
+        # datetime changed with hotkey arrow left / right : validation not needed
+        elif self.is_hotkey_arrow:
+            try:
+                # get datetime string
+                dt_str = entry.get_text()
+                # datetime string should be valid iso format
+                # parse to datetime
+                dt_naive = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
+                # convert to event location timezone
+                if self.timezone:
+                    dt_event = dt_naive.replace(tzinfo=ZoneInfo(self.timezone))
+                    dt_utc = dt_event.astimezone(timezone.utc)
+                else:
+                    dt_event = dt_naive.replace(tzinfo=timezone.utc)
+                    dt_utc = dt_event
+                    self._notify.info(
+                        f"\n\t{datetime_name} no timezone : using utc"
+                        "\n\tlocation should be set to calculate timezone",
+                        source="eventdata",
+                        route=["terminal", "user"],
+                    )
+            except Exception as e:
+                self._notify.warning(
+                    f"\twrong {datetime_name}\n\terror\n\t{e}",
+                    source="eventdata",
+                    route=["terminal", "user"],
+                )
+                return
+            self.is_hotkey_arrow = False
+        # string from manual input
         else:
             # event one date-time is mandatory
             if datetime_name == "datetime one" and not date_time:
                 self._notify.warning(
                     f"\n\tmandatory data missing ({datetime_name})",
+                    source=f"eventdata : {datetime_name}",
+                    route=["terminal", "user"],
+                )
+                return
+            # data changed
+            if date_time == self.old_date_time:
+                self._notify.debug(
+                    "date-time not changed",
+                    source=f"eventdata : {datetime_name}",
+                    route=["terminal"],
+                )
+                return
+            try:
+                # validate datetime string from manual input
+                # dt_naive = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
+                result = _validate_datetime(self, date_time)
+                if not result:
+                    raise ValueError("datetime validation failed")
+                self._notify.info(
+                    "manual entry valid",
+                    source="eventdata",
+                    route=["terminal"],
+                )
+                Y, M, D, h, m, s = result
+                # manual input : assume event time
+                dt_naive = datetime(Y, M, D, h, m, s)
+                if self.timezone:
+                    dt_event = dt_naive.replace(tzinfo=ZoneInfo(self.timezone))
+                    dt_utc = dt_event.astimezone(timezone.utc)
+                else:
+                    dt_event = dt_naive.replace(tzinfo=timezone.utc)
+                    dt_utc = dt_event
+                    self._notify.info(
+                        f"\n\t{datetime_name} no timezone : using utc"
+                        "\n\tlocation should be set to calculate timezone",
+                        source="eventdata",
+                        route=["terminal", "user"],
+                    )
+            except Exception as e:
+                self._notify.warning(
+                    f"\twrong {datetime_name}"
+                    "\n\twe accept space-separated : yyyy mm dd HH MM SS"
+                    "\n\t\tand - : for separators (iso date-time, 24 hour format)"
+                    f"\n\terror\n\t{e}",
                     source="eventdata",
                     route=["terminal", "user"],
                 )
                 return
-            if date_time == self.old_date_time:
-                self._notify.debug(
-                    "date-time not changed",
-                    source="eventdata",
-                    route=["terminal"],
-                )
-                return
-            # validate datetime string
-            else:
-                """validate date-time data"""
-                try:
-                    # check characters
-                    valid_chars = set("0123456789 -/.:")
-                    invalid_chars = set(date_time) - valid_chars
-                    if invalid_chars:
-                        self._notify.warning(
-                            f"date-time : characters {sorted(invalid_chars)} not allowed",
-                            source="eventdata",
-                            route=["user"],
-                        )
-                        return
-                    # huston we have data
-                    is_year_negative = date_time.lstrip().startswith("-")
-                    # print(f"eventdata : year negative : {is_year_negative}")
-                    parts = [p for p in re.split(r"[\s\-\/\.\:]+", date_time) if p]
-                    # parts = [p for p in re.split("[ -/.:]+", date_time) if p]
-                    if len(parts) < 5 or len(parts) > 6:
-                        self._notify.warning(
-                            "wrong data count : 6 or 5 (if no seconds) time units expected"
-                            "\n\tie 1999 11 12 13 14",
-                            source="eventdata",
-                            route=["user"],
-                        )
-                        return
-                        # handle year
-                    try:
-                        year = int(parts[0])
-                        if is_year_negative:
-                            year = -abs(year)
-                        # print(f"year : {year}")
-                        # swiseph year range
-                        if not -13200 <= year <= 17191:
-                            self._notify.warning(
-                                "year out of sweph range (-13.200 - 17.191)",
-                                source="eventdata",
-                                route=["user"],
-                            )
-                            return
-
-                    except ValueError:
-                        self._notify.error(
-                            "invalid year format",
-                            source="eventdata",
-                            route=["user"],
-                        )
-                        return
-
-                    if len(parts) == 5:
-                        # add seconds
-                        parts.append("00")
-
-                    _, month, day, hour, minute, second = map(int, parts)
-
-                    # check if date_time is valid day
-                    def is_valid_date(year, month, day):
-                        day_count_for_month = [
-                            # 0 added to match number with month
-                            0,
-                            31,
-                            28,
-                            31,
-                            30,
-                            31,
-                            30,
-                            31,
-                            31,
-                            30,
-                            31,
-                            30,
-                            31,
-                        ]
-                        if year % 4 == 0 and (year % 100 != 0 or year % 400 == 0):
-                            day_count_for_month[2] = 29
-
-                        return (
-                            1 <= month <= 12 and 1 <= day <= day_count_for_month[month]
-                        )
-
-                    if not is_valid_date(year, month, day):
-                        self._notify.warning(
-                            f"{year}-{month}-{day} : date not valid"
-                            "\n\tcheck month & day : ie february has 28 or 29 days",
-                            source="eventdata",
-                            route=["user"],
-                        )
-                        return
-
-                    def is_valid_time(hour, minute, second):
-                        return (
-                            0 <= hour <= 23 and 0 <= minute <= 59 and 0 <= second <= 59
-                        )
-
-                    if not is_valid_time(hour, minute, second):
-                        self._notify.warning(
-                            f"{hour}:{minute}:{second} : time not valid",
-                            source="eventdata",
-                            route=["user"],
-                        )
-                        return
-                    try:
-                        """parse date-time data"""
-                        # get datetime string
-                        dt_str = entry.get_text()
-                        # parse to datetime
-                        dt_naive = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
-                        # convert to event location timezone
-                        if self.timezone:
-                            dt_event = dt_naive.astimezone(ZoneInfo(self.timezone))
-                        dt_utc = dt_event.astimezone(timezone.utc)
-                        # update datetime entry
-                        dt_event_str = dt_event.strftime("%Y-%m-%d %H:%M:%S")
-                        entry.set_text(dt_event_str)
-                        if datetime_name == "datetime one":
-                            self.e1_chart["datetime"] = dt_event_str
-                            msg_ = f"event 1 datetime updated : {self.e1_chart.get('datetime')}"
-                        else:
-                            self.e2_chart["datetime"] = dt_event_str or ""
-                            msg_ = f"event 2 datetime updated : {self.e2_chart.get('datetime')}"
-                        self._notify.debug(
-                            msg_,
-                            source="eventdata",
-                            route=["terminal"],
-                        )
-
-                    except ValueError as e:
-                        self._notify.error(
-                            f"invalid date-time\n\t{e}",
-                            source="eventdata",
-                            route=["terminal", "user"],
-                        )
-                        return
-
-                except Exception:
-                    self._notify.warning(
-                        f"wrong date-time format for {datetime_name}"
-                        "\n\twe only accept space-separated : yyyy mm dd HH MM SS"
-                        "\n\t\tand - / . : for separators"
-                        "\n\t(iso date-time, 24 hour format)",
-                        source="eventdata",
-                        route=["terminal", "user"],
-                    )
-                    return
-        # all good : set new old date-time
-        self.old_date_time = dt_event_str
-        # calculate julian day
-        jd_ut = swe.utc_to_jd(
-            dt_utc.year,
-            dt_utc.month,
-            dt_utc.day,
-            dt_utc.hour,
-            dt_utc.minute,
-            dt_utc.second,
-            1,
-        )
+        # update datetime entry
+        if dt_event:
+            dt_event_str = dt_event.strftime("%Y-%m-%d %H:%M:%S")
+        entry.set_text(dt_event_str)
         if datetime_name == "datetime one":
-            self.e1_swe["jd_ut"] = jd_ut
-            jd_ut_ = self.e1_swe.get("jd_ut")
-            if (
-                jd_ut_ is not None
-                and isinstance(jd_ut_, (tuple, list))
-                and len(jd_ut_) > 1
-            ):
-                msg_ = f"event 1 julian day updated : {jd_ut_[1]}"
+            self._app.e1_chart["datetime"] = dt_event_str
+            msg_ = f"{datetime_name} updated : {self._app.e1_chart.get('datetime')}"
         else:
-            self.e2_swe["jd_ut"] = jd_ut or None
-            jd_ut_ = self.e2_swe.get("jd_ut")
-            if (
-                jd_ut_ is not None
-                and isinstance(jd_ut_, (tuple, list))
-                and len(jd_ut_) > 1
-            ):
-                msg_ = f"event 2 julian day updated : {jd_ut_[1]}"
+            self._app.e2_chart["datetime"] = dt_event_str
+            msg_ = f"{datetime_name} updated : {self._app.e2_chart.get('datetime')}"
         self._notify.debug(
-            f"{msg_}\n\n\tREADY TO ROCK",
+            msg_,
             source="eventdata",
             route=["terminal"],
         )
-        # todo set here e2 data to e1 if e2 datetime is not empty ?
+        # all good : set new old date-time
+        self.old_date_time = dt_event_str
+        # calculate julian day
+        if dt_utc:
+            jd_ut = swe.utc_to_jd(
+                dt_utc.year,
+                dt_utc.month,
+                dt_utc.day,
+                dt_utc.hour,
+                dt_utc.minute,
+                dt_utc.second,
+                1,
+            )
+        if datetime_name == "datetime one":
+            self._app.e1_swe["jd_ut"] = jd_ut
+            jd_ut_ = self._app.e1_swe.get("jd_ut")
+            if (
+                jd_ut_ is not None
+                and isinstance(jd_ut_, (tuple, list))
+                and len(jd_ut_) > 1
+            ):
+                msg_ = f"{datetime_name} julian day updated : {jd_ut_[1]}"
+        else:
+            self._app.e2_swe["jd_ut"] = jd_ut or None
+            jd_ut_ = self._app.e2_swe.get("jd_ut")
+            if (
+                jd_ut_ is not None
+                and isinstance(jd_ut_, (tuple, list))
+                and len(jd_ut_) > 1
+            ):
+                msg_ = f"{datetime_name} julian day updated : {jd_ut_[1]}"
+        self._notify.debug(
+            f"{msg_}\n\tREADY TO ROCK",
+            source="eventdata",
+            route=["terminal"],
+        )
         """if datetime two is not empty, user is interested in event two
            in this case datetime two is manadatory, the rest is optional, aka
            if exists > use it, else use event one data"""
-        if self.e2_chart.get("datetime") is None:
+        if self._app.e2_chart.get("datetime") is None:
             self._notify.debug(
                 "datetime 2 is none : user not interested : extiting ...",
                 source="eventdata",
                 route=["terminal"],
             )
-        elif self.e2_chart.get("datetime", "") != "":
+        elif self._app.e2_chart.get("datetime", "") != "":
             self._notify.debug(
-                f"\n\tdatetime 2 not empty : {self.e2_chart.get('datetime')} : "
+                f"\n\tdatetime 2 not empty : {self._app.e2_chart.get('datetime')} : "
                 "merging e2 from e1 data",
                 source="eventdata",
                 route=["terminal"],
             )
-            self.e2_chart["country"] = self.e2_chart.get(
+            self._app.e2_chart["country"] = self._app.e2_chart.get(
                 "country"
-                # "country", ""
-            ) or self.e1_chart.get("country")
-            # ) or self.e1_chart.get("country", "")
-            self.e2_chart["city"] = self.e2_chart.get("city") or self.e1_chart.get(
+            ) or self._app.e1_chart.get("country")
+            self._app.e2_chart["city"] = self._app.e2_chart.get(
                 "city"
-            )
-            self.e2_chart["location"] = self.e2_chart.get(
+            ) or self._app.e1_chart.get("city")
+            self._app.e2_chart["location"] = self._app.e2_chart.get(
                 "location"
-            ) or self.e1_chart.get("location")
-            self.e2_chart["timezone"] = self.e2_chart.get(
+            ) or self._app.e1_chart.get("location")
+            self._app.e2_chart["timezone"] = self._app.e2_chart.get(
                 "timezone"
-            ) or self.e1_chart.get("timezone")
-            self.e2_chart["name"] = self.e2_chart.get("name") or self.e1_chart.get(
+            ) or self._app.e1_chart.get("timezone")
+            self._app.e2_chart["name"] = self._app.e2_chart.get(
                 "name"
-            )
-            self.e2_swe["lat"] = self.e2_swe.get("lat") or self.e1_swe.get("lat")
-            self.e2_swe["lon"] = self.e2_swe.get("lon") or self.e1_swe.get("lon")
-            self.e2_swe["alt"] = self.e2_swe.get("alt") or self.e1_swe.get("alt")
-            self.e2_swe["jd_ut"] = self.e2_swe.get("jd_ut") or self.e1_swe.get("jd_ut")
+            ) or self._app.e1_chart.get("name")
+            self._app.e2_swe["lat"] = self._app.e2_swe.get(
+                "lat"
+            ) or self._app.e1_swe.get("lat")
+            self._app.e2_swe["lon"] = self._app.e2_swe.get(
+                "lon"
+            ) or self._app.e1_swe.get("lon")
+            self._app.e2_swe["alt"] = self._app.e2_swe.get(
+                "alt"
+            ) or self._app.e1_swe.get("alt")
+            self._app.e2_swe["jd_ut"] = self._app.e2_swe.get(
+                "jd_ut"
+            ) or self._app.e1_swe.get("jd_ut")
             self._notify.debug(
                 "datetime 2 data merged with datetime 1 data",
                 source="eventdata",
                 route=["terminal"],
             )
         # debug-print all data
+        import json
+
         self._notify.debug(
             "\n\n----- COLLECTED DATA -----"
-            f"\ne1 chart\t{self.e1_chart}"
-            f"\ne1 swe\t\t{self.e1_swe}"
-            f"\n\ne2 chart\t{self.e2_chart}"
-            f"\ne2 swe\t\t{self.e2_swe}"
-            "\n\n--------------------------",
+            f"\nchart 1\t{json.dumps(self._app.e1_chart, sort_keys=True, indent=4)}"
+            f"\n  swe 1\t{json.dumps(self._app.e1_swe, sort_keys=True, indent=4)}"
+            "\n--------------------------"
+            f"\nchart 2\t{json.dumps(self._app.e2_chart, sort_keys=True, indent=4)}"
+            f"\n  swe 2\t{json.dumps(self._app.e2_swe, sort_keys=True, indent=4)}"
+            "\n--------------------------",
             source="eventdata",
             route=["terminal"],
         )
+        # pad year with leading zeros if year has less than 4 digits
+        # try:
+        #     year_part, rest = dt_str.split("-", 1)
+        #     print(f"year_part : {year_part} | rest : {rest}")
+        # except ValueError:
+        # invalid format, let strptime raise an error below
+        #     pass
+        # else:
+        #     if len(year_part) < 4:
+        #         print(f"len(year_part) : {len(year_part)}")
+        #         year_part = year_part.zfill(4)
+        #         print(f"year_part padded : {year_part}")
+        #         dt_str = f"{year_part}-{rest}"
+        #         print(f"dt_str padded : {dt_str}")
+        # todo manage years > 0 & negative years
+        # fmts = ("%Y-%m-%d %H:%M:%S", "%Y %m %d %H %M %S")
+        # for fmt in fmts:
+        #     try:
+        #         dt = datetime.datetime.strptime(date_time_str, fmt)
+        #         return dt
+        #     except ValueError:
+        #         continue
+        # return None

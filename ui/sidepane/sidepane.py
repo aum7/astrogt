@@ -1,4 +1,5 @@
 # ruff: noqa: E402
+import swisseph as swe
 import gi
 
 gi.require_version("Gtk", "4.0")
@@ -228,32 +229,60 @@ arrow key left / right : move time backward / forward
         """adjust event time by given seconds"""
         # get active entry based on selected event
         if self._app.selected_event == "event one" and self._app.EVENT_ONE:
-            dt_entry = self._app.EVENT_ONE.date_time
+            entry = self._app.EVENT_ONE.date_time
         elif self._app.selected_event == "event two" and self._app.EVENT_TWO:
-            dt_entry = self._app.EVENT_TWO.date_time
+            entry = self._app.EVENT_TWO.date_time
         # get current datetime
-        current_text = dt_entry.get_text()
+        datetime_name = entry.get_name()
+        current_text = entry.get_text()
         if not current_text:
             dt_now = datetime.now().replace(microsecond=0)
-            dt_entry.set_text(dt_now.strftime("%Y-%m-%d %H:%M:%S"))
+            entry.set_text(dt_now.strftime("%Y-%m-%d %H:%M:%S"))
             self._notify.info(
-                f"changeeventtime : date-time set to now : {dt_now}",
+                f"{datetime_name} set to now : {dt_now}",
                 source="sidepane",
                 route=["terminal", "user"],
             )
             return
         try:
-            # increment the naive datetime and let parse_datetime handle rest
+            # increment the naive datetime and let on_datetime_change handle rest
             dt_naive = datetime.strptime(current_text, "%Y-%m-%d %H:%M:%S")
             new_naive = dt_naive + timedelta(seconds=int(sec_delta))
-            new_text = new_naive.strftime("%Y-%m-%d %H:%M:%S")
+            if new_naive.year < 1000:
+                # convert to decimal hour
+                decimal_hour = (
+                    new_naive.hour + new_naive.minute / 60 + new_naive.second / 3600
+                )
+                isvalid, jd, dt_corr = swe.date_conversion(
+                    new_naive.year, new_naive.month, new_naive.day, decimal_hour, b"g"
+                )
+                if not isvalid:
+                    self._notify.warning(
+                        f"date conversion : input datetime was corrected : {dt_corr}",
+                        source="sidepane",
+                        route=["terminal"],
+                    )
+                # format with year as 4 digits
+                hour_int = int(dt_corr[3])
+                minute = int((dt_corr[3] - hour_int) * 60)
+                second = int(round((((dt_corr[3] - hour_int) * 60) - minute) * 60))
+                new_text = f"{dt_corr[0]:04d}-{dt_corr[1]:02d}-{dt_corr[2]:02d} "
+                f"{hour_int:02d}:{minute:02d}:{second:02d}"
+            else:
+                # from astropy.time import Time
+                new_text = new_naive.strftime("%Y-%m-%d %H:%M:%S")
             # update entry with new text
-            dt_entry.set_text(new_text)
-            # process the event with the new time
-        except ValueError:
+            entry.set_text(new_text)
+            # set flag for hotkey arrow
+            if datetime_name == "datetime one":
+                self._app.EVENT_ONE.is_hotkey_arrow = True
+                self._app.EVENT_ONE.on_datetime_change(entry)
+            else:
+                self._app.EVENT_TWO.is_hotkey_arrow = True
+                self._app.EVENT_TWO.on_datetime_change(entry)
+        except ValueError as e:
             self._notify.error(
-                # "cannot change time : no datetime : exiting ...",
-                "invalid datetime format, exiting ...",
+                f"\n\terror\n\t{e}\n\tinvalid datetime format, exiting ...",
                 source="sidepane",
                 route=["terminal"],
             )
