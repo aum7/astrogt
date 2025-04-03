@@ -9,7 +9,7 @@ from sweph.eventlocation import EventLocation
 from ui.helpers import _event_selection
 
 
-def setup_event(event_name: str, expand: bool, manager) -> CollapsePanel:
+def setup_event(manager, event_name: str, expand: bool) -> CollapsePanel:
     """setup event one & two collapsible panels, incl location sub-panel"""
     panel = CollapsePanel(
         title="event one" if event_name == "event one" else "event two",
@@ -20,17 +20,24 @@ def setup_event(event_name: str, expand: bool, manager) -> CollapsePanel:
     lbl_event = panel.get_title()
     lbl_event.set_tooltip_text(
         """main event ie natal / event chart
-click to set focus to event one
+click to set focus to event 1
 so change time will apply to it
 
-note : latitude & longitude (location) one + title one + date-time one are mandatory"""
+note
+location (latitude & longitude) 1 + 
+name / title 1 +
+date-time 1
+are mandatory"""
         if event_name == "event one"
         else """secondary event ie transit / progression etc
-click to set focus to event two
+click to set focus to event 2 
 so change time will apply to it
 
-note : leave location two empty (both city + latitude & longitude) if location two = location one
-    same for name / title two"""
+notes
+enter datetime 2 only if interested in transit etc (aka event 2)
+if location 2 = location 1 : set latitude & longitude (& city) 2 to empty
+enter custom name / title 2 = save event 2 linked to event 1
+delete datetime 2 = clear event 2 data"""
     )
     gesture = Gtk.GestureClick.new()
     gesture.connect(

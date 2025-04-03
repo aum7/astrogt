@@ -82,17 +82,24 @@ class MainWindow(
             "\nesc : discard message\n\nhotkeys (hk)"
             "\nh : show help (this message)"
             "\ns : toggle side pane"
-            "\nc : center main panes"
-            "\ne : toggle selected event for time change"
+            "\ne : toggle selected event for change time"
             "\narrow keys : up/down = change period | left/right = change time"
             "\n\tfor selected event"
-            "\nn : set time now for selected event"
-            "\n\tnote : time now is set for event location, converted from your computer time"
+            "\nn : set time now for selected event location"
+            "\n\t(your computer > utc > event location time)"
             "\ntab/shift+tab : navigate between widgets in side pane"
             "\nspace/enter : activate button / dropdown when focused"
+            "\nshift+1/2/3 : show single / double / all panes"
             "\n\nnote : if entry / text field is focused, hotkeys will not work"
             "\n\t(text field will 'consume' key press)"
-            "\n\nmake sure you only change event data for selected event (green 'event ...' text)",
+            "\n\nrecommended workflow :"
+            "\nenter event 1 data = calculate event / birth chart"
+            "\nif you want transit / progression etc (aka event 2) :"
+            "\n\tenter date-time 2 (use event 1 location & name)"
+            "\n\tenter location 2 for relocation event"
+            "\n\tenter custom name 2 (ie 'marriage') = save event 2 linked to event 1"
+            "\ndelete date-time 2 = erase event 2 data (not interested in transit etc)"
+            "\nnote : event name / title will be used for file saving",
             source="help",
             timeout=5,
             route=["user"],

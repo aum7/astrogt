@@ -17,27 +17,14 @@ def _event_selection(manager, gesture, n_press, x, y, event_name):
     if manager._app.selected_event != event_name:
         manager._app.selected_event = event_name
         if manager._app.selected_event == "event one":
-            # todo comment
-            print(f"\tevent_selection : {manager._app.selected_event} selected")
             manager.clp_event_two.remove_title_css_class("label-event-selected")
             manager.clp_event_one.add_title_css_class("label-event-selected")
         if manager._app.selected_event == "event two":
-            # todo comment
-            print(f"\tevent_selection : {manager._app.selected_event} selected")
             manager.clp_event_one.remove_title_css_class("label-event-selected")
             manager.clp_event_two.add_title_css_class("label-event-selected")
-
-
-def _on_time_now(manager):
-    """get time now (utc) for computer / app location & send it to on_datetime_change"""
-    if manager._app.selected_event == "event one" and manager._app.EVENT_ONE:
-        entry = manager._app.EVENT_ONE.date_time
-        manager._app.EVENT_ONE.is_utc_now = True
-        manager._app.EVENT_ONE.on_datetime_change(entry)
-    elif manager._app.selected_event == "event two" and manager._app.EVENT_TWO:
-        entry = manager._app.EVENT_TWO.date_time
-        manager._app.EVENT_TWO.is_utc_now = True
-        manager._app.EVENT_TWO.on_datetime_change(entry)
+        manager._notify.debug(
+            f"\thotkey | button : {manager._app.selected_event} selected"
+        )
 
 
 def _decimal_to_dms(decimal):
@@ -51,97 +38,75 @@ def _decimal_to_dms(decimal):
     return deg, min, sec
 
 
+def _on_time_now(manager):
+    """get time now (utc) for computer / app location"""
+    if manager._app.selected_event == "event one" and manager._app.EVENT_ONE:
+        entry = manager._app.EVENT_ONE.date_time
+        manager._app.EVENT_ONE.is_hotkey_now = True
+        manager._app.EVENT_ONE.on_datetime_change(entry)
+    elif manager._app.selected_event == "event two" and manager._app.EVENT_TWO:
+        entry = manager._app.EVENT_TWO.date_time
+        manager._app.EVENT_TWO.is_hotkey_now = True
+        manager._app.EVENT_TWO.on_datetime_change(entry)
+
+
 def _validate_datetime(manager, date_time):
     # check characters
     valid_chars = set("0123456789 -:")
     invalid_chars = set(date_time) - valid_chars
-    if invalid_chars:
-        manager._notify.warning(
-            f"date-time : characters {sorted(invalid_chars)} not allowed",
-            source="helpers",
-            route=["terminal", "user"],
-        )
-        return False
-    is_year_negative = date_time.lstrip().startswith("-")
-    # print(f"helpers : year negative : {is_year_negative}")
-    parts = [p for p in re.split(r"[- :]+", date_time) if p]
-    if len(parts) < 5 or len(parts) > 6:
-        manager._notify.warning(
-            "wrong data count : 6 or 5 (if no seconds) time units expected"
-            "\n\tie 1999 11 12 13 14",
-            source="helpers",
-            route=["terminal", "user"],
-        )
-        return False
-        # handle year
     try:
-        year = int(parts[0])
-        if is_year_negative:
-            year = -abs(year)
-        # print(f"year : {year}")
-        # swiseph year range
-        if not -13200 <= year <= 17191:
-            manager._notify.warning(
-                f"year ({year}) out of sweph range (-13.200 - 17.191)",
-                source="helpers",
-                route=["terminal", "user"],
+        if invalid_chars:
+            raise ValueError(f"characters {sorted(invalid_chars)} not allowed")
+        is_year_negative = date_time.lstrip().startswith("-")
+        parts = [p for p in re.split(r"[- :]+", date_time) if p]
+        if len(parts) < 5 or len(parts) > 6:
+            raise ValueError(
+                "wrong data count : 6 or 5 (if no seconds) time units expected"
+                "\n\tie 1999 11 12 13 14 : set time to 12 00 or 00 00 if unknown"
             )
-            return False
+        # handle year
+        try:
+            year = int(parts[0])
+            if is_year_negative:
+                year = -abs(year)
+                msg_negative_year = f"found negative year : {year}\n"
+            else:
+                msg_negative_year = ""
+            # swiseph year range
+            if not -13200 <= year <= 17191:
+                raise ValueError(f"year {year} out of sweph range (-13200 - 17191)")
+        except ValueError as e:
+            raise ValueError(e)
+        if len(parts) == 5:
+            # add seconds
+            parts.append("00")
+        _, month, day, hour, minute, second = map(int, parts)
 
-    except ValueError:
-        manager._notify.error(
-            "invalid year format",
-            source="helpers",
-            route=["terminal", "user"],
-        )
-        return False
-
-    if len(parts) == 5:
-        # add seconds
-        parts.append("00")
-
-    _, month, day, hour, minute, second = map(int, parts)
-
-    # check if date_time is valid day
-    def is_valid_date(year, month, day):
-        day_count_for_month = [
+        # check if date_time is valid day
+        def is_valid_date(year, month, day):
             # 0 added to match number with month
-            0,
-            31,
-            28,
-            31,
-            30,
-            31,
-            30,
-            31,
-            31,
-            30,
-            31,
-            30,
-            31,
-        ]
-        if year % 4 == 0 and (year % 100 != 0 or year % 400 == 0):
-            day_count_for_month[2] = 29
+            day_count_for_month = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+            if year % 4 == 0 and (year % 100 != 0 or year % 400 == 0):
+                day_count_for_month[2] = 29
 
-        return 1 <= month <= 12 and 1 <= day <= day_count_for_month[month]
+            return 1 <= month <= 12 and 1 <= day <= day_count_for_month[month]
 
-    if not is_valid_date(year, month, day):
+        if not is_valid_date(year, month, day):
+            raise ValueError(
+                f"{year}-{month}-{day} : date not valid"
+                "\n\tcheck month & day : ie february has 28 or 29 days"
+            )
+
+        def is_valid_time(hour, minute, second):
+            return 0 <= hour <= 23 and 0 <= minute <= 59 and 0 <= second <= 59
+
+        if not is_valid_time(hour, minute, second):
+            raise ValueError(f"{hour}:{minute}:{second} : time not valid")
+    except ValueError as e:
         manager._notify.warning(
-            f"{year}-{month}-{day} : date not valid"
-            "\n\tcheck month & day : ie february has 28 or 29 days",
+            f"{date_time}\n\terror\n\t{e}\n\t{msg_negative_year}",
             source="helpers",
             route=["terminal", "user"],
-        )
-        return False
-
-    def is_valid_time(hour, minute, second):
-        return 0 <= hour <= 23 and 0 <= minute <= 59 and 0 <= second <= 59
-
-    if not is_valid_time(hour, minute, second):
-        manager._notify.warning(
-            f"{hour}:{minute}:{second} : time not valid",
-            source="helpers",
-            route=["user"],
         )
         return False
     return year, month, day, hour, minute, second

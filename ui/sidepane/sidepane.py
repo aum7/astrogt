@@ -16,16 +16,22 @@ from .panelsettings import setup_settings
 class SidePaneManager:
     """mixin class for managing the side pane"""
 
+    PANE_BUTTONS: Dict[str, str] = {
+        "settings": "settings",
+        "file_save": "save file",
+        "file_load": "load file",
+    }
+
     CHANGE_TIME_BUTTONS: Dict[str, str] = {
         "arrow_l": "move time backward (hk : arrow left)",
         "arrow_r": "move time forward (hk : arrow right)",
-        "time_now": "time now (hk : shift+n)\nset time now for selected event",
+        "time_now": "time now (hk : n)\nset time now for selected event",
         "arrow_up": "select previous time period (hk : arrow up)",
         "arrow_dn": "select next time period (hk : arrow down)",
     }
     # value for selected change time
     CHANGE_TIME_SELECTED = 0
-    # time periods in seconds, used for time change todo years give weird results
+    # time periods in seconds, used for change time todo years give weird results
     CHANGE_TIME_PERIODS = {
         "period_315360000": "10 years",
         "period_31536000": "1 year",
@@ -60,10 +66,10 @@ class SidePaneManager:
         # create & put collapse panels into box
         self.clp_change_time = self.setup_change_time()
         # 2 events
-        self.clp_event_one = setup_event("event one", True, self)
+        self.clp_event_one = setup_event(self, "event one", True)
         if self._app.selected_event == "event one":
             self.clp_event_one.add_title_css_class("label-event-selected")
-        self.clp_event_two = setup_event("event two", False, self)
+        self.clp_event_two = setup_event(self, "event two", False)
         # tools
         self.clp_tools = setup_tools(self)
         # settings
@@ -130,7 +136,7 @@ arrow key left / right : move time backward / forward
         # create dropdown
         self.ddn_time_periods = Gtk.DropDown.new_from_strings(self.time_periods_list)
         self.ddn_time_periods.set_tooltip_text(
-            "select period to use for time change",
+            "select period to use for change time",
         )
         self.ddn_time_periods.add_css_class("dropdown")
         # set default time period : 1 day & seconds
@@ -220,7 +226,7 @@ arrow key left / right : move time backward / forward
             self.ddn_time_periods.set_selected(dropdown_index)
             # notify new value
             # manager._notify.info(
-            #     f"selected period : {new_value}", source="time change", timeout=3
+            #     f"selected period : {new_value}", source="change time", timeout=3
             # )
             seconds = new_key.split("_")[-1]
             self.CHANGE_TIME_SELECTED = seconds
@@ -243,13 +249,12 @@ arrow key left / right : move time backward / forward
                 source="sidepane",
                 route=["terminal", "user"],
             )
-            return
+            current_text = entry.get_text()
         try:
             # increment the naive datetime and let on_datetime_change handle rest
             dt_naive = datetime.strptime(current_text, "%Y-%m-%d %H:%M:%S")
             new_naive = dt_naive + timedelta(seconds=int(sec_delta))
             if new_naive.year >= 1000:
-                # from astropy.time import Time
                 new_text = new_naive.strftime("%Y-%m-%d %H:%M:%S")
             # py datetime does not handle years < 1000 nor negative years
             # todo handle those with custom func - try date_conversion 1st

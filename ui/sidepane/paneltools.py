@@ -3,16 +3,8 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
-from typing import Dict
 from ui.collapsepanel import CollapsePanel
 from ui.helpers import _create_icon
-
-
-PANE_BUTTONS: Dict[str, str] = {
-    "settings": "settings",
-    "file_save": "save file",
-    "file_load": "load file",
-}
 
 
 def setup_tools(manager) -> CollapsePanel:
@@ -23,7 +15,7 @@ def setup_tools(manager) -> CollapsePanel:
 
     box_tools = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
 
-    for button_name, tooltip in PANE_BUTTONS.items():
+    for button_name, tooltip in manager.PANE_BUTTONS.items():
         button = Gtk.Button()
         button.add_css_class("button-pane")
         button.set_tooltip_text(tooltip)

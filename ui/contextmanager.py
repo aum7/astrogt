@@ -63,7 +63,7 @@ class ContextManager:
             button.set_tooltip_text(f"{tooltip}")
 
             icon = Gtk.Image.new_from_file(
-                f"ui/imgs/icons/pane/{button_name}.svg",
+                f"ui/imgs/icons/hicolor/scalable/sidepane/{button_name}.svg",
             )
             icon.set_icon_size(Gtk.IconSize.NORMAL)
             button.set_child(icon)
