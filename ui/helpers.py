@@ -5,6 +5,7 @@ import gi
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from math import modf
+from sweph.swetime import swetime_to_jd
 
 
 def _create_icon(manager, icons_path, icon_name):
@@ -51,57 +52,51 @@ def _on_time_now(manager):
 
 
 def _validate_datetime(manager, date_time):
-    # check characters
-    valid_chars = set("0123456789 -:")
+    # check characters todo also add local time
+    valid_chars = set("0123456789 -:jg")
     invalid_chars = set(date_time) - valid_chars
+    msg_negative_year = ""
     try:
         if invalid_chars:
             raise ValueError(f"characters {sorted(invalid_chars)} not allowed")
         is_year_negative = date_time.lstrip().startswith("-")
         parts = [p for p in re.split(r"[- :]+", date_time) if p]
+        # todo allow for date only
         if len(parts) < 5 or len(parts) > 6:
             raise ValueError(
                 "wrong data count : 6 or 5 (if no seconds) time units expected"
                 "\n\tie 1999 11 12 13 14 : set time to 12 00 or 00 00 if unknown"
             )
-        # handle year
-        try:
-            year = int(parts[0])
-            if is_year_negative:
-                year = -abs(year)
-                msg_negative_year = f"found negative year : {year}\n"
-            else:
-                msg_negative_year = ""
-            # swiseph year range
-            if not -13200 <= year <= 17191:
-                raise ValueError(f"year {year} out of sweph range (-13200 - 17191)")
-        except ValueError as e:
-            raise ValueError(e)
+        year, month, day, hour, minute, second = map(int, parts)
+        if is_year_negative:
+            # year = -abs(year)
+            msg_negative_year = f"found negative year : {year}\n"
+        else:
+            msg_negative_year = ""
+        # swiseph year range
+        if not -13200 <= year <= 17191:
+            raise ValueError(f"year {year} out of sweph range (-13200 - 17191)")
+        # except ValueError as e:
+        #     raise ValueError(e)
         if len(parts) == 5:
             # add seconds
             parts.append("00")
-        _, month, day, hour, minute, second = map(int, parts)
-
-        # check if date_time is valid day
-        def is_valid_date(year, month, day):
-            # 0 added to match number with month
-            day_count_for_month = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-            if year % 4 == 0 and (year % 100 != 0 or year % 400 == 0):
-                day_count_for_month[2] = 29
-
-            return 1 <= month <= 12 and 1 <= day <= day_count_for_month[month]
-
-        if not is_valid_date(year, month, day):
-            raise ValueError(
-                f"{year}-{month}-{day} : date not valid"
-                "\n\tcheck month & day : ie february has 28 or 29 days"
+        # check if swetime is valid
+        calendar = b"g"
+        is_valid, jd, dt_corr = swetime_to_jd(
+            year, month, day, hour, minute, second, calendar
+        )
+        if not is_valid:
+            corr_y, corr_m, corr_d, corr_h_ = dt_corr
+            corr_h = int(corr_h_)
+            corr_min = int((corr_h_ - corr_h) * 60)
+            corr_sec = int(round((((corr_h_ - corr_h) * 60) - corr_min) * 60))
+            manager._notify.warning(
+                f"date-time was corrected : {corr_y}-{corr_m}-{corr_d}"
+                f"{corr_h}:{corr_min}:{corr_sec}",
+                source="helpers",
+                route=["terminal", "user"],
             )
-
-        def is_valid_time(hour, minute, second):
-            return 0 <= hour <= 23 and 0 <= minute <= 59 and 0 <= second <= 59
-
-        if not is_valid_time(hour, minute, second):
-            raise ValueError(f"{hour}:{minute}:{second} : time not valid")
     except ValueError as e:
         manager._notify.warning(
             f"{date_time}\n\terror\n\t{e}\n\t{msg_negative_year}",
@@ -109,4 +104,4 @@ def _validate_datetime(manager, date_time):
             route=["terminal", "user"],
         )
         return False
-    return year, month, day, hour, minute, second
+    return jd, corr_y, corr_m, corr_d, corr_h, corr_min, corr_sec

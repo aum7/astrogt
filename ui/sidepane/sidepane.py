@@ -1,13 +1,14 @@
 # ruff: noqa: E402
-import swisseph as swe
+# import swisseph as swe
 import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from typing import Dict, Optional
+from datetime import datetime
 from ui.collapsepanel import CollapsePanel
 from ui.helpers import _on_time_now, _create_icon
-from datetime import datetime, timedelta
+from sweph.swetime import swetime_to_jd, jd_to_iso
 from .panelevents import setup_event
 from .paneltools import setup_tools
 from .panelsettings import setup_settings
@@ -30,7 +31,7 @@ class SidePaneManager:
         "arrow_dn": "select next time period (hk : arrow down)",
     }
     # value for selected change time
-    CHANGE_TIME_SELECTED = 0
+    CHANGE_TIME_SELECTED = 0.0
     # time periods in seconds, used for change time todo years give weird results
     CHANGE_TIME_PERIODS = {
         "period_315360000": "10 years",
@@ -160,6 +161,81 @@ arrow key left / right : move time backward / forward
         seconds = key.split("_")[-1]
         self.CHANGE_TIME_SELECTED = seconds
 
+    def change_time_period(self, direction=1):
+        """change time period ; direction -1 / 1 for previous / next"""
+        # get list of periods
+        period_keys = list(self.CHANGE_TIME_PERIODS.keys())
+        period_values = list(self.CHANGE_TIME_PERIODS.values())
+        # get current selected
+        current_value = period_values[self.ddn_time_periods.get_selected()]
+        current_key = next(
+            (k for k, v in self.CHANGE_TIME_PERIODS.items() if v == current_value),
+            None,
+        )
+        if current_key:
+            current_index = period_keys.index(current_key)
+            new_index = (current_index + direction) % len(period_keys)
+            new_key = period_keys[new_index]
+            new_value = self.CHANGE_TIME_PERIODS[new_key]
+            # set new value
+            dropdown_index = period_values.index(new_value)
+            self.ddn_time_periods.set_selected(dropdown_index)
+            # notify new value
+            # manager._notify.info(
+            #     f"selected period : {new_value}", source="change time", timeout=3
+            # )
+            seconds = new_key.split("_")[-1]
+            self.CHANGE_TIME_SELECTED = seconds
+
+    def change_event_time(self, sec_delta):
+        """adjust event time by given seconds"""
+        # get active entry based on selected event
+        if self._app.selected_event == "event one" and self._app.EVENT_ONE:
+            entry = self._app.EVENT_ONE.date_time
+        elif self._app.selected_event == "event two" and self._app.EVENT_TWO:
+            entry = self._app.EVENT_TWO.date_time
+        # get current datetime
+        datetime_name = entry.get_name()
+        current_text = entry.get_text()
+        if not current_text:
+            dt_now = datetime.now().replace(microsecond=0)
+            _, jd, _ = swetime_to_jd(
+                dt_now.year,
+                dt_now.month,
+                dt_now.day,
+                dt_now.hour,
+                dt_now.minute,
+                dt_now.second,
+            )
+            dt_str = jd_to_iso(dt_now)
+            entry.set_text(dt_str)
+            current_text = dt_str
+            self._notify.info(
+                f"{datetime_name} set to now (computer) : {dt_str}",
+                source="sidepane",
+                route=["terminal", "user"],
+            )
+        try:
+            # increment time  and let on_datetime_change handle rest
+            # apply delta to julian day ( 86400 seconds = 1 day)
+            jd_new = jd + (sec_delta / 86400.0)
+            new_text = jd_to_iso(jd_new)
+            entry.set_text(new_text)
+            self._notify.debug(f"\n\tchange time new : {new_text}")
+            if datetime_name == "datetime one":
+                self._app.EVENT_ONE.is_hotkey_arrow = True
+                self._app.EVENT_ONE.on_datetime_change(entry)
+            else:
+                self._app.EVENT_TWO.is_hotkey_arrow = True
+                self._app.EVENT_TWO.on_datetime_change(entry)
+        except Exception as e:
+            self._notify.error(
+                f"\n\t{datetime_name}\n\terror\n\t{e}\n",
+                source="sidepane",
+                route=["terminal"],
+            )
+            return
+
     # button handlers
     def obc_default(self, widget, data):
         print(f"{data} clicked : obc_default()")
@@ -204,104 +280,3 @@ arrow key left / right : move time backward / forward
     ):
         """select next time period"""
         self.change_time_period(direction=1)
-
-    def change_time_period(self, direction=1):
-        """change time period ; direction -1 / 1 for previous / next"""
-        # get list of periods
-        period_keys = list(self.CHANGE_TIME_PERIODS.keys())
-        period_values = list(self.CHANGE_TIME_PERIODS.values())
-        # get current selected
-        current_value = period_values[self.ddn_time_periods.get_selected()]
-        current_key = next(
-            (k for k, v in self.CHANGE_TIME_PERIODS.items() if v == current_value),
-            None,
-        )
-        if current_key:
-            current_index = period_keys.index(current_key)
-            new_index = (current_index + direction) % len(period_keys)
-            new_key = period_keys[new_index]
-            new_value = self.CHANGE_TIME_PERIODS[new_key]
-            # set new value
-            dropdown_index = period_values.index(new_value)
-            self.ddn_time_periods.set_selected(dropdown_index)
-            # notify new value
-            # manager._notify.info(
-            #     f"selected period : {new_value}", source="change time", timeout=3
-            # )
-            seconds = new_key.split("_")[-1]
-            self.CHANGE_TIME_SELECTED = seconds
-
-    def change_event_time(self, sec_delta):
-        """adjust event time by given seconds"""
-        # get active entry based on selected event
-        if self._app.selected_event == "event one" and self._app.EVENT_ONE:
-            entry = self._app.EVENT_ONE.date_time
-        elif self._app.selected_event == "event two" and self._app.EVENT_TWO:
-            entry = self._app.EVENT_TWO.date_time
-        # get current datetime
-        datetime_name = entry.get_name()
-        current_text = entry.get_text()
-        if not current_text:
-            dt_now = datetime.now().replace(microsecond=0)
-            entry.set_text(dt_now.strftime("%Y-%m-%d %H:%M:%S"))
-            self._notify.info(
-                f"{datetime_name} set to now (computer) : {dt_now}",
-                source="sidepane",
-                route=["terminal", "user"],
-            )
-            current_text = entry.get_text()
-        try:
-            # increment the naive datetime and let on_datetime_change handle rest
-            dt_naive = datetime.strptime(current_text, "%Y-%m-%d %H:%M:%S")
-            new_naive = dt_naive + timedelta(seconds=int(sec_delta))
-            if new_naive.year >= 1000:
-                new_text = new_naive.strftime("%Y-%m-%d %H:%M:%S")
-            # py datetime does not handle years < 1000 nor negative years
-            # todo handle those with custom func - try date_conversion 1st
-            # set flag ? would need handle hotkeys too
-            elif new_naive.year < 1000:
-                # convert to decimal hour
-                # jump into nonpydatetime dimension
-                time_naive = new_naive
-                decimal_hour = (
-                    time_naive.hour + time_naive.minute / 60 + time_naive.second / 3600
-                )
-                isvalid, _, dt_corr = swe.date_conversion(
-                    time_naive.year,
-                    time_naive.month,
-                    time_naive.day,
-                    decimal_hour,
-                    b"g",
-                )
-                self._notify.debug(
-                    f"\n\tdateconversion :\n\t{datetime_name}\n\t\t{time_naive}"
-                    f"valid : {isvalid}\n\t\t\t{dt_corr}",
-                )
-                if not isvalid:
-                    self._notify.warning(
-                        f"date conversion : {datetime_name} corrected : {dt_corr}",
-                        source="sidepane",
-                        route=["terminal"],
-                    )
-                # format with year as 4 digits
-                hour_int = int(dt_corr[3])
-                minute = int((dt_corr[3] - hour_int) * 60)
-                second = int(round((((dt_corr[3] - hour_int) * 60) - minute) * 60))
-                new_text = f"{dt_corr[0]:04d}-{dt_corr[1]:02d}-{dt_corr[2]:02d} "
-                f"{hour_int:02d}:{minute:02d}:{second:02d}"
-            # update entry with new text
-            entry.set_text(new_text)
-            # set flag for hotkey arrow
-            if datetime_name == "datetime one":
-                self._app.EVENT_ONE.is_hotkey_arrow = True
-                self._app.EVENT_ONE.on_datetime_change(entry)
-            else:
-                self._app.EVENT_TWO.is_hotkey_arrow = True
-                self._app.EVENT_TWO.on_datetime_change(entry)
-        except ValueError as e:
-            self._notify.error(
-                f"\n\t{datetime_name} error\n\t{e}\n\texiting ...",
-                source="sidepane",
-                route=["terminal"],
-            )
-            return

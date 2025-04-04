@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 from timezonefinder import TimezoneFinder
 from ui.helpers import _decimal_to_dms, _validate_datetime
+# from sweph.swetime import swetime_to_jd, jd_to_swetime, jd_to_iso
 
 
 class EventData:
@@ -436,8 +437,8 @@ class EventData:
                 self.is_hotkey_arrow = False
                 return
             self.is_hotkey_arrow = False
-        # string from manual input
         else:
+            """string from manual input"""
             # event one date-time is mandatory
             if not date_time:
                 if datetime_name == "datetime one":
@@ -480,7 +481,7 @@ class EventData:
                     source="eventdata",
                     route=["terminal"],
                 )
-                Y, M, D, h, m, s = result
+                _, Y, M, D, h, m, s = result
                 # manual input : assume event time
                 dt_naive = datetime(Y, M, D, h, m, s)
                 if self.timezone:
