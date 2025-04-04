@@ -1,4 +1,7 @@
 # ruff: noqa: E402
+# launch inspector (Ctrl+Shift+I or Ctrl+Shift+D) when app is running
+# os.environ["GTK_DEBUG"] = "keybindings geometry size-request actions constraints"
+# import os
 import gi
 
 gi.require_version("Gtk", "4.0")
@@ -37,7 +40,7 @@ class AstrogtApp(Gtk.Application):
         self.notify_manager.toast_overlay = toast_overlay
         # notification : code specific to this file
         self.notify_manager.notify(
-            "astrogt app started - press 'h' for help", source="main", timeout=3
+            "astrogt app started - press 'h' for help", source="main", timeout=7
         )
         win.present()
 

@@ -222,7 +222,7 @@ arrow key left / right : move time backward / forward
                 sec=dt_now.second,
             )
             dt_str = jd_to_iso(jd)
-            print(f"jd : {jd} & type : {type(jd)} | dt_str : {dt_str}")
+            # print(f"jd : {jd} & type : {type(jd)} | dt_str : {dt_str}")
             entry.set_text(dt_str)
             current_text = dt_str
             self._notify.info(
@@ -238,10 +238,10 @@ arrow key left / right : move time backward / forward
                 *map(int, current_text.replace("-", " ").replace(":", " ").split()),
                 calendar=b"g",
             )
-            print(f"jd : {jd} & type : {type(jd)}")
-            print(f"change delta before jd_new : {change_delta}")
+            # print(f"jd : {jd} & type : {type(jd)}")
+            # print(f"change delta before jd_new : {change_delta}")
             jd_new = jd + change_delta
-            print(f"jd_new : {jd_new} & type : {type(jd_new)}")
+            # print(f"jd_new : {jd_new} & type : {type(jd_new)}")
             new_text = jd_to_iso(jd_new)
             entry.set_text(new_text)
             self._notify.debug(f"\n\tchange time new : {new_text}")
