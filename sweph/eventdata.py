@@ -1,5 +1,5 @@
 # ruff: noqa: E402
-import swisseph as swe
+# import swisseph as swe
 import gi
 
 gi.require_version("Gtk", "4.0")
@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 from timezonefinder import TimezoneFinder
 from ui.helpers import _decimal_to_dms, _validate_datetime
-# from sweph.swetime import swetime_to_jd, jd_to_swetime, jd_to_iso
+from sweph.swetime import swetime_to_jd
 
 
 class EventData:
@@ -485,6 +485,7 @@ class EventData:
                 _, Y, M, D, h, m, s = result
                 # manual input : assume event time
                 dt_naive = datetime(Y, M, D, h, m, s)
+                print(f"manual entry : dt_naive : {dt_naive}")
                 if self.timezone:
                     dt_event = dt_naive.replace(tzinfo=ZoneInfo(self.timezone))
                     dt_utc = dt_event.astimezone(timezone.utc)
@@ -528,26 +529,28 @@ class EventData:
         # calculate julian day
         jd_ut = None
         if dt_utc:
-            jd_ut = swe.utc_to_jd(
+            _, jd_ut, _ = swetime_to_jd(
                 dt_utc.year,
                 dt_utc.month,
                 dt_utc.day,
-                dt_utc.hour,
-                dt_utc.minute,
-                dt_utc.second,
-                1,
+                hour=dt_utc.hour,
+                min=dt_utc.minute,
+                sec=dt_utc.second,
             )
-        # braek julian day : only utc time is needed
-        jd_ut_ = None
-        if jd_ut is not None and isinstance(jd_ut, (tuple, list)) and len(jd_ut) > 1:
-            # first value is tt (terrestrial time)
-            jd_ut_ = jd_ut[1]
+        print(f"eventdata : on_datetime_change : jd_ut : {jd_ut}")
+        if not jd_ut:
+            self._notify.error(
+                f"{datetime_name} failed to calculate julian day",
+                source="eventdata",
+                route=["terminal"],
+            )
+            return
         if datetime_name == "datetime one":
-            self._app.e1_swe["jd_ut"] = jd_ut_
+            self._app.e1_swe["jd_ut"] = jd_ut
         else:
-            self._app.e2_swe["jd_ut"] = jd_ut_
+            self._app.e2_swe["jd_ut"] = jd_ut
         self._notify.debug(
-            f"{datetime_name} julian day : {jd_ut_}\n\tREADY TO ROCK",
+            f"{datetime_name} julian day : {jd_ut}\n\tREADY TO ROCK",
             source="eventdata",
             route=["terminal"],
         )
@@ -556,7 +559,7 @@ class EventData:
         # if exists > use it, else use event one data
         if self._app.e2_chart.get("datetime") is None:
             self._notify.debug(
-                "datetime 2 is none : user not interested : exiting ...",
+                "datetime 2 is none : user not interested : skipping ...",
                 source="eventdata",
                 route=["terminal"],
             )

@@ -1,24 +1,13 @@
-# ruff: noqa: E402
 import swisseph as swe
 
 
 def swetime_to_jd(year, month, day, hour=0, min=0, sec=0, calendar=b"g"):
     """convert swe-time to julian date"""
     decimal_hour = hour + min / 60 + sec / 3600
-    is_valid, jd, dt_corr = swe.date_conversion(
+    is_valid, jd, swe_corr = swe.date_conversion(
         year, month, day, decimal_hour, calendar
     )
-    return is_valid, jd, dt_corr
-    # auto-detect calendar if not explicitly specified
-    # if autoselect and calendar not in (b"g", b"j"):
-    #     # julian to gregorian calendar
-    #     if year > 1582 or (
-    #         year == 1582 and (month > 10 or (month == 10 and day >= 15))
-    #     ):
-    #         calendar = b"g"
-    #     else:
-    #         calendar = b"j"
-    # decimal hour
+    return is_valid, jd, swe_corr
 
 
 def jd_to_swetime(jd, calendar=b"g"):

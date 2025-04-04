@@ -67,15 +67,16 @@ def _validate_datetime(manager, date_time):
                 "wrong data count : 6 or 5 (if no seconds) time units expected"
                 "\n\tie 1999 11 12 13 14 : set time to 12 00 or 00 00 if unknown"
             )
-        year, month, day, hour, minute, second = map(int, parts)
+        y_, m_, d_, h_, mi_, s_ = map(int, parts)
+        # year, month, day, hour, minute, second = map(int, parts)
         if is_year_negative:
             # year = -abs(year)
-            msg_negative_year = f"found negative year : {year}\n"
+            msg_negative_year = f"found negative year : {y_}\n"
         else:
             msg_negative_year = ""
         # swiseph year range
-        if not -13200 <= year <= 17191:
-            raise ValueError(f"year {year} out of sweph range (-13200 - 17191)")
+        if not -13200 <= y_ <= 17191:
+            raise ValueError(f"year {y_} out of sweph range (-13200 - 17191)")
         # except ValueError as e:
         #     raise ValueError(e)
         if len(parts) == 5:
@@ -83,20 +84,27 @@ def _validate_datetime(manager, date_time):
             parts.append("00")
         # check if swetime is valid
         calendar = b"g"
-        is_valid, jd, dt_corr = swetime_to_jd(
-            year, month, day, hour, minute, second, calendar
+        is_valid, jd, swe_corr = swetime_to_jd(
+            y_, m_, d_, hour=h_, min=mi_, sec=s_, calendar=calendar
         )
         if not is_valid:
-            corr_y, corr_m, corr_d, corr_h_ = dt_corr
-            corr_h = int(corr_h_)
-            corr_min = int((corr_h_ - corr_h) * 60)
-            corr_sec = int(round((((corr_h_ - corr_h) * 60) - corr_min) * 60))
-            manager._notify.warning(
-                f"date-time was corrected : {corr_y}-{corr_m}-{corr_d}"
-                f"{corr_h}:{corr_min}:{corr_sec}",
-                source="helpers",
-                route=["terminal", "user"],
+            raise ValueError(
+                "_validatedatetime : swetimetojd is not valid\n"
+                f"using swe_corr anyway : {swe_corr}"
             )
+        corr_y, corr_m, corr_d, corr_h_ = swe_corr
+        print(
+            f"_validatedatetime : swetimetojd is valid\ncorrected values : {corr_y} | {corr_m} | {corr_d} | {corr_h_}"
+        )
+        corr_h = int(corr_h_)
+        corr_min = int((corr_h_ - corr_h) * 60)
+        corr_sec = int(round((((corr_h_ - corr_h) * 60) - corr_min) * 60))
+        manager._notify.debug(
+            f"\n\tdate-time as corrected : {corr_y}-{corr_m}-{corr_d}"
+            f"{corr_h}:{corr_min}:{corr_sec}",
+            source="helpers",
+            route=["terminal", "user"],
+        )
     except ValueError as e:
         manager._notify.warning(
             f"{date_time}\n\terror\n\t{e}\n\t{msg_negative_year}",

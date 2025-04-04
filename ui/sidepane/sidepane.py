@@ -32,21 +32,21 @@ class SidePaneManager:
     }
     # value for selected change time
     CHANGE_TIME_SELECTED = 0.0
-    # time periods in seconds, used for change time todo years give weird results
+    # time periods in julian day(s) as keys, used for change time
     CHANGE_TIME_PERIODS = {
-        "period_315360000": "10 years",
-        "period_31536000": "1 year",
-        "period_7776000": "3 months (90 d)",
-        "period_2592000": "1 month (30 d)",
-        "period_2360592": "1 month (27.3 d)",
-        "period_604800": "1 week",
-        "period_86400": "1 day",
-        "period_21600": "6 hours",
-        "period_3600": "1 hour",
-        "period_600": "10 minutes",
-        "period_60": "1 minute",
-        "period_10": "10 seconds",
-        "period_1": "1 second",
+        "3648.0": "10 years",  # 365 * 10 - 2 leap years (approximation)
+        "365.25": "1 year",  # accounts for leap year
+        "90.0": "3 months (90 d)",
+        "30.0": "1 month (30 d)",
+        "27.3": "1 month (27.3 d)",
+        "7.0": "1 week",
+        "1.0": "1 day",
+        "0.25": "6 hours",  # 1/4 of a day
+        "0.041667": "1 hour",  # 1/24 of a day
+        "0.006944": "10 minutes",  # 1/144 of a day
+        "0.000694": "1 minute",  # 1/1440 of a day
+        "0.000116": "10 seconds",  # 1/8640 of a day
+        "0.000012": "1 second",  # 1/86400 of a day
     }
 
     def __init__(self, app=None, *args, **kwargs):
@@ -137,13 +137,14 @@ arrow key left / right : move time backward / forward
         # create dropdown
         self.ddn_time_periods = Gtk.DropDown.new_from_strings(self.time_periods_list)
         self.ddn_time_periods.set_tooltip_text(
-            "select period to use for change time",
+            "select period to use for change time\n(hk : arrow up / down)",
         )
         self.ddn_time_periods.add_css_class("dropdown")
-        # set default time period : 1 day & seconds
+        # set default time period : 1 day
         default_period = self.time_periods_list.index("1 day")
         self.ddn_time_periods.set_selected(default_period)
-        self.CHANGE_TIME_SELECTED = 86400
+        # change time selected as julian day / float
+        self.CHANGE_TIME_SELECTED = 1.0
         self.ddn_time_periods.connect("notify::selected", self.odd_time_period)
         # put label & buttons & dropdown into box
         box_change_time.append(box_time_icons)
@@ -157,9 +158,14 @@ arrow key left / right : move time backward / forward
         """on dropdown time period changed / selected"""
         selected = dropdown.get_selected()
         value = self.time_periods_list[selected]
-        key = [k for k, v in self.CHANGE_TIME_PERIODS.items() if v == value][0]
-        seconds = key.split("_")[-1]
-        self.CHANGE_TIME_SELECTED = seconds
+        key = next(k for k, v in self.CHANGE_TIME_PERIODS.items() if v == value)
+        self.CHANGE_TIME_SELECTED = float(key)
+        # self.CHANGE_TIME_SELECTED = float(key)
+        # print(f"oddtimeperiod : key {key} (should be float) & value : {value}") # ok
+        # key = [k for k, v in self.CHANGE_TIME_PERIODS.items() if v == value][0]
+        # seconds = key.split("_")[-1]
+        # period_value = key.split("_")[0]
+        # self.CHANGE_TIME_SELECTED = period_value
 
     def change_time_period(self, direction=1):
         """change time period ; direction -1 / 1 for previous / next"""
@@ -184,11 +190,18 @@ arrow key left / right : move time backward / forward
             # manager._notify.info(
             #     f"selected period : {new_value}", source="change time", timeout=3
             # )
-            seconds = new_key.split("_")[-1]
-            self.CHANGE_TIME_SELECTED = seconds
+            key = next(k for k, v in self.CHANGE_TIME_PERIODS.items() if v == new_value)
+            self.CHANGE_TIME_SELECTED = float(key)
+            # print(
+            #     f"changetimeperiod : key {key} (should be float) & value : {new_value}"
+            # ) # ok
+            # period_value = new_key.split("_")[0]
+            # self.CHANGE_TIME_SELECTED = period_value
+            # seconds = new_key.split("_")[-1]
+            # self.CHANGE_TIME_SELECTED = seconds
 
-    def change_event_time(self, sec_delta):
-        """adjust event time by given seconds"""
+    def change_event_time(self, change_delta):
+        """adjust event time by julian day delta"""
         # get active entry based on selected event
         if self._app.selected_event == "event one" and self._app.EVENT_ONE:
             entry = self._app.EVENT_ONE.date_time
@@ -197,17 +210,19 @@ arrow key left / right : move time backward / forward
         # get current datetime
         datetime_name = entry.get_name()
         current_text = entry.get_text()
+        jd = None
         if not current_text:
             dt_now = datetime.now().replace(microsecond=0)
             _, jd, _ = swetime_to_jd(
-                dt_now.year,
+                dt_now.year,  # positional arguments
                 dt_now.month,
                 dt_now.day,
-                dt_now.hour,
-                dt_now.minute,
-                dt_now.second,
+                hour=dt_now.hour,  # keyword arguments
+                min=dt_now.minute,
+                sec=dt_now.second,
             )
             dt_str = jd_to_iso(jd)
+            print(f"jd : {jd} & type : {type(jd)} | dt_str : {dt_str}")
             entry.set_text(dt_str)
             current_text = dt_str
             self._notify.info(
@@ -216,9 +231,17 @@ arrow key left / right : move time backward / forward
                 route=["terminal", "user"],
             )
         try:
-            # increment time  and let on_datetime_change handle rest
-            # apply delta to julian day ( 86400 seconds = 1 day)
-            jd_new = jd + (sec_delta / 86400.0)
+            # get current text
+            current_text = entry.get_text()
+            # convert to julian day
+            _, jd, _ = swetime_to_jd(
+                *map(int, current_text.replace("-", " ").replace(":", " ").split()),
+                calendar=b"g",
+            )
+            print(f"jd : {jd} & type : {type(jd)}")
+            print(f"change delta before jd_new : {change_delta}")
+            jd_new = jd + change_delta
+            print(f"jd_new : {jd_new} & type : {type(jd_new)}")
             new_text = jd_to_iso(jd_new)
             entry.set_text(new_text)
             self._notify.debug(f"\n\tchange time new : {new_text}")
@@ -254,13 +277,17 @@ arrow key left / right : move time backward / forward
         self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
     ):
         """move selected event time backward"""
-        self.change_event_time(-int(self.CHANGE_TIME_SELECTED))
+        self.change_event_time(-float(self.CHANGE_TIME_SELECTED))
+        # self.change_event_time(-float(self.CHANGE_TIME_SELECTED))
+        # self.change_event_time(-int(self.CHANGE_TIME_SELECTED))
 
     def obc_arrow_r(
         self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
     ):
         """move selected event time forward"""
-        self.change_event_time(int(self.CHANGE_TIME_SELECTED))
+        self.change_event_time(float(self.CHANGE_TIME_SELECTED))
+        # self.change_event_time(float(self.CHANGE_TIME_SELECTED))
+        # self.change_event_time(int(self.CHANGE_TIME_SELECTED))
 
     def obc_time_now(
         self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
