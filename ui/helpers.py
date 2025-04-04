@@ -53,12 +53,17 @@ def _on_time_now(manager):
 
 def _validate_datetime(manager, date_time):
     # check characters todo also add local time
-    valid_chars = set("0123456789 -:jg")
+    valid_chars = set("0123456789 -:jgl")
     invalid_chars = set(date_time) - valid_chars
     msg_negative_year = ""
     try:
         if invalid_chars:
-            raise ValueError(f"characters {sorted(invalid_chars)} not allowed")
+            raise ValueError(
+                f"characters {sorted(invalid_chars)} not allowed"
+                "\n\twe accept : 0123456789 -:jgl"
+                "\n\tj / g = julian / gregorian calendar"
+                "\n\tl = local time (local apparent vs mean time)"  # todo
+            )
         is_year_negative = date_time.lstrip().startswith("-")
         parts = [p for p in re.split(r"[- :]+", date_time) if p]
         # todo allow for date only
@@ -68,17 +73,13 @@ def _validate_datetime(manager, date_time):
                 "\n\tie 1999 11 12 13 14 : set time to 12 00 or 00 00 if unknown"
             )
         y_, m_, d_, h_, mi_, s_ = map(int, parts)
-        # year, month, day, hour, minute, second = map(int, parts)
         if is_year_negative:
-            # year = -abs(year)
             msg_negative_year = f"found negative year : {y_}\n"
         else:
             msg_negative_year = ""
         # swiseph year range
         if not -13200 <= y_ <= 17191:
             raise ValueError(f"year {y_} out of sweph range (-13200 - 17191)")
-        # except ValueError as e:
-        #     raise ValueError(e)
         if len(parts) == 5:
             # add seconds
             parts.append("00")

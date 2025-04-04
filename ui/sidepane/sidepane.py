@@ -1,5 +1,4 @@
 # ruff: noqa: E402
-# import swisseph as swe
 import gi
 
 gi.require_version("Gtk", "4.0")
@@ -160,12 +159,6 @@ arrow key left / right : move time backward / forward
         value = self.time_periods_list[selected]
         key = next(k for k, v in self.CHANGE_TIME_PERIODS.items() if v == value)
         self.CHANGE_TIME_SELECTED = float(key)
-        # self.CHANGE_TIME_SELECTED = float(key)
-        # print(f"oddtimeperiod : key {key} (should be float) & value : {value}") # ok
-        # key = [k for k, v in self.CHANGE_TIME_PERIODS.items() if v == value][0]
-        # seconds = key.split("_")[-1]
-        # period_value = key.split("_")[0]
-        # self.CHANGE_TIME_SELECTED = period_value
 
     def change_time_period(self, direction=1):
         """change time period ; direction -1 / 1 for previous / next"""
@@ -195,10 +188,6 @@ arrow key left / right : move time backward / forward
             # print(
             #     f"changetimeperiod : key {key} (should be float) & value : {new_value}"
             # ) # ok
-            # period_value = new_key.split("_")[0]
-            # self.CHANGE_TIME_SELECTED = period_value
-            # seconds = new_key.split("_")[-1]
-            # self.CHANGE_TIME_SELECTED = seconds
 
     def change_event_time(self, change_delta):
         """adjust event time by julian day delta"""
@@ -239,9 +228,7 @@ arrow key left / right : move time backward / forward
                 calendar=b"g",
             )
             # print(f"jd : {jd} & type : {type(jd)}")
-            # print(f"change delta before jd_new : {change_delta}")
             jd_new = jd + change_delta
-            # print(f"jd_new : {jd_new} & type : {type(jd_new)}")
             new_text = jd_to_iso(jd_new)
             entry.set_text(new_text)
             self._notify.debug(f"\n\tchange time new : {new_text}")
@@ -278,16 +265,12 @@ arrow key left / right : move time backward / forward
     ):
         """move selected event time backward"""
         self.change_event_time(-float(self.CHANGE_TIME_SELECTED))
-        # self.change_event_time(-float(self.CHANGE_TIME_SELECTED))
-        # self.change_event_time(-int(self.CHANGE_TIME_SELECTED))
 
     def obc_arrow_r(
         self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
     ):
         """move selected event time forward"""
         self.change_event_time(float(self.CHANGE_TIME_SELECTED))
-        # self.change_event_time(float(self.CHANGE_TIME_SELECTED))
-        # self.change_event_time(int(self.CHANGE_TIME_SELECTED))
 
     def obc_time_now(
         self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None
