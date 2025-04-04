@@ -207,7 +207,7 @@ arrow key left / right : move time backward / forward
                 dt_now.minute,
                 dt_now.second,
             )
-            dt_str = jd_to_iso(dt_now)
+            dt_str = jd_to_iso(jd)
             entry.set_text(dt_str)
             current_text = dt_str
             self._notify.info(

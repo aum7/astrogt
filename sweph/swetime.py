@@ -1,5 +1,4 @@
 # ruff: noqa: E402
-# import os
 import swisseph as swe
 
 
@@ -33,7 +32,11 @@ def jd_to_swetime(jd, calendar=b"g"):
 
 def jd_to_iso(jd, calendar=b"g"):
     """convert julian day to iso string"""
-    y, m, d, h = swe.revjul(jd, calendar)
+    # convert bytes to int
+    cal_int = swe.GREG_CAL if calendar == b"g" else swe.JUL_CAL
+    # ensure jd is a float
+    y, m, d, h = swe.revjul(jd, cal_int)
+    # y, m, d, h = swe.revjul(jd, calendar)
     hour = int(h)
     min = int((h - hour) * 60)
     sec = int(round((((h - hour) * 60) - min) * 60))

@@ -396,6 +396,7 @@ class EventData:
                         "\n\tlocation should be set to calculate timezone",
                         source="eventdata",
                         route=["terminal", "user"],
+                        timeout=4,
                     )
             except Exception as e:
                 self._notify.error(
