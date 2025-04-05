@@ -1,3 +1,4 @@
+# mainstack.py
 # ruff: noqa: E402
 import gi
 
@@ -6,9 +7,10 @@ from gi.repository import Gtk  # type: ignore
 
 
 class MainStack(Gtk.Stack):
-    """main stack widget where all widgets with data presentation live"""
+    """main stack widget for data-presentation
+    4 needed - each pane 1 golden piece"""
 
-    def __init__(self):
+    def __init__(self, stack_manager=None, position=None, name=None):
         super().__init__()
         # configure stack properties
         self.set_transition_type(Gtk.StackTransitionType.NONE)

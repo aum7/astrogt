@@ -9,6 +9,7 @@ class CollapsePanel(Gtk.Box):
     """collapsing data input panel"""
 
     def __init__(self, title="", css_class="heading", expanded=True, indent=7):
+        # def __init__(self, title="", css_class="heading", expanded=True, indent=7):
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
         margin_x = 0
         margin_y = 0

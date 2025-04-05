@@ -4,12 +4,46 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
+from typing import Optional
 from math import modf
 from sweph.swetime import swetime_to_jd
 
 
-def _create_icon(manager, icons_path, icon_name):
-    return Gtk.Image.new_from_file(f"{icons_path}{icon_name}")
+def _buttons_from_dict(
+    manager,
+    buttons_dict=None,
+    icons_path: Optional[str] = None,
+    pop_context: bool = False,
+    pos: Optional[str] = None,
+):
+    icons_folder = "ui/imgs/icons/hicolor/scalable/"
+    icons_path_cpl = icons_folder + icons_path if icons_path else icons_folder
+    buttons = []
+    # keys = buttons_dict if buttons_dict is not None else manager.TOOLS_BUTTONS
+    for button_name, tooltip in (buttons_dict or manager.TOOLS_BUTTONS).items():
+        button = Gtk.Button()
+        button.add_css_class("button-pane")
+        button.set_tooltip_text(tooltip)
+        icon = Gtk.Image.new_from_file(f"{icons_path_cpl}{button_name}.svg")
+        icon.set_icon_size(Gtk.IconSize.NORMAL)
+        button.set_child(icon)
+
+        callback_name = f"obc_{button_name}"
+        if hasattr(manager, callback_name):
+            if pop_context and pos is not None:
+                button.connect(
+                    "clicked",
+                    lambda btn,
+                    name=button_name,
+                    pos=pos: manager.handle_context_action(btn, name, pos),
+                )
+            else:
+                button.connect("clicked", getattr(manager, callback_name), button_name)
+        else:
+            button.connect("clicked", manager.obc_default, button_name)
+
+        buttons.append(button)
+    return buttons
 
 
 def _event_selection(manager, gesture, n_press, x, y, event_name):

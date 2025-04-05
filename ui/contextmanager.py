@@ -1,14 +1,17 @@
+# contextmanager.py
 # ruff: noqa: E402
 from typing import Any, Dict
 import gi
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Gdk", "4.0")
-from gi.repository import Gdk, Gtk  # type: ignore
+from gi.repository import Gtk, Gdk  # type: ignore
+from ui.collapsepanel import CollapsePanel
+from ui.helpers import _buttons_from_dict
 
 
 class ContextManager:
-    """mixin class for window event handlers"""
+    """mixin class for right-click context menu management"""
 
     # type hints for inherited attributes
     rvl_side_pane: Gtk.Revealer
@@ -16,7 +19,7 @@ class ContextManager:
     ovl_tr: Gtk.Overlay
     ovl_bl: Gtk.Overlay
     ovl_br: Gtk.Overlay
-    PANE_BUTTONS: Dict[str, str]
+    TOOLS_BUTTONS: Dict[str, str]
 
     def setup_context_controllers(self) -> None:
         """setup right-click context menu / controllers for panes"""
@@ -54,34 +57,18 @@ class ContextManager:
         parent = picked.get_parent()
         if not parent or parent not in self.overlays:
             return
+        # todo redesign create_popover_menu()
+        pop_ctx, _ = self.create_popover_menu(parent)
 
-        pop_ctx, box_ctx = self.create_popover_menu()
-
-        for button_name, tooltip in self.PANE_BUTTONS.items():
-            button = Gtk.Button()
-            button.add_css_class("button-pane")
-            button.set_tooltip_text(f"{tooltip}")
-
-            icon = Gtk.Image.new_from_file(
-                f"ui/imgs/icons/hicolor/scalable/sidepane/{button_name}.svg",
-            )
-            icon.set_icon_size(Gtk.IconSize.NORMAL)
-            button.set_child(icon)
-
-            callback_name = f"obc_{button_name}"
-            if hasattr(self, callback_name):
-                # callback = getattr(self, callback_name)
-                button.connect(
-                    "clicked",
-                    lambda btn,
-                    name=button_name,
-                    pos=self.overlays[parent]: self.handle_context_action(
-                        btn,
-                        name,
-                        pos,
-                    ),
-                )
-            box_ctx.append(button)
+        # create pane buttons
+        for button in _buttons_from_dict(
+            self,
+            buttons_dict=self.TOOLS_BUTTONS,
+            icons_path="sidepane",
+            pop_context=True,
+            pos=self.overlays[parent],
+        ):
+            self.ctxbox_tools.append(button)
 
         rect = Gdk.Rectangle()
         rect.x = int(x + 30)
@@ -97,15 +84,35 @@ class ContextManager:
 
         pop_ctx.popup()
 
-    def create_popover_menu(self) -> tuple[Gtk.Popover, Gtk.Box]:
+    def create_popover_menu(self, parent) -> tuple[Gtk.Popover, Gtk.Box]:
         """create popover menu with proper setup"""
-        pop_ctx = Gtk.Popover()
-
+        pop_ctx = Gtk.Popover(parent)
         box_ctx = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         box_ctx.set_margin_start(4)
         box_ctx.set_margin_end(4)
         box_ctx.set_margin_top(4)
         box_ctx.set_margin_bottom(4)
+        indent_pnl = 0
+        spacing_box = 4
+        # collapsible panel(s) : stack switchers on top
+        self.ctxclp_main_panes = CollapsePanel(
+            title="main panes", expanded=False, indent=indent_pnl
+        )
+        # box for switchers
+        self.ctxbox_main_panes = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL, spacing=spacing_box
+        )
+        self.ctxclp_main_panes.append(self.ctxbox_main_panes)
+        box_ctx.append(self.ctxbox_main_panes)
+        # tool buttons
+        self.ctxclp_tools = CollapsePanel(
+            title="tools", expanded=False, indent=indent_pnl
+        )
+        self.ctxbox_tools = Gtk.Box(
+            orientation=Gtk.Orientation.HORIZONTAL, spacing=spacing_box
+        )
+        self.ctxclp_tools.append(self.ctxbox_tools)
+        box_ctx.append(self.ctxclp_tools)
 
         pop_ctx.set_child(box_ctx)
 
@@ -120,6 +127,15 @@ class ContextManager:
             callback = getattr(self, callback_name)
             # print(f"{action} triggered from {position}")
             callback(button, f"{action}_{position}")
+
+    def get_stack_for_position(self, position: str) -> Dict[str, Gtk.Stack]:
+        """get stacks for specific position"""
+        # implement this method
+        stacks = {}
+        # example implementation
+        if hasattr(self, f"stacks_{position}"):
+            stacks = getattr(self, f"stacks_{position}")
+        return stacks
 
     # # widget hierarchy
     # current = picked
