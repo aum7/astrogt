@@ -9,6 +9,7 @@ from .sidepane.sidepane import SidePaneManager
 from .uisetup import UISetup
 from .hotkeymanager import HotkeyManager
 from ui.helpers import _on_time_now, _event_selection
+from ui.mainpanes.panemanager import PaneManager
 
 
 class MainWindow(
@@ -23,6 +24,7 @@ class MainWindow(
         """initialize the main window"""
         Gtk.ApplicationWindow.__init__(self, *args, **kwargs)
         SidePaneManager.__init__(self, app=self.get_application())
+        PaneManager.__init__(self)
         self._app = self.get_application() or Gtk.Application.get_default()
         self._notify = self._app.notify_manager
         self.set_title("astrogt")
@@ -32,12 +34,15 @@ class MainWindow(
         self.setup_css()
         # 4 resizable panes for charts & tables etc
         self.setup_main_panes()
+        # initialize context controllers
         self.setup_context_controllers()
         # hotkey manager
         self._hotkeys = HotkeyManager(self)
         self.setup_hotkeys()
         # intercept toggle pane button
         self._hotkeys.intercept_button_controller(self.btn_toggle_pane, "toggle_pane")
+        # demo stacks todo delete
+        self.init_stacks()
 
     def on_toggle_pane(self, button: Optional[Gtk.Button] = None) -> None:
         revealed = self.rvl_side_pane.get_child_revealed()
@@ -104,6 +109,57 @@ class MainWindow(
             timeout=5,
             route=["user"],
         )
+
+    # def create_demo_stacks(self):
+    #     """create example stacks for demonstation"""
+    #     positions = ["top-left", "top-right", "bottom-left", "bottom-right"]
+    #     stack_types = ["charts", "tables", "editor", "info"]
+
+    #     for position in positions:
+    #         # create chart stack with pages
+    #         charts_stack = self.setup_stacks(position, "charts")
+    #         label1 = Gtk.Label(label="natal chart")
+    #         label2 = Gtk.Label(label="transit chart")
+    #         charts_stack.add_titled(label1, "natal", "natal")
+    #         charts_stack.add_titled(label2, "transit", "transit")
+    #         # create tables stack with pages
+    #         tables_stack = self.setup_stacks(position, "tables")
+    #         label3 = Gtk.Label(label="planets table")
+    #         label4 = Gtk.Label(label="houses table")
+    #         tables_stack.add_titled(label3, "planets", "planets")
+    #         tables_stack.add_titled(label4, "houses", "houses")
+    #         # more stacks as needed
+    #         editor_stack = self.setup_stacks(position, "editor")
+    #         text_view = Gtk.TextView()
+    #         text_view.set_wrap_mode(Gtk.WrapMode.WORD)
+    #         text_view.get_buffer().set_text("notes here")
+    #         editor_stack.add_titled(text_view, "editor", "editor")
+
+    def init_stacks(self):
+        """initialize stacks with content"""
+        # some example content for each stack
+        for position in ["top-left", "top-right", "bottom-left", "bottom-right"]:
+            # create stack for each position
+            stack = self.get_stack(position)
+            if stack:
+                # make charts stack default visible one
+                label1 = Gtk.Label(label="natal chart")
+                label2 = Gtk.Label(label="transit chart")
+                label3 = Gtk.Label(label="planets table")
+
+                stack.add_titled(label1, "chart", "chart")
+                stack.add_titled(label2, "transit", "transit")
+                stack.add_titled(label3, "planets", "planets")
+                # add text editor
+                text_view = Gtk.TextView()
+                text_view.set_wrap_mode(Gtk.WrapMode.WORD)
+                text_view.get_buffer().set_text("notes here")
+                stack.add_titled(text_view, "editor", "editor")
+                # set stack as child of frame
+                frame = getattr(self, f"frm_{position.replace('-', '_')}", None)
+                if frame and frame.get_child():
+                    overlay = frame.get_child()
+                    overlay.set_child(stack)
 
     # panes show all
     def panes_all(self) -> None:

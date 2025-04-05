@@ -1,3 +1,4 @@
+# uisetup.py
 # ruff: noqa: E402
 import gi
 
@@ -55,15 +56,17 @@ class UISetup:
             )
 
     def setup_main_panes(self):
+        """setup main panes for charts & tables etc"""
         self.setup_menu_button()
-        self.setup_labels()
-        self.setup_overlays()
+        # self.setup_labels()
+        self.setup_menu_overlay()
+        # self.setup_overlays()
         self.setup_frames()
         self.setup_paned_widgets()
         self.setup_grid()
 
     def setup_revealer(self):
-        # initialize the revealer
+        """initialize the revealer"""
         self.rvl_side_pane = Gtk.Revealer()
         self.rvl_side_pane.set_transition_type(
             Gtk.RevealerTransitionType.SLIDE_RIGHT,
@@ -77,6 +80,7 @@ class UISetup:
         self.rvl_side_pane.set_child(self.frm_side_pane)
 
     def setup_menu_button(self):
+        """menu button for sidepane toggle visibility"""
         ico_menu = Gtk.Image.new_from_file("ui/imgs/icons/hicolor/scalable/menu.svg")
         ico_menu.set_icon_size(Gtk.IconSize.LARGE)
         icon_hmargin = icon_vmargin = 0
@@ -99,34 +103,46 @@ class UISetup:
         )
         self.btn_toggle_pane.connect("clicked", self.on_toggle_pane)
 
-    def setup_labels(self):
-        self.lbl_pane_tl = self.create_label("top left", "label-tl")
-        self.lbl_pane_tr = self.create_label("top right", "label-tl")
-        self.lbl_pane_bl = self.create_label("bottom left", "label-br")
-        self.lbl_pane_br = self.create_label("bottom right", "label-br")
+    # def setup_labels(self):
+    #     self.lbl_pane_tl = self.create_label("top left", "label-tl")
+    #     self.lbl_pane_tr = self.create_label("top right", "label-tl")
+    #     self.lbl_pane_bl = self.create_label("bottom left", "label-br")
+    #     self.lbl_pane_br = self.create_label("bottom right", "label-br")
 
-    def create_label(self, text: str, css_class: str) -> Gtk.Label:
-        """create a label with specified text and css class"""
-        label = Gtk.Label(label=text)
-        label.set_halign(Gtk.Align.FILL)
-        label.set_valign(Gtk.Align.FILL)
-        label.add_css_class(css_class)
+    # def create_label(self, text: str, css_class: str) -> Gtk.Label:
+    #     """create a label with specified text and css class"""
+    #     label = Gtk.Label(label=text)
+    #     label.set_halign(Gtk.Align.FILL)
+    #     label.set_valign(Gtk.Align.FILL)
+    #     label.add_css_class(css_class)
 
-        return label
+    #     return label
+    # def setup_stacks(self) -> None:
+    #     # create stack for each frame
+    #     self.stack_tl=self.setup
 
-    def setup_overlays(self) -> None:
+    def setup_menu_overlay(self) -> None:
+        # def setup_overlays(self) -> None:
         self.ovl_menu = Gtk.Overlay()
+
+    def setup_frames(self) -> None:
+        """frames hold stack with pages of widgets"""
+        # create stack for each pane
+        self.stack_tl = self.setup_stacks("top-left")
+        self.stack_tr = self.setup_stacks("top-right")
+        self.stack_bl = self.setup_stacks("bottom-left")
+        self.stack_br = self.setup_stacks("bottom-right")
+        # create overlays for each frame
         self.ovl_tl = Gtk.Overlay()
         self.ovl_tr = Gtk.Overlay()
         self.ovl_bl = Gtk.Overlay()
         self.ovl_br = Gtk.Overlay()
-
-        self.ovl_tl.set_child(self.lbl_pane_tl)
-        self.ovl_tr.set_child(self.lbl_pane_tr)
-        self.ovl_bl.set_child(self.lbl_pane_bl)
-        self.ovl_br.set_child(self.lbl_pane_br)
-
-    def setup_frames(self) -> None:
+        # fill overlays
+        self.ovl_tl.set_child(self.stack_tl)
+        self.ovl_tr.set_child(self.stack_tr)
+        self.ovl_bl.set_child(self.stack_bl)
+        self.ovl_br.set_child(self.stack_br)
+        # create frames for paned
         self.frm_top_start_child = self.create_frame(self.ovl_tl)
         self.frm_top_end_child = self.create_frame(self.ovl_tr)
         self.frm_btm_start_child = self.create_frame(self.ovl_bl)

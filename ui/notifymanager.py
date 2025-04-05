@@ -10,7 +10,6 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
 from pathlib import Path
-from ui.helpers import _buttons_from_dict
 
 
 class NotifyLevel(Enum):
@@ -182,28 +181,14 @@ class NotifyManager:
                 box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
                 box.set_margin_start(3)
                 box.set_margin_end(5)
-                # try to load custom icon
-                # icons_path = os.path.join(
-                #     os.path.dirname(__file__),
-                #     "imgs",
-                #     "icons",
-                #     "hicolor",
-                #     "scalable",
-                #     "notify",
-                #     "",
-                # )
-                # if os.path.exists(f"{icons_path}{icon_name}"):
-                #     icon = _buttons_from_dict(self, icons_path=icons_path)
-                buttons_dict = {f"notify-{msg.level.value}": ""}
-                icon_ = _buttons_from_dict(
-                    self,
-                    buttons_dict=buttons_dict,
-                    icons_path="notify/",
-                    pop_context=False,
-                )[0]
-                icon = icon_.get_child()
+                # icon without callbacks
+                icon_name = f"notify-{msg.level.value}"
+                icon = Gtk.Image.new_from_file(
+                    f"ui/imgs/icons/hicolor/scalable/notify/{icon_name}.svg"
+                )
+                icon.set_pixel_size(24)
+                # fallback to system icons
                 if not icon:
-                    # fallback to system icons
                     fallback_icons = {
                         NotifyLevel.INFO: "dialog-information",
                         NotifyLevel.SUCCESS: "checkbox-checked",
@@ -213,7 +198,7 @@ class NotifyManager:
                     }
                     icon = Gtk.Image()
                     icon.set_from_icon_name(fallback_icons[msg.level])
-                icon.set_pixel_size(24)
+                    icon.set_pixel_size(24)
                 box.append(icon)
                 # label with message
                 label = Gtk.Label(label=str(msg))

@@ -57,10 +57,12 @@ class ContextManager:
         parent = picked.get_parent()
         if not parent or parent not in self.overlays:
             return
-        # todo redesign create_popover_menu()
+        # get position of clicked overlay
+        position = self.overlays[parent]
+        # crate popover todo redesign create_popover_menu()
         pop_ctx, box_ctx = self.create_popover_menu(parent)
-        # pop_ctx, box_ctx = self.create_popover_menu(parent)
-
+        # add stack switcher for current pane
+        self.add_switcher(position, box_ctx)
         # create pane buttons
         for button in _buttons_from_dict(
             self,
@@ -69,9 +71,9 @@ class ContextManager:
             pop_context=True,
             pos=self.overlays[parent],
         ):
-            box_ctx.append(button)
-            self.ctxclp_tools.append(box_ctx)
-            # self.ctxbox_tools.append(button)
+            # box_ctx.append(button)
+            self.ctxbox_tools.append(button)
+            # self.ctxclp_tools.append(box_ctx)
 
         rect = Gdk.Rectangle()
         rect.x = int(x + 30)
@@ -121,15 +123,43 @@ class ContextManager:
 
         return pop_ctx, box_ctx
 
-    def handle_context_action(
-        self, button: Gtk.Button, action: str, position: str
-    ) -> None:
-        """handle pane actions (with position context)"""
-        callback_name = f"obc_{action}"
-        if hasattr(self, callback_name):
-            callback = getattr(self, callback_name)
-            # print(f"{action} triggered from {position}")
-            callback(button, f"{action}_{position}")
+    def add_switcher(self, position: str, box: Gtk.Box) -> None:
+        """add stack switcher for current pane to menu"""
+        # get stack for current pane position
+        stack = self.get_stack(position)
+        if not stack:
+            # show placeholder
+            label = Gtk.Label()
+            label.set_text("no stack available")
+            label.set_halign(Gtk.Align.START)
+            box.append(label)
+            return
+        # create & add stack switcher
+        switcher = Gtk.StackSwitcher()
+        switcher.set_stack(stack)
+        switcher.set_halign(Gtk.Align.START)
+        box.append(switcher)
+
+    def update_switchers(self, position: str) -> None:
+        """update stack switchers in context menu for current pane"""
+        # clear existing content
+        if hasattr(self, "ctxbox_main_panes"):
+            while child := self.ctxbox_main_panes.get_first_child():
+                self.ctxbox_main_panes.remove(child)
+            # get stacks for position
+            stack = self.get_stack(position)
+            if not stack:
+                # show placeholder
+                label = Gtk.Label()
+                label.set_text("no stacks available")
+                label.set_halign(Gtk.Align.START)
+                self.ctxbox_main_panes.append()
+                return
+            # create & add stack switchers
+            switcher = Gtk.StackSwitcher()
+            switcher.set_stack(stack)
+            switcher.set_halign(Gtk.Align.START)
+            self.ctxbox_main_panes.append(switcher)
 
     def get_stack_for_position(self, position: str) -> Dict[str, Gtk.Stack]:
         """get stacks for specific position"""
@@ -139,6 +169,16 @@ class ContextManager:
         if hasattr(self, f"stacks_{position}"):
             stacks = getattr(self, f"stacks_{position}")
         return stacks
+
+    def handle_context_action(
+        self, button: Gtk.Button, action: str, position: str
+    ) -> None:
+        """handle pane actions (with position context)"""
+        callback_name = f"obc_{action}"
+        if hasattr(self, callback_name):
+            callback = getattr(self, callback_name)
+            # print(f"{action} triggered from {position}")
+            callback(button, f"{action}_{position}")
 
     # # widget hierarchy
     # current = picked
