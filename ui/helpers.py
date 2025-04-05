@@ -48,7 +48,6 @@ def _buttons_from_dict(
 
 def _event_selection(manager, gesture, n_press, x, y, event_name):
     """handle event selection"""
-    # todo merge with event_toggle_selected
     if manager._app.selected_event != event_name:
         manager._app.selected_event = event_name
         if manager._app.selected_event == "event one":
@@ -58,7 +57,7 @@ def _event_selection(manager, gesture, n_press, x, y, event_name):
             manager.clp_event_one.remove_title_css_class("label-event-selected")
             manager.clp_event_two.add_title_css_class("label-event-selected")
         manager._notify.debug(
-            f"\thotkey | button : {manager._app.selected_event} selected"
+            f"hotkey | button : {manager._app.selected_event} selected"
         )
 
 

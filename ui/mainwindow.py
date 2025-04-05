@@ -1,3 +1,4 @@
+# mainwindow.py
 # ruff: noqa: E402
 import gi
 
@@ -5,7 +6,7 @@ gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from typing import Any, Optional
 from .contextmanager import ContextManager
-from .sidepane.sidepane import SidePaneManager
+from .sidepane.sidepane import SidepaneManager
 from .uisetup import UISetup
 from .hotkeymanager import HotkeyManager
 from ui.helpers import _on_time_now, _event_selection
@@ -14,16 +15,17 @@ from ui.mainpanes.panemanager import PaneManager
 
 class MainWindow(
     Gtk.ApplicationWindow,
-    SidePaneManager,
+    SidepaneManager,
+    PaneManager,
     ContextManager,
     UISetup,
 ):
-    """main application window, combining ui, handlers & panes"""
+    """main application window, combining ui : sidepane & main panes"""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         """initialize the main window"""
         Gtk.ApplicationWindow.__init__(self, *args, **kwargs)
-        SidePaneManager.__init__(self, app=self.get_application())
+        SidepaneManager.__init__(self, app=self.get_application())
         PaneManager.__init__(self)
         self._app = self.get_application() or Gtk.Application.get_default()
         self._notify = self._app.notify_manager
@@ -109,31 +111,6 @@ class MainWindow(
             timeout=5,
             route=["user"],
         )
-
-    # def create_demo_stacks(self):
-    #     """create example stacks for demonstation"""
-    #     positions = ["top-left", "top-right", "bottom-left", "bottom-right"]
-    #     stack_types = ["charts", "tables", "editor", "info"]
-
-    #     for position in positions:
-    #         # create chart stack with pages
-    #         charts_stack = self.setup_stacks(position, "charts")
-    #         label1 = Gtk.Label(label="natal chart")
-    #         label2 = Gtk.Label(label="transit chart")
-    #         charts_stack.add_titled(label1, "natal", "natal")
-    #         charts_stack.add_titled(label2, "transit", "transit")
-    #         # create tables stack with pages
-    #         tables_stack = self.setup_stacks(position, "tables")
-    #         label3 = Gtk.Label(label="planets table")
-    #         label4 = Gtk.Label(label="houses table")
-    #         tables_stack.add_titled(label3, "planets", "planets")
-    #         tables_stack.add_titled(label4, "houses", "houses")
-    #         # more stacks as needed
-    #         editor_stack = self.setup_stacks(position, "editor")
-    #         text_view = Gtk.TextView()
-    #         text_view.set_wrap_mode(Gtk.WrapMode.WORD)
-    #         text_view.get_buffer().set_text("notes here")
-    #         editor_stack.add_titled(text_view, "editor", "editor")
 
     def init_stacks(self):
         """initialize stacks with content"""

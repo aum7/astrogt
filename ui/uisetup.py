@@ -11,6 +11,7 @@ class UISetup:
     """class for setting up ui components"""
 
     # type hints for inherited attributes
+    setup_stacks: Callable
     set_title: Callable
     set_default_size: Callable
     set_child: Callable
@@ -37,11 +38,6 @@ class UISetup:
     ovl_tr: Gtk.Overlay
     ovl_bl: Gtk.Overlay
     ovl_br: Gtk.Overlay
-
-    lbl_pane_tl: Gtk.Label
-    lbl_pane_tr: Gtk.Label
-    lbl_pane_bl: Gtk.Label
-    lbl_pane_br: Gtk.Label
 
     def setup_css(self) -> None:
         """setup css styling"""
@@ -102,24 +98,6 @@ class UISetup:
 """
         )
         self.btn_toggle_pane.connect("clicked", self.on_toggle_pane)
-
-    # def setup_labels(self):
-    #     self.lbl_pane_tl = self.create_label("top left", "label-tl")
-    #     self.lbl_pane_tr = self.create_label("top right", "label-tl")
-    #     self.lbl_pane_bl = self.create_label("bottom left", "label-br")
-    #     self.lbl_pane_br = self.create_label("bottom right", "label-br")
-
-    # def create_label(self, text: str, css_class: str) -> Gtk.Label:
-    #     """create a label with specified text and css class"""
-    #     label = Gtk.Label(label=text)
-    #     label.set_halign(Gtk.Align.FILL)
-    #     label.set_valign(Gtk.Align.FILL)
-    #     label.add_css_class(css_class)
-
-    #     return label
-    # def setup_stacks(self) -> None:
-    #     # create stack for each frame
-    #     self.stack_tl=self.setup
 
     def setup_menu_overlay(self) -> None:
         # def setup_overlays(self) -> None:

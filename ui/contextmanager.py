@@ -1,6 +1,6 @@
 # contextmanager.py
 # ruff: noqa: E402
-from typing import Any, Dict
+from typing import Any, Dict, Callable
 import gi
 
 gi.require_version("Gtk", "4.0")
@@ -15,6 +15,7 @@ class ContextManager:
 
     # type hints for inherited attributes
     rvl_side_pane: Gtk.Revealer
+    get_stack: Callable
     ovl_tl: Gtk.Overlay
     ovl_tr: Gtk.Overlay
     ovl_bl: Gtk.Overlay
@@ -67,13 +68,11 @@ class ContextManager:
         for button in _buttons_from_dict(
             self,
             buttons_dict=self.TOOLS_BUTTONS,
-            icons_path="sidepane",
+            icons_path="tools",
             pop_context=True,
             pos=self.overlays[parent],
         ):
-            # box_ctx.append(button)
             self.ctxbox_tools.append(button)
-            # self.ctxclp_tools.append(box_ctx)
 
         rect = Gdk.Rectangle()
         rect.x = int(x + 30)

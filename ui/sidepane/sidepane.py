@@ -14,7 +14,7 @@ from .paneltools import setup_tools
 from .panelsettings import setup_settings
 
 
-class SidePaneManager:
+class SidepaneManager:
     """mixin class for managing the side pane"""
 
     TOOLS_BUTTONS: Dict[str, str] = {
