@@ -1,5 +1,5 @@
 # ruff: noqa: E402
-import os
+# import os
 import logging
 import gi
 
@@ -10,7 +10,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
 from pathlib import Path
-from ui.helpers import _create_icon
+from ui.helpers import _buttons_from_dict
 
 
 class NotifyLevel(Enum):
@@ -183,19 +183,26 @@ class NotifyManager:
                 box.set_margin_start(3)
                 box.set_margin_end(5)
                 # try to load custom icon
-                icon_name = f"notify-{msg.level.value}.svg"
-                icons_path = os.path.join(
-                    os.path.dirname(__file__),
-                    "imgs",
-                    "icons",
-                    "hicolor",
-                    "scalable",
-                    "notify",
-                    "",
-                )
-                if os.path.exists(f"{icons_path}{icon_name}"):
-                    icon = _create_icon(self, icons_path, icon_name)
-                else:
+                # icons_path = os.path.join(
+                #     os.path.dirname(__file__),
+                #     "imgs",
+                #     "icons",
+                #     "hicolor",
+                #     "scalable",
+                #     "notify",
+                #     "",
+                # )
+                # if os.path.exists(f"{icons_path}{icon_name}"):
+                #     icon = _buttons_from_dict(self, icons_path=icons_path)
+                buttons_dict = {f"notify-{msg.level.value}": ""}
+                icon_ = _buttons_from_dict(
+                    self,
+                    buttons_dict=buttons_dict,
+                    icons_path="notify/",
+                    pop_context=False,
+                )[0]
+                icon = icon_.get_child()
+                if not icon:
                     # fallback to system icons
                     fallback_icons = {
                         NotifyLevel.INFO: "dialog-information",

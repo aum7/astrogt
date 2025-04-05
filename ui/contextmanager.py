@@ -58,7 +58,8 @@ class ContextManager:
         if not parent or parent not in self.overlays:
             return
         # todo redesign create_popover_menu()
-        pop_ctx, _ = self.create_popover_menu(parent)
+        pop_ctx, box_ctx = self.create_popover_menu(parent)
+        # pop_ctx, box_ctx = self.create_popover_menu(parent)
 
         # create pane buttons
         for button in _buttons_from_dict(
@@ -68,7 +69,9 @@ class ContextManager:
             pop_context=True,
             pos=self.overlays[parent],
         ):
-            self.ctxbox_tools.append(button)
+            box_ctx.append(button)
+            self.ctxclp_tools.append(box_ctx)
+            # self.ctxbox_tools.append(button)
 
         rect = Gdk.Rectangle()
         rect.x = int(x + 30)
