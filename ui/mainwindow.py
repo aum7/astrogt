@@ -4,13 +4,14 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
-from typing import Any, Optional, Dict
+from typing import Any, Optional
 from .contextmanager import ContextManager
 from .sidepane.sidepane import SidepaneManager
 from .uisetup import UISetup
 from .hotkeymanager import HotkeyManager
 from ui.helpers import _on_time_now, _event_selection
 from ui.mainpanes.panemanager import PaneManager
+from sweph.calculations import positions
 
 
 class MainWindow(
@@ -116,20 +117,26 @@ class MainWindow(
             route=["user"],
         )
 
-    STACK_BUTTONS: Dict[str, str] = {
-        "astro": "astrology chart",
-        "editor": "text editor",
-        "data": "data graph",
-        "tables": "calculation results",
-    }
+    # STACK_BUTTONS: Dict[str, str] = {
+    #     "astro": "astrology chart",
+    #     "editor": "text editor",
+    #     "data": "data graph",
+    #     "tables": "calculation results",
+    # }
 
     def init_stacks(self):
         """initialize stacks with content"""
+        positions_ = positions.calculate_positions()
+        self._notify.debug(
+            f"positions : {positions_}",
+            source="positions",
+            route=["terminal"],
+        )
         # some example content for each stack
-        positions = ["top-left", "top-right", "bottom-left", "bottom-right"]
-        for position in positions:
+        panes = ["top-left", "top-right", "bottom-left", "bottom-right"]
+        for pane in panes:
             # create stack for each position
-            stack = self.get_stack(position)
+            stack = self.get_stack(pane)
             if stack:
                 label1 = Gtk.Label(label="astrology chart")
                 label1.add_css_class("label-tl")
@@ -140,12 +147,12 @@ class MainWindow(
                 label4 = Gtk.Label(label="calculation results")
                 label4.add_css_class("label-br")
 
-                stack.add_titled(label1, "chart", "--chart")
-                stack.add_titled(label2, "transit", "--transit")
-                stack.add_titled(label3, "planets", "--planets")
-                stack.add_titled(label4, "saros", "--saros")
+                stack.add_titled(label1, "chart", "-chart")
+                stack.add_titled(label2, "editor", "-editor")
+                stack.add_titled(label3, "data", "-data")
+                stack.add_titled(label4, "tables", "-tables")
                 # set stack as child of frame
-                frame = getattr(self, f"frm_{position.replace('-', '_')}", None)
+                frame = getattr(self, f"frm_{pane.replace('-', '_')}", None)
                 if frame:
                     # frame.present()
                     frame.set_child(stack)

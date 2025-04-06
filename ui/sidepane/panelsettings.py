@@ -1,3 +1,4 @@
+# ui/sidepane/panellsettings.py
 # ruff: noqa: E402
 import gi
 

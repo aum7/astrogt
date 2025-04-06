@@ -95,6 +95,7 @@ class ContextManager:
         ):
             self.ctxbox_tools.append(button)
 
+        # rectangle for anchoring popover
         rect = Gdk.Rectangle()
         rect.x = int(x)
         rect.y = int(y)
