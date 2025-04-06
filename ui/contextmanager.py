@@ -16,27 +16,43 @@ class ContextManager:
     # type hints for inherited attributes
     rvl_side_pane: Gtk.Revealer
     get_stack: Callable
-    ovl_tl: Gtk.Overlay
-    ovl_tr: Gtk.Overlay
-    ovl_bl: Gtk.Overlay
-    ovl_br: Gtk.Overlay
+    # ovl_tl: Gtk.Overlay
+    # ovl_tr: Gtk.Overlay
+    # ovl_bl: Gtk.Overlay
+    # ovl_br: Gtk.Overlay
+    frm_top_left: Gtk.Frame
+    frm_top_right: Gtk.Frame
+    frm_bottom_left: Gtk.Frame
+    frm_bottom_right: Gtk.Frame
     TOOLS_BUTTONS: Dict[str, str]
 
     def setup_context_controllers(self) -> None:
         """setup right-click context menu / controllers for panes"""
         # 4 panes = 4 overlays
-        self.overlays = {
-            self.ovl_tl: "top-left",
-            self.ovl_tr: "top-right",
-            self.ovl_bl: "bottom-left",
-            self.ovl_br: "bottom-right",
+        # self.overlays = {
+        #     self.ovl_tl: "top-left",
+        #     self.ovl_tr: "top-right",
+        #     self.ovl_bl: "bottom-left",
+        #     self.ovl_br: "bottom-right",
+        # }
+        # for overlay in self.overlays:
+        #     context_controller = Gtk.GestureClick()
+        #     context_controller.set_button(3)  # r-click
+        #     context_controller.connect("begin", self.on_gesture_begin)
+        #     context_controller.connect("pressed", self.on_context_menu)
+        #     overlay.add_controller(context_controller)
+        self.frames = {
+            self.frm_top_left: "top-left",
+            self.frm_top_right: "top-right",
+            self.frm_bottom_left: "bottom-left",
+            self.frm_bottom_right: "bottom-right",
         }
-        for overlay in self.overlays:
+        for frame in self.frames:
             context_controller = Gtk.GestureClick()
             context_controller.set_button(3)  # r-click
             context_controller.connect("begin", self.on_gesture_begin)
             context_controller.connect("pressed", self.on_context_menu)
-            overlay.add_controller(context_controller)
+            frame.add_controller(context_controller)
 
     def on_gesture_begin(self, gesture: Gtk.GestureClick, sequence: Any) -> None:
         """handle gesture begin to prevent drag"""
@@ -59,10 +75,12 @@ class ContextManager:
         grandparent = parent.get_parent()
         # if not parent:
         # if not parent or parent not in self.overlays:
-        if not grandparent or grandparent not in self.overlays:
+        if not grandparent or grandparent not in self.frames:
+            # if not grandparent or grandparent not in self.overlays:
             return
         # get position of clicked overlay
-        pos = self.overlays[grandparent]
+        pos = self.frames[grandparent]
+        # pos = self.overlays[grandparent]
         # crate popover todo redesign create_popover_menu()
         pop_ctx, _ = self.create_popover_menu()
         # add stack switcher for current pane
@@ -73,7 +91,7 @@ class ContextManager:
             buttons_dict=self.TOOLS_BUTTONS,
             icons_path="tools/",
             pop_context=True,
-            pos=self.overlays[grandparent],
+            pos=self.frames[grandparent],
         ):
             self.ctxbox_tools.append(button)
 
@@ -87,8 +105,12 @@ class ContextManager:
         pop_ctx.set_pointing_to(rect)
         pop_ctx.set_position(Gtk.PositionType.BOTTOM)
         pop_ctx.set_autohide(True)
+        pop_ctx.set_vexpand(True)
         pop_ctx.set_has_arrow(True)
 
+        pop_ctx.present()
+        pop_parent = pop_ctx.get_parent()
+        print(f"popover parent : {pop_parent.__class__.__name__}")  # frame
         pop_ctx.popup()
 
     def create_popover_menu(self) -> tuple[Gtk.Popover, Gtk.Box]:

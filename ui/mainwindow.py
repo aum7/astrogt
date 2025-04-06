@@ -44,7 +44,7 @@ class MainWindow(
         # intercept toggle pane button
         self._hotkeys.intercept_button_controller(self.btn_toggle_pane, "toggle_pane")
         # show all 4 panes
-        self.panes_all()
+        # self.panes_all()
         # demo stacks todo delete
         self.init_stacks()
 
@@ -100,7 +100,7 @@ class MainWindow(
             "\n\t(your computer > utc > event location time)"
             "\ntab/shift+tab : navigate between widgets in side pane"
             "\nspace/enter : activate button / dropdown when focused"
-            "\nshift+1/2/3 : show single / double / all panes"
+            "\nshift+1/2/3/4 : show single / double / triple / all panes"
             "\n\nnote : if entry / text field is focused, hotkeys will not work"
             "\n\t(text field will 'consume' key press)"
             "\n\nrecommended workflow :"
@@ -119,7 +119,8 @@ class MainWindow(
     def init_stacks(self):
         """initialize stacks with content"""
         # some example content for each stack
-        for position in ["top-left", "top-right", "bottom-left", "bottom-right"]:
+        positions = ["top-left", "top-right", "bottom-left", "bottom-right"]
+        for position in positions:
             # create stack for each position
             stack = self.get_stack(position)
             if stack:
@@ -130,13 +131,13 @@ class MainWindow(
                 label2.add_css_class("label-tr")
                 label3 = Gtk.Label(label="planets table")
                 label3.add_css_class("label-bl")
-                label4 = Gtk.Label(label="orange buddy")
+                label4 = Gtk.Label(label="saros cycles")
                 label4.add_css_class("label-br")
 
                 stack.add_titled(label1, "chart", "chart")
                 stack.add_titled(label2, "transit", "transit")
                 stack.add_titled(label3, "planets", "planets")
-                stack.add_titled(label4, "orange", "orange")
+                stack.add_titled(label4, "saros", "saros")
                 # add text editor todo will comsume r-click > put into taber
                 # text_view = Gtk.TextView()
                 # text_view.set_wrap_mode(Gtk.WrapMode.WORD)
@@ -144,9 +145,12 @@ class MainWindow(
                 # stack.add_titled(text_view, "editor", "editor")
                 # set stack as child of frame
                 frame = getattr(self, f"frm_{position.replace('-', '_')}", None)
-                if frame and frame.get_child():
-                    overlay = frame.get_child()
-                    overlay.set_child(stack)
+                # if frame and frame.get_child():
+                #     overlay = frame.get_child()
+                #     overlay.set_child(stack)
+                # test without overlays
+                if frame:
+                    frame.set_child(stack)
 
     # panes show single pane : shift-triple-click / shift+1
     def panes_single(self) -> None:

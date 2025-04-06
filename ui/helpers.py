@@ -56,9 +56,7 @@ def _event_selection(manager, gesture, n_press, x, y, event_name):
         if manager._app.selected_event == "event two":
             manager.clp_event_one.remove_title_css_class("label-event-selected")
             manager.clp_event_two.add_title_css_class("label-event-selected")
-        manager._notify.debug(
-            f"hotkey | button : {manager._app.selected_event} selected"
-        )
+        manager._notify.debug(f"{manager._app.selected_event} selected")
 
 
 def _decimal_to_dms(decimal):

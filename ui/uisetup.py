@@ -111,21 +111,25 @@ class UISetup:
         self.stack_bl = self.setup_stacks("bottom-left")
         self.stack_br = self.setup_stacks("bottom-right")
         # create overlays for each frame
-        self.ovl_tl = Gtk.Overlay()
-        self.ovl_tr = Gtk.Overlay()
-        self.ovl_bl = Gtk.Overlay()
-        self.ovl_br = Gtk.Overlay()
+        # self.ovl_tl = Gtk.Overlay()
+        # self.ovl_tr = Gtk.Overlay()
+        # self.ovl_bl = Gtk.Overlay()
+        # self.ovl_br = Gtk.Overlay()
         # fill overlays
-        self.ovl_tl.set_child(self.stack_tl)
-        self.ovl_tr.set_child(self.stack_tr)
-        self.ovl_bl.set_child(self.stack_bl)
-        self.ovl_br.set_child(self.stack_br)
+        # self.ovl_tl.set_child(self.stack_tl)
+        # self.ovl_tr.set_child(self.stack_tr)
+        # self.ovl_bl.set_child(self.stack_bl)
+        # self.ovl_br.set_child(self.stack_br)
+        # test if we can do without overlay
+        self.frm_top_left = self.create_frame(self.stack_tl)
+        self.frm_top_right = self.create_frame(self.stack_tr)
+        self.frm_bottom_left = self.create_frame(self.stack_bl)
+        self.frm_bottom_right = self.create_frame(self.stack_br)
         # create frames for paned
-        self.frm_top_start_child = self.create_frame(self.stack_tl)
         # self.frm_top_start_child = self.create_frame(self.ovl_tl)
-        self.frm_top_end_child = self.create_frame(self.ovl_tr)
-        self.frm_btm_start_child = self.create_frame(self.ovl_bl)
-        self.frm_btm_end_child = self.create_frame(self.ovl_br)
+        # self.frm_top_end_child = self.create_frame(self.ovl_tr)
+        # self.frm_btm_start_child = self.create_frame(self.ovl_bl)
+        # self.frm_btm_end_child = self.create_frame(self.ovl_br)
 
     def create_frame(self, child: Gtk.Widget) -> Gtk.Frame:
         """create a frame with the given child widget"""
@@ -151,16 +155,16 @@ class UISetup:
         # Setup top paned
         self.pnd_top_h.set_hexpand(True)
         self.pnd_top_h.set_vexpand(True)
-        self.pnd_top_h.set_start_child(self.frm_top_start_child)
+        self.pnd_top_h.set_start_child(self.frm_top_left)
         self.pnd_top_h.set_resize_start_child(True)
-        self.pnd_top_h.set_end_child(self.frm_top_end_child)
+        self.pnd_top_h.set_end_child(self.frm_top_right)
         self.pnd_top_h.set_resize_end_child(True)
         # setup bottom paned
         self.pnd_btm_h.set_hexpand(True)
         self.pnd_btm_h.set_vexpand(True)
-        self.pnd_btm_h.set_start_child(self.frm_btm_start_child)
+        self.pnd_btm_h.set_start_child(self.frm_bottom_left)
         self.pnd_btm_h.set_resize_start_child(True)
-        self.pnd_btm_h.set_end_child(self.frm_btm_end_child)
+        self.pnd_btm_h.set_end_child(self.frm_bottom_right)
         self.pnd_btm_h.set_resize_end_child(True)
         # setup main vertical paned
         self.pnd_main_v.set_start_child(self.pnd_top_h)
