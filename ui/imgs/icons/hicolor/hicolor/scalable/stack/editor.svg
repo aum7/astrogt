@@ -28,20 +28,20 @@
      transform="translate(-8.1739152e-8,15.875)">
     <g
        id="g2"
-       transform="matrix(1.6063791,0,0,1.5533266,-3.8505071,25.793407)"
-       style="stroke-width:0.63306">
+       transform="matrix(1.2101785,0,0,1.1931583,-1.3346336,17.624327)"
+       style="stroke-width:0.832198">
       <path
-         style="fill:none;stroke:#ffffff;stroke-width:0.502491;stroke-linecap:round;stroke-dasharray:none"
+         style="fill:none;stroke:#ffffff;stroke-width:0.660557;stroke-linecap:round;stroke-dasharray:none"
          d="M 4.6161077,9.8177844 H 8.0838921"
          id="path3"
          transform="translate(0,-29.104169)" />
       <path
-         style="fill:none;stroke:#ffffff;stroke-width:0.502491;stroke-linecap:round;stroke-dasharray:none"
+         style="fill:none;stroke:#ffffff;stroke-width:0.660557;stroke-linecap:round;stroke-dasharray:none"
          d="m 4.6161079,2.8822157 3.4677844,10e-8"
          id="path2"
          transform="translate(0,-29.104169)" />
       <path
-         style="fill:none;stroke:#ffffff;stroke-width:0.502491;stroke-linecap:butt;stroke-dasharray:none"
+         style="fill:none;stroke:#ffffff;stroke-width:0.660557;stroke-linecap:butt;stroke-dasharray:none"
          d="m 6.3499999,9.8177844 2e-7,-6.9355687"
          id="path1"
          transform="translate(0,-29.104169)" />

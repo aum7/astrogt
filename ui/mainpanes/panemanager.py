@@ -14,9 +14,9 @@ class PaneManager(Gtk.Stack):
     stack: Gtk.Stack
     STACK_BUTTONS: Dict[str, str] = {
         "astro": "astrology chart",
-        "editor": "editors",
-        "data": "data chart",
-        "tables": "tables",
+        "editor": "text editor",
+        "data": "data graph",
+        "tables": "calculation results",
     }
 
     def __init__(self, stack_manager=None, position=None, name=None):
@@ -49,6 +49,7 @@ class PaneManager(Gtk.Stack):
         i = 0
         child = switcher.get_first_child()
         while child and i < len(keys):
+            # print(f"key : {keys[i]}")
             key = keys[i]
             icon_path = f"ui/imgs/icons/hicolor/scalable/stack/{key}.svg"
             icon = Gtk.Image.new_from_file(icon_path)

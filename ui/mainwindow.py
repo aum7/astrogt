@@ -4,7 +4,7 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
-from typing import Any, Optional
+from typing import Any, Optional, Dict
 from .contextmanager import ContextManager
 from .sidepane.sidepane import SidepaneManager
 from .uisetup import UISetup
@@ -116,6 +116,13 @@ class MainWindow(
             route=["user"],
         )
 
+    STACK_BUTTONS: Dict[str, str] = {
+        "astro": "astrology chart",
+        "editor": "text editor",
+        "data": "data graph",
+        "tables": "calculation results",
+    }
+
     def init_stacks(self):
         """initialize stacks with content"""
         # some example content for each stack
@@ -124,14 +131,13 @@ class MainWindow(
             # create stack for each position
             stack = self.get_stack(position)
             if stack:
-                # make charts stack default visible one
-                label1 = Gtk.Label(label="natal chart")
+                label1 = Gtk.Label(label="astrology chart")
                 label1.add_css_class("label-tl")
-                label2 = Gtk.Label(label="transit chart")
+                label2 = Gtk.Label(label="text editor")
                 label2.add_css_class("label-tr")
-                label3 = Gtk.Label(label="planets table")
+                label3 = Gtk.Label(label="data graph")
                 label3.add_css_class("label-bl")
-                label4 = Gtk.Label(label="saros cycles")
+                label4 = Gtk.Label(label="calculation results")
                 label4.add_css_class("label-br")
 
                 stack.add_titled(label1, "chart", "--chart")
