@@ -16,7 +16,7 @@ def setup_tools(manager) -> CollapsePanel:
     box_tools = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
     # sidepane buttons (file_load etc)
     for button in _buttons_from_dict(
-        manager, buttons_dict=manager.TOOLS_BUTTONS, icons_path="sidepane"
+        manager, buttons_dict=manager.TOOLS_BUTTONS, icons_path="tools/"
     ):
         box_tools.append(button)
 

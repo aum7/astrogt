@@ -54,11 +54,19 @@ label {
 }
 
 .label-tl {
-  background-color: black;
+  background-color: slateblue;
+}
+
+.label-tr {
+  background-color: dodgerblue;
+}
+
+.label-bl {
+  background-color: olivedrab;
 }
 
 .label-br {
-  background-color: darkslategray;
+  background-color: orange;
 }
 
 .button-pane {

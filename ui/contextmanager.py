@@ -56,21 +56,24 @@ class ContextManager:
         if not picked:
             return
         parent = picked.get_parent()
-        if not parent or parent not in self.overlays:
+        grandparent = parent.get_parent()
+        # if not parent:
+        # if not parent or parent not in self.overlays:
+        if not grandparent or grandparent not in self.overlays:
             return
         # get position of clicked overlay
-        position = self.overlays[parent]
+        pos = self.overlays[grandparent]
         # crate popover todo redesign create_popover_menu()
-        pop_ctx, box_ctx = self.create_popover_menu(parent)
+        pop_ctx, _ = self.create_popover_menu()
         # add stack switcher for current pane
-        self.add_switcher(position, box_ctx)
+        self.add_switcher(pos, self.ctxbox_stack)
         # create pane buttons
         for button in _buttons_from_dict(
             self,
             buttons_dict=self.TOOLS_BUTTONS,
-            icons_path="tools",
+            icons_path="tools/",
             pop_context=True,
-            pos=self.overlays[parent],
+            pos=self.overlays[grandparent],
         ):
             self.ctxbox_tools.append(button)
 
@@ -80,17 +83,17 @@ class ContextManager:
         rect.width = 1
         rect.height = 1
 
-        pop_ctx.set_parent(parent)
+        pop_ctx.set_parent(grandparent)
         pop_ctx.set_pointing_to(rect)
         pop_ctx.set_position(Gtk.PositionType.BOTTOM)
         pop_ctx.set_autohide(True)
-        pop_ctx.set_has_arrow(False)
+        pop_ctx.set_has_arrow(True)
 
         pop_ctx.popup()
 
-    def create_popover_menu(self, parent) -> tuple[Gtk.Popover, Gtk.Box]:
+    def create_popover_menu(self) -> tuple[Gtk.Popover, Gtk.Box]:
         """create popover menu with proper setup"""
-        pop_ctx = Gtk.Popover(parent)
+        pop_ctx = Gtk.Popover()
         box_ctx = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         box_ctx.set_margin_start(4)
         box_ctx.set_margin_end(4)
@@ -99,15 +102,15 @@ class ContextManager:
         indent_pnl = 0
         spacing_box = 4
         # collapsible panel(s) : stack switchers on top
-        self.ctxclp_main_panes = CollapsePanel(
-            title="main panes", expanded=False, indent=indent_pnl
+        self.ctxclp_stack = CollapsePanel(
+            title="panes", expanded=True, indent=indent_pnl
         )
         # box for switchers
-        self.ctxbox_main_panes = Gtk.Box(
+        self.ctxbox_stack = Gtk.Box(
             orientation=Gtk.Orientation.VERTICAL, spacing=spacing_box
         )
-        self.ctxclp_main_panes.append(self.ctxbox_main_panes)
-        box_ctx.append(self.ctxbox_main_panes)
+        self.ctxclp_stack.add_widget(self.ctxbox_stack)
+        box_ctx.append(self.ctxclp_stack)
         # tool buttons
         self.ctxclp_tools = CollapsePanel(
             title="tools", expanded=False, indent=indent_pnl
@@ -115,7 +118,7 @@ class ContextManager:
         self.ctxbox_tools = Gtk.Box(
             orientation=Gtk.Orientation.HORIZONTAL, spacing=spacing_box
         )
-        self.ctxclp_tools.append(self.ctxbox_tools)
+        self.ctxclp_tools.add_widget(self.ctxbox_tools)
         box_ctx.append(self.ctxclp_tools)
 
         pop_ctx.set_child(box_ctx)
@@ -142,9 +145,9 @@ class ContextManager:
     def update_switchers(self, position: str) -> None:
         """update stack switchers in context menu for current pane"""
         # clear existing content
-        if hasattr(self, "ctxbox_main_panes"):
-            while child := self.ctxbox_main_panes.get_first_child():
-                self.ctxbox_main_panes.remove(child)
+        if hasattr(self, "ctxbox_stack"):
+            while child := self.ctxbox_stack.get_first_child():
+                self.ctxbox_stack.remove(child)
             # get stacks for position
             stack = self.get_stack(position)
             if not stack:
@@ -152,13 +155,13 @@ class ContextManager:
                 label = Gtk.Label()
                 label.set_text("no stacks available")
                 label.set_halign(Gtk.Align.START)
-                self.ctxbox_main_panes.append()
+                self.ctxbox_stack.append()
                 return
             # create & add stack switchers
             switcher = Gtk.StackSwitcher()
             switcher.set_stack(stack)
             switcher.set_halign(Gtk.Align.START)
-            self.ctxbox_main_panes.append(switcher)
+            self.ctxbox_stack.append(switcher)
 
     def get_stack_for_position(self, position: str) -> Dict[str, Gtk.Stack]:
         """get stacks for specific position"""

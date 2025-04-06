@@ -21,9 +21,10 @@ class HotkeyManager:
         # store reference to window methods
         self.actions = {
             "toggle_pane": getattr(window, "on_toggle_pane", None),
-            "panes_all": getattr(window, "panes_all", None),
-            "panes_double": getattr(window, "panes_double", None),
             "panes_single": getattr(window, "panes_single", None),
+            "panes_double": getattr(window, "panes_double", None),
+            "panes_triple": getattr(window, "panes_triple", None),
+            "panes_all": getattr(window, "panes_all", None),
         }
         self.setup_controllers()
 
@@ -58,12 +59,14 @@ class HotkeyManager:
     def _handle_button_press(self, gesture, n_press, x, y, button, action_name):
         """handle button press with modifier awareness"""
         # check for modifiers
-        if self.active_modifiers[Gdk.KEY_Shift_L] and n_press in (1, 2, 3):
+        if self.active_modifiers[Gdk.KEY_Shift_L] and n_press in (1, 2, 3, 4):
             if n_press == 1:
                 action_func = getattr(self.window, "panes_single", None)
             elif n_press == 2:
                 action_func = getattr(self.window, "panes_double", None)
             elif n_press == 3:
+                action_func = getattr(self.window, "panes_triple", None)
+            elif n_press == 4:
                 action_func = getattr(self.window, "panes_all", None)
             if callable(action_func):
                 action_func()
@@ -140,20 +143,3 @@ class HotkeyManager:
             return True
 
         return False
-
-    def _center_all_panes(self) -> None:
-        """center all 4 main panes"""
-        if (
-            hasattr(self.window, "pnd_main_v")
-            and hasattr(self.window, "pnd_top_h")
-            and hasattr(self.window, "pnd_btm_h")
-        ):
-            self.window.pnd_main_v.set_position(
-                self.window.pnd_main_v.get_allocated_height() // 2
-            )
-            self.window.pnd_top_h.set_position(
-                self.window.pnd_top_h.get_allocated_width() // 2
-            )
-            self.window.pnd_btm_h.set_position(
-                self.window.pnd_btm_h.get_allocated_width() // 2
-            )

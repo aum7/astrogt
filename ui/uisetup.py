@@ -92,15 +92,15 @@ class UISetup:
         self.btn_toggle_pane.set_valign(Gtk.Align.START)
         self.btn_toggle_pane.set_tooltip_text(
             """toggle side pane (hk : s)
-[shift-click] : single pane (hk : shift+1)
-[shift-double-click] : double panes (hk : shift+2)
-[shift-triple-click] : all 4 panes (hk : shift+3)
+[shift+click] : single pane (hk : shift+1)
+[shift+double-click] : double panes (hk : shift+2)
+[shift+triple-click] : triple panes (hk : shift+3)
+[shift+quadruple-click] : all panes (hk : shift+4)
 """
         )
         self.btn_toggle_pane.connect("clicked", self.on_toggle_pane)
 
     def setup_menu_overlay(self) -> None:
-        # def setup_overlays(self) -> None:
         self.ovl_menu = Gtk.Overlay()
 
     def setup_frames(self) -> None:
@@ -121,7 +121,8 @@ class UISetup:
         self.ovl_bl.set_child(self.stack_bl)
         self.ovl_br.set_child(self.stack_br)
         # create frames for paned
-        self.frm_top_start_child = self.create_frame(self.ovl_tl)
+        self.frm_top_start_child = self.create_frame(self.stack_tl)
+        # self.frm_top_start_child = self.create_frame(self.ovl_tl)
         self.frm_top_end_child = self.create_frame(self.ovl_tr)
         self.frm_btm_start_child = self.create_frame(self.ovl_bl)
         self.frm_btm_end_child = self.create_frame(self.ovl_br)

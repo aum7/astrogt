@@ -25,11 +25,6 @@ class PaneManager(Gtk.Stack):
             "bottom-right": None,
         }
 
-    # def register_stack(self, position: str, name: str, stack: Gtk.Stack) -> None:
-    #     """register a stack with its position and name"""
-    #     if position in self.stacks:
-    #         self.stacks[position][name] = stack
-
     def setup_stacks(self, position: str) -> Gtk.Stack:
         """create & setup stack for given position"""
         if position not in self.pane_stacks:

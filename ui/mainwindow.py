@@ -43,10 +43,13 @@ class MainWindow(
         self.setup_hotkeys()
         # intercept toggle pane button
         self._hotkeys.intercept_button_controller(self.btn_toggle_pane, "toggle_pane")
+        # show all 4 panes
+        self.panes_all()
         # demo stacks todo delete
         self.init_stacks()
 
     def on_toggle_pane(self, button: Optional[Gtk.Button] = None) -> None:
+        """toggle sidepane visibility"""
         revealed = self.rvl_side_pane.get_child_revealed()
         if revealed:
             self.rvl_side_pane.set_reveal_child(False)
@@ -56,12 +59,13 @@ class MainWindow(
             self.rvl_side_pane.set_reveal_child(True)
 
     def setup_hotkeys(self):
-        # register additional hotkeys
+        """register additional hotkeys"""
         self._hotkeys.register_hotkey("h", self.show_help)
         self._hotkeys.register_hotkey("s", self.on_toggle_pane)
         self._hotkeys.register_hotkey("shift+exclam", self.panes_single)
         self._hotkeys.register_hotkey("shift+quotedbl", self.panes_double)
-        self._hotkeys.register_hotkey("shift+numbersign", self.panes_all)
+        self._hotkeys.register_hotkey("shift+numbersign", self.panes_triple)
+        self._hotkeys.register_hotkey("shift+dollar", self.panes_all)
         self._hotkeys.register_hotkey("Up", self.obc_arrow_up)
         self._hotkeys.register_hotkey("Down", self.obc_arrow_dn)
         self._hotkeys.register_hotkey("Left", self.obc_arrow_l)
@@ -121,24 +125,57 @@ class MainWindow(
             if stack:
                 # make charts stack default visible one
                 label1 = Gtk.Label(label="natal chart")
+                label1.add_css_class("label-tl")
                 label2 = Gtk.Label(label="transit chart")
+                label2.add_css_class("label-tr")
                 label3 = Gtk.Label(label="planets table")
+                label3.add_css_class("label-bl")
+                label4 = Gtk.Label(label="orange buddy")
+                label4.add_css_class("label-br")
 
                 stack.add_titled(label1, "chart", "chart")
                 stack.add_titled(label2, "transit", "transit")
                 stack.add_titled(label3, "planets", "planets")
-                # add text editor
-                text_view = Gtk.TextView()
-                text_view.set_wrap_mode(Gtk.WrapMode.WORD)
-                text_view.get_buffer().set_text("notes here")
-                stack.add_titled(text_view, "editor", "editor")
+                stack.add_titled(label4, "orange", "orange")
+                # add text editor todo will comsume r-click > put into taber
+                # text_view = Gtk.TextView()
+                # text_view.set_wrap_mode(Gtk.WrapMode.WORD)
+                # text_view.get_buffer().set_text("notes here")
+                # stack.add_titled(text_view, "editor", "editor")
                 # set stack as child of frame
                 frame = getattr(self, f"frm_{position.replace('-', '_')}", None)
                 if frame and frame.get_child():
                     overlay = frame.get_child()
                     overlay.set_child(stack)
 
-    # panes show all
+    # panes show single pane : shift-triple-click / shift+1
+    def panes_single(self) -> None:
+        """show single pane : bottom right"""
+        if hasattr(self, "pnd_main_v") and hasattr(self, "pnd_btm_h"):
+            self.pnd_main_v.set_position(0)
+            self.pnd_btm_h.set_position(0)
+
+    # panes show 2
+    def panes_double(self) -> None:
+        """show & center bottom 2 panes (hide top 2)"""
+        if hasattr(self, "pnd_main_v") and hasattr(self, "pnd_btm_h"):
+            # separator position in pixels, from top-left | -ve = unset | default 0
+            self.pnd_main_v.set_position(0)
+            self.pnd_btm_h.set_position(self.pnd_btm_h.get_width() // 2)
+
+    # panes show top 2 bottom single
+    def panes_triple(self) -> None:
+        """show & center top 2 panes & bottom single"""
+        if (
+            hasattr(self, "pnd_main_v")
+            and hasattr(self, "pnd_top_h")
+            and hasattr(self, "pnd_btm_h")
+        ):
+            self.pnd_main_v.set_position(self.pnd_main_v.get_height() // 2)
+            self.pnd_top_h.set_position(self.pnd_top_h.get_width() // 2)
+            self.pnd_btm_h.set_position(0)
+
+    # panes show all 4
     def panes_all(self) -> None:
         """show & center all 4 main panes"""
         if (
@@ -149,18 +186,3 @@ class MainWindow(
             self.pnd_main_v.set_position(self.pnd_main_v.get_height() // 2)
             self.pnd_top_h.set_position(self.pnd_top_h.get_width() // 2)
             self.pnd_btm_h.set_position(self.pnd_btm_h.get_width() // 2)
-
-    # panes show 2
-    def panes_double(self) -> None:
-        """show & center bottom 2 panes (hide top 2)"""
-        if hasattr(self, "pnd_main_v") and hasattr(self, "pnd_btm_h"):
-            # separator position in pixels, from top-left | -ve = unset | def 0
-            self.pnd_main_v.set_position(0)
-            self.pnd_btm_h.set_position(self.pnd_btm_h.get_width() // 2)
-
-    # panes show single pane : shift-triple-click / shift+1
-    def panes_single(self) -> None:
-        """show single pane : bottom right"""
-        if hasattr(self, "pnd_main_v") and hasattr(self, "pnd_btm_h"):
-            self.pnd_main_v.set_position(0)
-            self.pnd_btm_h.set_position(0)
