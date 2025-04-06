@@ -1,15 +1,17 @@
+# collapsepanel.py
 # ruff: noqa: E402
 import gi
 
 gi.require_version("Gtk", "4.0")
-from gi.repository import Gtk  # type: ignore
+from gi.repository import Gtk, GObject  # type: ignore
 
 
 class CollapsePanel(Gtk.Box):
     """collapsing data input panel"""
 
+    __gsignals__ = {"toggled": (GObject.SIGNAL_RUN_FIRST, None, ())}
+
     def __init__(self, title="", css_class="heading", expanded=True, indent=7):
-        # def __init__(self, title="", css_class="heading", expanded=True, indent=7):
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
         margin_x = 0
         margin_y = 0
@@ -50,6 +52,8 @@ class CollapsePanel(Gtk.Box):
         self.icon_expand.set_from_icon_name(
             "pan-down-symbolic" if expanded else "pan-end-symbolic"
         )
+        # todo context menu popover not resizing : workaround ko
+        self.emit("toggled")
 
     def add_widget(self, widget):
         """add widget to panel content area"""

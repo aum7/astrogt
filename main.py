@@ -42,8 +42,6 @@ class AstrogtApp(Gtk.Application):
         self.notify_manager.notify(
             "astrogt app started - press 'h' for help", source="olo", timeout=7
         )
-        # panes center all 4
-        win.panes_all()
         win.present()
 
 

@@ -96,7 +96,7 @@ class ContextManager:
             self.ctxbox_tools.append(button)
 
         rect = Gdk.Rectangle()
-        rect.x = int(x + 30)
+        rect.x = int(x)
         rect.y = int(y)
         rect.width = 1
         rect.height = 1
@@ -105,18 +105,21 @@ class ContextManager:
         pop_ctx.set_pointing_to(rect)
         pop_ctx.set_position(Gtk.PositionType.BOTTOM)
         pop_ctx.set_autohide(True)
-        pop_ctx.set_vexpand(True)
         pop_ctx.set_has_arrow(True)
 
-        pop_ctx.present()
-        pop_parent = pop_ctx.get_parent()
-        print(f"popover parent : {pop_parent.__class__.__name__}")  # frame
         pop_ctx.popup()
 
     def create_popover_menu(self) -> tuple[Gtk.Popover, Gtk.Box]:
         """create popover menu with proper setup"""
         pop_ctx = Gtk.Popover()
+        # pop_ctx.set_vexpand(False)
+        # pop_ctx.set_hexpand(False)
+        # pop_ctx.set_size_request(-1, -1)
+        # main box for popover content
         box_ctx = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        # box_ctx.set_size_request(-1, -1)
+        # box_ctx.set_hexpand(True)
+        # box_ctx.set_vexpand(True)
         box_ctx.set_margin_start(4)
         box_ctx.set_margin_end(4)
         box_ctx.set_margin_top(4)
@@ -135,7 +138,7 @@ class ContextManager:
         box_ctx.append(self.ctxclp_stack)
         # tool buttons
         self.ctxclp_tools = CollapsePanel(
-            title="tools", expanded=False, indent=indent_pnl
+            title="tools", expanded=True, indent=indent_pnl
         )
         self.ctxbox_tools = Gtk.Box(
             orientation=Gtk.Orientation.HORIZONTAL, spacing=spacing_box
@@ -144,6 +147,25 @@ class ContextManager:
         box_ctx.append(self.ctxclp_tools)
 
         pop_ctx.set_child(box_ctx)
+        # resize popover dynamically
+        # box_ctx.connect("size-allocate", lambda w, a: pop_ctx.queue_resize())
+        # pop_ctx.connect("size-allocate", lambda w, a: pop_ctx.queue_resize())
+        # self.ctxclp_stack.connect("toggled", lambda cp: pop_ctx.queue_resize())
+        # self.ctxclp_tools.connect("toggled", lambda cp: pop_ctx.queue_resize())
+        self.ctxclp_stack.connect(
+            "toggled", lambda cp: pop_ctx.set_size_request(-1, -1)
+        )
+        self.ctxclp_tools.connect(
+            "toggled", lambda cp: pop_ctx.set_size_request(-1, -1)
+        )
+        # self.ctxclp_stack.connect(
+        #     "notify::expanded",
+        #     lambda cp, ps: pop_ctx.queue_resize(),
+        # )
+        # self.ctxclp_tools.connect(
+        #     "notify::expanded",
+        #     lambda cp, ps: pop_ctx.queue_resize(),
+        # )
 
         return pop_ctx, box_ctx
 

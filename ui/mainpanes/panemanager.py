@@ -31,8 +31,8 @@ class PaneManager(Gtk.Stack):
             return None
         # needed as separate instances
         stack = Gtk.Stack()
-        stack.set_transition_type(Gtk.StackTransitionType.NONE)
-        stack.set_transition_duration(0)
+        stack.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
+        stack.set_transition_duration(10)
         # store stack for position
         self.pane_stacks[position] = stack
         return stack
