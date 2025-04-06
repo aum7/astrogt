@@ -182,7 +182,7 @@ class NotifyManager:
                 box.set_margin_start(3)
                 box.set_margin_end(5)
                 # icon without callbacks
-                icon_name = f"notify-{msg.level.value}"
+                icon_name = f"{msg.level.value}"
                 icon = Gtk.Image.new_from_file(
                     f"ui/imgs/icons/hicolor/scalable/notify/{icon_name}.svg"
                 )
