@@ -1,5 +1,5 @@
+# eventdata.py
 # ruff: noqa: E402
-# import swisseph as swe
 import gi
 
 gi.require_version("Gtk", "4.0")
@@ -387,12 +387,12 @@ class EventData:
                         f"\n\tusing time now for {self.timezone}",
                         # f"{dt_event.strftime('%Y-%m-%d %H:%M:%S')}",
                         source="eventdata",
-                        route=["terminal", "user"],
+                        route=["terminal"],
                     )
                 else:
                     dt_event = dt_utc
                     self._notify.warning(
-                        f"\n\t{datetime_name} no timezone found\n\tusing utc now",
+                        f"\n\t{datetime_name} no timezone found : using utc now",
                         # f"\n\t{dt_event.strftime('%Y-%m-%d %H:%M:%S')}"
                         "\n\tlocation should be set to calculate timezone",
                         source="eventdata",

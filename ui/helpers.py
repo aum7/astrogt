@@ -13,19 +13,23 @@ def _buttons_from_dict(
     manager,
     buttons_dict=None,
     icons_path: Optional[str] = None,
+    icon_size: Optional[int] = None,
     pop_context: bool = False,
     pos: Optional[str] = None,
 ):
     icons_folder = "ui/imgs/icons/hicolor/scalable/"
     icons_path_cpl = icons_folder + icons_path if icons_path else icons_folder
     buttons = []
-    # keys = buttons_dict if buttons_dict is not None else manager.TOOLS_BUTTONS
+
     for button_name, tooltip in (buttons_dict or manager.TOOLS_BUTTONS).items():
         button = Gtk.Button()
         button.add_css_class("button-pane")
         button.set_tooltip_text(tooltip)
         icon = Gtk.Image.new_from_file(f"{icons_path_cpl}{button_name}.svg")
-        icon.set_icon_size(Gtk.IconSize.NORMAL)
+        if icon_size:
+            icon.set_pixel_size(icon_size)
+        else:
+            icon.set_icon_size(Gtk.IconSize.NORMAL)
         button.set_child(icon)
 
         callback_name = f"obc_{button_name}"

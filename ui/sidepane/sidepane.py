@@ -199,7 +199,7 @@ arrow key left / right : move time backward / forward
             self._notify.info(
                 f"{datetime_name} set to now (computer) : {dt_str}",
                 source="sidepane",
-                route=["terminal", "user"],
+                route=["terminal"],
             )
         try:
             # get current text
@@ -213,7 +213,11 @@ arrow key left / right : move time backward / forward
             jd_new = jd + change_delta
             new_text = jd_to_iso(jd_new)
             entry.set_text(new_text)
-            self._notify.debug(f"\n\tchange time new : {new_text}")
+            self._notify.debug(
+                f"\n\tchange time new : {new_text}",
+                source="sidepane",
+                route=["terminal"],
+            )
             if datetime_name == "datetime one":
                 self._app.EVENT_ONE.is_hotkey_arrow = True
                 self._app.EVENT_ONE.on_datetime_change(entry)
@@ -236,10 +240,10 @@ arrow key left / right : move time backward / forward
         self._notify.debug(f"{data} clicked", source="sidepane")
 
     def obc_file_save(self, widget, data):
-        print(f"{data} clicked")
+        self._notify.debug(f"{data} clicked", source="sidepane")
 
     def obc_file_load(self, widget, data):
-        print(f"{data} clicked")
+        self._notify.debug(f"{data} clicked", source="sidepane")
 
     # change time handlers
     def obc_arrow_l(

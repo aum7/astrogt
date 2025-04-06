@@ -2,57 +2,56 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   width="46"
-   height="46"
-   viewBox="0 0 12.170833 12.170833"
+   width="48"
+   height="48"
+   viewBox="0 0 12.7 12.7"
    version="1.1"
    id="svg1"
-   xml:space="preserve"
    xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg"><defs
-     id="defs1" /><g
-     id="layer3"><rect
-       style="fill:none;fill-opacity:0;stroke:none;stroke-width:0.264583;stroke-linecap:round"
-       id="rect1"
-       width="12.170834"
-       height="12.170834"
-       x="-2.9382323e-07"
-       y="-2.9382323e-07" /></g><g
-     id="layer5"><ellipse
-       style="fill:none;stroke:#b3b3b3;stroke-width:0.47625;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:12.8;paint-order:markers fill stroke"
-       id="path2"
-       cx="6.0854163"
-       cy="6.0854163"
-       rx="5.3520484"
-       ry="5.3537374" /><ellipse
-       style="fill:none;stroke:#b3b3b3;stroke-width:0.47625;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:12.8;paint-order:markers fill stroke"
-       id="path2-3"
-       cx="6.0854163"
-       cy="6.0854163"
-       rx="3.8629165"
-       ry="3.8641555" /><ellipse
-       style="fill:none;stroke:#b3b3b3;stroke-width:0.47625;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:12.8;paint-order:markers fill stroke"
-       id="path2-1"
-       cx="6.0854163"
-       cy="6.0854163"
-       rx="2.3764274"
-       ry="2.3771973" /></g><g
-     id="layer7"><ellipse
-       style="fill:#b3b3b3;fill-opacity:1;stroke:none;stroke-width:0.476251;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:12.8;paint-order:markers fill stroke"
-       id="path14"
-       cx="7.2887683"
-       cy="4.0355206"
-       rx="0.80918872"
-       ry="0.79748076" /><ellipse
-       style="fill:#b3b3b3;fill-opacity:1;stroke:none;stroke-width:0.476251;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:12.8;paint-order:markers fill stroke"
-       id="path14-8"
-       cx="2.2337236"
-       cy="9.8026199"
-       rx="0.80918872"
-       ry="0.79748076" /><ellipse
-       style="fill:#b3b3b3;fill-opacity:1;stroke:none;stroke-width:0.476251;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:12.8;paint-order:markers fill stroke"
-       id="path14-6"
-       cx="2.4414062"
-       cy="4.8030872"
-       rx="0.80918872"
-       ry="0.79748076" /></g></svg>
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <g
+     id="layer5">
+    <g
+       id="g3">
+      <circle
+         style="fill:none;stroke:#ffffff;stroke-width:0.48507;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none"
+         id="path16"
+         cx="6.3499999"
+         cy="6.3500004"
+         r="5.3357635"
+         transform="matrix(1.0909091,0,0,1.0909091,-0.57727263,-0.57727302)" />
+      <circle
+         style="fill:none;stroke:#ffffff;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none"
+         id="circle1"
+         cx="6.3499999"
+         cy="6.3500004"
+         r="3.8646605" />
+      <circle
+         style="fill:none;stroke:#ffffff;stroke-width:0.529169;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none"
+         id="circle2"
+         cx="6.3499999"
+         cy="6.3500004"
+         r="2.0148354" />
+      <circle
+         style="fill:#ffffff;stroke:none;stroke-width:0.529169;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none"
+         id="circle2-3"
+         cx="2.2207558"
+         cy="2.2207563"
+         r="0.96086526" />
+      <circle
+         style="fill:#ffffff;stroke:none;stroke-width:0.529169;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none"
+         id="circle2-3-3"
+         cx="9.4552212"
+         cy="4.049305"
+         r="0.7887885" />
+      <circle
+         style="fill:#ffffff;stroke:none;stroke-width:0.529169;stroke-linecap:round;stroke-linejoin:miter;stroke-dasharray:none"
+         id="circle2-3-1"
+         cx="5.2339239"
+         cy="8.0274792"
+         r="0.6812405" />
+    </g>
+  </g>
+</svg>

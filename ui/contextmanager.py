@@ -16,6 +16,7 @@ class ContextManager:
 
     # type hints for inherited attributes
     rvl_side_pane: Gtk.Revealer
+    _notify: Callable
     get_stack: Callable
     # ovl_tl: Gtk.Overlay
     # ovl_tr: Gtk.Overlay
@@ -74,10 +75,8 @@ class ContextManager:
             return
         parent = picked.get_parent()
         grandparent = parent.get_parent()
-        # if not parent:
-        # if not parent or parent not in self.overlays:
         if not grandparent or grandparent not in self.frames:
-            # if not grandparent or grandparent not in self.overlays:
+            self._notify.error("grandparent missing", route=["terminal"])
             return
         # get position of clicked overlay
         pos = self.frames[grandparent]
@@ -113,14 +112,8 @@ class ContextManager:
     def create_popover_menu(self) -> tuple[Gtk.Popover, Gtk.Box]:
         """create popover menu with proper setup"""
         pop_ctx = Gtk.Popover()
-        # pop_ctx.set_vexpand(False)
-        # pop_ctx.set_hexpand(False)
-        # pop_ctx.set_size_request(-1, -1)
         # main box for popover content
         box_ctx = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-        # box_ctx.set_size_request(-1, -1)
-        # box_ctx.set_hexpand(True)
-        # box_ctx.set_vexpand(True)
         box_ctx.set_margin_start(4)
         box_ctx.set_margin_end(4)
         box_ctx.set_margin_top(4)
@@ -148,81 +141,12 @@ class ContextManager:
         box_ctx.append(self.ctxclp_tools)
 
         pop_ctx.set_child(box_ctx)
-        # resize popover dynamically
-        # box_ctx.connect("size-allocate", lambda w, a: pop_ctx.queue_resize())
-        # pop_ctx.connect("size-allocate", lambda w, a: pop_ctx.queue_resize())
-        # self.ctxclp_stack.connect("toggled", lambda cp: pop_ctx.queue_resize())
-        # self.ctxclp_tools.connect("toggled", lambda cp: pop_ctx.queue_resize())
-        self.ctxclp_stack.connect(
-            "toggled", lambda cp: pop_ctx.set_size_request(-1, -1)
-        )
-        self.ctxclp_tools.connect(
-            "toggled", lambda cp: pop_ctx.set_size_request(-1, -1)
-        )
-        # self.ctxclp_stack.connect(
-        #     "notify::expanded",
-        #     lambda cp, ps: pop_ctx.queue_resize(),
-        # )
-        # self.ctxclp_tools.connect(
-        #     "notify::expanded",
-        #     lambda cp, ps: pop_ctx.queue_resize(),
-        # )
-
+        # todo resize popover dynamically
         return pop_ctx, box_ctx
-
-    # def add_switcher(self, position: str, box: Gtk.Box) -> None:
-    #     """add stack switcher for current pane to menu"""
-    #     # get stack for current pane position
-    #     stack = self.get_stack(position)
-    #     if not stack:
-    #         # show placeholder
-    #         label = Gtk.Label()
-    #         label.set_text("no stack available")
-    #         label.set_halign(Gtk.Align.START)
-    #         box.append(label)
-    #         return
-    #     # create & add stack switcher
-    #     switcher = Gtk.StackSwitcher()
-    #     switcher.set_stack(stack)
-    #     switcher.set_halign(Gtk.Align.START)
-    #     # set icons
-    #     for button in switcher.get_children():
-    #         label = (button.get_label() or "").lower()
-    #         mapping = {
-    #             "astro": "astro",
-    #             "editor": "editor",
-    #             "data": "data",
-    #             "tables": "tables",
-    #         }
-    #     box.append(switcher)
-
-    # todo not needed really, switcher shall stay same during app running
-    # def update_switchers(self, position: str) -> None:
-    #     """update stack switchers in context menu for current pane"""
-    #     # clear existing content
-    #     if hasattr(self, "ctxbox_stack"):
-    #         while child := self.ctxbox_stack.get_first_child():
-    #             self.ctxbox_stack.remove(child)
-    #         # get stacks for position
-    #         stack = self.get_stack(position)
-    #         if not stack:
-    #             # show placeholder
-    #             label = Gtk.Label()
-    #             label.set_text("no stacks available")
-    #             label.set_halign(Gtk.Align.START)
-    #             self.ctxbox_stack.append()
-    #             return
-    #         # create & add stack switchers
-    #         switcher = Gtk.StackSwitcher()
-    #         switcher.set_stack(stack)
-    #         switcher.set_halign(Gtk.Align.START)
-    #         self.ctxbox_stack.append(switcher)
 
     def get_stack_for_position(self, position: str) -> Dict[str, Gtk.Stack]:
         """get stacks for specific position"""
-        # implement this method
         stacks = {}
-        # example implementation
         if hasattr(self, f"stacks_{position}"):
             stacks = getattr(self, f"stacks_{position}")
         return stacks
@@ -236,11 +160,3 @@ class ContextManager:
             callback = getattr(self, callback_name)
             # print(f"{action} triggered from {position}")
             callback(button, f"{action}_{position}")
-
-    # # widget hierarchy
-    # current = picked
-    # while current:
-    #     # print(f"current hierarchy : {typeqcurrent).__name__}")
-    #     print(f"current hierarchy : {current.__class__.__name__}")
-    #     current = current.get_parent()
-    # button.set_tooltip_text(f"parent : {self.overlays[parent]}\n{tooltip}")
