@@ -234,16 +234,16 @@ arrow key left / right : move time backward / forward
 
     # button handlers
     def obc_default(self, widget, data):
-        print(f"{data} clicked : obc_default()")
+        self._notify.debug(f"{data} clicked", source="sidepane",route=["terminal"])
 
     def obc_settings(self, widget, data):
-        self._notify.debug(f"{data} clicked", source="sidepane")
+        self._notify.debug(f"{data} clicked", source="sidepane",route=["terminal"])
 
     def obc_file_save(self, widget, data):
-        self._notify.debug(f"{data} clicked", source="sidepane")
+        self._notify.debug(f"{data} clicked", source="sidepane",route=["terminal"])
 
     def obc_file_load(self, widget, data):
-        self._notify.debug(f"{data} clicked", source="sidepane")
+        self._notify.debug(f"{data} clicked", source="sidepane",route=["terminal"])
 
     # change time handlers
     def obc_arrow_l(

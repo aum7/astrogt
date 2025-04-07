@@ -40,7 +40,9 @@ class AstrogtApp(Gtk.Application):
         self.notify_manager.toast_overlay = toast_overlay
         # notification : code specific to this file
         self.notify_manager.notify(
-            "astrogt app started - press 'h' for help", source="olo", timeout=7
+            "astrogt app started : press [h] for help - [esc] to discard this message",
+            source="olo",
+            timeout=5,
         )
         win.present()
 

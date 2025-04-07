@@ -26,60 +26,60 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#141414"
      inkscape:document-units="px"
-     inkscape:zoom="6.150356"
-     inkscape:cx="39.591204"
-     inkscape:cy="25.770866"
+     inkscape:zoom="4.3489584"
+     inkscape:cx="33.686227"
+     inkscape:cy="25.638323"
      inkscape:window-width="1920"
-     inkscape:window-height="1008"
+     inkscape:window-height="1040"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
-     inkscape:current-layer="layer2"
+     inkscape:current-layer="layer6"
      showguides="true"
      showborder="false"
-     inkscape:lockguides="true"
+     inkscape:lockguides="false"
      showgrid="false"
      inkscape:export-bgcolor="#00000000">
     <sodipodi:guide
        position="0.52916667,12.7"
        orientation="-1,0"
        id="guide1"
-       inkscape:locked="true"
+       inkscape:locked="false"
        inkscape:label=""
        inkscape:color="rgb(0,134,229)" />
     <sodipodi:guide
        position="12.170833,12.7"
        orientation="-1,0"
        id="guide2"
-       inkscape:locked="true"
+       inkscape:locked="false"
        inkscape:label=""
        inkscape:color="rgb(0,134,229)" />
     <sodipodi:guide
        position="0,12.170833"
        orientation="0,1"
        id="guide3"
-       inkscape:locked="true"
+       inkscape:locked="false"
        inkscape:label=""
        inkscape:color="rgb(0,134,229)" />
     <sodipodi:guide
        position="0,0.52916667"
        orientation="0,1"
        id="guide4"
-       inkscape:locked="true"
+       inkscape:locked="false"
        inkscape:label=""
        inkscape:color="rgb(0,134,229)" />
     <sodipodi:guide
        position="5.6885399,10.479244"
        orientation="0,1"
        id="guide6"
-       inkscape:locked="true"
+       inkscape:locked="false"
        inkscape:label=""
        inkscape:color="rgb(78,154,6)" />
     <sodipodi:guide
        position="-4.4107784,2.2358085"
        orientation="0,1"
        id="guide7"
-       inkscape:locked="true"
+       inkscape:locked="false"
        inkscape:label=""
        inkscape:color="rgb(78,154,6)" />
   </sodipodi:namedview>
@@ -99,7 +99,7 @@
        height="11.641666"
        x="0.52916664"
        y="0.529167"
-       inkscape:export-filename="../../hicolor/hicolor/scalable/stack/editor.svg"
+       inkscape:export-filename="../../hicolor/scalable/stack/editor.svg"
        inkscape:export-xdpi="96"
        inkscape:export-ydpi="96" />
   </g>
@@ -108,10 +108,12 @@
      id="layer2"
      inkscape:label="editor"
      inkscape:highlight-color="#282828"
-     transform="translate(0,15.875)">
+     transform="translate(0,15.875)"
+     style="display:inline"
+     sodipodi:insensitive="true">
     <g
        id="g2"
-       transform="matrix(1.2101785,0,0,1.1931583,-1.3346336,17.624327)"
+       transform="matrix(1.2101785,0,0,1.1931583,14.840582,-20.23256)"
        style="stroke-width:0.832198">
       <path
          style="fill:none;stroke:#ffffff;stroke-width:0.660557;stroke-linecap:round;stroke-dasharray:none"
@@ -130,6 +132,29 @@
          d="m 6.3499999,9.8177844 2e-7,-6.9355687"
          id="path1"
          transform="translate(0,-29.104169)" />
+    </g>
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer6"
+     inkscape:label="editor2">
+    <g
+       id="g17"
+       transform="translate(0.00708965,15.945762)"
+       style="display:inline">
+      <rect
+         style="fill:none;stroke:#ffffff;stroke-width:0.793755;stroke-linecap:round"
+         id="rect1"
+         width="1.4543147"
+         height="7.1534247"
+         x="-2.341265"
+         y="-15.871853"
+         ry="0.57591134"
+         transform="matrix(0.74828862,0.6633733,-0.66080568,0.75055703,0,0)" />
+      <path
+         style="fill:none;stroke:#ffffff;stroke-width:0.793753;stroke-linecap:round;stroke-linejoin:round"
+         d="M 5.271736,-7.3299661 3.1012103,-5.965041 4.1834887,-8.2947197"
+         id="path17" />
     </g>
   </g>
   <g

@@ -24,27 +24,24 @@
        y="0.529167" />
   </g>
   <g
-     id="layer2"
-     transform="translate(-8.1739152e-8,15.875)">
+     id="layer6">
     <g
-       id="g2"
-       transform="matrix(1.6063791,0,0,1.5533266,-3.8505071,25.793407)"
-       style="stroke-width:0.63306">
+       id="g17"
+       transform="translate(0.00708965,15.945762)"
+       style="display:inline">
+      <rect
+         style="fill:none;stroke:#ffffff;stroke-width:0.793755;stroke-linecap:round"
+         id="rect1"
+         width="1.4543147"
+         height="7.1534247"
+         x="-2.341265"
+         y="-15.871853"
+         ry="0.57591134"
+         transform="matrix(0.74828862,0.6633733,-0.66080568,0.75055703,0,0)" />
       <path
-         style="fill:none;stroke:#ffffff;stroke-width:0.502491;stroke-linecap:round;stroke-dasharray:none"
-         d="M 4.6161077,9.8177844 H 8.0838921"
-         id="path3"
-         transform="translate(0,-29.104169)" />
-      <path
-         style="fill:none;stroke:#ffffff;stroke-width:0.502491;stroke-linecap:round;stroke-dasharray:none"
-         d="m 4.6161079,2.8822157 3.4677844,10e-8"
-         id="path2"
-         transform="translate(0,-29.104169)" />
-      <path
-         style="fill:none;stroke:#ffffff;stroke-width:0.502491;stroke-linecap:butt;stroke-dasharray:none"
-         d="m 6.3499999,9.8177844 2e-7,-6.9355687"
-         id="path1"
-         transform="translate(0,-29.104169)" />
+         style="fill:none;stroke:#ffffff;stroke-width:0.793753;stroke-linecap:round;stroke-linejoin:round"
+         d="M 5.271736,-7.3299661 3.1012103,-5.965041 4.1834887,-8.2947197"
+         id="path17" />
     </g>
   </g>
 </svg>

@@ -117,13 +117,6 @@ class MainWindow(
             route=["user"],
         )
 
-    # STACK_BUTTONS: Dict[str, str] = {
-    #     "astro": "astrology chart",
-    #     "editor": "text editor",
-    #     "data": "data graph",
-    #     "tables": "calculation results",
-    # }
-
     def init_stacks(self):
         """initialize stacks with content"""
         positions_ = positions.calculate_positions()
