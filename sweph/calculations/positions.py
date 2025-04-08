@@ -13,8 +13,8 @@ def calculate_positions():
     app = Gtk.Application.get_default()
     if not app or not hasattr(app, "e1_swe"):
         return {}
-    e1_swe = app.e1_swe
-    jd_ut = e1_swe.get("jd_ut")
+    e1swe = app.e1_swe
+    jd_ut = e1swe.get("jd_ut")
     if jd_ut is None:
         return {}
     # get selected objects

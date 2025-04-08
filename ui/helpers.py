@@ -86,28 +86,46 @@ def _on_time_now(manager):
         manager._app.EVENT_TWO.on_datetime_change(entry)
 
 
-def _validate_datetime(manager, date_time):
-    # check characters todo also add local time
-    valid_chars = set("0123456789 -:jgl")
+def _validate_datetime(manager, date_time, lon=None):
+    """check characters & parse numbers & letters then validate"""
+    # mean solar time, aka local mean time (lmt) - modern (utc)
+    # true solar time, aka local apparent time (lat) - pre-clock
+    # diff = equation of time : historical date lat => to lmt (equation of time)
+    valid_chars = set("0123456789 -:ja")
     invalid_chars = set(date_time) - valid_chars
     msg_negative_year = ""
     try:
         if invalid_chars:
             raise ValueError(
                 f"characters {sorted(invalid_chars)} not allowed"
-                "\n\twe accept : 0123456789 -:jgl"
-                "\n\tj / g = julian / gregorian calendar"
-                "\n\tl = local time (local apparent vs mean time)"  # todo
+                "\n\twe accept : 0123456789 -:ja"
+                "\n\tj = julian calendar (gregorian = default)"
+                "\n\ta = local apparent time (mean = default)"
             )
         is_year_negative = date_time.lstrip().startswith("-")
+        print(f"negative year : {is_year_negative}")
         parts = [p for p in re.split(r"[- :]+", date_time) if p]
-        # todo allow for date only
-        if len(parts) < 5 or len(parts) > 6:
+        # parts = [p for p in parts if p]
+        print(f"parts 2 : {parts}")
+        # split into numbers & flags : year-month-day are manadatory
+        nums = []
+        flags = []
+        for p in parts:
+            if isinstance(p, str) and p.isdigit():
+                nums.append(int(p))
+            elif isinstance(p, str) and p.isalpha():
+                flags.append(p.lower())
+        if len(nums) < 3:
             raise ValueError(
-                "wrong data count : 6 or 5 (if no seconds) time units expected"
-                "\n\tie 1999 11 12 13 14 : set time to 12 00 or 00 00 if unknown"
+                "wrong data count : year-month-day are mandatory"
+                "\n\tie 1999 11 12 or 1999 11 12 13 14 00"
+                "\nalso allowed j(ulian) | g(regorian) calendar & local mean | apparent time"
             )
-        y_, m_, d_, h_, mi_, s_ = map(int, parts)
+        y_ = -nums[0] if is_year_negative else nums[0]
+        m_, d_ = nums[1], nums[2]
+        h_ = nums[3] if len(nums) >= 4 else 0
+        mi_ = nums[4] if len(nums) >= 5 else 0
+        s_ = nums[5] if len(nums) >= 6 else 0
         if is_year_negative:
             msg_negative_year = f"found negative year : {y_}\n"
         else:
@@ -115,29 +133,42 @@ def _validate_datetime(manager, date_time):
         # swiseph year range
         if not -13200 <= y_ <= 17191:
             raise ValueError(f"year {y_} out of sweph range (-13200 - 17191)")
-        if len(parts) == 5:
-            # add seconds
-            parts.append("00")
-        # check if swetime is valid
+        # check for calendar flag : g(regorian) is default
         calendar = b"g"
+        if "j" in flags:
+            calendar = b"j"
+        # check for time flag : local mean time is default todo
+        local_time = "m"  # mean
+        if "a" in flags:
+            local_time = "a"  # apparent
+        # check if swetime is valid
         is_valid, jd, swe_corr = swetime_to_jd(
-            y_, m_, d_, hour=h_, min=mi_, sec=s_, calendar=calendar
+            manager,
+            y_,
+            m_,
+            d_,
+            hour=h_,
+            min=mi_,
+            sec=s_,
+            calendar=calendar,
+            local_time=local_time,
+            lon=lon,
         )
         if not is_valid:
             raise ValueError(
                 "_validatedatetime : swetimetojd is not valid\n"
                 f"using swe_corr anyway : {swe_corr}"
             )
-        corr_y, corr_m, corr_d, corr_h_ = swe_corr
+        corr_y, corr_m, corr_d, corr_h = swe_corr
         print(
-            f"_validatedatetime : swetimetojd is valid\ncorrected values : {corr_y} | {corr_m} | {corr_d} | {corr_h_}"
+            f"_validatedatetime : swetimetojd is valid\ncorrected values : {corr_y} | {corr_m} | {corr_d} | {corr_h}"
         )
-        corr_h = int(corr_h_)
-        corr_min = int((corr_h_ - corr_h) * 60)
-        corr_sec = int(round((((corr_h_ - corr_h) * 60) - corr_min) * 60))
+        h_corr = int(corr_h)
+        mi_corr = int((corr_h - h_corr) * 60)
+        s_corr = int(round((((corr_h - h_corr) * 60) - mi_corr) * 60))
         manager._notify.debug(
-            f"\n\tdate-time as corrected : {corr_y}-{corr_m}-{corr_d}"
-            f"{corr_h}:{corr_min}:{corr_sec}",
+            f"\n\tdate-time as corrected : {corr_y}-{corr_m}-{corr_d} "
+            f"{h_corr}:{mi_corr}:{s_corr}",
             source="helpers",
             route=["terminal", "user"],
         )
@@ -148,4 +179,4 @@ def _validate_datetime(manager, date_time):
             route=["terminal", "user"],
         )
         return False
-    return jd, corr_y, corr_m, corr_d, corr_h, corr_min, corr_sec
+    return jd, corr_y, corr_m, corr_d, h_corr, mi_corr, s_corr

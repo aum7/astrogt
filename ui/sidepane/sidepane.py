@@ -185,6 +185,7 @@ arrow key left / right : move time backward / forward
         if not current_text:
             dt_now = datetime.now().replace(microsecond=0)
             _, jd, _ = swetime_to_jd(
+                self,
                 dt_now.year,  # positional arguments
                 dt_now.month,
                 dt_now.day,
@@ -234,16 +235,16 @@ arrow key left / right : move time backward / forward
 
     # button handlers
     def obc_default(self, widget, data):
-        self._notify.debug(f"{data} clicked", source="sidepane",route=["terminal"])
+        self._notify.debug(f"{data} clicked", source="sidepane", route=["terminal"])
 
     def obc_settings(self, widget, data):
-        self._notify.debug(f"{data} clicked", source="sidepane",route=["terminal"])
+        self._notify.debug(f"{data} clicked", source="sidepane", route=["terminal"])
 
     def obc_file_save(self, widget, data):
-        self._notify.debug(f"{data} clicked", source="sidepane",route=["terminal"])
+        self._notify.debug(f"{data} clicked", source="sidepane", route=["terminal"])
 
     def obc_file_load(self, widget, data):
-        self._notify.debug(f"{data} clicked", source="sidepane",route=["terminal"])
+        self._notify.debug(f"{data} clicked", source="sidepane", route=["terminal"])
 
     # change time handlers
     def obc_arrow_l(

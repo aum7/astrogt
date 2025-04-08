@@ -10,6 +10,12 @@ from gi.repository import Gtk  # type: ignore
 class PaneManager(Gtk.Stack):
     """mixin class for main panes & stack management"""
 
+    # gtk docs say gtk.stackswitcher can be reused for single stack
+    # while we are making multiple stacks todo
+    # it acts as a controller for the associated gtkstack.
+    # all the content for the buttons comes from the properties of the stacks gtkstackpage objects; the button visibility in a gtkstackswitcher widget is controlled by the visibility of the child in the gtkstack.
+    # it is possible to associate multiple gtkstackswitcher widgets with the same gtkstack widget.
+
     # type hints for inherited attributes
     stack: Gtk.Stack
     STACK_BUTTONS: Dict[str, str] = {

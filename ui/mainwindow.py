@@ -91,6 +91,7 @@ class MainWindow(
             "manual\n"
             "\nhover mouse over buttons & text = show tooltips"
             "\nhover mouse over notification message = do not hide message"
+            "\nright-click = context menu : change pane content & access settings etc"
             "\nesc : discard message\n\nhotkeys (hk)"
             "\nh : show help (this message)"
             "\ns : toggle side pane"
