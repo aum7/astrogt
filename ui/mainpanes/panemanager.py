@@ -1,10 +1,10 @@
 # panemanager.py
 # ruff: noqa: E402
-from typing import Dict  # Callable
 import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
+from typing import Dict  # Callable
 
 
 class PaneManager(Gtk.Stack):
@@ -82,6 +82,7 @@ class PaneManager(Gtk.Stack):
         """get stack by position"""
         return self.pane_stacks.get(position)
 
+    # todo not used
     def add_page(self, widget, name, title=None):
         """add new page to pane"""
         self.add_titled(widget, name, title)

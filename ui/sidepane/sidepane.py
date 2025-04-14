@@ -1,6 +1,5 @@
 # ruff: noqa: E402
 import gi
-from ui.helpers import _buttons_from_dict
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
@@ -8,6 +7,7 @@ from typing import Dict, Optional
 from datetime import datetime
 from ui.collapsepanel import CollapsePanel
 from ui.helpers import _on_time_now
+from ui.helpers import _buttons_from_dict
 from sweph.swetime import swetime_to_jd, jd_to_iso
 from .panelevents import setup_event
 from .paneltools import setup_tools
@@ -105,7 +105,6 @@ arrow key left / right : move time backward / forward
         )
         # horizontal box for time navigation icons
         box_time_icons = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
-
         # create change time buttons
         for button in _buttons_from_dict(
             self, buttons_dict=self.CHANGE_TIME_BUTTONS, icons_path="changetime/"
@@ -210,7 +209,7 @@ arrow key left / right : move time backward / forward
                 *map(int, current_text.replace("-", " ").replace(":", " ").split()),
                 calendar=b"g",
             )
-            # print(f"jd : {jd} & type : {type(jd)}")
+            print(f"changedelta : {change_delta}")
             jd_new = jd + change_delta
             new_text = jd_to_iso(jd_new)
             entry.set_text(new_text)

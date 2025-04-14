@@ -127,6 +127,7 @@ class MainWindow(
             route=["terminal"],
         )
         # some example content for each stack
+        # todo only need 1 stack & share it with 4 switchers
         panes = ["top-left", "top-right", "bottom-left", "bottom-right"]
         for pane in panes:
             # create stack for each position

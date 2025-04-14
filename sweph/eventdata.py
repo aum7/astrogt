@@ -30,7 +30,9 @@ class EventData:
         self.location = location
         self.name = name
         self.date_time = date_time
+        # attributes for date-time conversion
         self.timezone = None
+        # longitude for local apparent | mean time
         self.lon = None
         # flag for no validation needed
         self.is_hotkey_now = False
@@ -197,18 +199,18 @@ class EventData:
             # validate ranges & notify user on error
             try:
                 if not (0 <= lat_deg <= 89):
-                    raise ValueError("latitude degrees must be between 0 & 90")
+                    raise ValueError("latitude degrees must be in 0..89 range")
                 if not (0 <= lat_min <= 59) or not (0 <= lat_sec <= 59):
                     raise ValueError(
-                        "latitude minutes & seconds must be between 0 & 59"
+                        "latitude minutes & seconds must be in 0..59 range"
                     )
                 if lat_dir not in ["n", "s"]:
                     raise ValueError("latitude direction must be n(orth) or s(outh)")
                 if not (0 <= lon_deg <= 179):
-                    raise ValueError("longitude degrees must be between 0 and 179")
+                    raise ValueError("longitude degrees must be in 0..179 range")
                 if not (0 <= lon_min <= 59) or not (0 <= lon_sec <= 59):
                     raise ValueError(
-                        "longitude minutes & seconds must be between 0 & 59"
+                        "longitude minutes & seconds must be in 0..59 range"
                     )
                 if lon_dir not in ["e", "w"]:
                     raise ValueError("longitude direction must be e(ast) or w(est)")
@@ -435,7 +437,16 @@ class EventData:
                         dt_event_str = dt_str
                     else:
                         # parse to datetime
-                        dt_naive = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
+                        try:
+                            dt_naive = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
+                        except ValueError:
+                            if ":60" in dt_str:
+                                dt_str.replace(":60", ":59")
+                                dt_naive = datetime.strptime(
+                                    dt_str, "%Y-%m-%d %H:%M:%S"
+                                )
+                            else:
+                                raise ValueError(f"{datetime_name} validation failed")
                         # convert to event location timezone
                         if self.timezone:
                             dt_event = dt_naive.replace(tzinfo=ZoneInfo(self.timezone))

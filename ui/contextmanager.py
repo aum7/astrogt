@@ -1,11 +1,11 @@
 # contextmanager.py
 # ruff: noqa: E402
-from typing import Any, Dict, Callable, cast
 import gi
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Gdk", "4.0")
 from gi.repository import Gtk, Gdk  # type: ignore
+from typing import Any, Dict, Callable, cast
 from ui.collapsepanel import CollapsePanel
 from ui.mainpanes.panemanager import PaneManager
 from ui.helpers import _buttons_from_dict

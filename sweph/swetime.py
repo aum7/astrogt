@@ -17,7 +17,7 @@ def swetime_to_jd(
     # 1st lat => lmt if local apparent time
     # in > tjd_lat, geolon ; out > tjd_lmt, err (string);
     decimal_hour = hour + min / 60 + sec / 3600
-    # convert bytes to int
+    # convert calender bytes to int
     cal_int = bytes_to_cal_int(calendar)
     jd = swe.julday(year, month, day, decimal_hour, cal_int)
     if local_time == "a":
