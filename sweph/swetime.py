@@ -47,7 +47,6 @@ def jd_to_iso(jd, calendar=b"g"):
     cal_int = bytes_to_cal_int(calendar)
     # ensure jd is a float
     y, m, d, h = swe.revjul(jd, cal_int)
-    # y, m, d, h = swe.revjul(jd, calendar)
     hour = int(h)
     min = int((h - hour) * 60)
     sec = int(round((((h - hour) * 60) - min) * 60))

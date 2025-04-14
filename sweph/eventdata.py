@@ -522,7 +522,7 @@ class EventData:
                 )
                 _, Y, M, D, h, m, s = result
                 # bypass early & negative years
-                if Y < 0:
+                if Y < 1000:
                     # use sweph
                     # _, jd, _ = swetime_to_jd(Y, M, D, h, m, s)
                     dt_utc = None
@@ -562,6 +562,7 @@ class EventData:
         # update datetime entry
         if dt_event:
             # todo dont use for years below 0
+            # dt_event_str = f"{sign}{absY:04d}-{M:02d}-{D:02d} {h:02d}:{m:02d}:{s:02d}"
             dt_event_str = dt_event.strftime("%Y-%m-%d %H:%M:%S")
         entry.set_text(dt_event_str)
         # save datetime by event

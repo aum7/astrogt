@@ -197,19 +197,22 @@ arrow key left / right : move time backward / forward
             entry.set_text(dt_str)
             current_text = dt_str
             self._notify.info(
-                f"{datetime_name} set to now (computer) : {dt_str}",
+                f"{datetime_name} set to now (computer)\n\t{dt_str}",
                 source="sidepane",
                 route=["terminal"],
             )
         try:
             # get current text
             current_text = entry.get_text()
+            # print(f"currenttext : {current_text}")
             # convert to julian day
             _, jd, _ = swetime_to_jd(
+                self,
                 *map(int, current_text.replace("-", " ").replace(":", " ").split()),
-                calendar=b"g",
+                # calendar=b"g",
             )
-            print(f"changedelta : {change_delta}")
+            # print(f"jd : {jd}")
+            # print(f"changedelta : {change_delta}")
             jd_new = jd + change_delta
             new_text = jd_to_iso(jd_new)
             entry.set_text(new_text)
