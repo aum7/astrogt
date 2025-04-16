@@ -1,14 +1,15 @@
 # ruff: noqa: E402
+import re
 import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from typing import Dict, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from ui.collapsepanel import CollapsePanel
 from ui.helpers import _on_time_now
 from ui.helpers import _buttons_from_dict
-from sweph.swetime import swetime_to_jd, jd_to_iso
+from sweph.swetime import custom_iso_to_jd, jd_to_custom_iso
 from .panelevents import setup_event
 from .paneltools import setup_tools
 from .panelsettings import setup_settings
@@ -34,7 +35,7 @@ class SidepaneManager:
     CHANGE_TIME_SELECTED = 0.0
     # time periods in julian day(s) as keys, used for change time
     CHANGE_TIME_PERIODS = {
-        "3648.0": "10 years",  # 365 * 10 - 2 leap years (approximation)
+        "3652.5": "10 years",  # 365 * 10 + 2 leap years (approximation)
         "365.25": "1 year",  # accounts for leap year
         "90.0": "3 months (90 d)",
         "30.0": "1 month (30 d)",
@@ -166,9 +167,6 @@ arrow key left / right : move time backward / forward
             # )
             key = next(k for k, v in self.CHANGE_TIME_PERIODS.items() if v == new_value)
             self.CHANGE_TIME_SELECTED = float(key)
-            # print(
-            #     f"changetimeperiod : key {key} (should be float) & value : {new_value}"
-            # ) # ok
 
     def change_event_time(self, change_delta):
         """adjust event time by julian day delta"""
@@ -182,8 +180,8 @@ arrow key left / right : move time backward / forward
         current_text = entry.get_text()
         jd = None
         if not current_text:
-            dt_now = datetime.now().replace(microsecond=0)
-            _, jd, _ = swetime_to_jd(
+            dt_now = datetime.now(timezone.utc).replace(microsecond=0)
+            _, jd, _ = custom_iso_to_jd(
                 self,
                 dt_now.year,  # positional arguments
                 dt_now.month,
@@ -192,29 +190,27 @@ arrow key left / right : move time backward / forward
                 min=dt_now.minute,
                 sec=dt_now.second,
             )
-            dt_str = jd_to_iso(jd)
-            # print(f"jd : {jd} & type : {type(jd)} | dt_str : {dt_str}")
+            dt_str = jd_to_custom_iso(jd)
             entry.set_text(dt_str)
-            current_text = dt_str
             self._notify.info(
-                f"{datetime_name} set to now (computer)\n\t{dt_str}",
+                f"{datetime_name} set to now utc\n\t{dt_str}",
                 source="sidepane",
                 route=["terminal"],
             )
         try:
-            # get current text
             current_text = entry.get_text()
-            # print(f"currenttext : {current_text}")
-            # convert to julian day
-            _, jd, _ = swetime_to_jd(
+            # convert to julian day, keep negative year
+            _, jd, _ = custom_iso_to_jd(
                 self,
-                *map(int, current_text.replace("-", " ").replace(":", " ").split()),
-                # calendar=b"g",
+                *map(
+                    int,
+                    re.sub(r"(?<!^)-", " ", current_text).replace(":", " ").split(),
+                ),
+                calendar=b"g",
             )
-            # print(f"jd : {jd}")
-            # print(f"changedelta : {change_delta}")
+            # change time by delta
             jd_new = jd + change_delta
-            new_text = jd_to_iso(jd_new)
+            new_text = jd_to_custom_iso(jd_new)
             entry.set_text(new_text)
             self._notify.debug(
                 f"\n\tchange time new : {new_text}",

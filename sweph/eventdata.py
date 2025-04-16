@@ -7,8 +7,8 @@ from gi.repository import Gtk  # type: ignore
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 from timezonefinder import TimezoneFinder
-from ui.helpers import _decimal_to_dms, _validate_datetime
-from sweph.swetime import swetime_to_jd
+from ui.helpers import _decimal_to_dms
+from sweph.swetime import custom_iso_to_jd, validate_datetime
 
 
 class EventData:
@@ -385,7 +385,7 @@ class EventData:
         dt_event = None
         # datetime set by hotkey time now utc : validation not needed
         if self.is_hotkey_now:
-            """get computer time"""
+            """get utc from computer time"""
             try:
                 dt_utc = datetime.now(timezone.utc).replace(microsecond=0)
                 if self.timezone:
@@ -416,11 +416,10 @@ class EventData:
                 self.is_hotkey_now = False
                 return
             self.is_hotkey_now = False
-        # datetime changed by hotkey arrow left / right : validation not needed
+        # datetime changed by hotkey arrow left / right
         elif self.is_hotkey_arrow:
             """datetime changed with hotkey arrow left / right"""
             try:
-                # datetime string should already be valid iso format
                 dt_str = entry.get_text()
                 # parse year as int for comparison
                 try:
@@ -432,21 +431,20 @@ class EventData:
                         parts = dt_str.replace("-", " ").replace(":", " ").split()
                         Y = int(parts[0])
                         M, D, h, m, s = map(int, parts[1:6])
-                        # _, jd, _ = swetime_to_jd(Y, M, D, h, m, s)
                         dt_utc = None
                         dt_event_str = dt_str
                     else:
                         # parse to datetime
-                        try:
-                            dt_naive = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
-                        except ValueError:
-                            if ":60" in dt_str:
-                                dt_str.replace(":60", ":59")
-                                dt_naive = datetime.strptime(
-                                    dt_str, "%Y-%m-%d %H:%M:%S"
-                                )
-                            else:
-                                raise ValueError(f"{datetime_name} validation failed")
+                        # try:
+                        dt_naive = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
+                        # except ValueError:
+                        #     if ":60" in dt_str:
+                        #         dt_str.replace(":60", ":59")
+                        #         dt_naive = datetime.strptime(
+                        #             dt_str, "%Y-%m-%d %H:%M:%S"
+                        #         )
+                        #     else:
+                        #         raise ValueError(f"{datetime_name} validation failed")
                         # convert to event location timezone
                         if self.timezone:
                             dt_event = dt_naive.replace(tzinfo=ZoneInfo(self.timezone))
@@ -510,9 +508,9 @@ class EventData:
                 # print(f"manual entry : {dt_str}")
                 # grab self.lon if a in datetime (local apparent time)
                 if dt_str and "a" in dt_str:
-                    result = _validate_datetime(self, dt_str, lon=self.lon)
+                    result = validate_datetime(self, dt_str, lon=self.lon)
                 else:
-                    result = _validate_datetime(self, dt_str)
+                    result = validate_datetime(self, dt_str)
                 if not result:
                     raise ValueError(f"\t{datetime_name} validation failed")
                 self._notify.info(
@@ -582,7 +580,7 @@ class EventData:
         # calculate julian day
         jd_ut = None
         if dt_utc:
-            _, jd_ut, _ = swetime_to_jd(
+            _, jd_ut, _ = custom_iso_to_jd(
                 self,
                 dt_utc.year,
                 dt_utc.month,
