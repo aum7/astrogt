@@ -77,7 +77,7 @@ def validate_datetime(manager, date_time, lon=None):
         if "a" in flags:
             local_time = "a"  # apparent
         # check if date-time is valid
-        decimal_hour = float(h) + (m / 60) + (s / 3600)
+        decimal_hour = h + m / 60 + s / 3600
         # calendar_int = swe.GREG_CAL if calendar == b"g" else swe.JUL_CAL
         calendar_int = bytes_to_calendar_int(calendar)
         jd = swe.julday(Y, M, D, decimal_hour, calendar_int)
@@ -93,7 +93,8 @@ def validate_datetime(manager, date_time, lon=None):
                 "_validatedatetime : swetimetojd is not valid\n"
                 f"using dt_corr anyway : {dt_corr}"
             )
-        # corrected date-time values
+        # corrected date-time values : same as input to date_conversion
+        # except if date was invalid
         Y_, M_, D_, h_decimal = dt_corr
         h_ = int(h_decimal)
         m_ = int((h_decimal - h_) * 60)
@@ -110,7 +111,7 @@ def validate_datetime(manager, date_time, lon=None):
             route=["terminal"],
         )
         return False
-    return calendar, jd, Y_, M_, D_, h_, m_, s_
+    return Y_, M_, D_, h_, m_, s_, calendar, jd
 
 
 def custom_iso_to_jd(

@@ -1,8 +1,8 @@
 ﻿# countries from geonames.org: 2024-06-01
 # !!! UN/COMMENT ANY COUNTRY THAT YOU NEED !!!
 # un/comment = delete '# ', and save file
-# can be re-arranged; NOT recommended, they are sorted alphabetically, by
-# country name (middle field) > move line up / down, and save file
+# can be re-arranged [NOT recommended, they are sorted alphabetically, by
+# country name (middle field)] : move line up / down, and save file
 # re-arranging is only relevant for un-commented lines
 
 # ("AF", "Afghanistan", "AFG"),
@@ -18,7 +18,7 @@
 # ("AR", "Argentina", "ARG"),
 # ("AM", "Armenia", "ARM"),
 # ("AW", "Aruba", "ABW"),
-("AU", "Australia", "AUS"),
+# ("AU", "Australia", "AUS"),
 ("AT", "Austria", "AUT"),
 # ("AZ", "Azerbaijan", "AZE"),
 # ("BS", "Bahamas", "BHS"),
@@ -49,8 +49,8 @@
 # ("KY", "Cayman Islands", "CYM"),
 # ("CF", "Central African Republic", "CAF"),
 # ("TD", "Chad", "TCD"),
-# ("CL", "Chile", "CHL"),
-("CN", "China", "CHN"),
+("CL", "Chile", "CHL"),
+# ("CN", "China", "CHN"),
 # ("CX", "Christmas Island", "CXR"),
 # ("CC", "Cocos (Keeling) Islands", "CCK"),
 # ("CO", "Colombia", "COL"),
@@ -60,7 +60,7 @@
 # ("CK", "Cook Islands", "COK"),
 # ("CR", "Costa Rica", "CRI"),
 # ("CI", "Cote d'Ivoire", "CIV"),
-("HR", "Croatia", "HRV"),
+# ("HR", "Croatia", "HRV"),
 # ("CU", "Cuba", "CUB"),
 # ("CW", "Curacao", "CUW"),
 # ("CY", "Cyprus", "CYP"),
@@ -179,7 +179,7 @@
 # ("PA", "Panama", "PAN"),
 # ("PG", "Papua New Guinea", "PNG"),
 # ("PY", "Paraguay", "PRY"),
-# ("PE", "Peru", "PER"),
+("PE", "Peru", "PER"),
 # ("PH", "Philippines", "PHL"),
 # ("PN", "Pitcairn", "PCN"),
 # ("PL", "Poland", "POL"),
@@ -239,13 +239,13 @@
 # ("UG", "Uganda", "UGA"),
 # ("UA", "Ukraine", "UKR"),
 # ("AE", "United Arab Emirates", "ARE"),
-("GB", "United Kingdom (GB & N Ire.)", "GBR"),
+# ("GB", "United Kingdom (GB & N Ire.)", "GBR"),
 # ("UM", "United States Minor Outlying Islands", "UMI"),
 ("US", "United States of America", "USA"),
 # ("UY", "Uruguay", "URY"),
 # ("UZ", "Uzbekistan", "UZB"),
 # ("VU", "Vanuatu", "VUT"),
-# ("VE", "Venezuela", "VEN"),
+("VE", "Venezuela", "VEN"),
 # ("VN", "Viet Nam", "VNM"),
 # ("VG", "Virgin Islands (British)", "VGB"),
 # ("VI", "Virgin Islands (U.S.)", "VIR"),

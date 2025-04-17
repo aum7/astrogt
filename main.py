@@ -1,8 +1,9 @@
 # ruff: noqa: E402
 # launch inspector (Ctrl+Shift+I or Ctrl+Shift+D) when app is running
 # os.environ["GTK_DEBUG"] = "keybindings geometry size-request actions constraints"
-# import os
 import gi
+import os
+import swisseph as swe
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
@@ -24,6 +25,9 @@ class AstrogtApp(Gtk.Application):
         # managers
         self.signal_manager = SignalManager(self)
         self.notify_manager = NotifyManager(self)
+        # initialize sweph
+        ephemeris_path = os.path.join(os.path.dirname(__file__), "sweph/ephe")
+        swe.set_ephe_path(ephemeris_path)
 
     def do_activate(self):
         win = MainWindow(application=self)
@@ -45,6 +49,12 @@ class AstrogtApp(Gtk.Application):
             timeout=5,
         )
         win.present()
+
+    def do_shutdown(self):
+        """close sweph at application exit"""
+        swe.close()
+        # call parent shutdown
+        super().do_shutdown()
 
 
 if __name__ == "__main__":
