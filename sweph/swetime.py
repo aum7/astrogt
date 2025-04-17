@@ -27,9 +27,9 @@ def validate_datetime(manager, date_time, lon=None):
                 "\n\ta = local apparent time (mean = default)"
             )
         is_year_negative = date_time.lstrip().startswith("-")
-        print(f"negative year : {is_year_negative}")
+        # print(f"negative year : {is_year_negative}")
         parts = [p for p in re.split(r"[- :]+", date_time) if p]
-        print(f"parts : {parts}")
+        # print(f"parts : {parts}")
         # split into numbers & flags (j,a) : year-month-day are manadatory
         nums = []
         flags = []

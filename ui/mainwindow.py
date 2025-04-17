@@ -11,7 +11,7 @@ from .uisetup import UISetup
 from .hotkeymanager import HotkeyManager
 from ui.helpers import _event_selection
 from ui.mainpanes.panemanager import PaneManager
-from sweph.calculations import positions
+from sweph.calculations.positions import SwePositionsManager
 
 
 class MainWindow(
@@ -120,7 +120,7 @@ class MainWindow(
 
     def init_stacks(self):
         """initialize stacks with content"""
-        positions_ = positions.calculate_positions()
+        positions_ = SwePositionsManager.calculate_positions(self)
         self._notify.debug(
             f"positions : {positions_}",
             source="positions",
@@ -132,7 +132,15 @@ class MainWindow(
         for pane in panes:
             # create stack for each position
             stack = self.get_stack(pane)
+            if not stack:
+                continue
+            old_stack = stack.get_child_by_name("tables")
+            if old_stack:
+                stack.remove(old_stack)
+                page = SwePositionsManager.positions_page(self)
+                stack.add_titled(page, "positions", "positions")
             if stack:
+                # test labels todo pages here please thank you
                 label1 = Gtk.Label(label="astrology chart")
                 label1.add_css_class("label-tl")
                 label2 = Gtk.Label(label="text editor")

@@ -1,4 +1,4 @@
-﻿# countries from geonames.org: 2024-06-01
+﻿# countries from geonames.org: 2024-06-01 : 249 countries
 # !!! UN/COMMENT ANY COUNTRY THAT YOU NEED !!!
 # un/comment = delete '# ', and save file
 # can be re-arranged [NOT recommended, they are sorted alphabetically, by

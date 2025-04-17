@@ -8,39 +8,59 @@ from gi.repository import Gtk  # type: ignore
 from ui.sidepane import panelsettings
 
 
-def calculate_positions():
-    """calculate planetary positions & present in a table as stack widget"""
-    app = Gtk.Application.get_default()
-    if not app or not hasattr(app, "e1_swe"):
-        return {}
-    e1swe = app.e1_swe
-    jd_ut = e1swe.get("jd_ut")
-    if jd_ut is None:
-        return {}
-    # get selected objects
-    selected_objs = getattr(panelsettings, "selected_objects", set())
-    return swe.calc_ut(jd_ut, list(selected_objs))
+class SwePositionsManager:
+    def __init__(self, event_data, ui):
+        self.event_data = event_data
+        self.ui = ui
+        self.event_data.connect("event-data-changed", self.on_event_data_changed)
 
+    def calculate_positions(self):
+        """calculate planetary positions & present in a table as stack widget"""
+        app = Gtk.Application.get_default()
+        if not app or not hasattr(app, "e1_swe"):
+            return {}
+        e1swe = app.e1_swe
+        jd_ut = e1swe.get("jd_ut")
+        jd_ut_ = e1swe["jd_ut"]
+        if jd_ut_:
+            print(f"swepositions : got jdut : {jd_ut_}")
+        if jd_ut is None:
+            return {}
+        # get selected objects
+        selected_objs = getattr(panelsettings, "selected_objects", set())
+        return swe.calc_ut(jd_ut, list(selected_objs))
 
-def table_positions(positions):
-    """create a table of planetary positions"""
-    table = Gtk.Grid()
-    table.set_column_homogenous(True)
-    row = 0
-    for body, value in positions.items():
-        lbl_body = Gtk.Label(label=str(body))
-        lbl_val = Gtk.Label(label=str(value))
-        table.attach(lbl_body, 0, row, 1, 1)
-        table.attach_next_to(lbl_val, lbl_body, Gtk.PositionType.Right, 1, 1)
-        row += 1
-    return table
+    def on_event_data_changed(self, emitter, data):
+        print(f"swepositions : event data changed : {data}")
+        pos = self.calculate_positions()
+        # rebuild positions table
+        page = (
+            self.table_positions(pos)
+            if pos
+            else Gtk.Label(
+                label="no data",
+            )
+        )
+        self.ui.stack.set_page(page)
 
+    def table_positions(self, positions):
+        """create a table of planetary positions"""
+        table = Gtk.Grid()
+        table.set_column_homogenous(True)
+        row = 0
+        for body, value in positions.items():
+            lbl_body = Gtk.Label(label=str(body))
+            lbl_val = Gtk.Label(label=str(value))
+            table.attach(lbl_body, 0, row, 1, 1)
+            table.attach_next_to(lbl_val, lbl_body, Gtk.PositionType.Right, 1, 1)
+            row += 1
+        return table
 
-def positions_page():
-    pos = calculate_positions()
-    if not pos:
-        return Gtk.Label(label="no e1 swe data")
-    return table_positions(pos)
+    def positions_page(self):
+        pos = self.calculate_positions()
+        if not pos:
+            return Gtk.Label(label="no e1 swe data")
+        return self.table_positions(pos)
 
 
 # class SwePositions:

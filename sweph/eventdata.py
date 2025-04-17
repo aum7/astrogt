@@ -3,7 +3,7 @@
 import gi
 
 gi.require_version("Gtk", "4.0")
-from gi.repository import Gtk  # type: ignore
+from gi.repository import GObject, Gtk  # type: ignore
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 from timezonefinder import TimezoneFinder
@@ -11,7 +11,12 @@ from ui.helpers import _decimal_to_dms
 from sweph.swetime import validate_datetime, naive_to_utc, utc_to_jd
 
 
-class EventData:
+class EventData(GObject.Object):
+    __gsignals__ = {
+        "event-data-changed": (GObject.SignalFlags.RUN_FIRST, None, (dict,)),
+        "event-data-erased": (GObject.SignalFlags.RUN_FIRST, None, (dict,)),
+    }
+
     def __init__(
         self,
         name,
@@ -90,6 +95,19 @@ class EventData:
                     source="eventdata",
                     route=["terminal"],
                 )
+                # emit signal before returning
+                # shall be used for clearing astro chart todo
+                self.emit(
+                    "event-data-erased",
+                    {
+                        "chart": self._app.e1_chart
+                        if entry.get_name() == "location one"
+                        else self._app.e2_chart,
+                        "swe": self._app.e1_swe
+                        if entry.get_name() == "location one"
+                        else self._app.e2_swe,
+                    },
+                )
                 return
         if location == self.old_location:
             self._notify.debug(
@@ -115,6 +133,7 @@ class EventData:
             has_direction = any(d in "nsew" for d in location.lower())
 
             if has_direction:
+                # then : d-m-s | decimal with direction
                 lat_dir_idx = -1
                 lon_dir_idx = -1
                 for i, part in enumerate(parts):
@@ -249,7 +268,7 @@ class EventData:
                 self.timezone = timezone_
             else:
                 self._notify.debug(
-                    f"{location_name} timezone missing",
+                    f"{location_name} timezone not received",
                     source="eventdata",
                     route=["terminal"],
                 )
@@ -373,6 +392,7 @@ class EventData:
             source="eventdata",
             route=["terminal"],
         )
+        return
 
     def on_datetime_change(self, entry):
         """process date & time"""
@@ -511,13 +531,13 @@ class EventData:
                     dt_utc = naive_to_utc(Y, M, D, h, m, s, self.tz_offset)
                     _, jd_ut = utc_to_jd(*dt_utc, calendar)
                     # print(f"utcfromnaive : {dt_utc} | type : {type(dt_utc)}")
-                    print(f"manualdt tz : jdut : {jd_ut} | tzoffset : {self.tz_offset}")
+                    # print(f"manualdt tz : jdut : {jd_ut} | tzoffset : {self.tz_offset}")
                 else:
                     # take date-time string as utc
                     dt_utc = naive_to_utc(Y, M, D, h, m, s, 0.0)
                     _, jd_ut = utc_to_jd(*dt_utc, calendar)
                     # print(f"utcfromnaive : {dt_utc} | type : {type(dt_utc)}")
-                    print(f"manualdt utc : jdut : {jd_ut} | tzoffset : 0.0")
+                    # print(f"manualdt utc : jdut : {jd_ut} | tzoffset : 0.0")
                     dt_event_str = f"{dt_utc[0]}-{dt_utc[1]:02d}-{dt_utc[2]:02d} {dt_utc[3]:02d}:{dt_utc[4]:02d}:{dt_utc[5]:02d}"
                     self._notify.info(
                         f"\n\t{datetime_name} no timezone : using utc"
@@ -553,18 +573,6 @@ class EventData:
         )
         # all good : set new old date-time
         self.old_date_time = dt_event_str
-        # calculate julian day
-        # if dt_utc:
-        #     _, jd_ut, _ = custom_iso_to_jd(
-        #         self,
-        #         dt_utc.year,
-        #         dt_utc.month,
-        #         dt_utc.day,
-        #         hour=dt_utc.hour,
-        #         min=dt_utc.minute,
-        #         sec=dt_utc.second,
-        #     )
-        # print(f"eventdata : on_datetime_change : jd_ut : {jd_ut}")
         if not jd_ut:
             self._notify.error(
                 f"{datetime_name} failed to calculate julian day",
@@ -581,9 +589,9 @@ class EventData:
             source="eventdata",
             route=["terminal"],
         )
-        # if datetime two is not empty, user is interested in event two
-        # in this case datetime two is manadatory, the rest is optional, aka
-        # if exists > use it, else use event one data
+        # if datetime two is NOT empty, user is interested in event 2
+        # in this case datetime two is mandatory, the rest is optional, aka
+        # if exists > use it, else use event 1 data
         if self._app.e2_chart.get("datetime") is None:
             # return
             self._notify.debug(
@@ -620,5 +628,18 @@ class EventData:
             f"\n\t  swe 2\t{json.dumps(self._app.e2_swe, sort_keys=True, indent=6, ensure_ascii=False)}"
             "\n--------------------------",
             source="eventdata",
-            route=["terminal"],
+            route=["none"],
         )
+        self.emit(
+            "event-data-changed",
+            {
+                "chart": self._app.e1_chart
+                if datetime_name == "datetime one"
+                else self._app.e2_chart,
+                "swe": self._app.e1_swe
+                if datetime_name == "datetime one"
+                else self._app.e2_swe,
+            },
+        )
+        print("eventdata : event-data-changed signal emitted")
+        return
