@@ -7,7 +7,11 @@ import swisseph as swe
 
 
 def validate_datetime(manager, date_time, lon=None):
-    """check characters & parse numbers & letters then validate"""
+    """validate date-time string : check characters
+    parse numbers & letters
+    check calendar & local time
+    validate
+    return jd, corrected Y, M, D, h, m, s"""
     # mean solar time, aka local mean time (lmt) - modern (utc)
     # true solar time, aka local apparent time (lat) - pre-clock
     # diff = equation of time : historical date lat => to lmt (equation of time)
@@ -49,9 +53,21 @@ def validate_datetime(manager, date_time, lon=None):
             msg_negative_year = f"found negative year : {Y}\n"
         else:
             msg_negative_year = ""
-        # swiseph year range
-        if not -13200 <= Y <= 17191:
-            raise ValueError(f"year {Y} out of sweph range (-13200 - 17191)")
+        # swiseph time range
+        if Y < -13200:
+            manager._notify.info(
+                f"year {Y} out of sweph range (-13200 - 17191)\n\tyear set to -13000",
+                source="swetime",
+                route=["terminal", "user"],
+            )
+            Y = -13000
+        elif Y > 17191:
+            manager._notify.info(
+                f"year {Y} out of sweph range (-13200 - 17191)\n\tyear set to 17000",
+                source="swetime",
+                route=["terminal", "user"],
+            )
+            Y = 17000
         # check for calendar flag : g(regorian) is default
         calendar = b"g"
         if "j" in flags:
@@ -60,45 +76,41 @@ def validate_datetime(manager, date_time, lon=None):
         local_time = "m"  # mean
         if "a" in flags:
             local_time = "a"  # apparent
-        # check if swetime is valid
-        is_valid, jd, swe_corr = custom_iso_to_jd(
-            manager,
-            Y,
-            M,
-            D,
-            hour=h,
-            min=m,
-            sec=s,
-            calendar=calendar,
-            local_time=local_time,
-            lon=lon,
-        )
+        # check if date-time is valid
+        decimal_hour = float(h) + (m / 60) + (s / 3600)
+        # calendar_int = swe.GREG_CAL if calendar == b"g" else swe.JUL_CAL
+        calendar_int = bytes_to_calendar_int(calendar)
+        jd = swe.julday(Y, M, D, decimal_hour, calendar_int)
+        if local_time == "a":
+            if not lon:
+                manager._notify.error("local apparent time : longitude missing")
+                return False, None, (Y, M, D, decimal_hour)
+            jd = swe.lat_to_lmt(jd, lon)
+        # validate date-time
+        is_valid, jd, dt_corr = swe.date_conversion(Y, M, D, decimal_hour, calendar)
         if not is_valid:
             raise ValueError(
                 "_validatedatetime : swetimetojd is not valid\n"
-                f"using swe_corr anyway : {swe_corr}"
+                f"using dt_corr anyway : {dt_corr}"
             )
-        corr_y, corr_m, corr_d, corr_h = swe_corr
-        print(
-            f"_validatedatetime : swetimetojd is valid\ncorrected values : {corr_y} | {corr_m} | {corr_d} | {corr_h}"
-        )
-        h_corr = int(corr_h)
-        m_corr = int((corr_h - h_corr) * 60)
-        s_corr = int(round((((corr_h - h_corr) * 60) - m_corr) * 60))
+        # corrected date-time values
+        Y_, M_, D_, h_decimal = dt_corr
+        h_ = int(h_decimal)
+        m_ = int((h_decimal - h_) * 60)
+        s_ = int(round((((h_decimal - h_) * 60) - m_) * 60))
         manager._notify.debug(
-            f"\n\tdate-time as corrected : {corr_y}-{corr_m}-{corr_d} "
-            f"{h_corr}:{m_corr}:{s_corr}",
-            source="helpers",
+            f"\n\tdate-time as corrected : {Y_}-{M_}-{D_} {h_}:{m_}:{s_}",
+            source="swetime",
             route=["terminal"],
         )
     except ValueError as e:
         manager._notify.warning(
             f"{date_time}\n\terror\n\t{e}\n\t{msg_negative_year}",
-            source="helpers",
+            source="swetime",
             route=["terminal"],
         )
         return False
-    return jd, corr_y, corr_m, corr_d, h_corr, m_corr, s_corr
+    return calendar, jd, Y_, M_, D_, h_, m_, s_
 
 
 def custom_iso_to_jd(
@@ -116,33 +128,50 @@ def custom_iso_to_jd(
     """convert date-time to julian date & check if datetime is valid"""
     decimal_hour = hour + min / 60 + sec / 3600
     # convert calender bytes to int
-    cal_int = bytes_to_cal_int(calendar)
-    jd = swe.julday(year, month, day, decimal_hour, cal_int)
-    # lat => lmt if local apparent time
-    # in > tjd_lat, geolon ; out > tjd_lmt, err (string);
+    calendar_int = bytes_to_calendar_int(calendar)
+    jd = swe.julday(year, month, day, decimal_hour, calendar_int)
+    # local apparent => mean time
+    # in : jd_lat, geolon ; out : jd_lmt, err (string);
     if local_time == "a":
         if not lon:
             manager._notify.error("local apparent time : longitude missing")
             return False, None, (year, month, day, decimal_hour)
         jd = swe.lat_to_lmt(jd, lon)
-    is_valid, jd, swe_corr = swe.date_conversion(
+    is_valid, jd, dt_corr = swe.date_conversion(
         year, month, day, decimal_hour, calendar
     )
-    return is_valid, jd, swe_corr
+    return is_valid, jd, dt_corr
 
 
 def jd_to_custom_iso(jd, calendar=b"g"):
-    """convert julian day to iso string"""
+    """convert julian day to custom iso string which allows negative years"""
     # convert bytes to int
-    cal_int = bytes_to_cal_int(calendar)
-    Y, M, D, h_ = swe.revjul(jd, cal_int)
+    calendar_int = bytes_to_calendar_int(calendar)
+    Y, M, D, h_ = swe.revjul(jd, calendar_int)
     h = int(h_)
     m = int((h_ - h) * 60)
     s = int(round((((h_ - h) * 60) - m) * 60))
     return f"{Y}-{M:02d}-{D:02d} {h:02d}:{m:02d}:{s:02d}"
 
 
-def bytes_to_cal_int(calendar):
-    # convert bytes to int
+def bytes_to_calendar_int(calendar):
+    """convert bytes to integer"""
     cal_int = swe.GREG_CAL if calendar == b"g" else swe.JUL_CAL
     return cal_int
+
+
+def naive_to_utc(year, month, day, hour, minute, second, tz_offset):
+    """convert naive date-time to utc for sweph & event time for user"""
+    # swe.utc_time_zone, swe.utc_to_jd, swe.jdet_to_utc, swe.jdut1_to_utc
+    # event time to UTC - timezone offset is +ve
+    Y, M, D, h, m, s = swe.utc_time_zone(
+        year, month, day, hour, minute, second, tz_offset
+    )
+    return Y, M, D, h, m, s
+
+
+def utc_to_jd(year, month, day, hour, minute, second, calendar):
+    """convert utc date-time to julian day"""
+    calendar_int = bytes_to_calendar_int(calendar)
+    jd_et, jd_ut = swe.utc_to_jd(year, month, day, hour, minute, second, calendar_int)
+    return jd_et, jd_ut

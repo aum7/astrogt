@@ -7,7 +7,6 @@ from gi.repository import Gtk  # type: ignore
 from typing import Dict, Optional
 from datetime import datetime, timezone
 from ui.collapsepanel import CollapsePanel
-from ui.helpers import _on_time_now
 from ui.helpers import _buttons_from_dict
 from sweph.swetime import custom_iso_to_jd, jd_to_custom_iso
 from .panelevents import setup_event
@@ -35,8 +34,8 @@ class SidepaneManager:
     CHANGE_TIME_SELECTED = 0.0
     # time periods in julian day(s) as keys, used for change time
     CHANGE_TIME_PERIODS = {
-        "3652.5": "10 years",  # 365 * 10 + 2 leap years (approximation)
-        "365.25": "1 year",  # accounts for leap year
+        "3652.0": "10 years",  # 365 * 10 + 2 leap years (approximation)
+        "365.0": "1 year",  # accounts for leap year
         "90.0": "3 months (90 d)",
         "30.0": "1 month (30 d)",
         "27.3": "1 month (27.3 d)",
@@ -175,12 +174,14 @@ arrow key left / right : move time backward / forward
             entry = self._app.EVENT_ONE.date_time
         elif self._app.selected_event == "event two" and self._app.EVENT_TWO:
             entry = self._app.EVENT_TWO.date_time
-        # get current datetime
+        # get datetime string ! datetime is naive here !
         datetime_name = entry.get_name()
         current_text = entry.get_text()
         jd = None
         if not current_text:
+            # missing date-time : fabricate utc now
             dt_now = datetime.now(timezone.utc).replace(microsecond=0)
+            # get julian day - verified as side-effect
             _, jd, _ = custom_iso_to_jd(
                 self,
                 dt_now.year,  # positional arguments
@@ -190,7 +191,9 @@ arrow key left / right : move time backward / forward
                 min=dt_now.minute,
                 sec=dt_now.second,
             )
+            # back to string in custom iso format
             dt_str = jd_to_custom_iso(jd)
+            # present string back to user
             entry.set_text(dt_str)
             self._notify.info(
                 f"{datetime_name} set to now utc\n\t{dt_str}",
@@ -199,7 +202,7 @@ arrow key left / right : move time backward / forward
             )
         try:
             current_text = entry.get_text()
-            # convert to julian day, keep negative year
+            # convert to verified (side-effect) julian day, keep negative year
             _, jd, _ = custom_iso_to_jd(
                 self,
                 *map(
@@ -208,9 +211,11 @@ arrow key left / right : move time backward / forward
                 ),
                 calendar=b"g",
             )
-            # change time by delta
+            # change time by delta which is in julian days
             jd_new = jd + change_delta
+            # back to custom iso format for string
             new_text = jd_to_custom_iso(jd_new)
+            # present string back to user
             entry.set_text(new_text)
             self._notify.debug(
                 f"\n\tchange time new : {new_text}",
@@ -218,10 +223,10 @@ arrow key left / right : move time backward / forward
                 route=["terminal"],
             )
             if datetime_name == "datetime one":
-                self._app.EVENT_ONE.is_hotkey_arrow = True
+                # self._app.EVENT_ONE.is_hotkey_arrow = True
                 self._app.EVENT_ONE.on_datetime_change(entry)
             else:
-                self._app.EVENT_TWO.is_hotkey_arrow = True
+                # self._app.EVENT_TWO.is_hotkey_arrow = True
                 self._app.EVENT_TWO.on_datetime_change(entry)
         except Exception as e:
             self._notify.error(
@@ -230,6 +235,17 @@ arrow key left / right : move time backward / forward
                 route=["terminal"],
             )
             return
+
+    def on_time_now(self):
+        """get time now (utc) for computer / app location"""
+        if self._app.selected_event == "event one" and self._app.EVENT_ONE:
+            entry = self._app.EVENT_ONE.date_time
+            self._app.EVENT_ONE.is_hotkey_now = True
+            self._app.EVENT_ONE.on_datetime_change(entry)
+        elif self._app.selected_event == "event two" and self._app.EVENT_TWO:
+            entry = self._app.EVENT_TWO.date_time
+            self._app.EVENT_TWO.is_hotkey_now = True
+            self._app.EVENT_TWO.on_datetime_change(entry)
 
     # button handlers
     def obc_default(self, widget, data):
@@ -262,7 +278,7 @@ arrow key left / right : move time backward / forward
     ):
         """set time now for selected event"""
         # obc_time_now needed because button created dynamically
-        _on_time_now(self)
+        self.on_time_now()
 
     def obc_arrow_up(
         self, widget: Optional[Gtk.Widget] = None, data: Optional[str] = None

@@ -9,7 +9,7 @@ from .contextmanager import ContextManager
 from .sidepane.sidepane import SidepaneManager
 from .uisetup import UISetup
 from .hotkeymanager import HotkeyManager
-from ui.helpers import _on_time_now, _event_selection
+from ui.helpers import _event_selection
 from ui.mainpanes.panemanager import PaneManager
 from sweph.calculations import positions
 
@@ -72,7 +72,7 @@ class MainWindow(
         self._hotkeys.register_hotkey("Left", self.obc_arrow_l)
         self._hotkeys.register_hotkey("Right", self.obc_arrow_r)
         # call helper function
-        self._hotkeys.register_hotkey("n", lambda: _on_time_now(self))
+        self._hotkeys.register_hotkey("n", lambda: self.on_time_now())
         self._hotkeys.register_hotkey(
             "e",
             lambda gesture, n_press, x, y: _event_selection(

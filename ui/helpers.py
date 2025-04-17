@@ -15,6 +15,7 @@ def _buttons_from_dict(
     pop_context: bool = False,
     pos: Optional[str] = None,
 ):
+    """create buttons from dictionary with icon and tooltip"""
     icons_folder = "ui/imgs/icons/hicolor/scalable/"
     icons_path_cpl = icons_folder + icons_path if icons_path else icons_folder
     buttons = []
@@ -72,13 +73,13 @@ def _decimal_to_dms(decimal):
     return deg, min, sec
 
 
-def _on_time_now(manager):
-    """get time now (utc) for computer / app location"""
-    if manager._app.selected_event == "event one" and manager._app.EVENT_ONE:
-        entry = manager._app.EVENT_ONE.date_time
-        manager._app.EVENT_ONE.is_hotkey_now = True
-        manager._app.EVENT_ONE.on_datetime_change(entry)
-    elif manager._app.selected_event == "event two" and manager._app.EVENT_TWO:
-        entry = manager._app.EVENT_TWO.date_time
-        manager._app.EVENT_TWO.is_hotkey_now = True
-        manager._app.EVENT_TWO.on_datetime_change(entry)
+# def _on_time_now(manager):
+#     """get time now (utc) for computer / app location"""
+#     if manager._app.selected_event == "event one" and manager._app.EVENT_ONE:
+#         entry = manager._app.EVENT_ONE.date_time
+#         manager._app.EVENT_ONE.is_hotkey_now = True
+#         manager._app.EVENT_ONE.on_datetime_change(entry)
+#     elif manager._app.selected_event == "event two" and manager._app.EVENT_TWO:
+#         entry = manager._app.EVENT_TWO.date_time
+#         manager._app.EVENT_TWO.is_hotkey_now = True
+#         manager._app.EVENT_TWO.on_datetime_change(entry)

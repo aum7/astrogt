@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 from timezonefinder import TimezoneFinder
 from ui.helpers import _decimal_to_dms
-from sweph.swetime import custom_iso_to_jd, validate_datetime
+from sweph.swetime import validate_datetime, naive_to_utc, utc_to_jd
 
 
 class EventData:
@@ -31,12 +31,12 @@ class EventData:
         self.name = name
         self.date_time = date_time
         # attributes for date-time conversion
-        self.timezone = None
+        self.timezone = None  # string
+        self.tz_offset = None  # float
         # longitude for local apparent | mean time
-        self.lon = None
+        self.lon = None  # float
         # flag for no validation needed
         self.is_hotkey_now = False
-        self.is_hotkey_arrow = False
         self.old_name = ""
         self.old_date_time = ""
         self.old_location = ""
@@ -381,27 +381,48 @@ class EventData:
         datetime_name = entry.get_name()
         date_time = entry.get_text().strip()
         # we need datetime utc & for event location
+        # jd_naive = None
+        jd_ut = None
+        # jd_event = None
         dt_utc = None
+        dt_utc_str = ""
         dt_event = None
+        dt_event_str = ""
         # datetime set by hotkey time now utc : validation not needed
         if self.is_hotkey_now:
             """get utc from computer time"""
             try:
                 dt_utc = datetime.now(timezone.utc).replace(microsecond=0)
+                dt_utc_str = dt_utc.strftime("%Y-%m-%d %H:%M:%S")
+                print(f"timenow : dt_utc_str : {dt_utc_str}")
                 if self.timezone:
                     dt_event = dt_utc.astimezone(ZoneInfo(self.timezone))
+                    # dt_event_str = str(dt_event)
+                    dt_event_str = dt_event.strftime("%Y-%m-%d %H:%M:%S")
+                    print(f"timenow : dt_event_str : {dt_event_str}")
+                    tz_offset_ = dt_event.utcoffset()
+                    # as string
+                    tz_offset_str = str(tz_offset_)
+                    # parse timezone string to decimal hours
+                    parts = tz_offset_str.split(":")
+                    hours = int(parts[0])
+                    minutes = int(parts[1]) if len(parts) > 1 else 0
+                    seconds = int(parts[2]) if len(parts) > 2 else 0
+                    # convert to decimal
+                    self.tz_offset = float(hours) + (minutes / 60) + (seconds / 3600)
+                    print(f"timenow : tz_offset : {self.tz_offset}")
                     self._notify.info(
                         f"{datetime_name} timezone : "
                         f"using time now for {self.timezone}",
                         # f"{dt_event.strftime('%Y-%m-%d %H:%M:%S')}",
                         source="eventdata",
-                        route=["none"],
+                        route=["terminal"],
                     )
                 else:
                     dt_event = dt_utc
+                    dt_event_str = dt_utc_str
                     self._notify.warning(
                         f"\n\t{datetime_name} no timezone : using utc now"
-                        # f"\n\t{dt_event.strftime('%Y-%m-%d %H:%M:%S')}"
                         "\n\tlocation should be set to calculate timezone",
                         source="eventdata",
                         route=["terminal", "user"],
@@ -416,62 +437,8 @@ class EventData:
                 self.is_hotkey_now = False
                 return
             self.is_hotkey_now = False
-        # datetime changed by hotkey arrow left / right
-        elif self.is_hotkey_arrow:
-            """datetime changed with hotkey arrow left / right"""
-            try:
-                dt_str = entry.get_text()
-                # parse year as int for comparison
-                try:
-                    year_part = dt_str.split("-")[0]
-                    print(f"year_part : {year_part}")
-                    year = int(year_part)
-                    if year <= 0:
-                        # handle negative year
-                        parts = dt_str.replace("-", " ").replace(":", " ").split()
-                        Y = int(parts[0])
-                        M, D, h, m, s = map(int, parts[1:6])
-                        dt_utc = None
-                        dt_event_str = dt_str
-                    else:
-                        # parse to datetime
-                        # try:
-                        dt_naive = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
-                        # except ValueError:
-                        #     if ":60" in dt_str:
-                        #         dt_str.replace(":60", ":59")
-                        #         dt_naive = datetime.strptime(
-                        #             dt_str, "%Y-%m-%d %H:%M:%S"
-                        #         )
-                        #     else:
-                        #         raise ValueError(f"{datetime_name} validation failed")
-                        # convert to event location timezone
-                        if self.timezone:
-                            dt_event = dt_naive.replace(tzinfo=ZoneInfo(self.timezone))
-                            dt_utc = dt_event.astimezone(timezone.utc)
-                        else:
-                            dt_event = dt_naive.replace(tzinfo=timezone.utc)
-                            dt_utc = dt_event
-                            self._notify.info(
-                                f"{datetime_name} no timezone : using utc"
-                                "\n\tlocation should be set to calculate timezone",
-                                source="eventdata",
-                                route=["terminal", "user"],
-                            )
-                except ValueError:
-                    # fallback to standard path (which will fail)
-                    dt_naive = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
-            except Exception as e:
-                self._notify.error(
-                    f"{datetime_name} (hk) change time failed\n\terror\n\t{e}\n",
-                    source="eventdata",
-                    route=["terminal"],
-                )
-                self.is_hotkey_arrow = False
-                return
-            self.is_hotkey_arrow = False
         else:
-            """string from manual input"""
+            """string from manual input or hotkey arrow left / right (change time)"""
             # event one date-time is mandatory
             if not date_time:
                 if datetime_name == "datetime one":
@@ -483,7 +450,6 @@ class EventData:
                     return
                 elif datetime_name == "datetime two":
                     # datetime two is optional : if deleted > clear data 2
-                    # & entries & close event 2 panel & select event 1
                     if self._app.e2_chart or self._app.e2_swe:
                         self._app.e2_chart = {}
                         self._app.e2_swe = {}
@@ -494,7 +460,6 @@ class EventData:
                             route=["terminal"],
                         )
                         return
-            # data changed
             if date_time == self.old_date_time:
                 self._notify.debug(
                     f"{datetime_name} not changed",
@@ -502,12 +467,12 @@ class EventData:
                     route=["terminal"],
                 )
                 return
+            # data changed
             try:
-                # validate datetime string from manual input
+                # get datetime string, assuming naive date-time
                 dt_str = entry.get_text().strip()
-                # print(f"manual entry : {dt_str}")
                 # grab self.lon if a in datetime (local apparent time)
-                if dt_str and "a" in dt_str:
+                if dt_str and "a" in dt_str and self.lon:
                     result = validate_datetime(self, dt_str, lon=self.lon)
                 else:
                     result = validate_datetime(self, dt_str)
@@ -518,34 +483,42 @@ class EventData:
                     source="eventdata",
                     route=["terminal"],
                 )
-                _, Y, M, D, h, m, s = result
-                # bypass early & negative years
-                if Y < 1000:
-                    # use sweph
-                    # _, jd, _ = swetime_to_jd(Y, M, D, h, m, s)
-                    dt_utc = None
-                    # format manually
-                    sign = "-" if Y < 0 else ""
-                    absY = abs(Y)
-                    dt_event_str = (
-                        f"{sign}{absY:04d}-{M:02d}-{D:02d} {h:02d}:{m:02d}:{s:02d}"
-                    )
+                calendar, _, Y, M, D, h, m, s = result
+                # manual input : assume event time
+                # we need timezone offset for event location
+                dt_utc_now = datetime.now(timezone.utc).replace(microsecond=0)
+                if self.timezone:
+                    # get tz_offset, from now datetime
+                    dt_event_now = dt_utc_now.astimezone(ZoneInfo(self.timezone))
+                    tz_offset_ = dt_event_now.utcoffset()
+                    # as string
+                    tz_offset_str = str(tz_offset_)
+                    parts = tz_offset_str.split(":")
+                    hours = int(parts[0])
+                    minutes = int(parts[1]) if len(parts) > 1 else 0
+                    seconds = int(parts[2]) if len(parts) > 2 else 0
+                    # convert to decimal
+                    self.tz_offset = float(hours) + (minutes / 60) + (seconds / 3600)
+                    print(f"manual|arrow_l/r : tz_offset : {self.tz_offset}")
+                    # print(f"dtevent : {dt_event}")
+                    # Y_ut, M_ut, D_ut, h_ut, m_ut, s_ut = naive_to_utc(
+                    dt_event_str = f"{Y}-{M:02d}-{D:02d} {h:02d}:{m:02d}:{s:02d}"
+                    print(f"dteventstr : {dt_event_str}")
+                    dt_utc = naive_to_utc(Y, M, D, h, m, s, self.tz_offset)
+                    jd_et, jd_ut = utc_to_jd(*dt_utc, calendar)
+                    # print(f"utcfromnaive : {dt_utc} | type : {type(dt_utc)}")
+                    print(f"jdet & jdut : {jd_et} | {jd_ut}")
+                    # dt_event = dt_naive.replace(tzinfo=ZoneInfo(self.timezone))
+                    # dt_utc = dt_event.astimezone(timezone.utc)
                 else:
-                    # manual input : assume event time
-                    dt_naive = datetime(Y, M, D, h, m, s)
-                    print(f"manual entry : dt_naive : {dt_naive}")
-                    if self.timezone:
-                        dt_event = dt_naive.replace(tzinfo=ZoneInfo(self.timezone))
-                        dt_utc = dt_event.astimezone(timezone.utc)
-                    else:
-                        dt_event = dt_naive.replace(tzinfo=timezone.utc)
-                        dt_utc = dt_event
-                        self._notify.info(
-                            f"\n\t{datetime_name} no timezone : using utc"
-                            "\n\tlocation should be set to calculate timezone",
-                            source="eventdata",
-                            route=["terminal", "user"],
-                        )
+                    # dt_event = dt_naive.replace(tzinfo=timezone.utc)
+                    dt_utc = dt_event
+                    self._notify.info(
+                        f"\n\t{datetime_name} no timezone : using utc"
+                        "\n\tlocation should be set to calculate timezone",
+                        source="eventdata",
+                        route=["terminal", "user"],
+                    )
             except Exception as e:
                 self._notify.warning(
                     f"{datetime_name} error"
@@ -558,11 +531,8 @@ class EventData:
                 )
                 return
         # update datetime entry
-        if dt_event:
-            # todo dont use for years below 0
-            # dt_event_str = f"{sign}{absY:04d}-{M:02d}-{D:02d} {h:02d}:{m:02d}:{s:02d}"
-            dt_event_str = dt_event.strftime("%Y-%m-%d %H:%M:%S")
-        entry.set_text(dt_event_str)
+        if dt_event_str:
+            entry.set_text(dt_event_str)
         # save datetime by event
         if datetime_name == "datetime one":
             self._app.e1_chart["datetime"] = dt_event_str
@@ -578,17 +548,16 @@ class EventData:
         # all good : set new old date-time
         self.old_date_time = dt_event_str
         # calculate julian day
-        jd_ut = None
-        if dt_utc:
-            _, jd_ut, _ = custom_iso_to_jd(
-                self,
-                dt_utc.year,
-                dt_utc.month,
-                dt_utc.day,
-                hour=dt_utc.hour,
-                min=dt_utc.minute,
-                sec=dt_utc.second,
-            )
+        # if dt_utc:
+        #     _, jd_ut, _ = custom_iso_to_jd(
+        #         self,
+        #         dt_utc.year,
+        #         dt_utc.month,
+        #         dt_utc.day,
+        #         hour=dt_utc.hour,
+        #         min=dt_utc.minute,
+        #         sec=dt_utc.second,
+        #     )
         # print(f"eventdata : on_datetime_change : jd_ut : {jd_ut}")
         if not jd_ut:
             self._notify.error(
