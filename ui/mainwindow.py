@@ -11,7 +11,7 @@ from .uisetup import UISetup
 from .hotkeymanager import HotkeyManager
 from ui.helpers import _event_selection
 from ui.mainpanes.panemanager import PaneManager
-from sweph.calculations.positions import SwePositionsManager
+from sweph.calculations.positions import SwePositions
 
 
 class MainWindow(
@@ -30,6 +30,8 @@ class MainWindow(
         PaneManager.__init__(self)
         self._app = self.get_application() or Gtk.Application.get_default()
         self._notify = self._app.notify_manager
+        # self._signal = self._app.signal_manager
+        self._swe_positions = SwePositions(app=self._app)
         self.set_title("astrogt")
         self.set_default_size(800, 600)
         # setup ui : side pane
@@ -120,7 +122,7 @@ class MainWindow(
 
     def init_stacks(self):
         """initialize stacks with content"""
-        positions_ = SwePositionsManager.calculate_positions(self)
+        positions_ = self._swe_positions.calculate_positions()
         self._notify.debug(
             f"positions : {positions_}",
             source="positions",
@@ -137,7 +139,7 @@ class MainWindow(
             old_stack = stack.get_child_by_name("tables")
             if old_stack:
                 stack.remove(old_stack)
-                page = SwePositionsManager.positions_page(self)
+                page = self._swe_positions.positions_page()
                 stack.add_titled(page, "positions", "positions")
             if stack:
                 # test labels todo pages here please thank you

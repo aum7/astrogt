@@ -7,7 +7,8 @@ import swisseph as swe
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Gtk, Adw  # type: ignore
+gi.require_version("Gio", "2.0")
+from gi.repository import Gtk, Adw, Gio  # type: ignore
 from ui.mainwindow import MainWindow
 from ui.notifymanager import NotifyManager
 from ui.signalmanager import SignalManager
@@ -54,7 +55,7 @@ class AstrogtApp(Gtk.Application):
         """close sweph at application exit"""
         swe.close()
         # call parent shutdown
-        super().do_shutdown()
+        Gio.Application.do_shutdown(self)
 
 
 if __name__ == "__main__":

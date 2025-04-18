@@ -2,6 +2,7 @@
 # ruff: noqa: E402
 import gi
 
+gi.require_version("GObject", "2.0")
 gi.require_version("Gtk", "4.0")
 from gi.repository import GObject, Gtk  # type: ignore
 from datetime import datetime, timezone
@@ -12,9 +13,25 @@ from sweph.swetime import validate_datetime, naive_to_utc, utc_to_jd
 
 
 class EventData(GObject.Object):
+    """get event data from user input"""
+
+    # __gtype_name__ = "EventData"
     __gsignals__ = {
-        "event-data-changed": (GObject.SignalFlags.RUN_FIRST, None, (dict,)),
-        "event-data-erased": (GObject.SignalFlags.RUN_FIRST, None, (dict,)),
+        "event-one-changed": (
+            GObject.SignalFlags.RUN_FIRST,
+            None,
+            (GObject.TYPE_PYOBJECT,),
+        ),
+        "event-two-changed": (
+            GObject.SignalFlags.RUN_FIRST,
+            None,
+            (GObject.TYPE_PYOBJECT,),
+        ),
+        "event-two-erased": (
+            GObject.SignalFlags.RUN_FIRST,
+            None,
+            (GObject.TYPE_PYOBJECT,),
+        ),
     }
 
     def __init__(
@@ -27,8 +44,10 @@ class EventData(GObject.Object):
         app=None,
     ):
         """get user input and prepare for swe"""
+        # super().__init__()
         self._app = app or Gtk.Application.get_default()
         self._notify = self._app.notify_manager
+        self._signal = self._app.signal_manager
         # attributes as widgets
         self.country = country
         self.city = city
@@ -83,7 +102,7 @@ class EventData(GObject.Object):
                 )
                 return
             elif location_name == "location two":
-                # handle empty location
+                # handle empty location : erase event 2 data
                 self._app.e2_chart["location"] = ""
                 self._app.e2_chart["timezone"] = ""
                 self._app.e2_swe["lat"] = None
@@ -97,16 +116,9 @@ class EventData(GObject.Object):
                 )
                 # emit signal before returning
                 # shall be used for clearing astro chart todo
-                self.emit(
-                    "event-data-erased",
-                    {
-                        "chart": self._app.e1_chart
-                        if entry.get_name() == "location one"
-                        else self._app.e2_chart,
-                        "swe": self._app.e1_swe
-                        if entry.get_name() == "location one"
-                        else self._app.e2_swe,
-                    },
+                self._signal._emit(
+                    "event-two-erased",
+                    {"chart": self._app.e2_chart, "swe": self._app.e2_swe},
                 )
                 return
         if location == self.old_location:
@@ -484,6 +496,11 @@ class EventData(GObject.Object):
                             source="eventdata",
                             route=["terminal"],
                         )
+                        # todo do we need this ?
+                        self._signal._emit(
+                            "event-two-erased",
+                            {"chart": self._app.e2_chart, "swe": self._app.e2_swe},
+                        )
                         return
             if date_time == self.old_date_time:
                 self._notify.debug(
@@ -533,12 +550,12 @@ class EventData(GObject.Object):
                     # print(f"utcfromnaive : {dt_utc} | type : {type(dt_utc)}")
                     # print(f"manualdt tz : jdut : {jd_ut} | tzoffset : {self.tz_offset}")
                 else:
-                    # take date-time string as utc
+                    # take date-time string as utc : seconds is float
                     dt_utc = naive_to_utc(Y, M, D, h, m, s, 0.0)
                     _, jd_ut = utc_to_jd(*dt_utc, calendar)
                     # print(f"utcfromnaive : {dt_utc} | type : {type(dt_utc)}")
                     # print(f"manualdt utc : jdut : {jd_ut} | tzoffset : 0.0")
-                    dt_event_str = f"{dt_utc[0]}-{dt_utc[1]:02d}-{dt_utc[2]:02d} {dt_utc[3]:02d}:{dt_utc[4]:02d}:{dt_utc[5]:02d}"
+                    dt_event_str = f"{dt_utc[0]}-{dt_utc[1]:02d}-{dt_utc[2]:02d} {dt_utc[3]:02d}:{dt_utc[4]:02d}:{int(dt_utc[5]):02d}"
                     self._notify.info(
                         f"\n\t{datetime_name} no timezone : using utc"
                         "\n\tlocation should be set to calculate timezone",
@@ -628,18 +645,22 @@ class EventData(GObject.Object):
             f"\n\t  swe 2\t{json.dumps(self._app.e2_swe, sort_keys=True, indent=6, ensure_ascii=False)}"
             "\n--------------------------",
             source="eventdata",
-            route=["none"],
+            route=["terminal"],
         )
-        self.emit(
-            "event-data-changed",
-            {
-                "chart": self._app.e1_chart
-                if datetime_name == "datetime one"
-                else self._app.e2_chart,
-                "swe": self._app.e1_swe
-                if datetime_name == "datetime one"
-                else self._app.e2_swe,
-            },
+        # emit signal for data changed
+        sig = (
+            "event-one-changed"
+            if datetime_name == "datetime one"
+            else "event-two-changed"
         )
-        print("eventdata : event-data-changed signal emitted")
+        data = {
+            "chart": self._app.e1_chart
+            if datetime_name == "datetime one"
+            else self._app.e2_chart,
+            "swe": self._app.e1_swe
+            if datetime_name == "datetime one"
+            else self._app.e2_swe,
+        }
+        self._signal._emit(sig, data)
+        print("eventdata : event-changed signal emitted")
         return
