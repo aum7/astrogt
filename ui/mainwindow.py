@@ -30,6 +30,7 @@ class MainWindow(
         PaneManager.__init__(self)
         self._app = self.get_application() or Gtk.Application.get_default()
         self._notify = self._app.notify_manager
+        self._signal = self._app.signal_manager
         self._swe_positions = SwePositions(app=self._app)
         self.set_title("astrogt")
         self.set_default_size(800, 600)
@@ -49,6 +50,7 @@ class MainWindow(
         self.panes_all
         # demo stacks todo delete
         self.init_stacks()
+        self._signal._connect("event-one-changed", self.update_tables)
 
     def on_toggle_pane(self, button: Optional[Gtk.Button] = None) -> None:
         """toggle sidepane visibility"""
@@ -121,25 +123,13 @@ class MainWindow(
 
     def init_stacks(self):
         """initialize stacks with content"""
-        positions_ = self._swe_positions.calculate_positions()
-        self._notify.debug(
-            f"positions : {positions_}",
-            source="positions",
-            route=["terminal"],
-        )
-        # some example content for each stack
-        # todo only need 1 stack & share it with 4 switchers
+        # 4 main panes
         panes = ["top-left", "top-right", "bottom-left", "bottom-right"]
         for pane in panes:
             # create stack for each position
             stack = self.get_stack(pane)
             if not stack:
                 continue
-            old_stack = stack.get_child_by_name("tables")
-            if old_stack:
-                stack.remove(old_stack)
-                page = self._swe_positions.positions_page()
-                stack.add_titled(page, "positions", "positions")
             if stack:
                 # test labels todo pages here please thank you
                 label1 = Gtk.Label(label="astrology chart")
@@ -148,18 +138,36 @@ class MainWindow(
                 label2.add_css_class("label-tr")
                 label3 = Gtk.Label(label="data graph")
                 label3.add_css_class("label-bl")
-                label4 = Gtk.Label(label="calculation results")
-                label4.add_css_class("label-br")
 
                 stack.add_titled(label1, "chart", "-chart")
                 stack.add_titled(label2, "editor", "-editor")
                 stack.add_titled(label3, "data", "-data")
-                stack.add_titled(label4, "tables", "-tables")
+                stack.add_titled(
+                    self._swe_positions.positions_page(),
+                    "tables",
+                    "swe positions",
+                )
                 # set stack as child of frame
                 frame = getattr(self, f"frm_{pane.replace('-', '_')}", None)
                 if frame:
-                    # frame.present()
                     frame.set_child(stack)
+
+    def update_tables(self, event_data):
+        """update tables with new data"""
+        for pane in ["top-left", "top-right", "bottom-left", "bottom-right"]:
+            stack = self.get_stack(pane)
+            if not stack:
+                continue
+            # remove pages
+            old = stack.get_child_by_name("tables")
+            if old:
+                stack.remove(old)
+            # add new page
+            stack.add_titled(
+                self._swe_positions.positions_page(),
+                "tables",
+                "swe positions",
+            )
 
     # panes show single
     def panes_single(self) -> None:

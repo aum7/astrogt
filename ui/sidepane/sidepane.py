@@ -217,11 +217,11 @@ arrow key left / right : move time backward / forward
             new_text = jd_to_custom_iso(jd_new)
             # present string back to user
             entry.set_text(new_text)
-            self._notify.debug(
-                f"\n\tchange time new : {new_text}",
-                source="sidepane",
-                route=["terminal"],
-            )
+            # self._notify.debug(
+            #     f"\n\tchange time new : {new_text}",
+            #     source="sidepane",
+            #     route=["terminal"],
+            # )
             if datetime_name == "datetime one":
                 # self._app.EVENT_ONE.is_hotkey_arrow = True
                 self._app.EVENT_ONE.on_datetime_change(entry)

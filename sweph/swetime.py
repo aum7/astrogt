@@ -99,11 +99,11 @@ def validate_datetime(manager, date_time, lon=None):
         h_ = int(h_decimal)
         m_ = int((h_decimal - h_) * 60)
         s_ = int(round((((h_decimal - h_) * 60) - m_) * 60))
-        manager._notify.debug(
-            f"\n\tdate-time as corrected : {Y_}-{M_}-{D_} {h_}:{m_}:{s_}",
-            source="swetime",
-            route=["terminal"],
-        )
+        # manager._notify.debug(
+        #     f"\n\tdate-time as corrected : {Y_}-{M_}-{D_} {h_}:{m_}:{s_}",
+        #     source="swetime",
+        #     route=["terminal"],
+        # )
     except ValueError as e:
         manager._notify.warning(
             f"{date_time}\n\terror\n\t{e}\n\t{msg_negative_year}",
