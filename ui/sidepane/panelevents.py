@@ -1,11 +1,8 @@
 # ruff: noqa: E402
 import gi
 
-gi.require_version("GObject", "2.0")
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
-
-# from gi.repository import GObject, Gtk  # type: ignore
 from ui.collapsepanel import CollapsePanel
 from sweph.eventdata import EventData
 from sweph.eventlocation import EventLocation

@@ -18,11 +18,11 @@ class SwePositions:
         self._signal._connect("event-one-changed", self.on_event_one_changed)
         self._signal._connect("event-two-changed", self.on_event_two_changed)
 
-    def on_event_one_changed(self, emitter, event_data):
+    def on_event_one_changed(self, event_data):
         print(f"swepositions : event one changed : {event_data}")
         # self.positions_page()
 
-    def on_event_two_changed(self, emitter, event_data):
+    def on_event_two_changed(self, event_data):
         print(f"swepositions : event two changed : {event_data}")
 
     def calculate_positions(self):

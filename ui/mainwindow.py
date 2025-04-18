@@ -30,7 +30,6 @@ class MainWindow(
         PaneManager.__init__(self)
         self._app = self.get_application() or Gtk.Application.get_default()
         self._notify = self._app.notify_manager
-        # self._signal = self._app.signal_manager
         self._swe_positions = SwePositions(app=self._app)
         self.set_title("astrogt")
         self.set_default_size(800, 600)

@@ -662,5 +662,4 @@ class EventData(GObject.Object):
             else self._app.e2_swe,
         }
         self._signal._emit(sig, data)
-        print("eventdata : event-changed signal emitted")
         return
