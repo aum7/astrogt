@@ -5,6 +5,7 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
+from user.settings import OBJECTS, CHART_SETTINGS
 
 
 class SwePositions:
@@ -44,17 +45,30 @@ class SwePositions:
         """calculate planetary positions & present in a table as stack widget"""
         src = self._data or getattr(self._app, "e1_swe", {})
         jd_ut = src.get("jd_ut")
-        print(f"jd_ut : {jd_ut}")
+        # print(f"jd_ut : {jd_ut}")
         if jd_ut is None:
-            print("jd_ut none")
             return []
         # get selected objects
-        objs = getattr(self._app, "selected_objects", set())
+        objs = self._app.selected_objects
         print(f"objs : {objs}")
         positions_out = []
-        for body in objs:
-            positions_out.append((body, swe.calc_ut(jd_ut, body)))
-        print(f"positions_out : {positions_out}")
+        for obj in objs:
+            obj_int = self.object_name_to_int(obj)
+            if obj_int is None:
+                continue
+            # we also need flags ; calc_ut() returns array of 6 floats + error string :
+            # longitude, latitude, distance
+            # lon speed, lat speed, dist speed
+            value = swe.calc_ut(jd_ut, obj_int)
+            degree = (
+                value[0][0]
+                if isinstance(value, tuple)
+                and len(value) == 2
+                and isinstance(value[0], tuple)
+                else value
+            )
+            positions_out.append((str(obj_int), degree))
+        print(f"\n\tpositions_out : {positions_out}\n")
         return positions_out
 
     def table_positions(self, positions):
@@ -67,7 +81,6 @@ class SwePositions:
         for idx, title in enumerate(("body", "value")):
             rend = Gtk.CellRendererText()
             col = Gtk.TreeViewColumn(title, rend, text=idx)
-            print(f"col : {col}")
             view.append_column(col)
         scw_pos = Gtk.ScrolledWindow()
         scw_pos.set_child(view)
@@ -78,3 +91,13 @@ class SwePositions:
         if not pos:
             return Gtk.Label(label="no e1 swe data")
         return self.table_positions(pos)
+
+    def object_name_to_int(self, name: str) -> int | None:
+        if name == "mean node" and CHART_SETTINGS.get("true_node"):
+            name = "true node"
+        for obj in OBJECTS.values():
+            if obj[0] == name:
+                return obj[3]
+        if name == "true node":
+            return 11
+        return None

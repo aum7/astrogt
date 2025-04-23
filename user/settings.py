@@ -7,34 +7,45 @@ OBJECTS = {
     "ma": ("mars", "mangala", "ma", 4),
     "ju": ("jupiter", "guru", "gu", 5),
     "sa": ("saturn", "sani", "sa", 6),
-    "ur": ("uranus", "", "ur", 7),
-    "ne": ("neptune", "", "ne", 8),
-    "pl": ("pluto", "", "pl", 9),
+    "ur": ("uranus", "uranus", "ur", 7),
+    "ne": ("neptune", "neptune", "ne", 8),
+    "pl": ("pluto", "pluto", "pl", 9),
     "ra": ("mean node", "rahu", "ra", 10),
 }
 SWE_FLAG = {
-    "swe_flag_default": r"swe.FLG_SWIEPH | swe.FLG_SPEED",
-    # use sidereal (jyotisa) zodiac : else use tropical (western) zodiac
-    "sidereal_zodiac": True,
-    # swe.FLG_SIDEREAL vs FLG_TROPICAL
-    # use nutation : small irregularity in the precession of the equinoxes
-    "nutation": True,  # FLG_NONUT
-    # calculate heliocentric positions : astrology uses geocentric positions
-    "heliocentric": False,  # FLG_HELCTR
-    # calculate true, not apparent (visible from earth) positions
+    # --- use default sweph ephemeris & speed calculations
+    "default flag": (True, "use default (sweph ephemeris & speed calculations)"),
+    # --- use sidereal (jyotisa) zodiac : else use tropical (western) zodiac
+    # FLG_SIDEREAL vs FLG_TROPICAL (default)
+    "sidereal zodiac": (True, "use sideral (vs tropical) zodiac"),
+    # --- do NOT use nutation : small irregularity in the precession of the equinoxes
+    # FLG_NONUT
+    "no nutation": (
+        True,
+        "do NOT use nutation (small irregularity in precession of the equinoxes)",
+    ),
+    # --- calculate heliocentric positions : astrology uses geocentric positions
+    # FLG_HELCTR
+    "heliocentric": (False, "calculate heliocentric (vs geocentric) positions"),
+    # --- calculate true, not apparent (visible from earth) positions
     # journey of the light from a planet to the earth takes some time
-    "true_positions": True,  # FLG_TRUEPOS
-    # calculate topocentric positions, viewed from latitude & longitude of
-    # event ; else calculate geocentric (default, used traditionally in
-    # astrology) positions, viewed from center of the earth
-    "topocentric": False,  # FLG_TOPOCTR
-    # return equatorial positions (right ascension & declination)
+    # FLG_TRUEPOS
+    "true positions": (True, "calculate true (vs apparent) positions"),
+    # --- calculate topocentric positions, viewed from latitude & longitude of
+    # event ; else calculate geocentric positions (default, used traditionally
+    # in astrology), viewed from center of the earth
+    # FLG_TOPOCTR
+    "topocentric": (False, "calculate topocentric (vs geocentric) positions"),
+    # --- return equatorial positions (right ascension & declination)
     # else return ecliptic (default, latitude & longitude) positions
-    "equatorial": False,  # FLG_EQUATORIAL
-    # return cartesian (x, y, z) else polar (default) coordinates
-    "cartesian": False,  # FLG_XYZ
-    # return radians unit else degrees (default) unit
-    "radians": False,  # FLG_RADIANS
+    # FLG_EQUATORIAL
+    "equatorial": (False, "return equatorial (vs ecliptic) positions"),
+    # --- return cartesian (x, y, z) else polar (default) coordinates
+    # FLG_XYZ
+    "cartesian": (False, "return cartesian (x, y, z vs polar degrees) coordinates"),
+    # --- return radian else degree (default) units
+    # FLG_RADIANS
+    "radians": (False, "return radian (vs degree) units"),
 }
 # add or remove houses as you please
 # https://astrorigin.com/pyswisseph/sphinx/programmers_manual/house_cusp_calculation.html?highlight=houses#swisseph.houses
@@ -146,9 +157,9 @@ AYANAMSA = [
     ("255", "user-defined (setup in 'settings')", "usr"),  # SIDM_USER
 ]
 CUSTOM_AYANAMSA = {
-    # custom ayanamsa props
+    # custom user-defined ayanamsa properties
     # julian day utc > reference date for custom ayanamsa calculation
-    # default is for 2000-01-01 12:00 utc
+    # default is for 2000-01-01 12:00 utc (julian day starts at noon)
     # if needed, get julian day utc online, then copy-paste the number here
     "custom_utc_julian_day": "2451545.00000",
     # user-defined custom ayanamsa : must be decimal degrees
@@ -157,14 +168,17 @@ CUSTOM_AYANAMSA = {
     "custom_ayanamsa": "23.76694444",
 }
 FILES = {
-    # path to ephemerides folder, with min semo_18.se1 & sepl_18.se1 files, or
+    # --- path to ephemerides folder, with min semo_18.se1 & sepl_18.se1 files, or
     # a complete ephe folder https://github.com/aloistr/swisseph/tree/master/ephe
     "ephe_path": "/swe/ephe/",
-    # fonts for glyphs = astro_font & for ie tables = mono_font
+    # --- fonts for glyphs = astro_font & for ie tables = mono_font
     "astro_font": "/ui/fonts/osla/open_sans_light_astro.ttf",
     "mono_font": "/ui/fonts/victor/VictorMonoNerdFont-Light.ttf",
-    # construct your own 'filename' format: allowed fields:\n1: {event} name | 2: event {date} | 3: {time}: separate fields with '_' underscore\nfor short time format (no seconds) use {time[:5]}\nsee default value [mouse-over-backspace] as example",
+    # --- construct your own 'filename' format: allowed fields
+    # 1: {event} name | 2: event {date} | 3: {time}
+    # separate fields with '_' underscore ; for short time format (no seconds)
+    # use {time[:5]} ; see default value as example
     "custom_filename": r"{event}_{date}_{time[:5]}",
-    # path to eventsdb (birth charts) database folder; inside go saved charts
+    # --- path to events / birth charts database folder; inside go saved charts
     "events_db": "/user/eventsdb/",
 }

@@ -31,7 +31,8 @@ class MainWindow(
         self._app = self.get_application() or Gtk.Application.get_default()
         self._notify = self._app.notify_manager
         self._signal = self._app.signal_manager
-        self._swe_positions = SwePositions(app=self._app)
+        self._swe_positions = SwePositions()
+        # self._swe_positions = SwePositions(app=self._app)
         self.set_title("astrogt")
         self.set_default_size(800, 600)
         # setup ui : side pane
@@ -51,6 +52,7 @@ class MainWindow(
         # demo stacks todo delete
         self.init_stacks()
         self._signal._connect("event-one-changed", self.update_tables)
+        self._app.selected_objects = getattr(self, "selected_objects", set())
 
     def on_toggle_pane(self, button: Optional[Gtk.Button] = None) -> None:
         """toggle sidepane visibility"""
@@ -126,8 +128,8 @@ class MainWindow(
         # 4 main panes
         panes = ["top-left", "top-right", "bottom-left", "bottom-right"]
         for pane in panes:
-            # create stack for each position
             stack = self.get_stack(pane)
+            # create stack for each position
             if not stack:
                 continue
             if stack:
@@ -154,6 +156,7 @@ class MainWindow(
 
     def update_tables(self, event_data):
         """update tables with new data"""
+        self._app.selected_objects = getattr(self, "selected_objects", set())
         for pane in ["top-left", "top-right", "bottom-left", "bottom-right"]:
             stack = self.get_stack(pane)
             if not stack:

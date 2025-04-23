@@ -35,7 +35,7 @@ class SidepaneManager:
     # time periods in julian day(s) as keys, used for change time
     CHANGE_TIME_PERIODS = {
         "3652.0": "10 years",  # 365 * 10 + 2 leap years (approximation)
-        "365.0": "1 year",  # accounts for leap year
+        "365.0": "1 year",  # does not account for leap year
         "90.0": "3 months (90 d)",
         "30.0": "1 month (30 d)",
         "27.3": "1 month (27.3 d)",
@@ -71,9 +71,9 @@ class SidepaneManager:
         if self._app.selected_event == "event one":
             self.clp_event_one.add_title_css_class("label-event-selected")
         self.clp_event_two = setup_event(self, "event two", False)
-        # tools
+        # tools ie save & load file etc
         self.clp_tools = setup_tools(self)
-        # settings
+        # settings ie objects to calculate & flags to use etc
         self.clp_settings = setup_settings(self)
         # append to box
         box_sidepane.append(self.clp_change_time)

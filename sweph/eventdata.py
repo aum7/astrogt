@@ -15,7 +15,6 @@ from sweph.swetime import validate_datetime, naive_to_utc, utc_to_jd
 class EventData(GObject.Object):
     """get event data from user input"""
 
-    # __gtype_name__ = "EventData"
     __gsignals__ = {
         "event-one-changed": (
             GObject.SignalFlags.RUN_FIRST,
@@ -44,7 +43,6 @@ class EventData(GObject.Object):
         app=None,
     ):
         """get user input and prepare for swe"""
-        # super().__init__()
         self._app = app or Gtk.Application.get_default()
         self._notify = self._app.notify_manager
         self._signal = self._app.signal_manager
@@ -324,16 +322,7 @@ class EventData(GObject.Object):
             self._app.e1_swe["lat"] = lat
             self._app.e1_swe["lon"] = lon
             self._app.e1_swe["alt"] = int(alt)
-            msg_ = (
-                f"{location_name} updated"
-                # f"\n\tlat : {self._app.e1_swe.get('lat')} "
-                # f"| lon : {self._app.e1_swe.get('lon')} "
-                # f"| alt : {self._app.e1_swe.get('alt')}"
-                # f"\n\tlocation : {self._app.e1_chart.get('location')}"
-                # f"\n\tcountry : {self._app.e1_chart.get('country')} "
-                # f"| city : {self._app.e1_chart.get('city')} "
-                # f"| timezone : {self._app.e1_chart.get('timezone')}"
-            )
+            # msg_ = f"{location_name} updated"
         else:
             # grab country & city
             if hasattr(mainwindow, "country_two"):
@@ -348,18 +337,9 @@ class EventData(GObject.Object):
             self._app.e2_swe["lat"] = lat
             self._app.e2_swe["lon"] = lon
             self._app.e2_swe["alt"] = int(alt)
-            msg_ = (
-                f"{location_name} updated"
-                # f"\n\tlat : {self._app.e2_swe.get('lat')} "
-                # f"| lon : {self._app.e2_swe.get('lon')} "
-                # f"| alt : {self._app.e2_swe.get('alt')}"
-                # f"\n\tlocation : {self._app.e2_chart.get('location')}"
-                # f"\n\tcountry : {self._app.e2_chart.get('country')} "
-                # f"| city : {self._app.e2_chart.get('city')} "
-                # f"| timezone : {self._app.e2_chart.get('timezone')}"
-            )
+            # msg_ = f"{location_name} updated"
         self._notify.success(
-            msg_,
+            f"{location_name} updated",
             source="eventdata",
             route=["terminal"],
         )
