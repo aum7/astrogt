@@ -1,4 +1,5 @@
-# set preferences
+# user/settings.py
+# set default preferences : for sweph calculations & app settings
 OBJECTS = {
     "su": ("sun", "surya", "sy", 0),
     "mo": ("moon", "candra", "ca", 1),

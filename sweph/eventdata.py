@@ -100,7 +100,7 @@ class EventData(GObject.Object):
                 )
                 return
             elif location_name == "location two":
-                # handle empty location : erase event 2 data
+                # handle empty location : erase location 2 data
                 self._app.e2_chart["location"] = ""
                 self._app.e2_chart["timezone"] = ""
                 self._app.e2_swe["lat"] = None

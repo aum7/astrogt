@@ -6,6 +6,7 @@ gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from ui.collapsepanel import CollapsePanel
 from user.settings import OBJECTS, SWE_FLAG
+from sweph.setupsettings import get_sweph_flags
 
 
 def setup_settings(manager) -> CollapsePanel:
@@ -20,8 +21,9 @@ def setup_settings(manager) -> CollapsePanel:
     subpnl_objects = CollapsePanel(
         title="objects / planets",
         indent=14,
-        expanded=True,
+        expanded=False,
     )
+    # separate objects by event 1 / 2 todo
     subpnl_objects.set_title_tooltip("select objects to display on chart")
     # main container
     box_objects = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
@@ -77,6 +79,7 @@ def setup_settings(manager) -> CollapsePanel:
         row.set_child(hbox)
         manager.listbox.append(row)
     objects_select_all(check, manager)
+    # todo below print called 2 times ??? why
     print(f"panelsettings : objselall : manager : {manager}")
     # add box to sub-panel
     subpnl_objects.add_widget(box_objects)
@@ -128,6 +131,8 @@ def setup_settings(manager) -> CollapsePanel:
         manager.listbox_flags.append(row)
     # add box to sub-panel
     subpnl_flags.add_widget(box_flags)
+    # call initial sweph flags from settings.py
+    get_sweph_flags()
 
     # sub-panel house system --------------------
     subpnl_housesys = CollapsePanel(
@@ -251,4 +256,5 @@ def objects_select_none(button, manager):
 
 
 def flags_toggled(button, name, manager):
+    """update selected flags"""
     pass

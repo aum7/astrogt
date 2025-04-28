@@ -162,9 +162,9 @@ class MainWindow(
             if not stack:
                 continue
             # remove pages
-            old = stack.get_child_by_name("tables")
-            if old:
-                stack.remove(old)
+            old_tables = stack.get_child_by_name("tables")
+            if old_tables:
+                stack.remove(old_tables)
             # add new page
             stack.add_titled(
                 self._swe_positions.positions_page(),
