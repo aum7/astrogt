@@ -55,11 +55,11 @@ class SidepaneManager:
         # initialize attributes
         self.margin_end = 7
         # intialize panels
-        self.sidepane = self.setup_side_pane()
         self.clp_event_one = None
         self.clp_event_two = None
         self.clp_tools = None
         self.clp_settings = None
+        self.sidepane = self.setup_side_pane()
 
     def setup_side_pane(self):
         # main box for widgets
@@ -68,9 +68,11 @@ class SidepaneManager:
         self.clp_change_time = self.setup_change_time()
         # 2 events
         self.clp_event_one = setup_event(self, "event one", True)
+        self.clp_event_two = setup_event(self, "event two", False)
         if self._app.selected_event == "event one":
             self.clp_event_one.add_title_css_class("label-event-selected")
-        self.clp_event_two = setup_event(self, "event two", False)
+        else:
+            self.clp_event_two.add_title_css_class("label-event-selected")
         # tools ie save & load file etc
         self.clp_tools = setup_tools(self)
         # settings ie objects to calculate & flags to use etc
@@ -168,7 +170,7 @@ arrow key left / right : move time backward / forward
             self.CHANGE_TIME_SELECTED = float(key)
 
     def change_event_time(self, change_delta):
-        """adjust event time by julian day delta"""
+        """adjust selected event time by julian day delta"""
         # get active entry based on selected event
         if self._app.selected_event == "event one" and self._app.EVENT_ONE:
             entry = self._app.EVENT_ONE.date_time

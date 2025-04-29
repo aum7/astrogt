@@ -1,12 +1,13 @@
 # ui/sidepane/panelsettings.py
 # ruff: noqa: E402
+import swisseph as swe
 import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from ui.collapsepanel import CollapsePanel
 from user.settings import OBJECTS, SWE_FLAG
-from sweph.setupsettings import get_sweph_flags
+from sweph.setupsettings import get_sweph_flags_int
 
 
 def setup_settings(manager) -> CollapsePanel:
@@ -89,7 +90,13 @@ def setup_settings(manager) -> CollapsePanel:
         indent=14,
         expanded=True,
     )
-    subpnl_flags.set_title_tooltip("sweph calculation flags")
+    subpnl_flags.set_title_tooltip(
+        """
+sweph calculation flags\n
+average user will set down to topocentric\n
+only change the rest if you really KNOW
+    what you are doing (see swisseph docs)"""
+    )
     # main container
     box_flags = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
     box_flags.set_margin_top(manager.margin_end)
@@ -100,9 +107,10 @@ def setup_settings(manager) -> CollapsePanel:
     manager.listbox_flags = Gtk.ListBox()
     manager.listbox_flags.set_selection_mode(Gtk.SelectionMode.NONE)
     box_flags.append(manager.listbox_flags)
-    # track selected flags
+    # track selected flags as strings for button labels
     manager.selected_flags = set()
-
+    manager.sweph_flag = 0
+    # initial flags setup
     for flag, flags_data in SWE_FLAG.items():
         row = Gtk.ListBoxRow()
         name = flag
@@ -119,7 +127,9 @@ def setup_settings(manager) -> CollapsePanel:
         # create checkbox for selection
         check = Gtk.CheckButton()
         check.set_active(selected)
-        check.connect("toggled", lambda btn, n=name: flags_toggled(btn, n, manager))
+        check.connect(
+            "toggled", lambda btn, n=name, m=manager: flags_toggled(btn, n, m)
+        )
         hbox.append(check)
         # add label with the option name
         label = Gtk.Label(label=name)
@@ -131,8 +141,11 @@ def setup_settings(manager) -> CollapsePanel:
         manager.listbox_flags.append(row)
     # add box to sub-panel
     subpnl_flags.add_widget(box_flags)
-    # call initial sweph flags from settings.py
-    get_sweph_flags()
+    # manage flag checkboxes
+    manager.selected_flags = {k for k, v in SWE_FLAG.items() if v[0]}
+    print(f"panelsettings : slctflgs : {manager.selected_flags}")
+    manager.sweph_flag = get_sweph_flags_int()
+    print(f"panelsettings : sweflg : {manager.sweph_flag}")
 
     # sub-panel house system --------------------
     subpnl_housesys = CollapsePanel(
@@ -257,4 +270,42 @@ def objects_select_none(button, manager):
 
 def flags_toggled(button, name, manager):
     """update selected flags"""
-    pass
+    if button.get_active():
+        # update checkbox
+        manager.selected_flags.add(name)
+        # overwrite user/settings.py
+        # settings.SWE_FLAG[name] = (True, settings.SWE_FLAG[name][1])
+    else:
+        manager.selected_flags.discard(name)
+        # settings.SWE_FLAG[name] = (False, settings.SWE_FLAG[name][1])
+    # sweph.setupsettings.sweph_flag = sweph.setupsettings.get_sweph_flags()
+    print(f"panelsettings : flagstoggled : selectedflags : {manager.selected_flags}")
+    # update sweph flags
+    flags = 0
+    for flag in manager.selected_flags:
+        if flag == "sidereal zodiac":
+            flags |= swe.FLG_SIDEREAL
+        if flag == "true positions":
+            flags |= swe.FLG_TRUEPOS
+        if flag == "topocentric":
+            flags |= swe.FLG_TOPOCTR
+        if flag == "heliocentric":
+            flags |= swe.FLG_HELCTR
+        if flag == "default flag":
+            flags |= swe.FLG_SWIEPH | swe.FLG_SPEED
+        if flag == "no nutation":
+            flags |= swe.FLG_NONUT
+        if flag == "no abberation":
+            flags |= swe.FLG_NOABERR
+        if flag == "no deflection":
+            flags |= swe.FLG_NOGDEFL
+        if flag == "equatorial":
+            flags |= swe.FLG_EQUATORIAL
+        if flag == "cartesian":
+            flags |= swe.FLG_XYZ
+        if flag == "radians":
+            flags |= swe.FLG_RADIANS
+    manager.sweph_flag = flags
+    print(f"flgstgl : swephflag : {manager.sweph_flag}")
+
+    return flags

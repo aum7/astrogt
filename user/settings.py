@@ -14,38 +14,70 @@ OBJECTS = {
     "ra": ("mean node", "rahu", "ra", 10),
 }
 SWE_FLAG = {
-    # --- use default sweph ephemeris & speed calculations
-    "default flag": (True, "use default (sweph ephemeris & speed calculations)"),
+    # default & user-modified flags for sweph calculations
+    # all flags are duplicated & commented as backup ; user can toggle them in
+    # settings panel which will update uncommented flags / values (this file)
     # --- use sidereal (jyotisa) zodiac : else use tropical (western) zodiac
     # FLG_SIDEREAL vs FLG_TROPICAL (default)
+    # "sidereal zodiac": (True, "use sideral (vs tropical) zodiac"),
     "sidereal zodiac": (True, "use sideral (vs tropical) zodiac"),
-    # --- do NOT use nutation : small irregularity in the precession of the equinoxes
-    # FLG_NONUT
-    "no nutation": (
-        True,
-        "do NOT use nutation (small irregularity in precession of the equinoxes)",
-    ),
-    # --- calculate heliocentric positions : astrology uses geocentric positions
-    # FLG_HELCTR
-    "heliocentric": (False, "calculate heliocentric (vs geocentric) positions"),
     # --- calculate true, not apparent (visible from earth) positions
     # journey of the light from a planet to the earth takes some time
     # FLG_TRUEPOS
+    # "true positions": (True, "calculate true (vs apparent) positions"),
     "true positions": (True, "calculate true (vs apparent) positions"),
     # --- calculate topocentric positions, viewed from latitude & longitude of
     # event ; else calculate geocentric positions (default, used traditionally
     # in astrology), viewed from center of the earth
+    # if true : call swe_set_topo(geo_lon, geo_lat, altitude_above_sea) todo
     # FLG_TOPOCTR
-    "topocentric": (False, "calculate topocentric (vs geocentric) positions"),
+    # "topocentric": (True, "calculate topocentric (vs geocentric) positions"),
+    "topocentric": (True, "calculate topocentric (vs geocentric) positions"),
+    # --- calculate heliocentric positions : astrology uses geocentric positions
+    # FLG_HELCTR
+    # "heliocentric": (False, "calculate heliocentric (vs geocentric) positions"),
+    "heliocentric": (False, "calculate heliocentric (vs geocentric) positions"),
+    # --- use default sweph ephemeris & speed calculations
+    # "default flag": (True, "use default (sweph ephemeris & speed calculations)"),
+    "default flag": (True, "use default (sweph ephemeris & speed calculations)"),
+    # --- do NOT use nutation : small irregularity in the precession of the equinoxes
+    # use mean equinox of date
+    # FLG_NONUT
+    # "no nutation": (
+    #     True,
+    #     "do NOT use nutation (small irregularity in precession of the equinoxes)",
+    # ),
+    "no nutation": (
+        True,
+        "do NOT use nutation if checked (small irregularity in precession of the equinoxes)",
+    ),
+    # --- astrometric (not used = FLG_NOABERR | FLG_NOGDEFL > both below)
+    # the light-time correction is computed, but annual aberration and
+    # light- deflection by the sun neglected
+    # FLG_ASTROMETRIC
+    # --- no abberation : small irregularity in the motion of the moons
+    # FLG_NOABERR
+    # "no aberration": (False, "do NOT use aberration (small irregularity of moon)"),
+    "no abberation": (
+        False,
+        "do NOT use aberration if checked (small irregularity of moon)",
+    ),
+    # --- no gravity deflection
+    # FLG_NOGDEFL
+    # "no deflection": (False, "do NOT use gravitational deflection"),
+    "no deflection": (False, "do NOT use gravitational deflection if checked"),
     # --- return equatorial positions (right ascension & declination)
     # else return ecliptic (default, latitude & longitude) positions
     # FLG_EQUATORIAL
+    # "equatorial": (False, "return equatorial (vs ecliptic) positions"),
     "equatorial": (False, "return equatorial (vs ecliptic) positions"),
     # --- return cartesian (x, y, z) else polar (default) coordinates
     # FLG_XYZ
+    # "cartesian": (False, "return cartesian (x, y, z vs polar degrees) coordinates"),
     "cartesian": (False, "return cartesian (x, y, z vs polar degrees) coordinates"),
     # --- return radian else degree (default) units
     # FLG_RADIANS
+    # "radians": (False, "return radian (vs degree) units"),
     "radians": (False, "return radian (vs degree) units"),
 }
 # add or remove houses as you please
