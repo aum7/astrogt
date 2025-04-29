@@ -1,5 +1,11 @@
 # user/settings.py
 # set default preferences : for sweph calculations & app settings
+# recommended to setup before application start : usually once per user
+# do not modify while application is running : results unknown
+# settings can be changed in application > sidepane > settings panel
+# some info / description is provided below as comments, details are in
+# original sweph documentation, ie swephprg.pdf & swisseph.pdf at
+# https://github.com/aloistr/swisseph/tree/master/doc
 OBJECTS = {
     "su": ("sun", "surya", "sy", 0),
     "mo": ("moon", "candra", "ca", 1),
@@ -11,10 +17,10 @@ OBJECTS = {
     "ur": ("uranus", "uranus", "ur", 7),
     "ne": ("neptune", "neptune", "ne", 8),
     "pl": ("pluto", "pluto", "pl", 9),
-    "ra": ("mean node", "rahu", "ra", 10),
+    "ra": ("true node", "rahu", "ra", 11),
 }
 SWE_FLAG = {
-    # default & user-modified flags for sweph calculations
+    # default flags for sweph calculations
     # all flags are duplicated & commented as backup ; user can toggle them in
     # settings panel which will update uncommented flags / values (this file)
     # --- use sidereal (jyotisa) zodiac : else use tropical (western) zodiac
@@ -49,11 +55,11 @@ SWE_FLAG = {
     # ),
     "no nutation": (
         True,
-        "do NOT use nutation if checked (small irregularity in precession of the equinoxes)",
+        "do NOT use nutation if checked (small irregularity in equinoxes precession)",
     ),
     # --- astrometric (not used = FLG_NOABERR | FLG_NOGDEFL > both below)
     # the light-time correction is computed, but annual aberration and
-    # light- deflection by the sun neglected
+    # light-deflection by the sun neglected
     # FLG_ASTROMETRIC
     # --- no abberation : small irregularity in the motion of the moons
     # FLG_NOABERR
@@ -82,42 +88,78 @@ SWE_FLAG = {
 }
 # add or remove houses as you please
 # https://astrorigin.com/pyswisseph/sphinx/programmers_manual/house_cusp_calculation.html?highlight=houses#swisseph.houses
-# below are most popular 7 out of 24+; arrange as you please
+# below are most popular 7 out of 24+; arrange line up or down as you please
 HOUSE_SYSTEMS = [
-    ("E", "eqa: equal asc", "eqa"),
-    ("O", "prp: porphyry", "prp"),
-    ("P", "plc: placidus", "plc"),
-    ("R", "rgm: regiomontanus", "rgm"),
-    ("C", "cmp: campanus", "cmp"),
-    ("K", "kch: koch", "kch"),
-    ("W", "whs: whole sign", "whs"),  # makes no sense to draw it, same as signs
+    ("E", "eqa : equal asc", "eqa"),
+    ("D", "eqm : equal mc", "eqm"),
+    ("O", "prp : porphyry", "prp"),
+    ("P", "plc : placidus", "plc"),
+    ("R", "rgm : regiomontanus", "rgm"),
+    ("C", "cmp : campanus", "cmp"),
+    ("K", "kch : koch", "kch"),
+    ("W", "whs : whole sign", "whs"),  # makes no sense to draw it, same as signs
 ]
 CHART_SETTINGS = {
-    # toggle glyphs visibility shortcut
-    "enable_glyphs": True,
-    # harmonics division ring : 0 hide | 1 egypt. terms (bounds)
+    # --- toggle glyphs visibility (shortcut)
+    "enable glyphs": (True, "toggle glyphs visibility"),
+    # --- show true midheaven & imum coeli when equal or whole house system is
+    # selected : true mc / ic can differ by upto 2 signs in those cases
+    "true mc & ic": (
+        True,
+        "show true mc & ic when equal or whole house system is selected",
+    ),
+    # --- rotate whole chart so ascendant is fixed at left (east)
+    # else aries (mesha) 0° is fixed at left
+    "fixed asc": (
+        False,
+        "rotate chart so ascendant is fixed at left (east)\nelse aries 0° is fixed at left (default)",
+    ),
+    # --- use mean node else true node
+    "mean node": (False, "calculate mean node (vs default true node)"),
+    # --- naksatras MEGA-ring ! lol
+    "naksatras ring": (True, "show naksatras ring"),
+    # --- use 28 (all equal = no mini abhijt) else standard 27 naksatras
+    "28 naksatras": (
+        True,
+        "use 28 (all equal = no mini abhijit) vs standard 27 naksatras",
+    ),
+    # --- start naksatras ring with naksatra
+    "1st naksatra": (
+        1,
+        "start naksatras ring with any naksatra\nrotate relative to 0° aries\n1 = asvini (standard ; ie mula would be 19)",
+    ),
+    # --- harmonics division ring : 0 hide | 1 egypt. terms (bounds)
     # 7, 9 (navamsa), 11 etc ; not all harmonics are available ;
     # add them if you need them | 2 rings are possible
     # !!! those are simple divisions, similar but NOT all equal to varga
-    "harmonics_ring": {0},
-    # show true midheaven & imum coeli when equal or whole house system is
-    # selected : true mc / ic can differ by upto 2 signs in those cases
-    "true_mc_ic": True,
-    # rotate whole chart so ascendant is fixed at left (east)
-    # else aries (mesha) 0° is fixed at left
-    "fixed_asc": False,
-    # use true node else mean node
-    "true_node": True,
-    # event data for chart info
+    "harmonics ring": (
+        (0),
+        "harmonics ring\n0 : do NOT show | 1 : egypt. terms (bounds)\n7, 9, 11 : simple harmonics *similar* to varga\n2 rings possible ie [1 9] will show terms & navamsa",
+    ),
+    # --- event data to be presented in chart info
     # construct your own 'chart info' format
     # allowed fields: 1: {event} name | 2: weekday {wday} | 3: event {date} |
     # 4: {time} | 5: {city} | 6: country {ctry} | 7: {lat}itude |
     # 8: {lon}gitude ; for short time format (no seconds) use {time[:5]}
-    "chart_info_string": r"{event}\n{date}\n{wday} {time[:5]}\n{city} @ {ctry}\n{lat}\n{lon}",
-    # data same for both charts
+    "chart info string": (
+        r"{event}\n{date}\n{wday} {time[:5]}\n{city} @ {ctry}\n{lat}\n{lon}",
+        """construct your own 'chart info' format : allowed fields :
+    1: {event} name | 2: weekday {wday} | 3: event {date} |
+    4: {time} | 5: {city} | 6: country {ctry} | 7: {lat}itude |
+    8: {lon}gitude ; for short time format (no seconds) use {time[:5]}
+example : {event}\\n{date}\\n{wday} {time[:5]}\\n{city} @ {ctry}\\n{lat}\\n{lon}
+\\n = new line
+    """,
+    ),
+    # - data same for both charts
     # additional 'chart info' format: allowed fields: 1: house system {hsys} |
     # 2: {zod}iac | 3: ayanamsa name {aynm} | 4: ayanamsa value {ayvl}
-    "chart_info_string_extra": r"{hsys} | {zod}\n{aynm} | {ayvl}",
+    "chart info string extra": (
+        r"{hsys} | {zod}\n{aynm} | {ayvl}",
+        """additional 'chart info' format : allowed fields :
+    1: house system {hsys} | 2: {zod}iac |
+    3: ayanamsa name {aynm} | 4: ayanamsa value {ayvl}""",
+    ),
 }
 # --- time constants ---
 # (solar) year lengths in days

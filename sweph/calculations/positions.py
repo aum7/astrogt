@@ -93,11 +93,18 @@ class SwePositions:
         return self.table_positions(pos)
 
     def object_name_to_int(self, name: str) -> int | None:
-        if name == "mean node" and CHART_SETTINGS.get("true_node"):
-            name = "true node"
+        # if name == "true node" and CHART_SETTINGS.get("mean node")[0]:
+        if name == "true node" and CHART_SETTINGS["mean node"][0]:
+            name = "mean node"
         for obj in OBJECTS.values():
             if obj[0] == name:
                 return obj[3]
-        if name == "true node":
-            return 11
+        if name == "mean node":
+            return 10
         return None
+
+    # def object_int_to_name(self, obj_int: int) -> str | None:
+    #     # swe.get_planet_name(obj_int)
+    #     for obj in OBJECTS.values():
+    #         if obj[3] == obj_int:
+    #             return OBJECTS.keys()

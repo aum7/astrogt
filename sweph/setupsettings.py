@@ -30,6 +30,5 @@ def get_sweph_flags_int():
         flags |= swe.FLG_XYZ
     if SWE_FLAG["radians"][0]:
         flags |= swe.FLG_RADIANS
-    print(f"setupsettings : getswephflags : {flags}")
 
     return flags

@@ -24,7 +24,6 @@ class MainWindow(
     """main application window, combining ui : sidepane & main panes"""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        print(f"mainwindow : __init__ : id self : {id(self)}")
         """initialize the main window"""
         Gtk.ApplicationWindow.__init__(self, *args, **kwargs)
         SidepaneManager.__init__(self, app=self.get_application())

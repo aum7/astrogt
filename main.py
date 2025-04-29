@@ -40,7 +40,7 @@ class AstrogtApp(Gtk.Application):
         if content:
             win.set_child(None)
             toast_overlay.set_child(content)
-        # set toast overlay as winddow chile
+        # set toast overlay as window child
         win.set_child(toast_overlay)
         self.notify_manager.toast_overlay = toast_overlay
         # notification : code specific to this file
