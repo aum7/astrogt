@@ -6,7 +6,7 @@ from user.settings import SWE_FLAG
 
 
 def get_sweph_flags_int():
-    """configure or get initial sweph flags"""
+    """get initial sweph flags"""
     flags = 0
     if SWE_FLAG["sidereal zodiac"][0]:
         flags |= swe.FLG_SIDEREAL
@@ -30,6 +30,6 @@ def get_sweph_flags_int():
         flags |= swe.FLG_XYZ
     if SWE_FLAG["radians"][0]:
         flags |= swe.FLG_RADIANS
-    print(f"getswephflags : {flags}")
+    print(f"setupsettings : getswephflags : {flags}")
 
     return flags

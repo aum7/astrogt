@@ -59,7 +59,6 @@ class SidepaneManager:
         self.clp_event_two = None
         self.clp_tools = None
         self.clp_settings = None
-        self.sidepane = self.setup_side_pane()
 
     def setup_side_pane(self):
         # main box for widgets

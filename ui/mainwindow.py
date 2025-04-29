@@ -24,6 +24,7 @@ class MainWindow(
     """main application window, combining ui : sidepane & main panes"""
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
+        print(f"mainwindow : __init__ : id self : {id(self)}")
         """initialize the main window"""
         Gtk.ApplicationWindow.__init__(self, *args, **kwargs)
         SidepaneManager.__init__(self, app=self.get_application())
@@ -49,7 +50,7 @@ class MainWindow(
         self._hotkeys.intercept_button_controller(self.btn_toggle_pane, "toggle_pane")
         # show all 4 panes
         self.panes_all
-        # demo stacks todo delete
+        # 4 main stacks as panes
         self.init_stacks()
         self._signal._connect("event-one-changed", self.update_tables)
         self._app.selected_objects = getattr(self, "selected_objects", set())

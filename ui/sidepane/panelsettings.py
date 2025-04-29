@@ -143,9 +143,10 @@ only change the rest if you really KNOW
     subpnl_flags.add_widget(box_flags)
     # manage flag checkboxes
     manager.selected_flags = {k for k, v in SWE_FLAG.items() if v[0]}
-    print(f"panelsettings : slctflgs : {manager.selected_flags}")
+    print(f"panelsettings : selectedflags : {manager.selected_flags}")
+    # setup initial sweph flags
     manager.sweph_flag = get_sweph_flags_int()
-    print(f"panelsettings : sweflg : {manager.sweph_flag}")
+    print(f"panelsettings : swephflag : {manager.sweph_flag}")
 
     # sub-panel house system --------------------
     subpnl_housesys = CollapsePanel(
@@ -269,7 +270,7 @@ def objects_select_none(button, manager):
 
 
 def flags_toggled(button, name, manager):
-    """update selected flags"""
+    """update selected sweph flags"""
     if button.get_active():
         # update checkbox
         manager.selected_flags.add(name)
@@ -306,6 +307,6 @@ def flags_toggled(button, name, manager):
         if flag == "radians":
             flags |= swe.FLG_RADIANS
     manager.sweph_flag = flags
-    print(f"flgstgl : swephflag : {manager.sweph_flag}")
+    print(f"panelsettings : flagstoggled : swephflag : {manager.sweph_flag}")
 
     return flags
