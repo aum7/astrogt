@@ -55,6 +55,17 @@ class CollapsePanel(Gtk.Box):
         # todo context menu popover not resizing : workaround ko
         self.emit("toggled")
 
+    def toggle_expand(self, expand: bool):
+        """toggle expanded or collapsed state"""
+        self.box_content.set_visible(expand)
+        self.icon_expand.set_from_icon_name(
+            "pan-down-symbolic" if expand else "pan-end-symbolic"
+        )
+
+    def toggle_sensitive(self, sensitive: bool):
+        """toggle content sensitivity"""
+        self.box_content.set_sensitive(sensitive)
+
     def add_widget(self, widget):
         """add widget to panel content area"""
         self.box_content.append(widget)

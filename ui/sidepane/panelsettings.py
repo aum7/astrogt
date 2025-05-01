@@ -39,8 +39,8 @@ event 1 & 2 can have different objects"""
     )
     # main container
     box_objects = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
-    box_objects.set_margin_top(manager.margin_end)
-    box_objects.set_margin_bottom(manager.margin_end)
+    # box_objects.set_margin_top(manager.margin_end)
+    # box_objects.set_margin_bottom(manager.margin_end)
     box_objects.set_margin_start(manager.margin_end)
     box_objects.set_margin_end(manager.margin_end)
     # button box at top
@@ -374,6 +374,8 @@ more info in user/settings.py > SWE_FLAG"""
     )
     # main box for content
     box_solar_lunar_periods = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+    box_solar_lunar_periods.set_margin_start(manager.margin_end)
+    box_solar_lunar_periods.set_margin_end(manager.margin_end)
     # solar year label
     lbl_solar_year = Gtk.Label(label="solar year")
     lbl_solar_year.set_halign(Gtk.Align.START)
@@ -390,7 +392,7 @@ more info in user/settings.py > SWE_FLAG"""
     sidereal\t\t365.256363
     lunar\t\t\t354.37""")
     ddn_solar_year.set_selected(0)
-    manager.selected_year = list(SOLAR_YEAR.keys())[0]
+    manager.selected_year = list(SOLAR_YEAR.values())[1]
     ddn_solar_year.connect("notify::selected", solar_year_changed, manager)
     # put widgets into main box
     box_solar_lunar_periods.append(lbl_solar_year)
@@ -431,41 +433,87 @@ more info in user/settings.py > SWE_FLAG"""
         indent=21,
         expanded=True,
     )
+    subsubpnl_custom_ayanamsa.set_title_tooltip(
+        "above select ayanamsa 'user-defined' to enable below settings"
+    )
     # box for sub-panel ayanamsa
     box_ayanamsa = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+    box_ayanamsa.set_margin_start(manager.margin_end)
+    box_ayanamsa.set_margin_end(manager.margin_end)
     # ayanamsa select : dropdown
     manager.selected_ayanamsa = None
     ayanamsa_store = Gtk.StringList()
-    for _, value in AYANAMSA.items():
+    for key, value in AYANAMSA.items():
         ayanamsa_store.append(value[0])
     ddn_ayanamsa = Gtk.DropDown.new(ayanamsa_store)
     ddn_ayanamsa.set_tooltip_text("see AYANAMSA in user/settings.py")
     ddn_ayanamsa.set_selected(0)
     manager.selected_ayanamsa = list(AYANAMSA.keys())[0]
-    ddn_ayanamsa.connect("notify::selected", ayanamsa_changed, manager)
+
+    def ayanamsa_notify_cb(dropdown, param, manager):
+        idx = dropdown.get_selected()
+        key = list(AYANAMSA.keys())[idx]
+        # custom = user-defined = 255
+        is_user_defined = key == 255
+        subsubpnl_custom_ayanamsa.toggle_sensitive(is_user_defined)
+        subsubpnl_custom_ayanamsa.toggle_expand(is_user_defined)
+        manager.selected_ayanamsa = key
+        ayanamsa_changed(dropdown, param, manager)
+
+    ddn_ayanamsa.connect("notify::selected", ayanamsa_notify_cb, manager)
+    # set initial state of sub-sub-panel custom ayanamsa
+    key0 = list(AYANAMSA.keys())[ddn_ayanamsa.get_selected()]
+    is_user_defined0 = key0 == 255
+    subsubpnl_custom_ayanamsa.toggle_sensitive(is_user_defined0)
+    subsubpnl_custom_ayanamsa.toggle_expand(is_user_defined0)
     # put into box
     box_ayanamsa.append(ddn_ayanamsa)
-    # sub-sub-panel custom ayanamsa
+    # --- sub-sub-panel custom ayanamsa
     box_ayanamsa_custom = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
     # box for custom ayanamsa : julian day utc & ayanamsa value
-    box_custom_julian_day = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
     # label
-    lbl_custom_julian_day = Gtk.Label(label="julian day utc")
-    # lbl_custom_julian_day.set_halign(Gtk.Align.START)
-    box_custom_julian_day.append(lbl_custom_julian_day)
+    lbl_julian_day = Gtk.Label(label="julian day utc")
+    lbl_julian_day.set_halign(Gtk.Align.START)
     # entry for julian day utc
-    manager.custom_julian_day = None
     ent_julian_day = Gtk.Entry()
-    ent_julian_day.set_text(CUSTOM_AYANAMSA["custom julian day utc"])
+    ent_julian_day.set_text(str(CUSTOM_AYANAMSA["custom julian day utc"]))
     manager.custom_julian_day = float(ent_julian_day.get_text())
-    ent_julian_day.set_tooltip_text("""julian day utc > custom ayanamsa reference date
+    ent_julian_day.set_tooltip_text("""julian day utc = custom ayanamsa reference date
     default is for 2000-01-01 12:00 utc (julian day starts at noon)
     if needed, get julian day utc online, then copy-paste the number here""")
+    ent_julian_day.set_max_length(13)
     ent_julian_day.set_max_width_chars(13)
-    ent_julian_day.connect("activate", custom_julian_day_changed, manager)
+    # ent_julian_day.set_hexpand(False)
+    ent_julian_day.connect(
+        "activate",
+        lambda entry, k="custom julian day utc", m=manager: custom_ayanamsa_changed(
+            entry, k, m
+        ),
+    )
     # pack into container
-    box_custom_julian_day.append(ent_julian_day)
-    box_ayanamsa_custom.append(box_custom_julian_day)
+    box_ayanamsa_custom.append(lbl_julian_day)
+    box_ayanamsa_custom.append(ent_julian_day)
+    # custom ayanamsa value
+    # label
+    lbl_ayan_value = Gtk.Label(label="ayanamsa")
+    lbl_ayan_value.set_halign(Gtk.Align.START)
+    # entry
+    ent_ayan_value = Gtk.Entry()
+    ent_ayan_value.set_text(str(CUSTOM_AYANAMSA["custom ayanamsa"]))
+    manager.custom_ayan = float(ent_ayan_value.get_text())
+    ent_ayan_value.set_tooltip_text("""custom ayanamsa value
+    default is 23.76694445 (23° 46' 01"), as per richard houck's book 'astrology of death', for 2000-01-01""")
+    ent_ayan_value.set_max_width_chars(11)
+    ent_ayan_value.set_hexpand(False)
+    ent_ayan_value.connect(
+        "activate",
+        lambda entry, k="custom ayanamsa", m=manager: custom_ayanamsa_changed(
+            entry, k, m
+        ),
+    )
+    # pack widgets
+    box_ayanamsa_custom.append(lbl_ayan_value)
+    box_ayanamsa_custom.append(ent_ayan_value)
     subsubpnl_custom_ayanamsa.add_widget(box_ayanamsa_custom)
     box_ayanamsa.append(subsubpnl_custom_ayanamsa)
     subpnl_ayanamsa.add_widget(box_ayanamsa)
@@ -745,9 +793,10 @@ def flags_toggled(button, flag, manager):
 def solar_year_changed(dropdown, _, manager):
     """solar & lunar period panel : select solar year period"""
     idx = dropdown.get_selected()
-    manager.selected_year = list(SOLAR_YEAR.keys())[idx]
+    manager.selected_year = list(SOLAR_YEAR.values())[idx][0]
     manager._notify.debug(
-        f"sol & lun period panel :\n\tsolar year :\t{manager.selected_year}",
+        f"sol & lun period panel :\n\tsolar year :\t{manager.selected_year} | "
+        f"{list(SOLAR_YEAR.keys())[idx]}",
         source="panelsettings",
         route=["terminal"],
     )
@@ -756,9 +805,10 @@ def solar_year_changed(dropdown, _, manager):
 def lunar_month_changed(dropdown, _, manager):
     """solar & lunar period panel : select lunar month period"""
     idx = dropdown.get_selected()
-    manager.selected_month = list(LUNAR_MONTH.keys())[idx]
+    manager.selected_month = list(LUNAR_MONTH.values())[idx][0]
     manager._notify.debug(
-        f"sol & lun period panel :\n\tlunar month :\t{manager.selected_month}",
+        f"sol & lun period panel :\n\tlunar month :\t{manager.selected_month} | "
+        f"{list(LUNAR_MONTH.keys())[idx]}",
         source="panelsettings",
         route=["terminal"],
     )
@@ -775,31 +825,63 @@ def ayanamsa_changed(dropdown, _, manager):
     )
 
 
-def custom_julian_day_changed(entry, manager):
-    """ayanamsa panel : custom julian day utc - reference date"""
-    custom_julian_day = entry.get_text().strip()
-    if str(manager.custom_julian_day) == custom_julian_day:
+def custom_ayanamsa_changed(entry, key, manager):
+    """ayanamsa panel : combine custom julian day utc & custom ayanamsa value : both float"""
+    # --- custom julian day
+    if key == "custom julian day utc":
+        custom_julian_day = entry.get_text().strip()
+        # need be float
+        try:
+            entry.remove_css_class("entry-warning")
+            custom_jd = float(custom_julian_day)
+        except ValueError:
+            entry.add_css_class("entry-warning")
+            manager._notify.warning(
+                f"invalid custom julian day utc : {custom_julian_day}",
+                source="panelsettings",
+                route=["terminal", "user"],
+                timeout=4,
+            )
+            return
+        if manager.custom_julian_day == custom_jd:
+            manager._notify.debug(
+                "custom julian day not changed : exiting ...",
+                source="panelsettings",
+                route=["terminal"],
+            )
+            return
+        manager.custom_julian_day = custom_jd
         manager._notify.debug(
-            "custom julian day not changed : exiting ...",
+            f"customjulday : {manager.custom_julian_day}",
             source="panelsettings",
             route=["terminal"],
         )
-        return
-    # need be float
-    try:
-        custom_jd = float(custom_julian_day)
-    except ValueError:
-        entry.add_css_class("entry-warning")
-        manager._notify.warning(
-            f"invalid custom julian day utc : {custom_julian_day}",
+    # --- custom ayanamsa value
+    if key == "custom ayanamsa":
+        custom_ayan_string = entry.get_text().strip()
+        # need be float
+        try:
+            entry.remove_css_class("entry-warning")
+            custom_ayan = float(custom_ayan_string)
+        except ValueError:
+            entry.add_css_class("entry-warning")
+            manager._notify.warning(
+                f"invalid custom ayanamsa value : {custom_ayan_string}",
+                source="panelsettings",
+                route=["terminal", "user"],
+                timeout=4,
+            )
+            return
+        if manager.custom_ayan == custom_ayan:
+            manager._notify.debug(
+                "custom julian day not changed : exiting ...",
+                source="panelsettings",
+                route=["terminal"],
+            )
+            return
+        manager.custom_ayan = custom_ayan
+        manager._notify.debug(
+            f"customayanamsa : {manager.custom_ayan}",
             source="panelsettings",
-            route=["terminal", "user"],
-            timeout=4,
+            route=["terminal"],
         )
-        return
-    manager.custom_julian_day = custom_jd
-    manager._notify.debug(
-        f"customjulday : {custom_julian_day}",
-        source="panelsettings",
-        route=["terminal"],
-    )
