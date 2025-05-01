@@ -6,7 +6,14 @@ import gi
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from ui.collapsepanel import CollapsePanel
-from user.settings import OBJECTS, SWE_FLAG, HOUSE_SYSTEMS, CHART_SETTINGS
+from user.settings import (
+    OBJECTS,
+    SWE_FLAG,
+    HOUSE_SYSTEMS,
+    CHART_SETTINGS,
+    SOLAR_YEAR,
+    LUNAR_MONTH,
+)
 from sweph.setupsettings import get_sweph_flags_int
 
 
@@ -51,7 +58,7 @@ event 1 & 2 can have different objects"""
     btn_toggle_event_objs.add_css_class("button-event")
     btn_toggle_event_objs.set_child(ico_toggle_event_objs)
     btn_toggle_event_objs.set_tooltip_text("toggle event for selected objects")
-    btn_toggle_event_objs.connect("clicked", toggle_event_objects, manager)
+    btn_toggle_event_objs.connect("clicked", objects_toggle_event, manager)
     box_button.append(btn_toggle_event_objs)
     # select all button
     btn_select_all = Gtk.Button(label="all")
@@ -103,29 +110,13 @@ event 1 & 2 can have different objects"""
     ddn_housesys.set_selected(0)
     manager.selected_house_system = HOUSE_SYSTEMS[0][0]
 
-    def house_system_changed(dropdown, _):
-        idx = dropdown.get_selected()
-        # todo modify to include short name for chart info
-        hsys, _, _ = HOUSE_SYSTEMS[idx]
-        manager.selected_house_system = hsys
-        manager._notify.debug(
-            f"selectedhousesystem : {manager.selected_house_system}",
-            source="panelsettings",
-            route=["terminal"],
-        )
-
-    ddn_housesys.connect("notify::selected", house_system_changed)
+    ddn_housesys.connect("notify::selected", house_system_changed, manager)
     subpnl_housesys.add_widget(ddn_housesys)
-    manager._notify.debug(
-        f"selectedhousesystem : {manager.selected_house_system}",
-        source="panelsettings",
-        route=["terminal"],
-    )
     # --- sub-panel chart settings --------------------
     subpnl_chart_settings = CollapsePanel(
         title="chart settings",
         indent=14,
-        expanded=True,
+        expanded=False,
     )
     subpnl_chart_settings.set_title_tooltip(
         """chart rendering & info display settings"""
@@ -172,8 +163,8 @@ event 1 & 2 can have different objects"""
     manager.chk_naks_ring.set_active(CHART_SETTINGS["naksatras ring"][0])
     manager.chk_naks_ring.connect(
         "toggled",
-        lambda btn, n="naksatras ring", m=manager: (
-            naksatras_ring(btn, n, m),
+        lambda btn, k="naksatras ring", m=manager: (
+            naksatras_ring(btn, k, m),
             manager.chk_28_naks.set_sensitive(btn.get_active()),
             manager.ent_1st_nak.set_sensitive(btn.get_active()),
         ),
@@ -193,7 +184,7 @@ event 1 & 2 can have different objects"""
     manager.chk_28_naks.set_sensitive(manager.chk_naks_ring.get_active())
     manager.chk_28_naks.connect(
         "toggled",
-        lambda btn, n="28 naksatras", m=manager: naksatras_ring(btn, n, m),
+        lambda btn, k="28 naksatras", m=manager: naksatras_ring(btn, k, m),
     )
     manager.chk_28_naks.set_tooltip_text(CHART_SETTINGS["28 naksatras"][1])
     # start naksatras ring with any naksatra
@@ -211,7 +202,7 @@ event 1 & 2 can have different objects"""
     manager.ent_1st_nak.set_sensitive(manager.chk_naks_ring.get_active())
     manager.ent_1st_nak.connect(
         "activate",
-        lambda btn, n="1st naksatra", m=manager: naksatras_ring(btn, n, m),
+        lambda btn, k="1st naksatra", m=manager: naksatras_ring(btn, k, m),
     )
     box_naks.append(manager.ent_1st_nak)
     row.set_child(box_naks)
@@ -239,8 +230,8 @@ event 1 & 2 can have different objects"""
     manager.lbx_chart_settings.append(row)
     manager.chart_settings["harmonics ring"] = ent_harmonics.get_text()
     box_chart_settings.append(manager.lbx_chart_settings)
-    # --- chart info string : basic & event-dependent ------------------
-    # main box for chart info
+    # --- chart info string : basic & extra ------------------
+    # main box for chart info string
     box_chart_info = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
     box_chart_info.set_margin_start(manager.margin_end)
     box_chart_info.set_margin_end(manager.margin_end)
@@ -267,7 +258,7 @@ event 1 & 2 can have different objects"""
             else ""
         )
         ent_chart_info.set_width_chars(54)
-        ent_chart_info.connect("activate", chart_info_string, manager, info)
+        ent_chart_info.connect("activate", chart_info_string, info, manager)
 
         row.set_child(ent_chart_info)
         manager.lbx_chart_info.append(row)
@@ -310,18 +301,23 @@ more info in user/settings.py > SWE_FLAG"""
     manager.sweph_flag = 0
     # collect flags from settings.py
     # only use 1-4 for 1st listbox (in sub-panel)
-    for flag, flags_data in SWE_FLAG.items():
-        if flag in ["sidereal zodiac", "true positions", "topocentric", "heliocentric"]:
+    for flag_, flags_data in SWE_FLAG.items():
+        if flag_ in [
+            "sidereal zodiac",
+            "true positions",
+            "topocentric",
+            "heliocentric",
+        ]:
             row = Gtk.ListBoxRow()
-            name = flag
+            flag = flag_
             selected = flags_data[0]
             tooltip = flags_data[1]
             row.set_tooltip_text(tooltip)
             # create checkbox for selection
-            check = Gtk.CheckButton(label=name)
+            check = Gtk.CheckButton(label=flag)
             check.set_active(selected)
             check.connect(
-                "toggled", lambda btn, n=name, m=manager: flags_toggled(btn, n, m)
+                "toggled", lambda btn, f=flag, m=manager: flags_toggled(btn, f, m)
             )
             row.set_child(check)
             manager.lbx_flags.append(row)
@@ -333,19 +329,24 @@ more info in user/settings.py > SWE_FLAG"""
     box_flags_extra.set_margin_start(manager.margin_end)
     box_flags_extra.set_margin_end(manager.margin_end)
     # only use 5-10 for 2nd listbox (in sub-sub-panel)
-    for flag, flags_data in SWE_FLAG.items():
-        if flag in ["sidereal zodiac", "true positions", "topocentric", "heliocentric"]:
+    for flag_, flags_data in SWE_FLAG.items():
+        if flag_ in [
+            "sidereal zodiac",
+            "true positions",
+            "topocentric",
+            "heliocentric",
+        ]:
             continue
         row = Gtk.ListBoxRow()
-        name = flag
+        flag = flag_
         selected = flags_data[0]
         tooltip = flags_data[1]
         row.set_tooltip_text(tooltip)
         # create checkboxes : initialize label > label-click will toggle checkbox
-        check = Gtk.CheckButton(label=name)
+        check = Gtk.CheckButton(label=flag)
         check.set_active(selected)
         check.connect(
-            "toggled", lambda btn, n=name, m=manager: flags_toggled(btn, n, m)
+            "toggled", lambda btn, f=flag, m=manager: flags_toggled(btn, f, m)
         )
         row.set_child(check)
         manager.lbx_flags_extra.append(row)
@@ -363,29 +364,57 @@ more info in user/settings.py > SWE_FLAG"""
         source="panelsettings",
         route=["terminal"],
     )
-    # --- sub-panel year & month lengths --------------------
+    # --- sub-panel solar year & lunar months periods --------------------
     subpnl_solar_lunar_periods = CollapsePanel(
         title="solar & lunar periods",
         indent=14,
-        expanded=False,
+        expanded=True,
     )
-    # ------ sub-sub-panel solar year ----------
-    subsubpnl_solar_year = CollapsePanel(
-        title="solar year",
-        indent=21,
-        expanded=False,
-    )
-    # ------ sub-sub-panel lunar month ----------
-    subsubpnl_lunar_month = CollapsePanel(
-        title="lunar month",
-        indent=21,
-        expanded=False,
-    )
-    # box for sub-sub-panels
+    # main box for content
     box_solar_lunar_periods = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
-    # add sub-sub-panels
-    box_solar_lunar_periods.append(subsubpnl_solar_year)
-    box_solar_lunar_periods.append(subsubpnl_lunar_month)
+    # solar year label
+    lbl_solar_year = Gtk.Label(label="solar year")
+    lbl_solar_year.set_halign(Gtk.Align.START)
+    # solar year dropdown
+    manager.selected_year = None
+    year_store = Gtk.StringList()
+    for _, value in SOLAR_YEAR.items():
+        year_store.append(value[1])
+    ddn_solar_year = Gtk.DropDown.new(year_store)
+    ddn_solar_year.set_tooltip_text("""solar & lunar years in days
+    gregorian\t\t365.2425
+    julian\t\t\t365.25
+    tropical\t\t365.24219
+    sidereal\t\t365.256363
+    lunar\t\t\t354.37""")
+    ddn_solar_year.set_selected(0)
+    manager.selected_year = list(SOLAR_YEAR.keys())[0]
+    ddn_solar_year.connect("notify::selected", solar_year_changed, manager)
+    # put widgets into main box
+    box_solar_lunar_periods.append(lbl_solar_year)
+    box_solar_lunar_periods.append(ddn_solar_year)
+    # lunar month label
+    lbl_lunar_month = Gtk.Label(label="lunar month")
+    lbl_lunar_month.set_halign(Gtk.Align.START)
+    # lunar month dropdown
+    manager.selected_month = None
+    month_store = Gtk.StringList()
+    for _, value in LUNAR_MONTH.items():
+        month_store.append(value[1])
+    ddn_lunar_month = Gtk.DropDown.new(month_store)
+    ddn_lunar_month.set_tooltip_text("""lunar months in days
+    tropical\t\t0 ari (houck)\t27.321582
+    synodic\t\tnew moons\t\t29.53059
+    sidereal\t\tfixed star\t\t27.321661
+    anomalistic\tperig-apog\t\t27.554551
+    draconic\t\tlunar nodes\t\t27.21222""")
+    ddn_lunar_month.set_selected(0)
+    manager.selected_month = list(LUNAR_MONTH.keys())[0]
+    ddn_lunar_month.connect(
+        "notify::selected", lunar_month_changed, manager
+    )  # add widgets to box
+    box_solar_lunar_periods.append(lbl_lunar_month)
+    box_solar_lunar_periods.append(ddn_lunar_month)
     # put box into sub-panel
     subpnl_solar_lunar_periods.add_widget(box_solar_lunar_periods)
     # --- sub-panel ayanamsa --------------------
@@ -427,7 +456,8 @@ more info in user/settings.py > SWE_FLAG"""
     return clp_settings
 
 
-def toggle_event_objects(button, manager):
+def objects_toggle_event(button, manager):
+    """objects panel : toggle event for which to select objects"""
     # toggle active event
     manager.selected_objects_event = 2 if manager.selected_objects_event == 1 else 1
     # initialize event 2 set on 1st toggle if empty
@@ -451,13 +481,45 @@ def toggle_event_objects(button, manager):
         check = row.get_child()
         name = check.get_label()
         check.set_active(name in objs)
-    print(
-        f"panelsettings : selected objs for e{manager.selected_objects_event} : {objs}"
+    manager._notify.debug(
+        f"selected objects for e{manager.selected_objects_event}\n\t{objs}",
+        source="panelsettings",
+        route=["terminal"],
     )
 
 
+def objects_select_all(button, manager):
+    """objects panel : select all objects"""
+    list_box = manager.listbox
+    i = 0
+    while True:
+        row = list_box.get_row_at_index(i)
+        if row is None:
+            break
+        child = row.get_child()
+        if isinstance(child, Gtk.CheckButton):
+            child.set_active(True)
+        child = child.get_next_sibling()
+        i += 1
+
+
+def objects_select_none(button, manager):
+    """objects panel : deselect all objects"""
+    list_box = manager.listbox
+    i = 0
+    while True:
+        row = list_box.get_row_at_index(i)
+        if row is None:
+            break
+        child = row.get_child()
+        if isinstance(child, Gtk.CheckButton):
+            child.set_active(False)
+        child = child.get_next_sibling()
+        i += 1
+
+
 def objects_toggled(checkbutton, name, manager):
-    # event-based selection
+    """objects panel : toggle selected objects per event"""
     if manager.selected_objects_event == 1:
         sel_objs = manager.selected_objects_e1
     else:
@@ -474,43 +536,142 @@ def objects_toggled(checkbutton, name, manager):
     )
 
 
-def objects_select_all(button, manager):
-    list_box = manager.listbox
-    i = 0
-    while True:
-        row = list_box.get_row_at_index(i)
-        if row is None:
-            break
-        child = row.get_child()
-        if isinstance(child, Gtk.CheckButton):
-            child.set_active(True)
-        child = child.get_next_sibling()
-        i += 1
+def house_system_changed(dropdown, _, manager):
+    idx = dropdown.get_selected()
+    # todo modify to include short name for chart info
+    hsys, _, _ = HOUSE_SYSTEMS[idx]
+    manager.selected_house_system = hsys
+    manager._notify.debug(
+        f"selectedhousesystem : {manager.selected_house_system}",
+        source="panelsettings",
+        route=["terminal"],
+    )
 
 
-def objects_select_none(button, manager):
-    list_box = manager.listbox
-    i = 0
-    while True:
-        row = list_box.get_row_at_index(i)
-        if row is None:
-            break
-        child = row.get_child()
-        if isinstance(child, Gtk.CheckButton):
-            child.set_active(False)
-        child = child.get_next_sibling()
-        i += 1
+def chart_settings_toggled(button, setting, manager):
+    """chart settings panel : update chart settings"""
+    print(f"chartsettingstoggled : {setting}")
+    manager.chart_settings[setting] = button.get_active()
 
 
-def flags_toggled(button, name, manager):
-    """update selected sweph flags"""
+def naksatras_ring(button, key, manager):
+    """chart settings panel : combine show naksatras ring with checkbox for 28 vs 27 & 1st naksatra"""
+    manager.naks_range = 28 if manager.chk_28_naks.get_active() else 27
+    # clamp value
+    try:
+        value = int(manager.ent_1st_nak.get_text())
+    except ValueError:
+        manager._notify.warning(
+            "set naksatra 1 to 27 / 28",
+            source="panelsettings",
+            route=["terminal", "user"],
+        )
+        value = 1
+    value = max(1, min(manager.naks_range, value))
+    manager.ent_1st_nak.set_text(str(value))
+    # present value
+    val_ring = manager.chk_naks_ring.get_active()
+    val_28 = manager.chk_28_naks.get_active()
+    val_1st = manager.ent_1st_nak.get_text()
+    # todo save values to settings
+    manager.chart_settings["naksatras ring"] = val_ring
+    manager.chart_settings["28 naksatras"] = val_28
+    manager.chart_settings["1st naksatra"] = val_1st
+    manager._notify.debug(
+        f"naksatrasring : {key} | ring : {val_ring} | 28 : {val_28} | naks : {manager.naks_range} | 1st : {val_1st}",
+        source="panelsettings",
+        route=["terminal"],
+    )
+
+
+def harmonics_ring_changed(entry, manager):
+    """chart settings panel : harmonics ring : 0, 1, 7, 9, 11 harmonics : add if needed - also add calculations"""
+    text = entry.get_text().strip()
+    nums = text.split()
+    valid_nums = {0, 1, 7, 9, 11}
+    if (
+        not nums
+        or not all(n.isdigit() and int(n) in valid_nums for n in nums)
+        or not (1 <= len(nums) <= 2)
+    ):
+        # invalid input todo just notify user : using icons is erratic
+        entry.set_text(
+            " ".join(str(x) for x in manager.chart_settings["harmonics ring"])
+        )
+        entry.add_css_class("entry-warning")
+    else:
+        entry.remove_css_class("entry-warning")
+        manager.chart_settings["harmonics ring"] = text
+    manager._notify.debug(
+        f"harmonicsring : {manager.chart_settings['harmonics ring']}",
+        source="panelsettings",
+        route=["terminal"],
+    )
+
+
+def chart_info_string(entry, info, manager):
+    """chart settings panel : chart info string to display in chart"""
+    import re
+
+    allowed = {
+        "chart info string": {
+            "{event}",
+            "{date}",
+            "{wday}",
+            "{time}",
+            "{time[:5]}",
+            "{ctry}",
+            "{city}",
+            "{lat}",
+            "{lon}",
+        },
+        "chart info string extra": {
+            "{hsys}",
+            "{zod}",
+            "{aynm}",
+            "{ayvl}",
+        },
+        "chars": "\\n @|-:",
+    }
+    value = entry.get_text()
+    fields = re.findall(r"\{[a-zA-Z0-9:]+\}", value)
+    # fields = re.findall(r"\{[a-zA-Z0-9\[\]:]+\}", value)
+    if not all(field in allowed[info] for field in fields) and not all(
+        char in allowed["chars"] for char in value
+    ):
+        # invalid input : user responsible for correct input
+        entry.add_css_class("entry-warning")
+        manager._notify.warning(
+            f"invalid chart info string :"
+            f"\n\tallowed :\t{' '.join(allowed[info])} {allowed['chars']}"
+            f"\n\treceived :\t{value}",
+            # f"\n\treceived :\t{' '.join(fields)}",
+            source="panelsettings",
+            route=["terminal", "user"],
+            timeout=5,
+        )
+        return
+    else:
+        entry.remove_css_class("entry-warning")
+    # update chart settings
+    manager.chart_settings[info] = value
+    # manager.chart_settings[info] = entry.get_text()
+    manager._notify.success(
+        f"chartinfostring : {manager.chart_settings[info]}",
+        source="panelsettings",
+        route=["terminal", "user"],
+        timeout=4,
+    )
+
+
+def flags_toggled(button, flag, manager):
+    """flags panel : update selected sweph flags"""
     if button.get_active():
         # add to selected flags
-        manager.selected_flags.add(name)
+        manager.selected_flags.add(flag)
     else:
         # remove from selected flags
-        manager.selected_flags.discard(name)
-    print(f"panelsettings : flagstoggled : selectedflags : {manager.selected_flags}")
+        manager.selected_flags.discard(flag)
     # update sweph flags
     flags = 0
     for flag in manager.selected_flags:
@@ -537,118 +698,32 @@ def flags_toggled(button, name, manager):
         if flag == "radians":
             flags |= swe.FLG_RADIANS
     manager.sweph_flag = flags
-    print(f"panelsettings : flagstoggled : swephflag : {manager.sweph_flag}")
-
-    return flags
-
-
-def chart_settings_toggled(button, setting, manager):
-    print(f"chartsettingstoggled : {setting}")
-    manager.chart_settings[setting] = button.get_active()
-
-
-def naksatras_ring(button, key, manager):
-    """combine show naksatras ring with checkbox for 28 vs 27 & 1st naksatra"""
-    manager.naks_range = 28 if manager.chk_28_naks.get_active() else 27
-    # clamp value
-    try:
-        value = int(manager.ent_1st_nak.get_text())
-    except ValueError:
-        manager._notify.warning(
-            "set 1 to 27 / 28 naksatras",
-            source="panelsettings",
-            route=["terminal", "user"],
-        )
-        value = 1
-    value = max(1, min(manager.naks_range, value))
-    manager.ent_1st_nak.set_text(str(value))
-    # present value
-    val_ring = manager.chk_naks_ring.get_active()
-    val_28 = manager.chk_28_naks.get_active()
-    val_1st = manager.ent_1st_nak.get_text()
     manager._notify.debug(
-        f"naksatrasring : {key} | ring : {val_ring} | 28 : {val_28} | naks : {manager.naks_range} | 1st : {val_1st}",
+        f"flagstoggled :"
+        f"\n\tselected flags : {manager.selected_flags}"
+        f"\n\tsweph flag : {manager.sweph_flag}",
         source="panelsettings",
         route=["terminal"],
     )
 
 
-def harmonics_ring_changed(entry, manager):
-    text = entry.get_text().strip()
-    nums = text.split()
-    valid_nums = {0, 1, 7, 9, 11}
-    if (
-        not nums
-        or not all(n.isdigit() and int(n) in valid_nums for n in nums)
-        or not (1 <= len(nums) <= 2)
-    ):
-        # invalid input todo just notify user : using icons is erratic
-        entry.set_text(
-            " ".join(str(x) for x in manager.chart_settings["harmonics ring"])
-        )
-        entry.set_icon_from_icon_name(Gtk.EntryIconPosition.PRIMARY, "dialog-warning")
-    else:
-        entry.set_icon_from_icon_name(Gtk.EntryIconPosition.PRIMARY, None)
-        entry.set_max_width_chars(5)
-        w, _ = entry.get_preferred_size()
-        entry.set_size_request(w.width, -1)
-        manager.chart_settings["harmonics ring"] = text
+def solar_year_changed(dropdown, _, manager):
+    """solar & lunar period panel : select solar year period"""
+    idx = dropdown.get_selected()
+    manager.selected_year = list(SOLAR_YEAR.keys())[idx]
     manager._notify.debug(
-        f"harmonicsring : {manager.chart_settings['harmonics ring']}",
+        f"sol & lun period panel :\n\tsolar year :\t{manager.selected_year}",
         source="panelsettings",
         route=["terminal"],
     )
 
 
-def chart_info_string(entry, manager, info):
-    import re
-
-    allowed = {
-        "chart info string": {
-            "{event}",
-            "{date}",
-            "{wday}",
-            "{time}",
-            "{time[:5]}",
-            "{ctry}",
-            "{city}",
-            "{lat}",
-            "{lon}",
-        },
-        "chart info string extra": {
-            "{hsys}",
-            "{zod}",
-            "{aynm}",
-            "{ayvl}",
-        },
-        "chars": "\\n @|-:",
-    }
-    value = entry.get_text()
-    fields = re.findall(r"\{[a-zA-Z0-9\[\]:]+\}", value)
-    print(f"chartinfostring : {info} : {value}")
-    print(f"allowed :{allowed[info]} {allowed['chars']}")
-    print("fields : ", fields)
-    if not all(field in allowed[info] for field in fields) and not all(
-        char in allowed["chars"] for char in value
-    ):
-        # invalid input : user responsible for correct input
-        entry.set_icon_from_icon_name(Gtk.EntryIconPosition.PRIMARY, "dialog-warning")
-        manager._notify.warning(
-            f"invalid chart info string : allowed :\n\t{allowed[info]} {allowed['chars']}",
-            source="panelsettings",
-            route=["terminal", "user"],
-            timeout=5,
-        )
-        return
-    else:
-        # todo do not set empty icon > entry expands awkwardly
-        entry.set_icon_from_gicon(Gtk.EntryIconPosition.PRIMARY, None)
-        entry.set_max_width_chars(54)
-    # update chart settings
-    manager.chart_settings[info] = value
-    # manager.chart_settings[info] = entry.get_text()
-    manager._notify.success(
-        f"chartinfostring : {manager.chart_settings[info]}",
+def lunar_month_changed(dropdown, _, manager):
+    """solar & lunar period panel : select lunar month period"""
+    idx = dropdown.get_selected()
+    manager.selected_month = list(LUNAR_MONTH.keys())[idx]
+    manager._notify.debug(
+        f"sol & lun period panel :\n\tlunar month :\t{manager.selected_month}",
         source="panelsettings",
         route=["terminal"],
     )

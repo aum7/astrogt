@@ -84,3 +84,7 @@ label {
   background-size: 50px;
   /* margin-top: 5px; */
 }
+
+.entry-warning {
+  border: 3px solid darkorange;
+}

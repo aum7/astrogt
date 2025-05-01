@@ -117,11 +117,30 @@ CHART_SETTINGS = {
     # --- use mean node else true node
     "mean node": (False, "calculate mean node (vs default true node)"),
     # --- naksatras MEGA-ring ! lol
-    "naksatras ring": (True, "show naksatras ring"),
+    "naksatras ring": (
+        True,
+        """show naksatras ring
+1  asv\t2  bha\t3  krt
+4  roh\t5  mrg\t6  ard
+7  pun\t8  pus\t9  asl
+10 mag\t11 pph\t12 uph
+13 has\t14 cit\t15 sva
+16 vis\t17 anu\t18 jye
+19 mul\t20 pas\t21 uas
+22 sra\t23 dha\t24 sat
+25 pbh\t26 ubh\t27 rev""",
+    ),
     # --- use 28 (all equal = no mini abhijt) else standard 27 naksatras
     "28 naksatras": (
         True,
-        "use 28 (all equal = no mini abhijit) vs standard 27 naksatras",
+        """use 28 (all equal = no mini abhijit) vs standard 27 naksatras
+1  asv\t2  bha\t3  krt\t4  roh
+5  mrg\t6  ard\t7  pun\t8  pus
+9  asl\t10 mag\t11 pph\t12 uph
+13 has\t14 cit\t15 sva\t16 vis
+17 anu\t18 jye\t19 mul\t20 pas
+21 uas\t22 abh\t23 sra\t24 dha
+25 sat\t26 pbh\t27 ubh\t28 rev""",
     ),
     # --- start naksatras ring with naksatra
     "1st naksatra": (
@@ -166,19 +185,19 @@ example : {event}\\n{date}\\n{wday} {time[:5]}\\n{city} @ {ctry}\\n{lat}\\n{lon}
 # --- time constants ---
 # (solar) year lengths in days
 SOLAR_YEAR = {
-    "gre": ("365.2425", "365.2425 (gregorian)", ""),
-    "jul": ("365.25", "365.25 (julian)", ""),
-    "trp": ("365.24219", "365.24219 (tropical)", ""),
-    "sid": ("365.256363", "365.256363 (sidereal)", ""),
-    "lun": ("354.37", "354.37 (lunar)", ""),
+    "gre": ("365.2425", "gregorian"),
+    "jul": ("365.25", "julian"),
+    "trp": ("365.24219", "tropical"),
+    "sid": ("365.256363", "sidereal"),
+    "lun": ("354.37", "lunar"),
 }
 # lunar month lengths
 LUNAR_MONTH = {
-    "trp": ("27.321582", "27.321582 days (tropical); 0 aries (houck)", ""),
-    "syn": ("29.53059", "29.53059 days (synodic); new moons", ""),
-    "sid": ("27.321661", "27.321661 days (sidereal)", ""),
-    "anm": ("27.554551", "27.554551 days (anomalistic); perigee - apogee", ""),
-    "drc": ("27.21222", "27.21222 days (draconic); lunar nodes", ""),
+    "trp": ("27.321582", "tropical\t\t0 ari (houck)"),
+    "syn": ("29.53059", "synodic\t\tnew moons"),
+    "sid": ("27.321661", "sidereal\t\tfixed star"),
+    "anm": ("27.554551", "anomalistic\tperigee-apogee"),
+    "drc": ("27.21222", "draconic\tlunar nodes"),
 }
 # !!! UN/COMMENT ANY AYANAMSA THAT YOU NEED !!!
 # un/comment > delete '# ', indent properly, and save file
