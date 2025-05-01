@@ -7,14 +7,15 @@ gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from ui.collapsepanel import CollapsePanel
 from user.settings import (
-    AYANAMSA,
-    CUSTOM_AYANAMSA,
     OBJECTS,
-    SWE_FLAG,
     HOUSE_SYSTEMS,
     CHART_SETTINGS,
+    SWE_FLAG,
     SOLAR_YEAR,
     LUNAR_MONTH,
+    AYANAMSA,
+    CUSTOM_AYANAMSA,
+    FILES,
 )
 from sweph.setupsettings import get_sweph_flags_int
 
@@ -425,13 +426,13 @@ more info in user/settings.py > SWE_FLAG"""
     subpnl_ayanamsa = CollapsePanel(
         title="ayanamsa",
         indent=14,
-        expanded=True,
+        expanded=False,
     )
     # ------- sub-sub-panel custom ayanamsa --------------
     subsubpnl_custom_ayanamsa = CollapsePanel(
         title="custom ayanamsa",
         indent=21,
-        expanded=True,
+        expanded=False,
     )
     subsubpnl_custom_ayanamsa.set_title_tooltip(
         "above select ayanamsa 'user-defined' to enable below settings"
@@ -521,10 +522,29 @@ more info in user/settings.py > SWE_FLAG"""
     subpnl_files = CollapsePanel(
         title="files & paths",
         indent=14,
-        expanded=False,
+        expanded=True,
     )
-    # main box for settings panels
-    box_settings = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+    # main box for files panels
+    box_files = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+    manager.files = dict(FILES)
+    for key, value in FILES.items():
+        tooltip = value[1]
+        box_key = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
+        box_key.set_margin_start(manager.margin_end)
+        box_key.set_margin_end(manager.margin_end)
+        box_key.set_tooltip_text(tooltip)
+        lbl_key = Gtk.Label(label=key)
+        lbl_key.set_halign(Gtk.Align.START)
+        ent_key = Gtk.Entry()
+        ent_key.set_text(value[0])
+        ent_key.set_hexpand(True)
+        ent_key.connect(
+            "activate", lambda entry, k=key, m=manager: files_changed(entry, k, m)
+        )
+        box_key.append(lbl_key)
+        box_key.append(ent_key)
+        box_files.append(box_key)
+    subpnl_files.add_widget(box_files)
     # add sub-panels
     box_settings.append(subpnl_objects)
     box_settings.append(subpnl_housesys)
@@ -620,12 +640,15 @@ def objects_toggled(checkbutton, name, manager):
 
 
 def house_system_changed(dropdown, _, manager):
+    """house system panel : dropdown selection"""
     idx = dropdown.get_selected()
     # todo modify to include short name for chart info
-    hsys, _, _ = HOUSE_SYSTEMS[idx]
+    hsys, _, short_name = HOUSE_SYSTEMS[idx]
     manager.selected_house_system = hsys
+    manager.selected_house_sys_str = short_name
     manager._notify.debug(
-        f"selectedhousesystem : {manager.selected_house_system}",
+        f"selectedhousesystem : {manager.selected_house_system}"
+        f"\t{manager.selected_house_sys_str}",
         source="panelsettings",
         route=["terminal"],
     )
@@ -885,3 +908,15 @@ def custom_ayanamsa_changed(entry, key, manager):
             source="panelsettings",
             route=["terminal"],
         )
+
+
+def files_changed(entry, key, manager):
+    value = entry.get_text().strip()
+    if manager.files[key] == value:
+        return
+    manager.files[key] = value
+    manager._notify.debug(
+        f"files panel : {key} = {value}",
+        source="panelsettings",
+        route=["terminal"],
+    )

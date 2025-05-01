@@ -199,8 +199,8 @@ LUNAR_MONTH = {
     "anm": (27.554551, "anomalistic\tperigee-apogee"),
     "drc": (27.21222, "draconic\tlunar nodes"),
 }
-# !!! UN/COMMENT ANY AYANAMSA THAT YOU NEED !!!
-# un/comment > delete '# ', indent properly, and save file
+# !!! UNCOMMENT ANY AYANAMSA THAT YOU NEED !!!
+# uncomment > delete '# ', indent properly, and save file
 # also arrange order as you please > move line up / down & save file
 AYANAMSA = {
     17: ("Galact. Center 0 Sag", "glc (17)"),  # SIDM_GALCENT_0SAG
@@ -266,15 +266,36 @@ CUSTOM_AYANAMSA = {
 FILES = {
     # --- path to ephemerides folder, with min semo_18.se1 & sepl_18.se1 files, or
     # a complete ephe folder https://github.com/aloistr/swisseph/tree/master/ephe
-    "ephe_path": "/swe/ephe/",
+    # todo separate path for linux & mswindows : do we need to ?
+    "ephe path": (
+        "/sweph/ephe/",
+        "path to ephemeride folder, with min semo_18.se1 & sepl_18.se1 files, "
+        "or a complete ephe folder https://github.com/aloistr/swisseph/tree/master/ephe ",
+    ),
     # --- fonts for glyphs = astro_font & for ie tables = mono_font
-    "astro_font": "/ui/fonts/osla/open_sans_light_astro.ttf",
-    "mono_font": "/ui/fonts/victor/VictorMonoNerdFont-Light.ttf",
+    "astro font": (
+        "/ui/fonts/osla/open_sans_light_astro.ttf",
+        "font with glyphs for astro chart etc",
+    ),
+    "mono font": (
+        "/ui/fonts/victor/VictorMonoNerdFont-Light.ttf",
+        "mono-spaced font for pretty tables etc",
+    ),
     # --- construct your own 'filename' format: allowed fields
     # 1: {event} name | 2: event {date} | 3: {time}
     # separate fields with '_' underscore ; for short time format (no seconds)
     # use {time[:5]} ; see default value as example
-    "custom_filename": r"{event}_{date}_{time[:5]}",
+    "custom filename": (
+        r"{event}_{date}_{time[:5]}",
+        "construct your own 'filename' format: allowed fields"
+        "\n\t1: {event} name | 2: event {date} | 3: {time}"
+        "\nseparate fields with '_' underscore ; for short time format "
+        "(no seconds) use {time[:5]}"
+        "\nexample : {event}_{date}_{time[:5]}",
+    ),
     # --- path to events / birth charts database folder; inside go saved charts
-    "events_db": "/user/eventsdb/",
+    "events db": (
+        "/user/eventsdb/",
+        "path to event / birth charts database folder ; inside go saved charts",
+    ),
 }
