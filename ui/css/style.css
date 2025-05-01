@@ -77,3 +77,10 @@ label {
   background-size: 70px;
   margin-top: 5px;
 }
+
+.button-event {
+  background-color: transparent;
+  border-color: transparent;
+  background-size: 50px;
+  /* margin-top: 5px; */
+}

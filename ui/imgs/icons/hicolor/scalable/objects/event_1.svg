@@ -25,22 +25,23 @@
   </g>
   <g
      id="layer8">
+    <circle
+       style="fill:none;stroke:#1e90ff;stroke-width:2.11667;stroke-miterlimit:0;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+       id="path18"
+       cx="-0.0020770964"
+       cy="8.9869394"
+       r="5.2916665"
+       transform="rotate(-45)" />
     <path
-       d="M 7.1014143,10.128238 H 6.1912503 V 4.8471716 q 0,-0.4550819 0.01058,-0.7302476 0.01058,-0.2751658 0.03175,-0.5714982 -0.169333,0.1693328 -0.306916,0.2857491 -0.137582,0.1164163 -0.349248,0.2963323 L 4.7730853,4.7836717 4.2862541,4.1592571 6.3288303,2.5717621 h 0.772581 z"
-       id="text4"
+       d="m 6.9050693,9.2604167 h -0.70111 V 5.1923554 q 0,-0.3505544 0.0082,-0.5625174 0.0082,-0.2119631 0.02445,-0.4402313 -0.130443,0.1304389 -0.236425,0.2201156 -0.10598,0.089677 -0.269029,0.2282677 L 5.1115723,5.1434407 4.7365603,4.6624476 6.3099783,3.4395834 h 0.595128 z"
+       id="path19"
        style="fill:#f9f9f9;stroke-width:0.79375;stroke-linecap:round;stroke-linejoin:round"
        aria-label="1" />
     <circle
-       style="fill:none;stroke:#1e90ff;stroke-width:1.05833;stroke-miterlimit:0;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-       id="path18"
-       cx="6.3499999"
-       cy="6.3499999"
-       r="5.5562515" />
-    <circle
-       style="fill:none;stroke:#00ff00;stroke-width:1.05833;stroke-miterlimit:0;stroke-dasharray:4.23332;stroke-dashoffset:0;stroke-opacity:1"
-       id="circle18"
-       cx="6.3499999"
-       cy="6.3499999"
-       r="5.5562515" />
+       style="fill:none;stroke:#00ff00;stroke-width:2.11667;stroke-miterlimit:0;stroke-dasharray:4.23333;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+       id="circle19"
+       cx="6.3500013"
+       cy="6.3500013"
+       r="5.2916665" />
   </g>
 </svg>

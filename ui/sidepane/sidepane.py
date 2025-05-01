@@ -65,8 +65,8 @@ class SidepaneManager:
         box_sidepane = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         # create & put collapse panels into box
         self.clp_change_time = self.setup_change_time()
-        # 2 events
-        self.clp_event_one = setup_event(self, "event one", True)
+        # 2 events todo expand event one
+        self.clp_event_one = setup_event(self, "event one", False)
         self.clp_event_two = setup_event(self, "event two", False)
         if self._app.selected_event == "event one":
             self.clp_event_one.add_title_css_class("label-event-selected")
@@ -93,8 +93,8 @@ class SidepaneManager:
 
     def setup_change_time(self) -> CollapsePanel:
         """setup widget for changing time of the event one or two"""
-        # main container of change time widget
-        clp_change_time = CollapsePanel(title="change time", expanded=True)
+        # main container of change time widget todo expand
+        clp_change_time = CollapsePanel(title="change time", expanded=False)
         clp_change_time.set_margin_end(self.margin_end)
         clp_change_time.set_title_tooltip(
             """change time period for selected event (one or two)

@@ -126,7 +126,7 @@ CHART_SETTINGS = {
     # --- start naksatras ring with naksatra
     "1st naksatra": (
         1,
-        "start naksatras ring with any naksatra\nrotate relative to 0° aries\n1 = asvini (standard ; ie mula would be 19)",
+        "start naksatras ring with any naksatra\nrotate relative to 0° aries\n1 = asvini (standard)\n19 = mula\n22 = abhijit if 28 naksatras etc",
     ),
     # --- harmonics division ring : 0 hide | 1 egypt. terms (bounds)
     # 7, 9 (navamsa), 11 etc ; not all harmonics are available ;
@@ -158,7 +158,9 @@ example : {event}\\n{date}\\n{wday} {time[:5]}\\n{city} @ {ctry}\\n{lat}\\n{lon}
         r"{hsys} | {zod}\n{aynm} | {ayvl}",
         """additional 'chart info' format : allowed fields :
     1: house system {hsys} | 2: {zod}iac |
-    3: ayanamsa name {aynm} | 4: ayanamsa value {ayvl}""",
+    3: ayanamsa name {aynm} | 4: ayanamsa value {ayvl}
+    example : {hsys} | {zod}\\n{aynm} | {ayvl}
+    \\n = new line""",
     ),
 }
 # --- time constants ---

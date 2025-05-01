@@ -491,6 +491,7 @@ class EventData(GObject.Object):
                 return
             # data changed
             try:
+                # todo grab weekday somewhere if possible
                 # get datetime string, assuming naive date-time
                 dt_str = entry.get_text().strip()
                 # grab self.lon if 'a' in datetime (local apparent time)

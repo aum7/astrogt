@@ -116,7 +116,7 @@ user needs to select the one of interest
         "location one" if event_name == "event one" else "location two"
     )
     ent_location.set_placeholder_text(
-        "deg min (sec) n / s deg  min (sec) e / w",
+        "deg min (sec) n / s deg  min (sec) e / w (m (alt))",
     )
     ent_location.set_tooltip_text(
         """latitude & longitude (location)
@@ -125,21 +125,20 @@ if country & city are selected, this field auto-populates
 then fine-tune or enter geo coordinates manually
 
 clearest form is :
-    deg min (sec) n(orth) / s(outh) & e(ast) / w(est) (alt (m))
+    deg min (sec) n(orth) / s(outh) & e(ast) / w(est) (m (alt))
 1.  dms : 32 21 09 n 77 66 w 113 m
 also accepting :
 2.  decimal with direction : 33.72 n 124.876 e 428
-3.  signed -ve south & west : -16.75 -72.678 +
+3.  signed -ve south & west : -16.75 -72.678 or
     signed +ve north & east : 16.75 72.678
-    note : be aware some data has reverse east & west
+
 latitude then longitude
 seconds & altitude are optional
 some cities in database are missing altitude - no worries
 only use [space] as separator
 
 [enter] = accept data
-[tab] / [shift-tab] = next / previous entry
-sselria gniylf rof uoy knaht"""
+[tab] / [shift-tab] = next / previous entry """
     )
     # put widgets into sub-panel
     subpnl_location.add_widget(lbl_country)
