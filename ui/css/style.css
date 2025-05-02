@@ -51,38 +51,37 @@ label {
 }
 
 .dropdown label {
-  font-size: 14px;
+  font-size: 16px;
   padding: 0px;
 }
 
 .label-tl {
-  background-color: slateblue;
+  background-color: darkslateblue;
 }
 
 .label-tr {
-  background-color: dodgerblue;
+  background-color: darkblue;
 }
 
 .label-bl {
-  background-color: olivedrab;
+  background-color: darkgreen;
 }
 
 .label-br {
-  background-color: orange;
+  background-color: darkorange;
 }
 
 .button-pane {
   background-color: transparent;
   border-color: transparent;
-  background-size: 70px;
-  margin-top: 5px;
+  margin: 0px;
+  padding: 0px;
 }
 
 .button-event {
   background-color: transparent;
   border-color: transparent;
-  background-size: 50px;
-  /* margin-top: 5px; */
+  /* background-size: 50px; */
 }
 
 .entry-warning {

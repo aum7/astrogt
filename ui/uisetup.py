@@ -78,7 +78,7 @@ class UISetup:
     def setup_menu_button(self):
         """menu button for sidepane toggle visibility"""
         ico_menu = Gtk.Image.new_from_file("ui/imgs/icons/hicolor/scalable/menu.svg")
-        ico_menu.set_icon_size(Gtk.IconSize.LARGE)
+        ico_menu.set_pixel_size(16)
         icon_hmargin = icon_vmargin = 0
         ico_menu.set_margin_start(icon_hmargin)
         ico_menu.set_margin_end(icon_hmargin)

@@ -109,10 +109,11 @@ event 1 & 2 can have different objects"""
     ddn_housesys = Gtk.DropDown.new(housesys_list)
     ddn_housesys.set_margin_start(manager.margin_end)
     ddn_housesys.set_margin_end(manager.margin_end)
+    # need row closer
+    ddn_housesys.add_css_class("dropdown")
     # default to first / selected item
     ddn_housesys.set_selected(0)
     manager.selected_house_system = HOUSE_SYSTEMS[0][0]
-
     ddn_housesys.connect("notify::selected", house_system_changed, manager)
     subpnl_housesys.add_widget(ddn_housesys)
     # --- sub-panel chart settings --------------------
@@ -235,20 +236,15 @@ event 1 & 2 can have different objects"""
     box_chart_settings.append(manager.lbx_chart_settings)
     # --- chart info string : basic & extra ------------------
     # main box for chart info string
-    box_chart_info = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
+    box_chart_info = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
     box_chart_info.set_margin_start(manager.margin_end)
     box_chart_info.set_margin_end(manager.margin_end)
-    # listbox for chart info
-    manager.lbx_chart_info = Gtk.ListBox()
-    manager.lbx_chart_info.set_selection_mode(Gtk.SelectionMode.NONE)
-    # track chart info strings
-    manager.chart_info = {}
-    # chart info string : basic
+    # chart info string
     for info in [
         "chart info string",
         "chart info string extra",
     ]:
-        row = Gtk.ListBoxRow()
+        box_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         ent_chart_info = Gtk.Entry()
         ent_chart_info.set_text(
             CHART_SETTINGS[info][0]
@@ -260,14 +256,14 @@ event 1 & 2 can have different objects"""
             if isinstance(CHART_SETTINGS[info], tuple)
             else ""
         )
-        ent_chart_info.set_width_chars(54)
+        ent_chart_info.set_max_width_chars(52)
         ent_chart_info.connect("activate", chart_info_string, info, manager)
 
-        row.set_child(ent_chart_info)
-        manager.lbx_chart_info.append(row)
+        box_row.append(ent_chart_info)
+        box_chart_info.append(box_row)
+        # manager.lbx_chart_info.append(row)
         manager.chart_settings[info] = ent_chart_info.get_text()
 
-    box_chart_info.append(manager.lbx_chart_info)
     subsubpnl_chart_info.add_widget(box_chart_info)
     subpnl_chart_settings.add_widget(box_chart_settings)
     subpnl_chart_settings.add_widget(subsubpnl_chart_info)
@@ -392,6 +388,7 @@ more info in user/settings.py > SWE_FLAG"""
     tropical\t\t365.24219
     sidereal\t\t365.256363
     lunar\t\t\t354.37""")
+    ddn_solar_year.add_css_class("dropdown")
     ddn_solar_year.set_selected(0)
     manager.selected_year = list(SOLAR_YEAR.values())[1]
     ddn_solar_year.connect("notify::selected", solar_year_changed, manager)
@@ -413,6 +410,7 @@ more info in user/settings.py > SWE_FLAG"""
     sidereal\t\tfixed star\t\t27.321661
     anomalistic\tperig-apog\t\t27.554551
     draconic\t\tlunar nodes\t\t27.21222""")
+    ddn_lunar_month.add_css_class("dropdown")
     ddn_lunar_month.set_selected(0)
     manager.selected_month = list(LUNAR_MONTH.keys())[0]
     ddn_lunar_month.connect(
@@ -448,6 +446,7 @@ more info in user/settings.py > SWE_FLAG"""
         ayanamsa_store.append(value[0])
     ddn_ayanamsa = Gtk.DropDown.new(ayanamsa_store)
     ddn_ayanamsa.set_tooltip_text("see AYANAMSA in user/settings.py")
+    ddn_ayanamsa.add_css_class("dropdown")
     ddn_ayanamsa.set_selected(0)
     manager.selected_ayanamsa = list(AYANAMSA.keys())[0]
 
@@ -522,22 +521,24 @@ more info in user/settings.py > SWE_FLAG"""
     subpnl_files = CollapsePanel(
         title="files & paths",
         indent=14,
-        expanded=True,
+        expanded=False,
     )
+    subpnl_files.set_title_tooltip("no validation here, dont do stupid things")
     # main box for files panels
-    box_files = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+    box_files = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+    box_files.set_margin_start(manager.margin_end)
+    box_files.set_margin_end(manager.margin_end)
     manager.files = dict(FILES)
     for key, value in FILES.items():
         tooltip = value[1]
-        box_key = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
-        box_key.set_margin_start(manager.margin_end)
-        box_key.set_margin_end(manager.margin_end)
+        box_key = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
         box_key.set_tooltip_text(tooltip)
         lbl_key = Gtk.Label(label=key)
         lbl_key.set_halign(Gtk.Align.START)
         ent_key = Gtk.Entry()
+        ent_key.set_max_width_chars(40)
         ent_key.set_text(value[0])
-        ent_key.set_hexpand(True)
+        # ent_key.set_hexpand(True)
         ent_key.connect(
             "activate", lambda entry, k=key, m=manager: files_changed(entry, k, m)
         )

@@ -162,24 +162,25 @@ CHART_SETTINGS = {
     # 8: {lon}gitude ; for short time format (no seconds) use {time[:5]}
     "chart info string": (
         r"{event}\n{date}\n{wday} {time[:5]}\n{city} @ {ctry}\n{lat}\n{lon}",
-        """construct your own 'chart info' format : allowed fields :
-    1: {event} name | 2: weekday {wday} | 3: event {date} |
-    4: {time} | 5: {city} | 6: country {ctry} | 7: {lat}itude |
-    8: {lon}gitude ; for short time format (no seconds) use {time[:5]}
-example : {event}\\n{date}\\n{wday} {time[:5]}\\n{city} @ {ctry}\\n{lat}\\n{lon}
-\\n = new line
-    """,
+        r"""construct your own 'chart info' format : allowed fields :
+    1: {event} name | 2: weekday {wday} |
+    3: event {date} | 4: {time} |
+    5: {city} | 6: country {ctry} |
+    7: {lat}itude | 8: {lon}gitude
+for short time format (no seconds) use {time[:5]}
+\n = new line
+example : {event}\n{date}\n{wday} {time[:5]}\n{city} @ {ctry}\n{lat}\n{lon} """,
     ),
     # - data same for both charts
     # additional 'chart info' format: allowed fields: 1: house system {hsys} |
     # 2: {zod}iac | 3: ayanamsa name {aynm} | 4: ayanamsa value {ayvl}
     "chart info string extra": (
         r"{hsys} | {zod}\n{aynm} | {ayvl}",
-        """additional 'chart info' format : allowed fields :
+        r"""additional 'chart info' format : allowed fields :
     1: house system {hsys} | 2: {zod}iac |
     3: ayanamsa name {aynm} | 4: ayanamsa value {ayvl}
-    example : {hsys} | {zod}\\n{aynm} | {ayvl}
-    \\n = new line""",
+    example : {hsys} | {zod}\n{aynm} | {ayvl}
+    \n = new line""",
     ),
 }
 # --- time constants ---
@@ -267,35 +268,35 @@ FILES = {
     # --- path to ephemerides folder, with min semo_18.se1 & sepl_18.se1 files, or
     # a complete ephe folder https://github.com/aloistr/swisseph/tree/master/ephe
     # todo separate path for linux & mswindows : do we need to ?
-    "ephe path": (
+    "ephe path\t": (
         "/sweph/ephe/",
         "path to ephemeride folder, with min semo_18.se1 & sepl_18.se1 files, "
         "or a complete ephe folder https://github.com/aloistr/swisseph/tree/master/ephe ",
     ),
     # --- fonts for glyphs = astro_font & for ie tables = mono_font
-    "astro font": (
+    "astro font\t": (
         "/ui/fonts/osla/open_sans_light_astro.ttf",
         "font with glyphs for astro chart etc",
     ),
-    "mono font": (
+    "mono font\t": (
         "/ui/fonts/victor/VictorMonoNerdFont-Light.ttf",
         "mono-spaced font for pretty tables etc",
+    ),
+    # --- path to events / birth charts database folder; inside go saved charts
+    "events db\t": (
+        "/user/eventsdb/",
+        "path to event / birth charts database folder ; inside go saved charts",
     ),
     # --- construct your own 'filename' format: allowed fields
     # 1: {event} name | 2: event {date} | 3: {time}
     # separate fields with '_' underscore ; for short time format (no seconds)
     # use {time[:5]} ; see default value as example
-    "custom filename": (
+    "filename\t": (
         r"{event}_{date}_{time[:5]}",
         "construct your own 'filename' format: allowed fields"
         "\n\t1: {event} name | 2: event {date} | 3: {time}"
         "\nseparate fields with '_' underscore ; for short time format "
         "(no seconds) use {time[:5]}"
         "\nexample : {event}_{date}_{time[:5]}",
-    ),
-    # --- path to events / birth charts database folder; inside go saved charts
-    "events db": (
-        "/user/eventsdb/",
-        "path to event / birth charts database folder ; inside go saved charts",
     ),
 }
