@@ -161,10 +161,11 @@ class MainWindow(
                 stack.add_titled(label1, "chart", "-chart")
                 stack.add_titled(label2, "editor", "-editor")
                 stack.add_titled(label3, "graph", "-graph")
-                # widget = draw_tables()
+                widget = draw_tables()
+                widget.add_css_class("label-bl")
                 # print(f"mainwindow : drawtables widget : {type(widget)}")
-                # stack.add_titled(widget, "tables", "tables")
-                stack.add_titled(draw_tables(), "tables", "tables")
+                stack.add_titled(widget, "tables", "tables")
+                # stack.add_titled(draw_tables(), "tables", "tables")
                 # set stack as child of frame
                 frame = getattr(self, f"frm_{pane.replace('-', '_')}", None)
                 if frame:
