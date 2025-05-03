@@ -1,4 +1,4 @@
-# panemanager.py
+# ui/mainpanes/panemanager.py
 # ruff: noqa: E402
 import gi
 
@@ -15,7 +15,7 @@ class PanesManager(Gtk.Stack):
     STACK_BUTTONS: Dict[str, str] = {
         "astro": "astrology chart",
         "editor": "text editor",
-        "data": "data graph",
+        "graph": "data graph",
         "tables": "calculation results",
     }
 
@@ -75,8 +75,3 @@ class PanesManager(Gtk.Stack):
     def get_stack(self, position: str) -> Gtk.Stack:
         """get stack by position"""
         return self.pane_stacks.get(position)
-
-    # todo not used
-    def add_page(self, widget, name, title=None):
-        """add new page to pane"""
-        self.add_titled(widget, name, title)

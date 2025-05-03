@@ -615,7 +615,7 @@ class EventData:
             f"\n\tsweph : {sweph}"
             f"\n\tobjs : {objs}",
             source="eventdata",
-            route=["terminal"],
+            route=["none"],
         )
         self.update_positions(event, sweph, objs)
         self._app.props.active_window.update_main_title()

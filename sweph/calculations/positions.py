@@ -6,6 +6,7 @@
 # from gi.repository import Gtk  # type: ignore
 import swisseph as swe
 from user.settings import OBJECTS  # , CHART_SETTINGS
+from ui.mainpanes.panetables import pane_tables
 
 
 def calculate_positions(
@@ -22,7 +23,7 @@ def calculate_positions(
         and all(k in sweph for k in ("lon", "lat", "alt"))
     ):
         """coordinates are reversed here : lon lat alt"""
-        print("found 'topocentric' flag")
+        # print("found 'topocentric' flag")
         swe.set_topo(sweph["lon"], sweph["lat"], sweph["alt"])
     jd_ut = sweph.get("jd_ut")
     # print(f"jd_ut : {jd_ut}")
@@ -58,19 +59,16 @@ def calculate_positions(
                 source="positions",
                 route=["terminal"],
             )
-
-    for code, d in positions.items():
-        _notify.debug(
-            f"{event} : {code} : {d['name']}"
-            f"\n\tlon : {d['lon']}"
-            f"\n\tlat : {d['lat']}"
-            f"\n\tdist: {d['dist']}"
-            f"\n\tlon speed : {d['lon speed']}"
-            f"\n\tlat speed : {d['lat speed']}"
-            f"\n\tdist speed : {d['dist speed']}",
-            source="positions",
-            route=["terminal"],
-        )
+    # positions["event"] = event
+    keys = [k for k in positions.keys() if isinstance(k, int)]
+    keys.sort()
+    positions_ordered = {"event": event}
+    for k in keys:
+        positions_ordered[k] = positions[k]
+    positions.clear()
+    positions.update(positions_ordered)
+    # call tables & pass _notify
+    pane_tables(positions, _notify)
     return positions
 
 
@@ -83,6 +81,6 @@ def object_name_to_code(name: str, use_mean_node: bool) -> int | None:
             # return int & short name
             return key, obj[0]
     if name == "mean node":
-        # return 10, "mean node" for debug only
+        # return mean node int & same short name as true node
         return 10, "ra"
     return None

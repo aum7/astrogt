@@ -6,17 +6,59 @@ gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 
 
-def tables(positions):
-    """create a table of planetary positions"""
-    # table = Gtk.Grid()
-    table = Gtk.ListStore(str, str)
-    for body, value in positions:
-        table.append([body, f"{value:.6f}"])
-    view = Gtk.TreeView(model=table)
-    for idx, title in enumerate(("body", "value")):
-        rend = Gtk.CellRendererText()
-        col = Gtk.TreeViewColumn(title, rend, text=idx)
-        view.append_column(col)
-    scw_pos = Gtk.ScrolledWindow()
-    scw_pos.set_child(view)
-    return scw_pos
+def pane_tables(positions=None, _notify=None):
+    """get object positions for tables"""
+    if positions is None:
+        positions = {}
+    if _notify:
+        _notify.debug(
+            f"received positions : {positions}",
+            source="panetables",
+            route=["none"],
+        )
+    # store positions
+    pane_tables._positions = positions
+    draw_tables()
+
+
+def draw_tables():
+    """draw tables previously calculated in pane_tables"""
+    notebook = Gtk.Notebook()
+    notebook.set_tab_pos(Gtk.PositionType.TOP)
+    notebook.set_scrollable(True)
+    positions = getattr(pane_tables, "_positions", {})
+
+    def make_table(pos_dict):
+        # print(f"panetables : maketable positions dict :\n\t{pos_dict}")
+        grid = Gtk.Grid()
+        grid.set_column_spacing(8)
+        grid.set_row_spacing(4)
+        fields = [
+            "name",
+            "lat",
+            "lon",
+            "dist",
+            "lat speed",
+            "lon speed",
+            "dist speed",
+        ]
+        for i, obj in enumerate(pos_dict.values(), 1):
+            print(f"panetables : obj : {obj}")
+            for j, key in enumerate(fields):
+                value = obj.get(key)
+                if isinstance(value, float):
+                    value = round(value, 3)
+                # grid.attach(Gtk.Label(label=str(value)), j, i, 1, 1)
+                grid.attach(Gtk.Label(label=str(value), xalign=0), j, i, 1, 1)
+        return grid
+
+    if "event" in positions:
+        # lbl_event = positions["event"]
+        lbl_event = str(positions["event"])
+        event_positions = {k: v for k, v in positions.items() if isinstance(k, int)}
+        # print(f"panetables : event-positions\n\t{event_positions}")
+        if event_positions:
+            widget = make_table(event_positions)
+            page = notebook.append_page(widget, Gtk.Label(label=lbl_event))
+            print(f"page : {page}")
+    return notebook

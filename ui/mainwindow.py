@@ -11,7 +11,7 @@ from .uisetup import UISetup
 from .hotkeymanager import HotkeyManager
 from ui.helpers import _event_selection
 from ui.mainpanes.panesmanager import PanesManager
-from ui.mainpanes.panetables import tables
+from ui.mainpanes.panetables import draw_tables
 
 
 class MainWindow(
@@ -33,16 +33,10 @@ class MainWindow(
         # custom info in window title bar
         self.headerbar = Gtk.HeaderBar()
         self.headerbar.set_show_title_buttons(True)
-        if hasattr(self.headerbar, "set_use_native_controls"):
-            self.headerbar.set_use_native_controls(True)
-        self.headerbar.set_halign(Gtk.Align.START)
         self.set_titlebar(self.headerbar)
         # widget for text align left
         self.title_label = Gtk.Label(label="astrogt")
-        # self.title_label.set_alignment(0.0)
-        # self.title_label.set_xalign(0.0)
         self.headerbar.set_title_widget(self.title_label)
-        # self.set_title("astrogt")
         self.set_default_size(800, 600)
         # setup ui : side pane
         self.setup_revealer()
@@ -83,8 +77,9 @@ class MainWindow(
         self._hotkeys.register_hotkey("Down", self.obc_arrow_dn)
         self._hotkeys.register_hotkey("Left", self.obc_arrow_l)
         self._hotkeys.register_hotkey("Right", self.obc_arrow_r)
-        # call helper function
+        # call helper function for time now
         self._hotkeys.register_hotkey("n", lambda: self.on_time_now())
+        # toggle selected event
         self._hotkeys.register_hotkey(
             "e",
             lambda gesture, n_press, x, y: _event_selection(
@@ -165,36 +160,15 @@ class MainWindow(
 
                 stack.add_titled(label1, "chart", "-chart")
                 stack.add_titled(label2, "editor", "-editor")
-                stack.add_titled(label3, "data", "-data")
-                # todo
-                # stack.add_titled(
-                #     self._swe_positions.positions_page(None),
-                #     "tables",
-                #     "swe positions",
-                # )
+                stack.add_titled(label3, "graph", "-graph")
+                # widget = draw_tables()
+                # print(f"mainwindow : drawtables widget : {type(widget)}")
+                # stack.add_titled(widget, "tables", "tables")
+                stack.add_titled(draw_tables(), "tables", "tables")
                 # set stack as child of frame
                 frame = getattr(self, f"frm_{pane.replace('-', '_')}", None)
                 if frame:
                     frame.set_child(stack)
-
-    def update_tables(self, event_data):
-        """update tables with new data"""
-        for pane in ["top-left", "top-right", "bottom-left", "bottom-right"]:
-            stack = self.get_stack(pane)
-            if not stack:
-                continue
-            # remove pages
-            old_tables = stack.get_child_by_name("tables")
-            if old_tables:
-                stack.remove(old_tables)
-            # add new page todo
-            # stack.add_titled(
-            #     # todo add table from mainpanes/tables
-            #     # tables["x"],
-            #     # self._swe_positions.positions_page(None),
-            #     "tables",
-            #     "swe positions",
-            # )
 
     # panes show single
     def panes_single(self) -> None:

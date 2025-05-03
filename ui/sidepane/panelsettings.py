@@ -371,7 +371,7 @@ more info in user/settings.py > SWE_FLAG"""
     manager._notify.debug(
         f"swephflag : {app.sweph_flag}",
         source="panelsettings",
-        route=["terminal"],
+        route=["none"],
     )
     # --- sub-panel solar year & lunar months periods --------------------
     subpnl_solar_lunar_periods = CollapsePanel(
@@ -963,6 +963,7 @@ def custom_ayanamsa_changed(entry, key, manager):
 
 
 def files_changed(entry, key, manager):
+    """file paths & names are customizable"""
     value = entry.get_text().strip()
     if manager._app.files[key] == value:
         return
