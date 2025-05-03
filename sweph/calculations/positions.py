@@ -1,118 +1,88 @@
 # sweph/calculations/positions.py
 # ruff: noqa: E402, E701
+# import gi
+
+# gi.require_version("Gtk", "4.0")
+# from gi.repository import Gtk  # type: ignore
 import swisseph as swe
-import gi
-
-gi.require_version("Gtk", "4.0")
-from gi.repository import Gtk  # type: ignore
-from user.settings import OBJECTS, CHART_SETTINGS
+from user.settings import OBJECTS  # , CHART_SETTINGS
 
 
-class SwePositions:
-    def __init__(self, app=None):
-        # print("swepositions : olo")
-        self._app = app or Gtk.Application.get_default()
-        # self._data = getattr(self._app, "e1_swe", {}) if app is None else {}
-        self._notify = self._app.notify_manager
-        self._signal = self._app.signal_manager
-        self._signal._connect("event-one-changed", self.event_one_changed)
-        self._signal._connect("event-two-changed", self.event_two_changed)
-
-    def event_one_changed(self, data):
-        self._notify.debug(
-            "e1 changed",
-            source="positions",
-            route=["terminal"],
-        )
-        self.positions_page("e1")
-
-    def event_two_changed(self, data):
-        self._notify.debug(
-            "e2 changed",
-            source="positions",
-            route=["terminal"],
-        )
-        self.positions_page("e2")
-
-    def calculate_positions(self, event):
-        """calculate planetary positions & present in a table as stack widget"""
-        # get selected objects
-        if event == "e2":
-            src = getattr(self._app, "e2_swe", {})
-            objs = getattr(self._app, "selected_objects_e2", set())
-        else:
-            src = getattr(self._app, "e1_swe", {})
-            objs = getattr(self._app, "selected_objects_e1", set())
-        # test todo
-        print(f"positions : src (swe) : {src}\n\tselobjs : {objs}")
-        # swe.calc_ut() with topocentric flag needs topographic location
-        if "topocentric" in self._app.selected_flags and all(
-            k in src for k in ("lon", "lat", "alt")
-        ):
-            """coordinates are reversed here : lon lat alt"""
-            print("found 'topocentric' flag")
-            swe.set_topo(src["lon"], src["lat"], src["alt"] if src["alt"] else None)
-        jd_ut = src.get("jd_ut")
-        # print(f"jd_ut : {jd_ut}")
-        if jd_ut is None:
-            return []
-        # print(f"objs : {objs}")
-        positions_out = []
-        for obj in objs:
-            obj_int = self.object_name_to_int(obj)
-            if obj_int is None:
-                continue
-            # we also need flags ; calc_ut() returns array of 6 floats + error string :
-            # longitude, latitude, distance
-            # lon speed, lat speed, dist speed
-            value = swe.calc_ut(jd_ut, obj_int, self._app.sweph_flag)
-
-            degree = (
-                value[0][0]
-                if isinstance(value, tuple)
-                and len(value) == 2
-                and isinstance(value[0], tuple)
-                else value
+def calculate_positions(
+    event, sweph, objs, use_mean_node, sweph_flag, flags=None, _notify=None
+):
+    """calculate planetary positions & present in a table as stack widget"""
+    # print(f"positions : sweph : {sweph}\n\tselobjs : {objs}")
+    if not sweph or "jd_ut" not in sweph or not objs:
+        return {}
+    # swe.calc_ut() with topocentric flag needs topographic location
+    if (
+        flags
+        and "topocentric" in flags
+        and all(k in sweph for k in ("lon", "lat", "alt"))
+    ):
+        """coordinates are reversed here : lon lat alt"""
+        print("found 'topocentric' flag")
+        swe.set_topo(sweph["lon"], sweph["lat"], sweph["alt"])
+    jd_ut = sweph.get("jd_ut")
+    # print(f"jd_ut : {jd_ut}")
+    if jd_ut is None:
+        return {}
+    # print(f"objs : {objs}")
+    positions = {}
+    for obj in objs:
+        # print(f"positions : obj : {obj}")
+        code, name = object_name_to_code(obj, use_mean_node)
+        if code is None:
+            continue
+        # calc_ut() returns array of 6 floats + error string :
+        # longitude, latitude, distance
+        # lon speed, lat speed, dist speed
+        try:
+            # we also need flags
+            result = swe.calc_ut(jd_ut, code, sweph_flag)
+            # print(f"positions : result : {result}")
+            data = result[0] if isinstance(result, tuple) else result
+            positions[code] = {
+                "name": name,
+                "lon": data[0],
+                "lat": data[1],
+                "dist": data[2],
+                "lon speed": data[3],
+                "lat speed": data[4],
+                "dist speed": data[5],
+            }
+        except Exception as e:
+            _notify.warning(
+                f"swe.calc_ut() failed\n\tdata {positions[code]} error :\n\t{e}",
+                source="positions",
+                route=["terminal"],
             )
-            positions_out.append((str(obj_int), degree))
-        print(f"\n\tpositions_out : {positions_out}\n")
-        return positions_out
 
-    def table_positions(self, positions):
-        """create a table of planetary positions"""
-        # table = Gtk.Grid()
-        table = Gtk.ListStore(str, str)
-        for body, value in positions:
-            table.append([body, f"{value:.6f}"])
-        view = Gtk.TreeView(model=table)
-        for idx, title in enumerate(("body", "value")):
-            rend = Gtk.CellRendererText()
-            col = Gtk.TreeViewColumn(title, rend, text=idx)
-            view.append_column(col)
-        scw_pos = Gtk.ScrolledWindow()
-        scw_pos.set_child(view)
-        return scw_pos
+    for code, d in positions.items():
+        _notify.debug(
+            f"{event} : {code} : {d['name']}"
+            f"\n\tlon : {d['lon']}"
+            f"\n\tlat : {d['lat']}"
+            f"\n\tdist: {d['dist']}"
+            f"\n\tlon speed : {d['lon speed']}"
+            f"\n\tlat speed : {d['lat speed']}"
+            f"\n\tdist speed : {d['dist speed']}",
+            source="positions",
+            route=["terminal"],
+        )
+    return positions
 
-    def positions_page(self, event):
-        pos = self.calculate_positions(event)
-        if not pos:
-            msg = "no swe e2 data" if event == "e2" else "no swe e1 data"
-            return Gtk.Label(label=msg)
-        return self.table_positions(pos)
 
-    def object_name_to_int(self, name: str) -> int | None:
-        # if name == "true node" and CHART_SETTINGS.get("mean node")[0]:
-        if name == "true node" and CHART_SETTINGS["mean node"][0]:
-            name = "mean node"
-        for obj in OBJECTS.values():
-            if obj[0] == name:
-                return obj[3]
-        if name == "mean node":
-            return 10
-        return None
-
-    # def object_int_to_name(self, obj_int: int) -> str | None:
-    #     # swe.get_planet_name(obj_int)
-    #     for obj in OBJECTS.values():
-    #         if obj[3] == obj_int:
-    #             return OBJECTS.keys()
+def object_name_to_code(name: str, use_mean_node: bool) -> int | None:
+    """get object name as int"""
+    if name == "true node" and use_mean_node:
+        name = "mean node"
+    for key, obj in OBJECTS.items():
+        if obj[1] == name:
+            # return int & short name
+            return key, obj[0]
+    if name == "mean node":
+        # return 10, "mean node" for debug only
+        return 10, "ra"
+    return None

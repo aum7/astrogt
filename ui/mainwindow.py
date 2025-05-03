@@ -10,14 +10,14 @@ from .sidepane.sidepane import SidepaneManager
 from .uisetup import UISetup
 from .hotkeymanager import HotkeyManager
 from ui.helpers import _event_selection
-from ui.mainpanes.panemanager import PaneManager
-from sweph.calculations.positions import SwePositions
+from ui.mainpanes.panesmanager import PanesManager
+from ui.mainpanes.panetables import tables
 
 
 class MainWindow(
     Gtk.ApplicationWindow,
     SidepaneManager,
-    PaneManager,
+    PanesManager,
     ContextManager,
     UISetup,
 ):
@@ -27,18 +27,20 @@ class MainWindow(
         """initialize the main window"""
         Gtk.ApplicationWindow.__init__(self, *args, **kwargs)
         SidepaneManager.__init__(self, app=self.get_application())
-        PaneManager.__init__(self)
+        PanesManager.__init__(self)
         self._app = self.get_application() or Gtk.Application.get_default()
         self._notify = self._app.notify_manager
-        self._signal = self._app.signal_manager
-        self._swe_positions = SwePositions()
-        # self._swe_positions = SwePositions(app=self._app)
+        # custom info in window title bar
         self.headerbar = Gtk.HeaderBar()
         self.headerbar.set_show_title_buttons(True)
+        if hasattr(self.headerbar, "set_use_native_controls"):
+            self.headerbar.set_use_native_controls(True)
+        self.headerbar.set_halign(Gtk.Align.START)
         self.set_titlebar(self.headerbar)
         # widget for text align left
         self.title_label = Gtk.Label(label="astrogt")
-        self.title_label.set_xalign(0.0)
+        # self.title_label.set_alignment(0.0)
+        # self.title_label.set_xalign(0.0)
         self.headerbar.set_title_widget(self.title_label)
         # self.set_title("astrogt")
         self.set_default_size(800, 600)
@@ -58,7 +60,6 @@ class MainWindow(
         self.panes_all
         # 4 main stacks as panes
         self.init_stacks()
-        self._signal._connect("event-one-changed", self.update_tables)
 
     def on_toggle_pane(self, button: Optional[Gtk.Button] = None) -> None:
         """toggle sidepane visibility"""
@@ -143,7 +144,6 @@ class MainWindow(
         elif event:
             title += f" | {event}"
         self.title_label.set_text(title)
-        # self.set_title(title)
 
     def init_stacks(self):
         """initialize stacks with content"""
@@ -166,11 +166,12 @@ class MainWindow(
                 stack.add_titled(label1, "chart", "-chart")
                 stack.add_titled(label2, "editor", "-editor")
                 stack.add_titled(label3, "data", "-data")
-                stack.add_titled(
-                    self._swe_positions.positions_page(None),
-                    "tables",
-                    "swe positions",
-                )
+                # todo
+                # stack.add_titled(
+                #     self._swe_positions.positions_page(None),
+                #     "tables",
+                #     "swe positions",
+                # )
                 # set stack as child of frame
                 frame = getattr(self, f"frm_{pane.replace('-', '_')}", None)
                 if frame:
@@ -186,12 +187,14 @@ class MainWindow(
             old_tables = stack.get_child_by_name("tables")
             if old_tables:
                 stack.remove(old_tables)
-            # add new page
-            stack.add_titled(
-                self._swe_positions.positions_page(None),
-                "tables",
-                "swe positions",
-            )
+            # add new page todo
+            # stack.add_titled(
+            #     # todo add table from mainpanes/tables
+            #     # tables["x"],
+            #     # self._swe_positions.positions_page(None),
+            #     "tables",
+            #     "swe positions",
+            # )
 
     # panes show single
     def panes_single(self) -> None:

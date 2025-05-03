@@ -17,7 +17,6 @@ from user.settings import (
     CUSTOM_AYANAMSA,
     FILES,
 )
-from sweph.setupsettings import get_sweph_flags_int
 
 
 def setup_settings(manager) -> CollapsePanel:
@@ -84,9 +83,9 @@ event 1 & 2 can have different objects"""
 
     for _, obj_data in OBJECTS.items():
         row = Gtk.ListBoxRow()
-        name = obj_data[0]
+        name = obj_data[1]
         # set tooltip on the row
-        tooltip = obj_data[1]
+        tooltip = obj_data[3]
         row.set_tooltip_text(tooltip)
         # create checkbox for selection
         check = Gtk.CheckButton(label=name)
@@ -571,6 +570,35 @@ more info in user/settings.py > SWE_FLAG"""
     return clp_settings
 
 
+def get_sweph_flags_int():
+    """get initial sweph flags"""
+    flags = 0
+    if SWE_FLAG["sidereal zodiac"][0]:
+        flags |= swe.FLG_SIDEREAL
+    if SWE_FLAG["true positions"][0]:
+        flags |= swe.FLG_TRUEPOS
+    if SWE_FLAG["topocentric"][0]:
+        flags |= swe.FLG_TOPOCTR
+    if SWE_FLAG["heliocentric"][0]:
+        flags |= swe.FLG_HELCTR
+    if SWE_FLAG["default flag"][0]:
+        flags |= swe.FLG_SWIEPH | swe.FLG_SPEED
+    if SWE_FLAG["no nutation"][0]:
+        flags |= swe.FLG_NONUT
+    if SWE_FLAG["no abberation"][0]:
+        flags |= swe.FLG_NOABERR
+    if SWE_FLAG["no deflection"][0]:
+        flags |= swe.FLG_NOGDEFL
+    if SWE_FLAG["equatorial"][0]:
+        flags |= swe.FLG_EQUATORIAL
+    if SWE_FLAG["cartesian"][0]:
+        flags |= swe.FLG_XYZ
+    if SWE_FLAG["radians"][0]:
+        flags |= swe.FLG_RADIANS
+
+    return flags
+
+
 def objects_toggle_event(button, manager):
     """objects panel : toggle event for which to select objects"""
     # toggle active event
@@ -668,8 +696,21 @@ def house_system_changed(dropdown, _, manager):
 
 def chart_settings_toggled(button, setting, manager):
     """chart settings panel : update chart settings"""
-    print(f"chartsettingstoggled : {setting}")
+    print(f"chartsettingstoggled : {setting} : {button.get_active()}")
     manager._app.chart_settings[setting] = button.get_active()
+    if setting == "mean node":
+        if manager._app.selected_event == "event one":
+            manager._app.EVENT_ONE.update_positions(
+                "e1",
+                manager._app.e1_sweph,
+                manager._app.selected_objects_e1,
+            )
+        else:
+            manager._app.EVENT_TWO.update_positions(
+                "e2",
+                manager._app.e2_sweph,
+                manager._app.selected_objects_e2,
+            )
 
 
 def naksatras_ring(button, key, manager):

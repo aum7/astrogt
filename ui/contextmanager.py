@@ -7,7 +7,7 @@ gi.require_version("Gdk", "4.0")
 from gi.repository import Gtk, Gdk  # type: ignore
 from typing import Any, Dict, Callable, cast
 from ui.collapsepanel import CollapsePanel
-from ui.mainpanes.panemanager import PaneManager
+from ui.mainpanes.panesmanager import PanesManager
 from ui.helpers import _buttons_from_dict
 
 
@@ -18,10 +18,6 @@ class ContextManager:
     rvl_side_pane: Gtk.Revealer
     _notify: Callable
     get_stack: Callable
-    # ovl_tl: Gtk.Overlay
-    # ovl_tr: Gtk.Overlay
-    # ovl_bl: Gtk.Overlay
-    # ovl_br: Gtk.Overlay
     frm_top_left: Gtk.Frame
     frm_top_right: Gtk.Frame
     frm_bottom_left: Gtk.Frame
@@ -30,19 +26,7 @@ class ContextManager:
 
     def setup_context_controllers(self) -> None:
         """setup right-click context menu / controllers for panes"""
-        # 4 panes = 4 overlays
-        # self.overlays = {
-        #     self.ovl_tl: "top-left",
-        #     self.ovl_tr: "top-right",
-        #     self.ovl_bl: "bottom-left",
-        #     self.ovl_br: "bottom-right",
-        # }
-        # for overlay in self.overlays:
-        #     context_controller = Gtk.GestureClick()
-        #     context_controller.set_button(3)  # r-click
-        #     context_controller.connect("begin", self.on_gesture_begin)
-        #     context_controller.connect("pressed", self.on_context_menu)
-        #     overlay.add_controller(context_controller)
+        # 4 panes = 4 frames (previously overlays)
         self.frames = {
             self.frm_top_left: "top-left",
             self.frm_top_right: "top-right",
@@ -83,8 +67,7 @@ class ContextManager:
         # crate popover todo redesign create_popover_menu()
         pop_ctx, _ = self.create_popover_menu()
         # add stack switcher for current pane
-        PaneManager.add_switcher(cast(PaneManager, self), pos, self.ctxbox_stack)
-        # self.add_switcher(pos, self.ctxbox_stack)
+        PanesManager.add_switcher(cast(PanesManager, self), pos, self.ctxbox_stack)
         # create pane buttons
         for button in _buttons_from_dict(
             self,

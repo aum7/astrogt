@@ -7,17 +7,17 @@
 # original sweph documentation, ie swephprg.pdf & swisseph.pdf at
 # https://github.com/aloistr/swisseph/tree/master/doc
 OBJECTS = {
-    "su": ("sun", "surya", "sy", 0),
-    "mo": ("moon", "candra", "ca", 1),
-    "me": ("mercury", "budha", "bu", 2),
-    "ve": ("venus", "sukra", "sk", 3),
-    "ma": ("mars", "mangala", "ma", 4),
-    "ju": ("jupiter", "guru", "gu", 5),
-    "sa": ("saturn", "sani", "sa", 6),
-    "ur": ("uranus", "uranus", "ur", 7),
-    "ne": ("neptune", "neptune", "ne", 8),
-    "pl": ("pluto", "pluto", "pl", 9),
-    "ra": ("true node", "rahu", "ra", 11),
+    0: ("su", "sun", "sy", "surya"),
+    1: ("mo", "moon", "ca", "candra"),
+    2: ("me", "mercury", "bu", "budha"),
+    3: ("ve", "venus", "sk", "sukra"),
+    4: ("ma", "mars", "ma", "mangala"),
+    5: ("ju", "jupiter", "gu", "guru"),
+    6: ("sa", "saturn", "sa", "sani"),
+    7: ("ur", "uranus", "ur", "uranus"),
+    8: ("ne", "neptune", "ne", "neptune"),
+    9: ("pl", "pluto", "pl", "pluto"),
+    11: ("ra", "true node", "ra", "rahu"),
 }
 SWE_FLAG = {
     # default flags for sweph calculations

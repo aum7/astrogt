@@ -7,7 +7,7 @@ from gi.repository import Gtk  # type: ignore
 from typing import Dict  # Callable
 
 
-class PaneManager(Gtk.Stack):
+class PanesManager(Gtk.Stack):
     """mixin class for main panes & stack management"""
 
     # type hints for inherited attributes

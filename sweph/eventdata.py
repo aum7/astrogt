@@ -4,34 +4,17 @@ import gi
 
 gi.require_version("GObject", "2.0")
 gi.require_version("Gtk", "4.0")
-from gi.repository import GObject, Gtk  # type: ignore
+from gi.repository import Gtk  # , GObject  # type: ignore
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 from timezonefinder import TimezoneFinder
 from ui.helpers import _decimal_to_dms
 from sweph.swetime import validate_datetime, naive_to_utc, utc_to_jd
+from sweph.calculations.positions import calculate_positions
 
 
-class EventData(GObject.Object):
+class EventData:
     """get event data from user input"""
-
-    __gsignals__ = {
-        "event-one-changed": (
-            GObject.SignalFlags.RUN_FIRST,
-            None,
-            (GObject.TYPE_PYOBJECT,),
-        ),
-        "event-two-changed": (
-            GObject.SignalFlags.RUN_FIRST,
-            None,
-            (GObject.TYPE_PYOBJECT,),
-        ),
-        # "event-two-erased": (
-        #     GObject.SignalFlags.RUN_FIRST,
-        #     None,
-        #     (GObject.TYPE_PYOBJECT,),
-        # ),
-    }
 
     def __init__(
         self,
@@ -45,7 +28,7 @@ class EventData(GObject.Object):
         """get user input and prepare for swe"""
         self._app = app or Gtk.Application.get_default()
         self._notify = self._app.notify_manager
-        self._signal = self._app.signal_manager
+        # self._signal = self._app.signal_manager
         # attributes as widgets
         self.country = country
         self.city = city
@@ -63,9 +46,9 @@ class EventData(GObject.Object):
         self.old_date_time = ""
         self.old_location = ""
         # separate data by event
-        self._app.e1_swe = {}
+        self._app.e1_sweph = {}
         self._app.e1_chart = {}
-        self._app.e2_swe = {}
+        self._app.e2_sweph = {}
         self._app.e2_chart = {}
         # connect signals for entry completion
         for widget, callback in [
@@ -103,9 +86,9 @@ class EventData(GObject.Object):
                 # handle empty location : erase location 2 data
                 self._app.e2_chart["location"] = ""
                 self._app.e2_chart["timezone"] = ""
-                self._app.e2_swe["lat"] = None
-                self._app.e2_swe["lon"] = None
-                self._app.e2_swe["alt"] = None
+                self._app.e2_sweph["lat"] = None
+                self._app.e2_sweph["lon"] = None
+                self._app.e2_sweph["alt"] = None
                 self.old_location = ""
                 self._notify.info(
                     f"{location_name} cleared",
@@ -241,13 +224,13 @@ class EventData(GObject.Object):
                 # re-raise to next level
                 raise ValueError(e)
             try:
-                # validate as integer
+                # need pass validatng as integer
                 int(alt)
                 # if not int(alt):
                 #     raise ValueError(f"{location_name} int(alt) : {int(alt)} failed")
             except ValueError as e:
                 self._notify.info(
-                    f"{location_name} : setting alt to 0 (string)\n\t{e}",
+                    f"{location_name} : alt validation failed\n\tsetting alt to 0 string\n\terror :\n\t{e}",
                     source="eventdata",
                     route=["terminal"],
                     timeout=4,
@@ -313,9 +296,9 @@ class EventData(GObject.Object):
             self._app.e1_chart["location"] = location_formatted
             self._app.e1_chart["timezone"] = timezone_
             # received data
-            self._app.e1_swe["lat"] = lat
-            self._app.e1_swe["lon"] = lon
-            self._app.e1_swe["alt"] = int(alt)
+            self._app.e1_sweph["lat"] = lat
+            self._app.e1_sweph["lon"] = lon
+            self._app.e1_sweph["alt"] = int(alt)
             # msg_ = f"{location_name} updated"
         else:
             # grab country & city
@@ -328,9 +311,9 @@ class EventData(GObject.Object):
             self._app.e2_chart["location"] = location_formatted
             self._app.e2_chart["timezone"] = timezone_
             # received data
-            self._app.e2_swe["lat"] = lat
-            self._app.e2_swe["lon"] = lon
-            self._app.e2_swe["alt"] = int(alt)
+            self._app.e2_sweph["lat"] = lat
+            self._app.e2_sweph["lon"] = lon
+            self._app.e2_sweph["alt"] = int(alt)
             # msg_ = f"{location_name} updated"
         self._notify.success(
             f"{location_name} updated",
@@ -461,20 +444,15 @@ class EventData(GObject.Object):
                     return
                 elif datetime_name == "datetime two":
                     # datetime two is optional : if deleted > clear data 2
-                    if self._app.e2_chart or self._app.e2_swe:
+                    if self._app.e2_chart or self._app.e2_sweph:
                         self._app.e2_chart = {}
-                        self._app.e2_swe = {}
+                        self._app.e2_sweph = {}
                         self.old_date_time = ""
                         self._notify.info(
                             f"{datetime_name}: cleared event 2 data",
                             source="eventdata",
                             route=["terminal"],
                         )
-                        # todo do we need this ?
-                        # self._signal._emit(
-                        #     # "event-two-erased",
-                        #     {"chart": self._app.e2_chart, "swe": self._app.e2_swe},
-                        # )
                         return
             if date_time == self.old_date_time:
                 self._notify.debug(
@@ -573,9 +551,9 @@ class EventData(GObject.Object):
             )
             return
         if datetime_name == "datetime one":
-            self._app.e1_swe["jd_ut"] = jd_ut
+            self._app.e1_sweph["jd_ut"] = jd_ut
         else:
-            self._app.e2_swe["jd_ut"] = jd_ut
+            self._app.e2_sweph["jd_ut"] = jd_ut
         self._notify.debug(
             f"{datetime_name} julian day : {jd_ut}",
             source="eventdata",
@@ -603,7 +581,7 @@ class EventData(GObject.Object):
                 for key in ["country", "city", "location", "timezone"]:
                     self._app.e2_chart[key] = self._app.e1_chart.get(key)
                 for key in ["lat", "lon", "alt"]:
-                    self._app.e2_swe[key] = self._app.e1_swe.get(key)
+                    self._app.e2_sweph[key] = self._app.e1_sweph.get(key)
             self._notify.debug(
                 "cou & cit & loc & tz + lat & lon & alt : data 1 => 2",
                 source="eventdata",
@@ -615,20 +593,42 @@ class EventData(GObject.Object):
         self._notify.debug(
             "\n----- COLLECTED DATA -----"
             f"\n\tchart 1\t{json.dumps(self._app.e1_chart, sort_keys=True, indent=6, ensure_ascii=False)}"
-            f"\n\t  swe 1\t{json.dumps(self._app.e1_swe, sort_keys=True, indent=6, ensure_ascii=False)}"
+            f"\n\tsweph 1\t{json.dumps(self._app.e1_sweph, sort_keys=True, indent=6, ensure_ascii=False)}"
             "\n--------------------------"
             f"\n\tchart 2\t{json.dumps(self._app.e2_chart, sort_keys=True, indent=6, ensure_ascii=False)}"
-            f"\n\t  swe 2\t{json.dumps(self._app.e2_swe, sort_keys=True, indent=6, ensure_ascii=False)}"
+            f"\n\tsweph 2\t{json.dumps(self._app.e2_sweph, sort_keys=True, indent=6, ensure_ascii=False)}"
             "\n--------------------------",
             source="eventdata",
             route=["terminal"],
         )
-        # emit signal for data changed
-        sig = (
-            "event-one-changed"
-            if datetime_name == "datetime one"
-            else "event-two-changed"
+        # detect event & pass it further
+        if datetime_name == "datetime one":
+            event = "e1"
+            sweph = self._app.e1_sweph
+            objs = self._app.selected_objects_e1
+        else:
+            event = "e2"
+            sweph = self._app.e2_sweph
+            objs = self._app.selected_objects_e2
+        self._notify.debug(
+            f"{datetime_name} ({event}): calling updatepositions :"
+            f"\n\tsweph : {sweph}"
+            f"\n\tobjs : {objs}",
+            source="eventdata",
+            route=["terminal"],
         )
+        self.update_positions(event, sweph, objs)
         self._app.props.active_window.update_main_title()
-        self._signal._emit(sig, None)
         return
+
+    # call positions calculation
+    def update_positions(self, event, sweph, objs):
+        calculate_positions(
+            event,
+            sweph,
+            objs,
+            self._app.chart_settings["mean node"],
+            self._app.sweph_flag,
+            self._app.selected_flags,
+            self._notify,
+        )
