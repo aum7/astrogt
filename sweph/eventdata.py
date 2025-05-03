@@ -1,4 +1,4 @@
-# eventdata.py
+# sweph/eventdata.py
 # ruff: noqa: E402
 import gi
 
@@ -26,11 +26,11 @@ class EventData(GObject.Object):
             None,
             (GObject.TYPE_PYOBJECT,),
         ),
-        "event-two-erased": (
-            GObject.SignalFlags.RUN_FIRST,
-            None,
-            (GObject.TYPE_PYOBJECT,),
-        ),
+        # "event-two-erased": (
+        #     GObject.SignalFlags.RUN_FIRST,
+        #     None,
+        #     (GObject.TYPE_PYOBJECT,),
+        # ),
     }
 
     def __init__(
@@ -111,12 +111,6 @@ class EventData(GObject.Object):
                     f"{location_name} cleared",
                     source="eventdata",
                     route=["terminal"],
-                )
-                # emit signal before returning
-                # shall be used for clearing astro chart todo
-                self._signal._emit(
-                    "event-two-erased",
-                    {"chart": self._app.e2_chart, "swe": self._app.e2_swe},
                 )
                 return
         if location == self.old_location:
@@ -442,7 +436,7 @@ class EventData(GObject.Object):
                     dt_utc.day,
                     dt_utc.hour,
                     dt_utc.minute,
-                    dt_utc.second,
+                    int(dt_utc.second),
                     calendar=b"g",
                 )
             except Exception as e:
@@ -477,10 +471,10 @@ class EventData(GObject.Object):
                             route=["terminal"],
                         )
                         # todo do we need this ?
-                        self._signal._emit(
-                            "event-two-erased",
-                            {"chart": self._app.e2_chart, "swe": self._app.e2_swe},
-                        )
+                        # self._signal._emit(
+                        #     # "event-two-erased",
+                        #     {"chart": self._app.e2_chart, "swe": self._app.e2_swe},
+                        # )
                         return
             if date_time == self.old_date_time:
                 self._notify.debug(
@@ -591,7 +585,8 @@ class EventData(GObject.Object):
         # in this case datetime two is mandatory, the rest is optional, aka
         # if exists > use it, else use event 1 data
         if self._app.e2_chart.get("datetime") is None:
-            # return
+            # declare event_two_active : needed for calculations todo ???
+            self._app.event_two_active = False
             self._notify.debug(
                 "datetime 2 is none : user not interested in event 2 : skipping ...",
                 source="eventdata",
@@ -634,13 +629,6 @@ class EventData(GObject.Object):
             if datetime_name == "datetime one"
             else "event-two-changed"
         )
-        data = {
-            "chart": self._app.e1_chart
-            if datetime_name == "datetime one"
-            else self._app.e2_chart,
-            "swe": self._app.e1_swe
-            if datetime_name == "datetime one"
-            else self._app.e2_swe,
-        }
-        self._signal._emit(sig, data)
+        self._app.props.active_window.update_main_title()
+        self._signal._emit(sig, None)
         return

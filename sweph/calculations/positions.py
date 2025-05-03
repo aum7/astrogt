@@ -12,45 +12,51 @@ class SwePositions:
     def __init__(self, app=None):
         # print("swepositions : olo")
         self._app = app or Gtk.Application.get_default()
-        self._data = getattr(self._app, "e1_swe", {}) if app is None else {}
+        # self._data = getattr(self._app, "e1_swe", {}) if app is None else {}
         self._notify = self._app.notify_manager
         self._signal = self._app.signal_manager
-        self._signal._connect("event-one-changed", self.on_event_one_changed)
-        self._signal._connect("event-two-changed", self.on_event_two_changed)
-        self._signal._connect("event-two-erased", self.on_event_two_erased)
+        self._signal._connect("event-one-changed", self.event_one_changed)
+        self._signal._connect("event-two-changed", self.event_two_changed)
 
-    def on_event_one_changed(self, event_data):
+    def event_one_changed(self, data):
         self._notify.debug(
-            f"e1 changed : {event_data}",
+            "e1 changed",
             source="positions",
             route=["terminal"],
         )
-        self.positions_page()
+        self.positions_page("e1")
 
-    def on_event_two_changed(self, event_data):
+    def event_two_changed(self, data):
         self._notify.debug(
-            f"e2 changed : {event_data}",
+            "e2 changed",
             source="positions",
             route=["terminal"],
         )
+        self.positions_page("e2")
 
-    def on_event_two_erased(self, event_data):
-        self._notify.debug(
-            f"e2 erased : {event_data}",
-            source="positions",
-            route=["terminal"],
-        )
-
-    def calculate_positions(self):
+    def calculate_positions(self, event):
         """calculate planetary positions & present in a table as stack widget"""
-        src = self._data or getattr(self._app, "e1_swe", {})
+        # get selected objects
+        if event == "e2":
+            src = getattr(self._app, "e2_swe", {})
+            objs = getattr(self._app, "selected_objects_e2", set())
+        else:
+            src = getattr(self._app, "e1_swe", {})
+            objs = getattr(self._app, "selected_objects_e1", set())
+        # test todo
+        print(f"positions : src (swe) : {src}\n\tselobjs : {objs}")
+        # swe.calc_ut() with topocentric flag needs topographic location
+        if "topocentric" in self._app.selected_flags and all(
+            k in src for k in ("lon", "lat", "alt")
+        ):
+            """coordinates are reversed here : lon lat alt"""
+            print("found 'topocentric' flag")
+            swe.set_topo(src["lon"], src["lat"], src["alt"] if src["alt"] else None)
         jd_ut = src.get("jd_ut")
         # print(f"jd_ut : {jd_ut}")
         if jd_ut is None:
             return []
-        # get selected objects
-        objs = self._app.selected_objects
-        print(f"objs : {objs}")
+        # print(f"objs : {objs}")
         positions_out = []
         for obj in objs:
             obj_int = self.object_name_to_int(obj)
@@ -59,7 +65,8 @@ class SwePositions:
             # we also need flags ; calc_ut() returns array of 6 floats + error string :
             # longitude, latitude, distance
             # lon speed, lat speed, dist speed
-            value = swe.calc_ut(jd_ut, obj_int)
+            value = swe.calc_ut(jd_ut, obj_int, self._app.sweph_flag)
+
             degree = (
                 value[0][0]
                 if isinstance(value, tuple)
@@ -86,10 +93,11 @@ class SwePositions:
         scw_pos.set_child(view)
         return scw_pos
 
-    def positions_page(self):
-        pos = self.calculate_positions()
+    def positions_page(self, event):
+        pos = self.calculate_positions(event)
         if not pos:
-            return Gtk.Label(label="no e1 swe data")
+            msg = "no swe e2 data" if event == "e2" else "no swe e1 data"
+            return Gtk.Label(label=msg)
         return self.table_positions(pos)
 
     def object_name_to_int(self, name: str) -> int | None:

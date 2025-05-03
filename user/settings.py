@@ -194,9 +194,9 @@ SOLAR_YEAR = {
 }
 # lunar month lengths
 LUNAR_MONTH = {
+    "sid": (27.321661, "sidereal\t\tfixed star"),
     "trp": (27.321582, "tropical\t\t0 ari (houck)"),
     "syn": (29.53059, "synodic\t\tnew moons"),
-    "sid": (27.321661, "sidereal\t\tfixed star"),
     "anm": (27.554551, "anomalistic\tperigee-apogee"),
     "drc": (27.21222, "draconic\tlunar nodes"),
 }

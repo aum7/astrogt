@@ -33,7 +33,14 @@ class MainWindow(
         self._signal = self._app.signal_manager
         self._swe_positions = SwePositions()
         # self._swe_positions = SwePositions(app=self._app)
-        self.set_title("astrogt")
+        self.headerbar = Gtk.HeaderBar()
+        self.headerbar.set_show_title_buttons(True)
+        self.set_titlebar(self.headerbar)
+        # widget for text align left
+        self.title_label = Gtk.Label(label="astrogt")
+        self.title_label.set_xalign(0.0)
+        self.headerbar.set_title_widget(self.title_label)
+        # self.set_title("astrogt")
         self.set_default_size(800, 600)
         # setup ui : side pane
         self.setup_revealer()
@@ -52,7 +59,6 @@ class MainWindow(
         # 4 main stacks as panes
         self.init_stacks()
         self._signal._connect("event-one-changed", self.update_tables)
-        self._app.selected_objects = getattr(self, "selected_objects", set())
 
     def on_toggle_pane(self, button: Optional[Gtk.Button] = None) -> None:
         """toggle sidepane visibility"""
@@ -123,6 +129,22 @@ class MainWindow(
             route=["user"],
         )
 
+    def update_main_title(self):
+        """show selected event & its datetime in main titlebar"""
+        event = self._app.selected_event
+        dt = None
+        if event == "event one":
+            dt = self._app.e1_chart.get("datetime")
+        elif event == "event two":
+            dt = self._app.e2_chart.get("datetime")
+        title = "astrogt"
+        if event and dt:
+            title += f" | {event} : {dt}"
+        elif event:
+            title += f" | {event}"
+        self.title_label.set_text(title)
+        # self.set_title(title)
+
     def init_stacks(self):
         """initialize stacks with content"""
         # 4 main panes
@@ -145,7 +167,7 @@ class MainWindow(
                 stack.add_titled(label2, "editor", "-editor")
                 stack.add_titled(label3, "data", "-data")
                 stack.add_titled(
-                    self._swe_positions.positions_page(),
+                    self._swe_positions.positions_page(None),
                     "tables",
                     "swe positions",
                 )
@@ -156,7 +178,6 @@ class MainWindow(
 
     def update_tables(self, event_data):
         """update tables with new data"""
-        self._app.selected_objects = getattr(self, "selected_objects", set())
         for pane in ["top-left", "top-right", "bottom-left", "bottom-right"]:
             stack = self.get_stack(pane)
             if not stack:
@@ -167,7 +188,7 @@ class MainWindow(
                 stack.remove(old_tables)
             # add new page
             stack.add_titled(
-                self._swe_positions.positions_page(),
+                self._swe_positions.positions_page(None),
                 "tables",
                 "swe positions",
             )

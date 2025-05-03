@@ -66,7 +66,7 @@ class SidepaneManager:
         # create & put collapse panels into box
         self.clp_change_time = self.setup_change_time()
         # 2 events todo expand event one
-        self.clp_event_one = setup_event(self, "event one", False)
+        self.clp_event_one = setup_event(self, "event one", True)
         self.clp_event_two = setup_event(self, "event two", False)
         if self._app.selected_event == "event one":
             self.clp_event_one.add_title_css_class("label-event-selected")
