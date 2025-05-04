@@ -78,6 +78,13 @@ label {
   padding: 0px;
 }
 
+.button-change-time {
+  background-color: transparent;
+  border-color: transparent;
+  margin: 5px;
+  padding: 0px;
+}
+
 .button-event {
   background-color: transparent;
   border-color: transparent;

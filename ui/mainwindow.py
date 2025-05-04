@@ -53,6 +53,7 @@ class MainWindow(
         # show all 4 panes
         self.panes_all
         # 4 main stacks as panes
+        self.tables = {}  # dict for tables widget per pane
         self.init_stacks()
 
     def on_toggle_pane(self, button: Optional[Gtk.Button] = None) -> None:
@@ -125,7 +126,7 @@ class MainWindow(
             route=["user"],
         )
 
-    def update_main_title(self):
+    def update_main_title(self, change_time=None):
         """show selected event & its datetime in main titlebar"""
         event = self._app.selected_event
         dt = None
@@ -138,6 +139,10 @@ class MainWindow(
             title += f" | {event} : {dt}"
         elif event:
             title += f" | {event}"
+        if change_time:
+            title += f" | ct : {change_time}"
+        elif change_time is None:
+            title += " | ct : 1 day"
         self.title_label.set_text(title)
 
     def init_stacks(self):
@@ -149,27 +154,32 @@ class MainWindow(
             # create stack for each position
             if not stack:
                 continue
-            if stack:
-                # test labels todo pages here please thank you
-                label1 = Gtk.Label(label="astrology chart")
-                label1.add_css_class("label-tl")
-                label2 = Gtk.Label(label="text editor")
-                label2.add_css_class("label-tr")
-                label3 = Gtk.Label(label="data graph")
-                label3.add_css_class("label-bl")
+            # test labels todo pages here please thank you
+            label1 = Gtk.Label(label="astrology chart")
+            label1.add_css_class("label-tl")
+            label2 = Gtk.Label(label="text editor")
+            label2.add_css_class("label-tr")
+            label3 = Gtk.Label(label="data graph")
+            label3.add_css_class("label-bl")
 
-                stack.add_titled(label1, "chart", "-chart")
-                stack.add_titled(label2, "editor", "-editor")
-                stack.add_titled(label3, "graph", "-graph")
-                widget = draw_tables()
-                widget.add_css_class("label-bl")
-                # print(f"mainwindow : drawtables widget : {type(widget)}")
-                stack.add_titled(widget, "tables", "tables")
-                # stack.add_titled(draw_tables(), "tables", "tables")
-                # set stack as child of frame
-                frame = getattr(self, f"frm_{pane.replace('-', '_')}", None)
-                if frame:
-                    frame.set_child(stack)
+            stack.add_titled(label1, "chart", "-chart")
+            stack.add_titled(label2, "editor", "-editor")
+            stack.add_titled(label3, "graph", "-graph")
+            # store custom (table) widget reference for updates
+            self.tables[pane] = draw_tables()
+            # print(f"mainwindow : drawtables widget : {type(widget)}")
+            stack.add_titled(self.tables[pane], "tables", f"{pane}-tables")
+            # set stack as child of frame
+            frame = getattr(self, f"frm_{pane.replace('-', '_')}", None)
+            if frame:
+                frame.set_child(stack)
+
+    def update_stacks(self):
+        """update stacks / custom drawing widgets on event data change"""
+        # trigger table redraw
+        for table in self.tables.values():
+            if table:
+                table.queue_draw()
 
     # panes show single
     def panes_single(self) -> None:

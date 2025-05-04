@@ -4,7 +4,7 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
-from typing import Dict, Optional
+from typing import Dict, Optional, Callable
 from datetime import datetime, timezone
 from ui.collapsepanel import CollapsePanel
 from ui.helpers import _buttons_from_dict
@@ -16,6 +16,8 @@ from .panelsettings import setup_settings
 
 class SidepaneManager:
     """mixin class for managing the side pane"""
+
+    update_main_title: Callable
 
     TOOLS_BUTTONS: Dict[str, str] = {
         "settings": "settings",
@@ -94,7 +96,7 @@ class SidepaneManager:
     def setup_change_time(self) -> CollapsePanel:
         """setup widget for changing time of the event one or two"""
         # main container of change time widget todo expand
-        clp_change_time = CollapsePanel(title="change time", expanded=False)
+        clp_change_time = CollapsePanel(title="change time", expanded=True)
         clp_change_time.set_margin_end(self.margin_end)
         clp_change_time.set_title_tooltip(
             """change time period for selected event (one or two)
@@ -106,6 +108,8 @@ arrow key left / right : move time backward / forward
         )
         # horizontal box for time navigation icons
         box_time_icons = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        box_time_icons.set_homogeneous(True)
+        # box_change_time.set_hexpand(True)
         # create change time buttons
         for button in _buttons_from_dict(
             self, buttons_dict=self.CHANGE_TIME_BUTTONS, icons_path="changetime/"
@@ -167,6 +171,7 @@ arrow key left / right : move time backward / forward
             # )
             key = next(k for k, v in self.CHANGE_TIME_PERIODS.items() if v == new_value)
             self.CHANGE_TIME_SELECTED = float(key)
+            self.update_main_title(new_value)
 
     def change_event_time(self, change_delta):
         """adjust selected event time by julian day delta"""

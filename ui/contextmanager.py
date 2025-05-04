@@ -1,11 +1,11 @@
-# contextmanager.py
+# ui/contextmanager.py
 # ruff: noqa: E402
 import gi
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Gdk", "4.0")
 from gi.repository import Gtk, Gdk  # type: ignore
-from typing import Any, Dict, Callable, cast
+from typing import Dict, Callable, cast
 from ui.collapsepanel import CollapsePanel
 from ui.mainpanes.panesmanager import PanesManager
 from ui.helpers import _buttons_from_dict
@@ -26,7 +26,7 @@ class ContextManager:
 
     def setup_context_controllers(self) -> None:
         """setup right-click context menu / controllers for panes"""
-        # 4 panes = 4 frames (previously overlays)
+        # 4 panes = 4 gtk.frame
         self.frames = {
             self.frm_top_left: "top-left",
             self.frm_top_right: "top-right",
@@ -36,15 +36,15 @@ class ContextManager:
         for frame in self.frames:
             context_controller = Gtk.GestureClick()
             context_controller.set_button(3)  # r-click
-            context_controller.connect("begin", self.on_gesture_begin)
+            # context_controller.connect("begin", self.on_gesture_begin)
             context_controller.connect("pressed", self.on_context_menu)
             frame.add_controller(context_controller)
 
-    def on_gesture_begin(self, gesture: Gtk.GestureClick, sequence: Any) -> None:
-        """handle gesture begin to prevent drag"""
-        # mouse drag gives gtk.error
-        # Gtk-WARNING **: 19:02:06.608: Broken accounting of active state for widget 0x20de5cb0(GtkPopover)
-        gesture.set_state(Gtk.EventSequenceState.CLAIMED)
+    # def on_gesture_begin(self, gesture: Gtk.GestureClick, sequence: Any) -> None:
+    #     """handle gesture begin to prevent drag"""
+    # mouse drag gives gtk.error todo below solution not working
+    # Gtk-WARNING **: 19:02:06.608: Broken accounting of active state for widget 0x20de5cb0(GtkPopover)
+    # gesture.set_state(Gtk.EventSequenceState.CLAIMED)
 
     def on_context_menu(
         self, gesture: Gtk.GestureClick, n_press: int, x: float, y: float
@@ -57,41 +57,52 @@ class ContextManager:
         picked = widget.pick(x, y, Gtk.PickFlags.DEFAULT)
         if not picked:
             return
-        parent = picked.get_parent()
-        grandparent = parent.get_parent()
-        if not grandparent or grandparent not in self.frames:
-            self._notify.error("grandparent missing", route=["terminal"])
-            return
-        # get position of clicked overlay
-        pos = self.frames[grandparent]
-        # crate popover todo redesign create_popover_menu()
-        pop_ctx, _ = self.create_popover_menu()
-        # add stack switcher for current pane
-        PanesManager.add_switcher(cast(PanesManager, self), pos, self.ctxbox_stack)
-        # create pane buttons
-        for button in _buttons_from_dict(
-            self,
-            buttons_dict=self.TOOLS_BUTTONS,
-            icons_path="tools/",
-            pop_context=True,
-            pos=self.frames[grandparent],
-        ):
-            self.ctxbox_tools.append(button)
+        # traverse up till gtk.frame = main widget for gtk.stack / custom widgets
+        current = picked
+        while current:
+            parent = current.get_parent()
+            if not parent:
+                break
+            if parent in self.frames:
+                # frame found : get position of clicked overlay
+                pos = self.frames[parent]
+                # crate popover todo redesign create_popover_menu()
+                pop_ctx, _ = self.create_popover_menu()
+                # add stack switcher for current pane
+                PanesManager.add_switcher(
+                    cast(PanesManager, self), pos, self.ctxbox_stack
+                )
+                # create pane buttons
+                for button in _buttons_from_dict(
+                    self,
+                    buttons_dict=self.TOOLS_BUTTONS,
+                    icons_path="tools/",
+                    pop_context=True,
+                    pos=self.frames[parent],
+                ):
+                    self.ctxbox_tools.append(button)
 
-        # rectangle for anchoring popover
-        rect = Gdk.Rectangle()
-        rect.x = int(x)
-        rect.y = int(y)
-        rect.width = 1
-        rect.height = 1
+                # rectangle for anchoring popover
+                rect = Gdk.Rectangle()
+                rect.x = int(x)
+                rect.y = int(y)
+                rect.width = 1
+                rect.height = 1
 
-        pop_ctx.set_parent(grandparent)
-        pop_ctx.set_pointing_to(rect)
-        pop_ctx.set_position(Gtk.PositionType.BOTTOM)
-        pop_ctx.set_autohide(True)
-        pop_ctx.set_has_arrow(True)
+                pop_ctx.set_parent(parent)
+                pop_ctx.set_pointing_to(rect)
+                pop_ctx.set_position(Gtk.PositionType.BOTTOM)
+                pop_ctx.set_autohide(True)
+                pop_ctx.set_has_arrow(True)
 
-        pop_ctx.popup()
+                pop_ctx.popup()
+                return
+            current = parent
+        self._notify.error(
+            "frame container not found",
+            source="contextmanager",
+            route=["terminal"],
+        )
 
     def create_popover_menu(self) -> tuple[Gtk.Popover, Gtk.Box]:
         """create popover menu with proper setup"""

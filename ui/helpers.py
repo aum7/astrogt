@@ -22,7 +22,7 @@ def _buttons_from_dict(
 
     for button_name, tooltip in (buttons_dict or manager.TOOLS_BUTTONS).items():
         button = Gtk.Button()
-        button.add_css_class("button-pane")
+        button.add_css_class("button-change-time")
         button.set_tooltip_text(tooltip)
         icon = Gtk.Image.new_from_file(f"{icons_path_cpl}{button_name}.svg")
         if icon_size:

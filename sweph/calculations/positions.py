@@ -6,13 +6,13 @@
 # from gi.repository import Gtk  # type: ignore
 import swisseph as swe
 from user.settings import OBJECTS  # , CHART_SETTINGS
-from ui.mainpanes.panetables import pane_tables
+from ui.mainpanes.panetables import update_tables
 
 
 def calculate_positions(
     event, sweph, objs, use_mean_node, sweph_flag, flags=None, _notify=None
 ):
-    """calculate planetary positions & present in a table as stack widget"""
+    """calculate planetary positions"""
     # print(f"positions : sweph : {sweph}\n\tselobjs : {objs}")
     if not sweph or "jd_ut" not in sweph or not objs:
         return {}
@@ -59,7 +59,6 @@ def calculate_positions(
                 source="positions",
                 route=["terminal"],
             )
-    # positions["event"] = event
     keys = [k for k in positions.keys() if isinstance(k, int)]
     keys.sort()
     positions_ordered = {"event": event}
@@ -67,8 +66,13 @@ def calculate_positions(
         positions_ordered[k] = positions[k]
     positions.clear()
     positions.update(positions_ordered)
-    # call tables & pass _notify
-    pane_tables(positions, _notify)
+    # call tables & serve positions
+    _notify.debug(
+        f"sending positions : {positions}",
+        source="positions",
+        route=["none"],
+    )
+    update_tables(positions)
     return positions
 
 
