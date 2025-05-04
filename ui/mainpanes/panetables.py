@@ -13,28 +13,44 @@ class TablesWidget(Gtk.Notebook):
         super().__init__()
         self._app = Gtk.Application.get_default()
         self._notify = self._app.notify_manager
-        self.set_tab_pos(Gtk.PositionType.LEFT)
+        # add styling
+        self.add_css_class("no-border")
+        self.set_tab_pos(Gtk.PositionType.TOP)
         self.set_scrollable(True)
+        self.table_pages = {}
         self._positions = {}
 
     def update_data(self, positions):
         """update positions on event data change"""
-        self._positions = positions
-        # remove existing pages
-        while self.get_n_pages() > 0:
-            self.remove_page(-1)
-        # rebuild tables
         if "event" in positions:
-            event_positions = {k: v for k, v in positions.items() if isinstance(k, int)}
-            if event_positions:
-                grid = self.make_table(event_positions)
-                self.append_page(grid, Gtk.Label(label=str(positions["event"])))
+            # current_page = self.get_current_page()
+            event = positions["event"]
+            self.table_pages[event] = positions
+            # convert event to page number todo useful for ie sunrise & hora table ?
+            event_num = int(event[1]) - 1
+            # rebuild all pages todo only tables with data changed
+            while self.get_n_pages() > 0:
+                self.remove_page(-1)
+            # add page for each event
+            for event_, pos in self.table_pages.items():
+                event_positions = {k: v for k, v in pos.items() if isinstance(k, int)}
+                if event_positions:
+                    grid = self.make_table(event_positions)
+                    self.append_page(grid, Gtk.Label(label=str(event_)))
+            # set focus to updated event page
+            self.set_current_page(event_num)
 
     def make_table(self, pos_dict):
         """create grid with positions data"""
+        # scrolled window for overflowing cells
+        scroll = Gtk.ScrolledWindow()
+        scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        scroll.set_hexpand(True)
+        scroll.set_vexpand(True)
+        # grid as table with cells
         grid = Gtk.Grid()
-        grid.set_column_spacing(8)
-        grid.set_row_spacing(4)
+        # set styling
+        grid.add_css_class("data-grid")
         fields = [
             "name",
             "lat",
@@ -46,15 +62,21 @@ class TablesWidget(Gtk.Notebook):
         ]
         # add header
         for j, field in enumerate(fields):
-            grid.attach(Gtk.Label(label=field, xalign=0), j, 0, 1, 1)
+            label = Gtk.Label(label=field, xalign=0)
+            label.set_selectable(True)
+            label.add_css_class("header-cell")
+            grid.attach(label, j, 0, 1, 1)
         # add data rows
         for i, obj in enumerate(pos_dict.values(), 1):
             for j, key in enumerate(fields):
                 value = obj.get(key, "")
                 if isinstance(value, float):
                     value = f"{value:.3f}"
-                grid.attach(Gtk.Label(label=str(value), xalign=0), j, i, 1, 1)
-        return grid
+                label = Gtk.Label(label=str(value), xalign=0)
+                label.set_selectable(True)
+                grid.attach(label, j, i, 1, 1)
+        scroll.set_child(grid)
+        return scroll
 
 
 def draw_tables():

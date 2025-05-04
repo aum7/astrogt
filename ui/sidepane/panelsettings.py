@@ -23,7 +23,7 @@ def setup_settings(manager) -> CollapsePanel:
     """setup widget for settings, ie objects, sweph flags, glyphs etc"""
     app = manager._app
     # main panel for settings
-    clp_settings = CollapsePanel(title="settings", expanded=True)
+    clp_settings = CollapsePanel(title="settings", expanded=False)
     clp_settings.set_margin_end(manager.margin_end)
     clp_settings.set_title_tooltip("""sweph & application & chart etc settings""")
     # main box for settings
@@ -72,13 +72,13 @@ event 1 & 2 can have different objects"""
     btn_select_none.connect("clicked", objects_select_none, manager)
     box_button.append(btn_select_none)
     # list box for selection
-    manager.listbox = Gtk.ListBox()
+    manager.lbx_objects = Gtk.ListBox()
     # we'll manage selection with checkboxes
-    manager.listbox.set_selection_mode(Gtk.SelectionMode.NONE)
-    box_objects.append(manager.listbox)
+    manager.lbx_objects.set_selection_mode(Gtk.SelectionMode.NONE)
+    box_objects.append(manager.lbx_objects)
     # track selected objects per event
     app.selected_objects_e1 = set()
-    app.selected_objects_e2 = set()
+    app.selected_objects_e2 = {"sun", "moon"}
     manager.selected_objects_event = 1
 
     for _, obj_data in OBJECTS.items():
@@ -92,7 +92,7 @@ event 1 & 2 can have different objects"""
         check.connect("toggled", lambda btn, n=name: objects_toggled(btn, n, manager))
 
         row.set_child(check)
-        manager.listbox.append(row)
+        manager.lbx_objects.append(row)
     objects_select_all(check, manager)
     # add box to sub-panel
     subpnl_objects.add_widget(box_objects)
@@ -604,8 +604,8 @@ def objects_toggle_event(button, manager):
     # toggle active event
     manager.selected_objects_event = 2 if manager.selected_objects_event == 1 else 1
     # initialize event 2 set on 1st toggle if empty
-    if manager.selected_objects_event == 2 and not manager._app.selected_objects_e2:
-        manager._app.selected_objects_e2 = {"sun", "moon"}
+    # if manager.selected_objects_event == 2 and not manager._app.selected_objects_e2:
+    #     manager._app.selected_objects_e2 = {"sun", "moon"}
     # update button icon
     img = button.get_child()
     if manager.selected_objects_event == 1:
@@ -620,7 +620,7 @@ def objects_toggle_event(button, manager):
         if manager.selected_objects_event == 1
         else manager._app.selected_objects_e2
     )
-    for row in manager.listbox:
+    for row in manager.lbx_objects:
         check = row.get_child()
         name = check.get_label()
         check.set_active(name in objs)
@@ -633,7 +633,7 @@ def objects_toggle_event(button, manager):
 
 def objects_select_all(button, manager):
     """objects panel : select all objects"""
-    list_box = manager.listbox
+    list_box = manager.lbx_objects
     i = 0
     while True:
         row = list_box.get_row_at_index(i)
@@ -648,7 +648,7 @@ def objects_select_all(button, manager):
 
 def objects_select_none(button, manager):
     """objects panel : deselect all objects"""
-    list_box = manager.listbox
+    list_box = manager.lbx_objects
     i = 0
     while True:
         row = list_box.get_row_at_index(i)
@@ -664,14 +664,29 @@ def objects_select_none(button, manager):
 def objects_toggled(checkbutton, name, manager):
     """objects panel : toggle selected objects per event"""
     if manager.selected_objects_event == 1:
+        sweph = manager._app.e1_sweph
         sel_objs = manager._app.selected_objects_e1
     else:
+        sweph = manager._app.e2_sweph
         sel_objs = manager._app.selected_objects_e2
 
     if checkbutton.get_active():
         sel_objs.add(name)
     else:
         sel_objs.discard(name)
+    # recalculate positions on objecs change
+    if sweph:
+        from sweph.calculations.positions import calculate_positions
+
+        calculate_positions(
+            f"e{manager.selected_objects_event}",
+            sweph,
+            sel_objs,
+            manager._app.chart_settings["mean node"],
+            manager._app.sweph_flag,
+            manager._app.selected_flags,
+            manager._notify,
+        )
     manager._notify.debug(
         f"\n\tselected objects : e{manager.selected_objects_event} : {sel_objs}",
         source="panelsettings",

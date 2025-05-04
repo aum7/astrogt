@@ -33,14 +33,14 @@ class SidepaneManager:
         "arrow_dn": "select next time period (hk : arrow down)",
     }
     # value for selected change time
-    CHANGE_TIME_SELECTED = 0.0
+    CHANGE_TIME_SELECTED = 1.0
     # time periods in julian day(s) as keys, used for change time
     CHANGE_TIME_PERIODS = {
         "3652.0": "10 years",  # 365 * 10 + 2 leap years (approximation)
         "365.0": "1 year",  # does not account for leap year
         "90.0": "3 months (90 d)",
         "30.0": "1 month (30 d)",
-        "27.3": "1 month (27.3 d)",
+        "27.321661": "1 month (27.3 d)",
         "7.0": "1 week",
         "1.0": "1 day",
         "0.25": "6 hours",  # 1/4 of a day
@@ -99,17 +99,19 @@ class SidepaneManager:
         clp_change_time = CollapsePanel(title="change time", expanded=True)
         clp_change_time.set_margin_end(self.margin_end)
         clp_change_time.set_title_tooltip(
-            """change time period for selected event (one or two)
+            """change time (ct) period for selected event (one or two)
 hotkeys :
 arrow key up / down : select previous / next time period
 arrow key left / right : move time backward / forward
 
-1 month (27.3 d) = sidereal lunar month"""
+1 month (27.3 d) = sidereal lunar month
+
+note : hotkeys arrow left & right will not work when text entry is focused
+or ie panes have been manually resized (click any text to focus sidepane)"""
         )
         # horizontal box for time navigation icons
         box_time_icons = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         box_time_icons.set_homogeneous(True)
-        # box_change_time.set_hexpand(True)
         # create change time buttons
         for button in _buttons_from_dict(
             self, buttons_dict=self.CHANGE_TIME_BUTTONS, icons_path="changetime/"
@@ -129,7 +131,7 @@ arrow key left / right : move time backward / forward
         default_period = self.time_periods_list.index("1 day")
         self.ddn_time_periods.set_selected(default_period)
         # change time selected as julian day / float
-        self.CHANGE_TIME_SELECTED = 1.0
+        # self.CHANGE_TIME_SELECTED = 1.0
         self.ddn_time_periods.connect("notify::selected", self.odd_time_period)
         # put label & buttons & dropdown into box
         box_change_time.append(box_time_icons)
@@ -145,6 +147,8 @@ arrow key left / right : move time backward / forward
         value = self.time_periods_list[selected]
         key = next(k for k, v in self.CHANGE_TIME_PERIODS.items() if v == value)
         self.CHANGE_TIME_SELECTED = float(key)
+        # update main window title
+        # self.update_main_title(value)
 
     def change_time_period(self, direction=1):
         """change time period ; direction -1 / 1 for previous / next"""
@@ -171,6 +175,7 @@ arrow key left / right : move time backward / forward
             # )
             key = next(k for k, v in self.CHANGE_TIME_PERIODS.items() if v == new_value)
             self.CHANGE_TIME_SELECTED = float(key)
+            # update main window title
             self.update_main_title(new_value)
 
     def change_event_time(self, change_delta):
@@ -234,6 +239,11 @@ arrow key left / right : move time backward / forward
             else:
                 # self._app.EVENT_TWO.is_hotkey_arrow = True
                 self._app.EVENT_TWO.on_datetime_change(entry)
+            change_time_period = self.time_periods_list[
+                self.ddn_time_periods.get_selected()
+            ]
+            # update main window title
+            self.update_main_title(change_time_period)
         except Exception as e:
             self._notify.error(
                 f"\n\t{datetime_name}\n\terror\n\t{e}\n",

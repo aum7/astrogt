@@ -18,6 +18,7 @@ label {
   padding: 3px;
 }
 
+/* frame is used for visual border of pane = stack = custom widget */
 .frame {
   border-style: solid;
   border-width: 1px;
@@ -34,6 +35,7 @@ label {
   margin: 0px;
 }
 
+/* event text */
 .label-event {
   font-size: 16px;
   padding-top: 0px;
@@ -42,6 +44,7 @@ label {
   color: dodgerblue;
 }
 
+/* selected event text */
 .label-event-selected {
   font-size: 18px;
   padding-top: 0px;
@@ -50,11 +53,13 @@ label {
   color: lime;
 }
 
+/* sidepane dropdown */
 .dropdown label {
   font-size: 16px;
   padding: 0px;
 }
 
+/* test label todo delete */
 .label-tl {
   background-color: darkslateblue;
 }
@@ -71,6 +76,7 @@ label {
   background-color: darkorange;
 }
 
+/* sidepane buttons with custom icon */
 .button-pane {
   background-color: transparent;
   border-color: transparent;
@@ -78,6 +84,7 @@ label {
   padding: 0px;
 }
 
+/* chage time top panel */
 .button-change-time {
   background-color: transparent;
   border-color: transparent;
@@ -85,6 +92,7 @@ label {
   padding: 0px;
 }
 
+/* toggle event for selected objects */
 .button-event {
   background-color: transparent;
   border-color: transparent;
@@ -93,4 +101,31 @@ label {
 
 .entry-warning {
   border: 3px solid darkorange;
+}
+
+/* stack = pane widgets */
+notebook.no-border {
+  border: none;
+  padding: 0px;
+  margin: 0px;
+}
+
+.no-border>stack {
+  border: none;
+  padding: 0px;
+  margin: 0px;
+  background: none;
+}
+
+/* table / grid styling */
+.data-grid label {
+  font-family: "Victor Mono Light", "ui/fonts/victor", monospace;
+  padding: 5px 13px;
+  border-bottom: 1px solid alpha(white, 0.1);
+}
+
+/* header row styling */
+.data-grid .header-cell {
+  font-weight: bold;
+  border-bottom: 2px solid white;
 }

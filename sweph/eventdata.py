@@ -2,9 +2,8 @@
 # ruff: noqa: E402
 import gi
 
-gi.require_version("GObject", "2.0")
 gi.require_version("Gtk", "4.0")
-from gi.repository import Gtk  # , GObject  # type: ignore
+from gi.repository import Gtk  # type: ignore
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 from timezonefinder import TimezoneFinder
@@ -28,7 +27,6 @@ class EventData:
         """get user input and prepare for swe"""
         self._app = app or Gtk.Application.get_default()
         self._notify = self._app.notify_manager
-        # self._signal = self._app.signal_manager
         # attributes as widgets
         self.country = country
         self.city = city
@@ -57,7 +55,7 @@ class EventData:
             (self.date_time, self.on_datetime_change),
         ]:
             widget.connect("activate", callback)  # [enter]
-            # controllder for focus lost
+            # controller for focus lost
             focus_controller = Gtk.EventControllerFocus.new()
             widget.add_controller(focus_controller)
             focus_controller.connect(  # on focus lost
