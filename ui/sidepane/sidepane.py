@@ -32,7 +32,7 @@ class SidepaneManager:
         "arrow_up": "select previous time period (hk : arrow up)",
         "arrow_dn": "select next time period (hk : arrow down)",
     }
-    # value for selected change time
+    # value for selected change time : 1 day as default
     CHANGE_TIME_SELECTED = 1.0
     # time periods in julian day(s) as keys, used for change time
     CHANGE_TIME_PERIODS = {

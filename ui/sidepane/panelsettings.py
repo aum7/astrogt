@@ -6,6 +6,7 @@ import gi
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from ui.collapsepanel import CollapsePanel
+from sweph.calculations.positions import calculate_positions
 from user.settings import (
     OBJECTS,
     HOUSE_SYSTEMS,
@@ -21,7 +22,27 @@ from user.settings import (
 
 def setup_settings(manager) -> CollapsePanel:
     """setup widget for settings, ie objects, sweph flags, glyphs etc"""
+    # shortich : both used interchangeably
     app = manager._app
+    manager.SWEPH_FLAG_MAP = {
+        "sidereal zodiac": swe.FLG_SIDEREAL,
+        "true positions": swe.FLG_TRUEPOS,
+        "topocentric": swe.FLG_TOPOCTR,
+        "heliocentric": swe.FLG_HELCTR,
+        "default flag": swe.FLG_SWIEPH | swe.FLG_SPEED,
+        "no nutation": swe.FLG_NONUT,
+        "no abberation": swe.FLG_NOABERR,
+        "no deflection": swe.FLG_NOGDEFL,
+        "equatorial": swe.FLG_EQUATORIAL,
+        "cartesian": swe.FLG_XYZ,
+        "radians": swe.FLG_RADIANS,
+    }
+    MAIN_FLAGS = ["sidereal zodiac", "true positions", "topocentric", "heliocentric"]
+    # selected flags init : track as strings
+    app.selected_flags = {k for k, v in SWE_FLAG.items() if v[0]}
+    # convert flags to integer
+    app.sweph_flag = sum(manager.SWEPH_FLAG_MAP[k] for k, v in SWE_FLAG.items() if v[0])
+    app.is_sidereal = "sidereal zodiac" in app.selected_flags
     # main panel for settings
     clp_settings = CollapsePanel(title="settings", expanded=False)
     clp_settings.set_margin_end(manager.margin_end)
@@ -110,8 +131,11 @@ event 1 & 2 can have different objects"""
     # need row closer
     ddn_housesys.add_css_class("dropdown")
     # default to first / selected item
-    ddn_housesys.set_selected(0)
-    app.selected_house_system = HOUSE_SYSTEMS[0][0]
+    default_housesys = 0
+    ddn_housesys.set_selected(default_housesys)
+    hsys, _, short_name = HOUSE_SYSTEMS[default_housesys]
+    manager._app.selected_house_system = hsys
+    manager.selected_house_sys_str = short_name
     ddn_housesys.connect("notify::selected", house_system_changed, manager)
     subpnl_housesys.add_widget(ddn_housesys)
     # --- sub-panel chart settings --------------------
@@ -305,31 +329,23 @@ more info in user/settings.py > SWE_FLAG"""
     manager.lbx_flags = Gtk.ListBox()
     manager.lbx_flags.set_selection_mode(Gtk.SelectionMode.NONE)
     box_flags.append(manager.lbx_flags)
-    # track selected flags as strings for button labels
-    app.selected_flags = set()
-    app.sweph_flag = 0
-    # collect flags from settings.py
+
+    def create_flag_checkbox(flag: str, flags_data: tuple, manager) -> Gtk.ListBoxRow:
+        """create checkbox row sweph flags"""
+        row = Gtk.ListBoxRow()
+        row.set_tooltip_text(flags_data[1])
+        check = Gtk.CheckButton(label=flag)
+        check.set_active(flags_data[0])
+        check.connect(
+            "toggled", lambda btn, f=flag, m=manager: flags_toggled(btn, f, m)
+        )
+        row.set_child(check)
+        return row
+
     # only use 1-4 for 1st listbox (in sub-panel)
-    for flag_, flags_data in SWE_FLAG.items():
-        if flag_ in [
-            "sidereal zodiac",
-            "true positions",
-            "topocentric",
-            "heliocentric",
-        ]:
-            row = Gtk.ListBoxRow()
-            flag = flag_
-            selected = flags_data[0]
-            tooltip = flags_data[1]
-            row.set_tooltip_text(tooltip)
-            # create checkbox for selection
-            check = Gtk.CheckButton(label=flag)
-            check.set_active(selected)
-            check.connect(
-                "toggled", lambda btn, f=flag, m=manager: flags_toggled(btn, f, m)
-            )
-            row.set_child(check)
-            manager.lbx_flags.append(row)
+    for flag, flags_data in SWE_FLAG.items():
+        if flag in MAIN_FLAGS:
+            manager.lbx_flags.append(create_flag_checkbox(flag, flags_data, manager))
     # add box to sub-panel
     subpnl_flags.add_widget(box_flags)
     # sub-sub-panel content
@@ -338,36 +354,16 @@ more info in user/settings.py > SWE_FLAG"""
     box_flags_extra.set_margin_start(manager.margin_end)
     box_flags_extra.set_margin_end(manager.margin_end)
     # only use 5-10 for 2nd listbox (in sub-sub-panel)
-    for flag_, flags_data in SWE_FLAG.items():
-        if flag_ in [
-            "sidereal zodiac",
-            "true positions",
-            "topocentric",
-            "heliocentric",
-        ]:
-            continue
-        row = Gtk.ListBoxRow()
-        flag = flag_
-        selected = flags_data[0]
-        tooltip = flags_data[1]
-        row.set_tooltip_text(tooltip)
-        # create checkboxes : initialize label > label-click will toggle checkbox
-        check = Gtk.CheckButton(label=flag)
-        check.set_active(selected)
-        check.connect(
-            "toggled", lambda btn, f=flag, m=manager: flags_toggled(btn, f, m)
-        )
-        row.set_child(check)
-        manager.lbx_flags_extra.append(row)
+    for flag, flags_data in SWE_FLAG.items():
+        if flag not in MAIN_FLAGS:
+            manager.lbx_flags_extra.append(
+                create_flag_checkbox(flag, flags_data, manager)
+            )
     box_flags_extra.append(manager.lbx_flags_extra)
     # add box to sub-sub-panel
     subsubpnl_flags_extra.add_widget(box_flags_extra)
     # insert sub-sub-panel into sub-panel
     subpnl_flags.add_widget(subsubpnl_flags_extra)
-    # collect flags as strings from checked checkboxes
-    app.selected_flags = {k for k, v in SWE_FLAG.items() if v[0]}
-    # convert flags to integer
-    app.sweph_flag = get_sweph_flags_int()
     manager._notify.debug(
         f"swephflag : {app.sweph_flag}",
         source="panelsettings",
@@ -431,11 +427,17 @@ more info in user/settings.py > SWE_FLAG"""
     # put box into sub-panel
     subpnl_solar_lunar_periods.add_widget(box_solar_lunar_periods)
     # --- sub-panel ayanamsa --------------------
-    subpnl_ayanamsa = CollapsePanel(
+    manager.subpnl_ayanamsa = CollapsePanel(
         title="ayanamsa",
         indent=14,
         expanded=False,
     )
+    # store reference
+    manager.subpnl_ayanamsa.set_title_tooltip(
+        "select 'sidereal zodiac' in settings / sweph flags to enable ayanamsa selection"
+    )
+    manager.subpnl_ayanamsa.toggle_expand(manager._app.is_sidereal)
+    manager.subpnl_ayanamsa.toggle_sensitive(manager._app.is_sidereal)
     # ------- sub-sub-panel custom ayanamsa --------------
     subsubpnl_custom_ayanamsa = CollapsePanel(
         title="custom ayanamsa",
@@ -481,7 +483,6 @@ more info in user/settings.py > SWE_FLAG"""
     # --- sub-sub-panel custom ayanamsa
     box_ayanamsa_custom = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
     # box for custom ayanamsa : julian day utc & ayanamsa value
-    # label
     lbl_julian_day = Gtk.Label(label="julian day utc")
     lbl_julian_day.set_halign(Gtk.Align.START)
     # entry for julian day utc
@@ -504,7 +505,6 @@ more info in user/settings.py > SWE_FLAG"""
     box_ayanamsa_custom.append(lbl_julian_day)
     box_ayanamsa_custom.append(ent_julian_day)
     # custom ayanamsa value
-    # label
     lbl_ayan_value = Gtk.Label(label="ayanamsa")
     lbl_ayan_value.set_halign(Gtk.Align.START)
     # entry
@@ -526,7 +526,7 @@ more info in user/settings.py > SWE_FLAG"""
     box_ayanamsa_custom.append(ent_ayan_value)
     subsubpnl_custom_ayanamsa.add_widget(box_ayanamsa_custom)
     box_ayanamsa.append(subsubpnl_custom_ayanamsa)
-    subpnl_ayanamsa.add_widget(box_ayanamsa)
+    manager.subpnl_ayanamsa.add_widget(box_ayanamsa)
     # --- sub-panel files ------------------------
     subpnl_files = CollapsePanel(
         title="files & paths",
@@ -562,7 +562,7 @@ more info in user/settings.py > SWE_FLAG"""
     box_settings.append(subpnl_chart_settings)
     box_settings.append(subpnl_flags)
     box_settings.append(subpnl_solar_lunar_periods)
-    box_settings.append(subpnl_ayanamsa)
+    box_settings.append(manager.subpnl_ayanamsa)
     box_settings.append(subpnl_files)
 
     clp_settings.add_widget(box_settings)
@@ -570,42 +570,10 @@ more info in user/settings.py > SWE_FLAG"""
     return clp_settings
 
 
-def get_sweph_flags_int():
-    """get initial sweph flags"""
-    flags = 0
-    if SWE_FLAG["sidereal zodiac"][0]:
-        flags |= swe.FLG_SIDEREAL
-    if SWE_FLAG["true positions"][0]:
-        flags |= swe.FLG_TRUEPOS
-    if SWE_FLAG["topocentric"][0]:
-        flags |= swe.FLG_TOPOCTR
-    if SWE_FLAG["heliocentric"][0]:
-        flags |= swe.FLG_HELCTR
-    if SWE_FLAG["default flag"][0]:
-        flags |= swe.FLG_SWIEPH | swe.FLG_SPEED
-    if SWE_FLAG["no nutation"][0]:
-        flags |= swe.FLG_NONUT
-    if SWE_FLAG["no abberation"][0]:
-        flags |= swe.FLG_NOABERR
-    if SWE_FLAG["no deflection"][0]:
-        flags |= swe.FLG_NOGDEFL
-    if SWE_FLAG["equatorial"][0]:
-        flags |= swe.FLG_EQUATORIAL
-    if SWE_FLAG["cartesian"][0]:
-        flags |= swe.FLG_XYZ
-    if SWE_FLAG["radians"][0]:
-        flags |= swe.FLG_RADIANS
-
-    return flags
-
-
 def objects_toggle_event(button, manager):
     """objects panel : toggle event for which to select objects"""
     # toggle active event
     manager.selected_objects_event = 2 if manager.selected_objects_event == 1 else 1
-    # initialize event 2 set on 1st toggle if empty
-    # if manager.selected_objects_event == 2 and not manager._app.selected_objects_e2:
-    #     manager._app.selected_objects_e2 = {"sun", "moon"}
     # update button icon
     img = button.get_child()
     if manager.selected_objects_event == 1:
@@ -676,17 +644,7 @@ def objects_toggled(checkbutton, name, manager):
         sel_objs.discard(name)
     # recalculate positions on objecs change
     if sweph:
-        from sweph.calculations.positions import calculate_positions
-
-        calculate_positions(
-            f"e{manager.selected_objects_event}",
-            sweph,
-            sel_objs,
-            manager._app.chart_settings["mean node"],
-            manager._app.sweph_flag,
-            manager._app.selected_flags,
-            manager._notify,
-        )
+        calculate_positions(f"e{manager.selected_objects_event}")
     manager._notify.debug(
         f"\n\tselected objects : e{manager.selected_objects_event} : {sel_objs}",
         source="panelsettings",
@@ -714,18 +672,16 @@ def chart_settings_toggled(button, setting, manager):
     print(f"chartsettingstoggled : {setting} : {button.get_active()}")
     manager._app.chart_settings[setting] = button.get_active()
     if setting == "mean node":
-        if manager._app.selected_event == "event one":
-            manager._app.EVENT_ONE.update_positions(
-                "e1",
-                manager._app.e1_sweph,
-                manager._app.selected_objects_e1,
-            )
-        else:
-            manager._app.EVENT_TWO.update_positions(
-                "e2",
-                manager._app.e2_sweph,
-                manager._app.selected_objects_e2,
-            )
+        calculate_positions(event=None)
+    manager._notify.debug(
+        f"chartsettings : {setting} toggled : calling calculatepositions ...",
+        source="panelsettings",
+        route=["terminal"],
+    )
+    # if manager._app.selected_event == "event one":
+    #     manager._app.EVENT_ONE.update_positions("e1")
+    # else:
+    #     manager._app.EVENT_TWO.update_positions("e2")
 
 
 def naksatras_ring(button, key, manager):
@@ -809,7 +765,6 @@ def chart_info_string(entry, info, manager):
     }
     value = entry.get_text()
     fields = re.findall(r"\{[a-zA-Z0-9:]+\}", value)
-    # fields = re.findall(r"\{[a-zA-Z0-9\[\]:]+\}", value)
     if not all(field in allowed[info] for field in fields) and not all(
         char in allowed["chars"] for char in value
     ):
@@ -837,6 +792,11 @@ def chart_info_string(entry, info, manager):
     )
 
 
+# def get_sweph_flag(manager):
+#     """get initial sweph flag"""
+#     return sum(manager.SWEPH_FLAG_MAP[k] for k, v in SWE_FLAG.items() if v[0])
+
+
 def flags_toggled(button, flag, manager):
     """flags panel : update selected sweph flags"""
     if button.get_active():
@@ -845,32 +805,19 @@ def flags_toggled(button, flag, manager):
     else:
         # remove from selected flags
         manager._app.selected_flags.discard(flag)
-    # update sweph flags
-    flags = 0
-    for flag in manager._app.selected_flags:
-        if flag == "sidereal zodiac":
-            flags |= swe.FLG_SIDEREAL
-        if flag == "true positions":
-            flags |= swe.FLG_TRUEPOS
-        if flag == "topocentric":
-            flags |= swe.FLG_TOPOCTR
-        if flag == "heliocentric":
-            flags |= swe.FLG_HELCTR
-        if flag == "default flag":
-            flags |= swe.FLG_SWIEPH | swe.FLG_SPEED
-        if flag == "no nutation":
-            flags |= swe.FLG_NONUT
-        if flag == "no abberation":
-            flags |= swe.FLG_NOABERR
-        if flag == "no deflection":
-            flags |= swe.FLG_NOGDEFL
-        if flag == "equatorial":
-            flags |= swe.FLG_EQUATORIAL
-        if flag == "cartesian":
-            flags |= swe.FLG_XYZ
-        if flag == "radians":
-            flags |= swe.FLG_RADIANS
-    manager._app.sweph_flag = flags
+    # update sweph flag
+    manager._app.sweph_flag = sum(
+        manager.SWEPH_FLAG_MAP[f] for f in manager._app.selected_flags
+    )
+    # update ayanamsa panel based on sidereal flag
+    manager._app.is_sidereal = "sidereal zodiac" in manager._app.selected_flags
+    manager.subpnl_ayanamsa.toggle_sensitive(manager._app.is_sidereal)
+    manager.subpnl_ayanamsa.toggle_expand(manager._app.is_sidereal)
+    if manager._app.is_sidereal:
+        set_ayanamsa(manager)
+    # update positions on flag change
+    if flag in ["sidereal zodiac", "true positions"]:
+        calculate_positions(event=None)
     manager._notify.debug(
         f"flagstoggled :"
         f"\n\tselected flags : {manager._app.selected_flags}"
@@ -908,6 +855,7 @@ def ayanamsa_changed(dropdown, _, manager):
     """ayanamsa panel : select ayanamsa for sidereal zodiac"""
     idx = dropdown.get_selected()
     manager._app.selected_ayanamsa = list(AYANAMSA.keys())[idx]
+    set_ayanamsa(manager)
     manager._notify.debug(
         f"ayanamsa panel : selected : {manager._app.selected_ayanamsa}",
         source="panelsettings",
@@ -975,6 +923,32 @@ def custom_ayanamsa_changed(entry, key, manager):
             source="panelsettings",
             route=["terminal"],
         )
+
+
+def set_ayanamsa(manager):
+    """set selected ayanamsa"""
+    if "sidereal zodiac" not in manager._app.selected_flags:
+        return
+    ayanamsa = manager._app.selected_ayanamsa
+    # custom ayanamsa
+    if ayanamsa == 255:
+        swe.set_sid_mode(
+            ayanamsa, manager._app.custom_julian_day, manager._app.custom_ayan
+        )
+    # one of predefined ayanamsas
+    else:
+        swe.set_sid_mode(ayanamsa)
+    manager._notify.debug(
+        f"set ayanamsa : {ayanamsa}"
+        + (
+            f" | custom jd : {manager._app.custom_julian_day}"
+            f" | ayan : {manager._app.custom_ayan}"
+            if ayanamsa == 255
+            else ""
+        ),
+        source="panelsettings",
+        route=["terminal"],
+    )
 
 
 def files_changed(entry, key, manager):

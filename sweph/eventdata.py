@@ -602,31 +602,13 @@ class EventData:
         # detect event & pass it further
         if datetime_name == "datetime one":
             event = "e1"
-            sweph = self._app.e1_sweph
-            objs = self._app.selected_objects_e1
         else:
             event = "e2"
-            sweph = self._app.e2_sweph
-            objs = self._app.selected_objects_e2
         self._notify.debug(
-            f"{datetime_name} ({event}): calling updatepositions :"
-            f"\n\tsweph : {sweph}"
-            f"\n\tobjs : {objs}",
+            f"{datetime_name} ({event}): calling updatepositions ...",
             source="eventdata",
             route=["none"],
         )
-        self.update_positions(event, sweph, objs)
+        calculate_positions(event)
         self._app.props.active_window.update_main_title()
         return
-
-    # call positions calculation
-    def update_positions(self, event, sweph, objs):
-        calculate_positions(
-            event,
-            sweph,
-            objs,
-            self._app.chart_settings["mean node"],
-            self._app.sweph_flag,
-            self._app.selected_flags,
-            self._notify,
-        )

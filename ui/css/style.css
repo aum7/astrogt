@@ -92,11 +92,10 @@ label {
   padding: 0px;
 }
 
-/* toggle event for selected objects */
+/* toggle event for selected objects (settings / objects) */
 .button-event {
   background-color: transparent;
   border-color: transparent;
-  /* background-size: 50px; */
 }
 
 .entry-warning {
@@ -110,22 +109,21 @@ notebook.no-border {
   margin: 0px;
 }
 
-.no-border>stack {
-  border: none;
-  padding: 0px;
-  margin: 0px;
-  background: none;
-}
-
 /* table / grid styling */
-.data-grid label {
+.table-grid label {
   font-family: "Victor Mono Light", "ui/fonts/victor", monospace;
   padding: 5px 13px;
   border-bottom: 1px solid alpha(white, 0.1);
 }
 
 /* header row styling */
-.data-grid .header-cell {
+.table-grid .table-grid-header {
   font-weight: bold;
   border-bottom: 2px solid white;
+}
+
+/* table / text styling */
+.table-text {
+  font-family: "Victor Mono Light", "ui/font/victor", monospace;
+  font-size: 18px;
 }

@@ -54,12 +54,13 @@ def _event_selection(manager, gesture, n_press, x, y, event_name):
     if manager._app.selected_event != event_name:
         manager._app.selected_event = event_name
         if manager._app.selected_event == "event one":
-            manager.clp_event_two.remove_title_css_class("label-event-selected")
-            manager.clp_event_one.add_title_css_class("label-event-selected")
+            clp = manager.clp_event_one
+            other_clp = manager.clp_event_two
         if manager._app.selected_event == "event two":
-            manager.clp_event_one.remove_title_css_class("label-event-selected")
-            manager.clp_event_two.add_title_css_class("label-event-selected")
-        manager.update_main_title()
+            clp = manager.clp_event_two
+            other_clp = manager.clp_event_one
+        other_clp.remove_title_css_class("label-event-selected")
+        clp.add_title_css_class("label-event-selected")
         manager._notify.debug(f"{manager._app.selected_event} selected")
 
 
@@ -72,15 +73,3 @@ def _decimal_to_dms(decimal):
     sec = int(sec_ * 60)
 
     return deg, min, sec
-
-
-# def _on_time_now(manager):
-#     """get time now (utc) for computer / app location"""
-#     if manager._app.selected_event == "event one" and manager._app.EVENT_ONE:
-#         entry = manager._app.EVENT_ONE.date_time
-#         manager._app.EVENT_ONE.is_hotkey_now = True
-#         manager._app.EVENT_ONE.on_datetime_change(entry)
-#     elif manager._app.selected_event == "event two" and manager._app.EVENT_TWO:
-#         entry = manager._app.EVENT_TWO.date_time
-#         manager._app.EVENT_TWO.is_hotkey_now = True
-#         manager._app.EVENT_TWO.on_datetime_change(entry)
