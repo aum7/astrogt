@@ -28,10 +28,16 @@ class TablesWidget(Gtk.Notebook):
             event = positions["event"]
             self.table_pages[event] = positions
             # rebuild tables with data changed
+            e2_active = self._app.e2_active
+            print(f"panetables : datetime 2 active : {e2_active}")
+            # if not self._app.e2_active:  # and positions["event"] == "e1":
             pages_to_remove = []
             for i in range(self.get_n_pages()):
                 page_label = self.get_tab_label_text(self.get_nth_page(i))
-                if page_label.startswith(event):
+                if page_label.startswith(event) or (
+                    not self._app.e2_active and page_label.startswith("e2")
+                ):
+                    # if page_label.startswith(event):
                     pages_to_remove.append(i)
             for i in reversed(pages_to_remove):
                 self.remove_page(i)
@@ -44,14 +50,10 @@ class TablesWidget(Gtk.Notebook):
             if event_positions:
                 grid = self.make_table_grid(event_positions)
                 label = Gtk.Label(label=f"{event} grid")
-                label.set_tooltip_text(
-                    "select this tab to access right-click context menu"
-                )
+                label.set_tooltip_text("right-click tab to access context menu")
                 self.append_page(grid, label)
                 label = Gtk.Label(label=f"{event} text")
-                label.set_tooltip_text(
-                    "select grid tab to access right-click context menu"
-                )
+                label.set_tooltip_text("right-click tab to access context menu")
                 text = self.make_table_text(event_positions)
                 self.append_page(text, label)
             # set focus to updated event page

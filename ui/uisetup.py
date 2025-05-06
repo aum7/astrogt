@@ -95,8 +95,7 @@ class UISetup:
 [shift+click] : single pane (hk : shift+1)
 [shift+double-click] : double panes (hk : shift+2)
 [shift+triple-click] : triple panes (hk : shift+3)
-[shift+quadruple-click] : all panes (hk : shift+4)
-"""
+[shift+quadruple-click] : all panes (hk : shift+4)"""
         )
         self.btn_toggle_pane.connect("clicked", self.on_toggle_pane)
 

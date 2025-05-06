@@ -445,12 +445,16 @@ class EventData:
                     if self._app.e2_chart or self._app.e2_sweph:
                         self._app.e2_chart = {}
                         self._app.e2_sweph = {}
+                        # flip e2 active flag
+                        self._app.e2_active = False
                         self.old_date_time = ""
                         self._notify.info(
-                            f"{datetime_name}: cleared event 2 data",
+                            f"{datetime_name}: cleared event 2 data"
+                            f"\n\te2 active : {self._app.e2_active}",
                             source="eventdata",
                             route=["terminal"],
                         )
+                        calculate_positions("e1")
                         return
             if date_time == self.old_date_time:
                 self._notify.debug(
@@ -560,18 +564,21 @@ class EventData:
         # if datetime two is NOT empty, user is interested in event 2
         # in this case datetime two is mandatory, the rest is optional, aka
         # if exists > use it, else use event 1 data
-        if self._app.e2_chart.get("datetime") is None:
-            # declare event_two_active : needed for calculations todo ???
-            self._app.event_two_active = False
+        if not self._app.e2_chart.get("datetime"):
+            # declare event two active : needed for calculations todo ???
+            self._app.e2_active = False
             self._notify.debug(
-                "datetime 2 is none : user not interested in event 2 : skipping ...",
+                "datetime 2 is none : user not interested in event 2 : skipping ..."
+                f"\n\te2 active : {self._app.e2_active}",
                 source="eventdata",
                 route=["terminal"],
             )
-        elif self._app.e2_chart.get("datetime", "") != "":
+        elif self._app.e2_chart.get("datetime", ""):
+            self._app.e2_active = True
             self._notify.debug(
                 f"\n\tdatetime 2 not empty : {self._app.e2_chart.get('datetime')} : "
-                "merging e1 > e2 data",
+                "merging e1 > e2 data"
+                f"\n\te2 active : {self._app.e2_active}",
                 source="eventdata",
                 route=["terminal"],
             )
@@ -597,7 +604,7 @@ class EventData:
             f"\n\tsweph 2\t{json.dumps(self._app.e2_sweph, sort_keys=True, indent=6, ensure_ascii=False)}"
             "\n--------------------------",
             source="eventdata",
-            route=["terminal"],
+            route=["none"],
         )
         # detect event & pass it further
         if datetime_name == "datetime one":
