@@ -27,17 +27,33 @@ class TablesWidget(Gtk.Notebook):
             current_page = self.get_current_page()
             event = positions["event"]
             self.table_pages[event] = positions
-            # rebuild all pages todo only tables with data changed
-            while self.get_n_pages() > 0:
-                self.remove_page(-1)
-            # add page for each event
-            for event_, pos in self.table_pages.items():
-                event_positions = {k: v for k, v in pos.items() if isinstance(k, int)}
-                if event_positions:
-                    grid = self.make_table_grid(event_positions)
-                    self.append_page(grid, Gtk.Label(label=f"{event_} grid"))
-                    text = self.make_table_text(event_positions)
-                    self.append_page(text, Gtk.Label(label=f"{event_} text"))
+            # rebuild tables with data changed
+            pages_to_remove = []
+            for i in range(self.get_n_pages()):
+                page_label = self.get_tab_label_text(self.get_nth_page(i))
+                if page_label.startswith(event):
+                    pages_to_remove.append(i)
+            for i in reversed(pages_to_remove):
+                self.remove_page(i)
+            # get objects positions
+            event_positions = {
+                k: v
+                for k, v in positions.items()
+                if k != "event" and isinstance(k, str) and k.isdigit()
+            }
+            if event_positions:
+                grid = self.make_table_grid(event_positions)
+                label = Gtk.Label(label=f"{event} grid")
+                label.set_tooltip_text(
+                    "select this tab to access right-click context menu"
+                )
+                self.append_page(grid, label)
+                label = Gtk.Label(label=f"{event} text")
+                label.set_tooltip_text(
+                    "select grid tab to access right-click context menu"
+                )
+                text = self.make_table_text(event_positions)
+                self.append_page(text, label)
             # set focus to updated event page
             self.set_current_page(current_page)
 
@@ -78,6 +94,7 @@ class TablesWidget(Gtk.Notebook):
         return scroll
 
     def make_table_text(self, pos_dict):
+        """create text with positions data"""
         scroll = Gtk.ScrolledWindow()
         scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         scroll.set_hexpand(False)
@@ -89,7 +106,7 @@ class TablesWidget(Gtk.Notebook):
         text_view.add_css_class("table-text")
         buffer = text_view.get_buffer()
 
-        text_line = "-" * 23 + "\n"
+        text_line = "-" * 30 + "\n"
         text = text_line
         text += " positions :\n"
         # header row
@@ -111,21 +128,25 @@ def draw_tables():
 
 def update_tables(positions=None):
     """get object positions for tables"""
-    print(f"panetables : updatetables : poss : {positions}")
     # get main window reference
     _app = Gtk.Application.get_default()
-    # _notify = _app.notify_manager
+    _notify = _app.notify_manager
     if positions is None:
-        positions = {}
-    # _app.notify_manager.debug(
-    #     f"received positions : {positions}",
-    #     source="panetables",
-    #     route=["none"],
-    # )
+        _notify.debug(
+            f"received none positions : {positions} : exiting ...",
+            source="panetables",
+            route=["terminal"],
+        )
+        return
     if _app and _app.props.active_window:
         win = _app.props.active_window
         if hasattr(win, "tables"):
             # update all pane widgets with new data
             for table in win.tables.values():
-                print(f"panetables : table : {win.tables.values()}")
                 table.update_data(positions)
+                # # solving tables not showing todo delete
+                # # get parent stack
+                # stack = table.get_parent()
+                # if stack:
+                #     # show tables page
+                #     stack.set_visible_child(table)

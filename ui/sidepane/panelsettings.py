@@ -672,12 +672,12 @@ def chart_settings_toggled(button, setting, manager):
     print(f"chartsettingstoggled : {setting} : {button.get_active()}")
     manager._app.chart_settings[setting] = button.get_active()
     if setting == "mean node":
+        manager._notify.debug(
+            f"chartsettings : {setting} toggled : calling calculatepositions ...",
+            source="panelsettings",
+            route=["terminal"],
+        )
         calculate_positions(event=None)
-    manager._notify.debug(
-        f"chartsettings : {setting} toggled : calling calculatepositions ...",
-        source="panelsettings",
-        route=["terminal"],
-    )
     # if manager._app.selected_event == "event one":
     #     manager._app.EVENT_ONE.update_positions("e1")
     # else:

@@ -16,6 +16,9 @@ def calculate_positions(event: Optional[str] = None) -> Dict:
     app = Gtk.Application.get_default()
     _notify = app.notify_manager
     events: List[str] = ["e1", "e2"] if event is None else [event]
+    if event == "e2" and not app.e2_chart.get("datetime"):
+        # skop e2 if no datetime set = user not interested in e2
+        events = ["e1"]
     _notify.debug(
         f"where is our sweph & objs ?\n\tapp : {app}\n\tevent(s) : {events}",
         source="positions",
@@ -44,10 +47,13 @@ def calculate_positions(event: Optional[str] = None) -> Dict:
         use_mean_node = app.chart_settings["mean node"]
         sweph_flag = app.sweph_flag
         jd_ut = sweph.get("jd_ut")
-        # print(f"jd_ut : {jd_ut}")
         if jd_ut is None:
             return {}
-        # print(f"objs : {objs}")
+        _notify.debug(
+            f"\n\tusemeannode : {use_mean_node}\n\tswephflag : {sweph_flag}\n\tjdut : {jd_ut}",
+            source="positions",
+            route=["none"],
+        )
         positions = {}
         for obj in objs:
             # print(f"positions : obj : {obj}")
@@ -90,7 +96,7 @@ def calculate_positions(event: Optional[str] = None) -> Dict:
             positions_ordered[str(k)] = positions[k]
         positions.clear()
         positions.update(positions_ordered)
-        # call tables & serve positions
+    # call tables & serve positions
     _notify.debug(
         f"sending positions : {positions}",
         source="positions",

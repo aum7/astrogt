@@ -167,20 +167,11 @@ class MainWindow(
             stack.add_titled(label3, "graph", "-graph")
             # store custom (table) widget reference for updates
             self.tables[pane] = draw_tables()
-            # print(f"mainwindow : drawtables widget : {type(widget)}")
             stack.add_titled(self.tables[pane], "tables", f"{pane}-tables")
-            # self.update_stacks()
             # set stack as child of frame
             frame = getattr(self, f"frm_{pane.replace('-', '_')}", None)
             if frame:
                 frame.set_child(stack)
-
-    # def update_stacks(self):
-    #     """update stacks / custom drawing widgets on event data change"""
-    #     # trigger table redraw
-    #     for table in self.tables.values():
-    #         if table:
-    #             table.queue_draw()
 
     # panes show single
     def panes_single(self) -> None:
