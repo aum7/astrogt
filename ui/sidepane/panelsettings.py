@@ -826,11 +826,6 @@ def chart_info_string(entry, info, manager):
     )
 
 
-# def get_sweph_flag(manager):
-#     """get initial sweph flag"""
-#     return sum(manager.SWEPH_FLAG_MAP[k] for k, v in SWE_FLAG.items() if v[0])
-
-
 def flags_toggled(button, flag, manager):
     """flags panel : update selected sweph flags"""
     if button.get_active():

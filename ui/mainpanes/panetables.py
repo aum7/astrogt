@@ -27,22 +27,14 @@ class TablesWidget(Gtk.Notebook):
     def update_data(self, positions):
         """update positions on event data change"""
         if "event" in positions:
-            # store current
-            current_page = self.get_current_page()
             event = positions["event"]
             self.table_pages[event] = positions
-            # rebuild tables with data changed
-            # e2_active = self._app.e2_active
-            # print(f"panetables : datetime 2 active : {e2_active}")
-            pages_to_remove = []
+            existing_page = None
             for i in range(self.get_n_pages()):
                 page_label = self.get_tab_label_text(self.get_nth_page(i))
-                if page_label.startswith(event) or (
-                    not self._app.e2_active and page_label.startswith("e2")
-                ):
-                    pages_to_remove.append(i)
-            for i in reversed(pages_to_remove):
-                self.remove_page(i)
+                if page_label.strip() == f"{event}":
+                    existing_page = self.get_nth_page(i)
+                    break
             # get objects positions
             event_positions = {
                 k: v
@@ -50,56 +42,67 @@ class TablesWidget(Gtk.Notebook):
                 if k != "event" and isinstance(k, str) and k.isdigit()
             }
             if event_positions:
-                # test grid : use text view with ultra-makeup as default
-                # grid = self.make_table_grid(event_positions)
-                # label = Gtk.Label(label=f"{event} grid")
-                # label.set_tooltip_text("right-click tab to access context menu")
-                # self.append_page(grid, label)
                 # extra space = avoid sidepane toggle button
-                label = Gtk.Label(label=f"  {event} text")
-                label.set_tooltip_text("right-click tab to access context menu")
-                text = self.make_table_text(event_positions)
-                self.append_page(text, label)
-            # set focus to updated event page
-            self.set_current_page(current_page)
+                if existing_page:
+                    # update existing page
+                    scroll = existing_page
+                    text_view = scroll.get_child()
+                    if isinstance(text_view, Gtk.TextView):
+                        buffer = text_view.get_buffer()
+                        text = self.make_table_content(event_positions)
+                        buffer.set_text(text)
+                else:
+                    # create new page if missing
+                    label = Gtk.Label(label=f"  {event}")
+                    label.set_tooltip_text("right-click tab to access context menu")
+                    text = self.make_table(event_positions)
+                    self.append_page(text, label)
+                    self.set_current_page(-1)
 
-    def make_table_grid(self, pos_dict):
-        """existing as test object : create grid with positions data"""
-        # scrolled window for overflowing cells
-        scroll = Gtk.ScrolledWindow()
-        scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        scroll.set_hexpand(True)
-        scroll.set_vexpand(True)
-        # grid as table with cells
-        grid = Gtk.Grid()
-        # set styling
-        grid.add_css_class("table-grid")
-        fields = [
-            "name",
-            "lat",
-            "lon",
-            "dist",
-            # "lat speed",
-            # "lon speed",
-            # "dist speed",
-        ]
-        # add header
-        for j, field in enumerate(fields):
-            label = Gtk.Label(label=field, xalign=1.0)
-            label.add_css_class("table-grid-header")
-            grid.attach(label, j, 0, 1, 1)
-        # add data rows
-        for i, obj in enumerate(pos_dict.values(), 1):
-            for j, key in enumerate(fields):
-                value = obj.get(key, "")
-                if isinstance(value, float):
-                    value = f"{value:.3f}"
-                label = Gtk.Label(label=str(value), xalign=1.0)
-                grid.attach(label, j, i, 1, 1)
-        scroll.set_child(grid)
-        return scroll
+    def make_table_content(self, pos_dict):
+        """create text content for positions & houses"""
+        houses = calculate_houses()
+        cusps, ascmc = houses if houses else ((), ())
+        self._notify.debug(
+            f"maketablecontent :\n\tcusps : {cusps}\n\tascmc : {ascmc}",
+            source="panetables",
+            route=["terminal"],
+        )
+        # dashes : u2014 full width ; u2012 monospace-specific ; u2015 longer
+        # u2017 double bottom u2502 vertical full
+        n_chars = 37
+        v_ = "\u01ef"  # victormonolightastro
+        h_ = "\u01ee"  # victormonolightastro
+        vic_spc = "\u01ac"  # custom [space] to match glyphs (582 font width)
+        asc = "\u01bf"
+        dsc = "\u01c0"
+        line = f"{h_ * n_chars}\n"
+        # text to display in tables
+        text = f" positions {h_ * 29}\n"
+        # header row
+        text += f" name {v_}      sign {vic_spc} {v_}       lat {v_}        lon {v_} house\n"
+        for _, obj in pos_dict.items():
+            # objects
+            text += f" {obj['name']:4} {v_}"
+            text += f" {self.format_dms(obj.get('lon')):10} {v_}"
+            text += f"{obj.get('lat', 0):10.6f} {v_}"
+            text += f"{obj.get('lon', 0):11.6f}"
+            text += f"{self.which_house(obj.get('lon'), cusps)}\n"
+        text += line
+        # add houses below objects positions
+        text += f" houses {h_ * 7}\n"
+        # header row
+        text += f"    {v_}      cusp\n"
+        for i, cusp in enumerate(cusps, 1):
+            # add cusp degree : lon > sign
+            text += f" {i:2d} {v_} {self.format_dms(cusp):20}\n"
+        text += f" cross points {h_ * 3}\n"
+        text += f" {asc} : {self.format_dms(ascmc[0])}\n"
+        text += f" {dsc} : {self.format_dms(ascmc[1])}\n"
+        text += line
+        return text
 
-    def make_table_text(self, pos_dict):
+    def make_table(self, pos_dict):
         """create text with positions & houses data"""
         scroll = Gtk.ScrolledWindow()
         scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
@@ -115,76 +118,41 @@ class TablesWidget(Gtk.Notebook):
         text_view.set_cursor_visible(False)
         text_view.add_css_class("table-text")
         buffer = text_view.get_buffer()
-        # get houses tuple
-        houses = calculate_houses()
-        cusps, _ = houses if houses else ((), ())
-        # print(
-        #     f"panetables : maketabletext : houses :\n\tcusps : {cusps}\n\tascmc : {ascmc}"
-        # )
-        # dashes : u2014 full width ; u2012 monospace-specific ; u2015 longer
-        # u2017 double bottom
-        n_chars = 53
-        h_ = "\u2502"
-        v_ = "\u2014"
-        line = f"{v_ * n_chars}\n"
-
-        # which house is object in
-        def which_house(lon: float, cusps: Tuple[float, ...]) -> str:
-            """find house number for given celestial longitude"""
-            if not cusps:
-                return ""
-            for i in range(len(cusps) - 1):
-                if cusps[i] <= lon < cusps[i + 1]:
-                    return f" {h_} {i + 1:2d}"
-            # check for wrap around house 12 to 1
-            if lon >= cusps[-1] or lon < cusps[0]:
-                return f" {h_} 12"
-            return ""
-
-        def format_dms(lon: float) -> str:
-            deg, sign, min, sec = swh.degsplit(lon)
-            signs = [
-                "♈",
-                "♉",
-                "♊",
-                "♋",
-                "♌",
-                "♍",
-                "♎",
-                "♏",
-                "♐",
-                "♑",
-                "♒",
-                "♓",
-            ]
-            return f"{deg:2d}°{min:02d}'{sec:02d}\" {signs[sign]}"
-
-        # d_btm = "\u2017"
-        # line_double = f"{d_btm * n_chars}\n"
-        # text = line
-        text = f" positions {v_ * 42}\n"
-        # header row
-        text += f" name {h_}         sign {h_}       lat {h_}        lon {h_} house\n"
-        for _, obj in pos_dict.items():
-            # objects
-            text += f" {obj['name']:4} {h_}"
-            # text += f" {swh.degsplit(obj.get('lon')):15.0f}"
-            text += f" {format_dms(obj.get('lon')):10} {h_}"
-            text += f"{obj.get('lat', 0):10.6f} {h_}"
-            text += f"{obj.get('lon', 0):11.6f}"
-            text += f"{which_house(obj.get('lon'), cusps)}\n"
-        text += line
-        # add houses below objects positions
-        text += f" houses {v_ * 11}\n"
-        # header row
-        text += f"    {h_}         cusp\n"
-        for i, cusp in enumerate(cusps, 1):
-            # todo add cusp degree : lon > sign
-            text += f" {i:2d} {h_} {format_dms(cusp):20}\n"
-        text += line
+        text = self.make_table_content(pos_dict)
         buffer.set_text(text)
         scroll.set_child(text_view)
         return scroll
+
+    def which_house(self, lon: float, cusps: Tuple[float, ...]) -> str:
+        """find house number for given celestial longitude"""
+        v_ = "\u01ef"  # victormonolightastro
+        if not cusps:
+            return ""
+        for i in range(len(cusps) - 1):
+            if cusps[i] <= lon < cusps[i + 1]:
+                return f" {v_} {i + 1:2d}"
+        # check for wrap around house 12 to 1
+        if lon >= cusps[-1] or lon < cusps[0]:
+            return f" {v_} 12"
+        return ""
+
+    def format_dms(self, lon: float) -> str:
+        deg, sign, min, sec = swh.degsplit(lon)
+        signs = [
+            "\u0192",  # 01 aries
+            "\u0193",
+            "\u0194",
+            "\u0195",
+            "\u0196",
+            "\u0197",
+            "\u0198",
+            "\u0199",
+            "\u019a",
+            "\u019b",
+            "\u019c",
+            "\u019d",  # 12 pisces
+        ]
+        return f"{deg:2d}°{min:02d}'{sec:02d}\" {signs[sign]}"
 
 
 def draw_tables():

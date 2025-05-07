@@ -94,9 +94,9 @@ if checked also select ayanamsa below""",
 # https://astrorigin.com/pyswisseph/sphinx/programmers_manual/house_cusp_calculation.html?highlight=houses#swisseph.houses
 # below are most popular 7 out of 24+; arrange line up or down as you please
 HOUSE_SYSTEMS = [
+    ("O", "prp : porphyry", "prp"),
     ("E", "eqa : equal asc", "eqa"),
     ("D", "eqm : equal mc", "eqm"),
-    ("O", "prp : porphyry", "prp"),
     ("P", "plc : placidus", "plc"),
     ("R", "rgm : regiomontanus", "rgm"),
     ("C", "cmp : campanus", "cmp"),

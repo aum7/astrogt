@@ -1,3 +1,4 @@
+/* ui/css/style.css */
 /* adwaita toast */
 toastoverlay toast {
   background-color: rgba(0, 0, 0, 0.9);
@@ -111,7 +112,7 @@ notebook.no-border {
 
 /* table / grid styling */
 .table-grid label {
-  font-family: "Victor Mono Light", "ui/fonts/victor", monospace;
+  font-family: "VictorMonoLightAstro", "ui/fonts/victor", monospace;
   padding: 5px 13px;
   border-bottom: 1px solid alpha(white, 0.1);
 }
@@ -124,6 +125,6 @@ notebook.no-border {
 
 /* table / text styling */
 .table-text {
-  font-family: "Victor Mono Light", "ui/font/victor", monospace;
+  font-family: "VictorMonoLightAstro", "ui/font/victor", monospace;
   font-size: 18px;
 }
