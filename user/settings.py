@@ -25,8 +25,12 @@ SWE_FLAG = {
     # settings panel which will update uncommented flags / values (this file)
     # --- use sidereal (jyotisa) zodiac : else use tropical (western) zodiac
     # FLG_SIDEREAL vs FLG_TROPICAL (default)
-    # "sidereal zodiac": (True, "use sideral (vs tropical) zodiac"),
-    "sidereal zodiac": (True, "use sideral (vs tropical) zodiac"),
+    # "sidereal zodiac": (True, "use sidereal (vs tropical) zodiac"),
+    "sidereal zodiac": (
+        True,
+        """use sidereal (vs tropical) zodiac
+if checked also select ayanamsa below""",
+    ),
     # --- calculate true, not apparent (visible from earth) positions
     # journey of the light from a planet to the earth takes some time
     # FLG_TRUEPOS

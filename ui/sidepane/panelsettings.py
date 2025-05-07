@@ -158,16 +158,18 @@ event 1 & 2 can have different objects"""
     box_chart_settings = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
     box_chart_settings.set_margin_start(manager.margin_end)
     box_chart_settings.set_margin_end(manager.margin_end)
-    # listbox with rows for settings
-    manager.lbx_chart_settings = Gtk.ListBox()
-    manager.lbx_chart_settings.set_selection_mode(Gtk.SelectionMode.NONE)
+    # label for calculations settings
+    lbl_settings_calc = Gtk.Label(label="calculations")
+    lbl_settings_calc.set_halign(Gtk.Align.START)
+    box_chart_settings.append(lbl_settings_calc)
+    # listbox with rows for calculations settings
+    manager.lbx_chart_setts_top = Gtk.ListBox()
+    manager.lbx_chart_setts_top.set_selection_mode(Gtk.SelectionMode.NONE)
     app.chart_settings = {}
-    # checkboxes
+    # calculations checkboxes
     for setting in [
-        "enable glyphs",
-        "true mc & ic",
-        "fixed asc",
         "mean node",
+        "true mc & ic",
     ]:
         row = Gtk.ListBoxRow()
         default, tooltip = CHART_SETTINGS[setting]
@@ -180,7 +182,33 @@ event 1 & 2 can have different objects"""
         )
         row.set_tooltip_text(tooltip)
         row.set_child(check)
-        manager.lbx_chart_settings.append(row)
+        manager.lbx_chart_setts_top.append(row)
+        app.chart_settings[setting] = default
+    box_chart_settings.append(manager.lbx_chart_setts_top)
+    # label for chart drawing
+    lbl_settings_draw = Gtk.Label(label="drawing")
+    lbl_settings_draw.set_halign(Gtk.Align.START)
+    box_chart_settings.append(lbl_settings_draw)
+    # listbox with rows for drawing settings
+    lbx_chart_setts_btm = Gtk.ListBox()
+    lbx_chart_setts_btm.set_selection_mode(Gtk.SelectionMode.NONE)
+    # calculations checkboxes
+    for setting in [
+        "enable glyphs",
+        "fixed asc",
+    ]:
+        row = Gtk.ListBoxRow()
+        default, tooltip = CHART_SETTINGS[setting]
+        # create checkbox for selection
+        check = Gtk.CheckButton(label=setting)
+        check.set_active(default)
+        check.connect(
+            "toggled",
+            lambda btn, s=setting, m=manager: chart_settings_toggled(btn, s, m),
+        )
+        row.set_tooltip_text(tooltip)
+        row.set_child(check)
+        lbx_chart_setts_btm.append(row)
         app.chart_settings[setting] = default
     # naksatras ring : connect all naksatra settings in 1 function
     row = Gtk.ListBoxRow()
@@ -198,7 +226,7 @@ event 1 & 2 can have different objects"""
     row.set_tooltip_text(CHART_SETTINGS["naksatras ring"][1])
     app.chart_settings["naksatras ring"] = manager.chk_naks_ring.get_active()
     row.set_child(manager.chk_naks_ring)
-    manager.lbx_chart_settings.append(row)
+    lbx_chart_setts_btm.append(row)
     # row for additional naksatras settings
     row = Gtk.ListBoxRow()
     # box for 28 naksatras checkbox & 1st naksatra
@@ -235,7 +263,7 @@ event 1 & 2 can have different objects"""
     app.chart_settings["1st naksatra"] = manager.ent_1st_nak.get_text()
     box_naks.append(manager.ent_1st_nak)
     row.set_child(box_naks)
-    manager.lbx_chart_settings.append(row)
+    lbx_chart_setts_btm.append(row)
     # harmonics ring --------------------------------------
     row = Gtk.ListBoxRow()
     box_harmonics = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=7)
@@ -253,12 +281,12 @@ event 1 & 2 can have different objects"""
     ent_harmonics.set_alignment(0.5)
     ent_harmonics.set_max_length(5)
     ent_harmonics.set_max_width_chars(5)
-    ent_harmonics.connect("activate", harmonics_ring_changed, manager)
+    ent_harmonics.connect("activate", harmonics_ring, manager)
     box_harmonics.append(ent_harmonics)
     row.set_child(box_harmonics)
-    manager.lbx_chart_settings.append(row)
+    lbx_chart_setts_btm.append(row)
     app.chart_settings["harmonics ring"] = ent_harmonics.get_text()
-    box_chart_settings.append(manager.lbx_chart_settings)
+    box_chart_settings.append(lbx_chart_setts_btm)
     # --- chart info string : basic & extra ------------------
     # main box for chart info string
     box_chart_info = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
@@ -659,6 +687,7 @@ def house_system_changed(dropdown, _, manager):
     hsys, _, short_name = HOUSE_SYSTEMS[idx]
     manager._app.selected_house_system = hsys
     manager.selected_house_sys_str = short_name
+    calculate_positions(event=None)
     manager._notify.debug(
         f"selectedhousesystem : {manager._app.selected_house_system}"
         f"\t{manager.selected_house_sys_str}",
@@ -669,19 +698,23 @@ def house_system_changed(dropdown, _, manager):
 
 def chart_settings_toggled(button, setting, manager):
     """chart settings panel : update chart settings"""
-    print(f"chartsettingstoggled : {setting} : {button.get_active()}")
     manager._app.chart_settings[setting] = button.get_active()
-    if setting == "mean node":
+    if setting in ["mean node", "true mc & ic"]:
         manager._notify.debug(
-            f"chartsettings : {setting} toggled : calling calculatepositions ...",
+            f"chartsettings : {setting} toggled ({button.get_active()}) : calling calculatepositions ...",
             source="panelsettings",
             route=["terminal"],
         )
         calculate_positions(event=None)
-    # if manager._app.selected_event == "event one":
-    #     manager._app.EVENT_ONE.update_positions("e1")
-    # else:
-    #     manager._app.EVENT_TWO.update_positions("e2")
+    # note : naksatras > naksatras_ring ; harmonics > harmonics_ring
+    if setting in ["enable glyphs", "fixed asc", "harmonics ring"]:
+        # todo update astro chart drawing
+        # pass
+        manager._notify.debug(
+            f"chartsettings : {setting} toggled ({button.get_active()}) : calling chart drawing (todo) ...",
+            source="panelsettings",
+            route=["terminal"],
+        )
 
 
 def naksatras_ring(button, key, manager):
@@ -703,10 +736,11 @@ def naksatras_ring(button, key, manager):
     val_ring = manager.chk_naks_ring.get_active()
     val_28 = manager.chk_28_naks.get_active()
     val_1st = manager.ent_1st_nak.get_text()
-    # todo save values to settings
+    # store values to settings
     manager._app.chart_settings["naksatras ring"] = val_ring
     manager._app.chart_settings["28 naksatras"] = val_28
     manager._app.chart_settings["1st naksatra"] = val_1st
+    # todo update astro chart drawings
     manager._notify.debug(
         f"naksatrasring : {key} | ring : {val_ring} | 28 : {val_28} | naks : {manager.naks_range} | 1st : {val_1st}",
         source="panelsettings",
@@ -714,7 +748,7 @@ def naksatras_ring(button, key, manager):
     )
 
 
-def harmonics_ring_changed(entry, manager):
+def harmonics_ring(entry, manager):
     """chart settings panel : harmonics ring : 0, 1, 7, 9, 11 harmonics : add if needed - also add calculations"""
     text = entry.get_text().strip()
     nums = text.split()
@@ -724,11 +758,11 @@ def harmonics_ring_changed(entry, manager):
         or not all(n.isdigit() and int(n) in valid_nums for n in nums)
         or not (1 <= len(nums) <= 2)
     ):
-        # invalid input todo just notify user : using icons is erratic
+        # invalid input
+        entry.add_css_class("entry-warning")
         entry.set_text(
             " ".join(str(x) for x in manager._app.chart_settings["harmonics ring"])
         )
-        entry.add_css_class("entry-warning")
     else:
         entry.remove_css_class("entry-warning")
         manager._app.chart_settings["harmonics ring"] = text
@@ -816,12 +850,12 @@ def flags_toggled(button, flag, manager):
     if manager._app.is_sidereal:
         set_ayanamsa(manager)
     # update positions on flag change
-    if flag in ["sidereal zodiac", "true positions"]:
-        calculate_positions(event=None)
+    calculate_positions(event=None)
     manager._notify.debug(
         f"flagstoggled :"
         f"\n\tselected flags : {manager._app.selected_flags}"
-        f"\n\tsweph flag : {manager._app.sweph_flag}",
+        f"\n\tsweph flag : {manager._app.sweph_flag}"
+        "\n\tcalled calculatepositions ...",
         source="panelsettings",
         route=["terminal"],
     )
@@ -856,8 +890,11 @@ def ayanamsa_changed(dropdown, _, manager):
     idx = dropdown.get_selected()
     manager._app.selected_ayanamsa = list(AYANAMSA.keys())[idx]
     set_ayanamsa(manager)
+    # update positions
+    calculate_positions(event=None)
     manager._notify.debug(
-        f"ayanamsa panel : selected : {manager._app.selected_ayanamsa}",
+        f"ayanamsa panel : selected : {manager._app.selected_ayanamsa}"
+        "\n\tcalled calculatepositions ...",
         source="panelsettings",
         route=["terminal"],
     )
@@ -885,10 +922,12 @@ def custom_ayanamsa_changed(entry, key, manager):
             manager._notify.debug(
                 "custom julian day not changed : exiting ...",
                 source="panelsettings",
-                route=["terminal"],
+                route=["none"],
             )
             return
         manager._app.custom_julian_day = custom_jd
+        set_ayanamsa(manager)
+        calculate_positions(event=None)
         manager._notify.debug(
             f"customjulday : {manager._app.custom_julian_day}",
             source="panelsettings",
@@ -914,10 +953,12 @@ def custom_ayanamsa_changed(entry, key, manager):
             manager._notify.debug(
                 "custom julian day not changed : exiting ...",
                 source="panelsettings",
-                route=["terminal"],
+                route=["none"],
             )
             return
         manager._app.custom_ayan = custom_ayan
+        set_ayanamsa(manager)
+        calculate_positions(event=None)
         manager._notify.debug(
             f"customayanamsa : {manager._app.custom_ayan}",
             source="panelsettings",
@@ -942,7 +983,7 @@ def set_ayanamsa(manager):
         f"set ayanamsa : {ayanamsa}"
         + (
             f" | custom jd : {manager._app.custom_julian_day}"
-            f" | ayan : {manager._app.custom_ayan}"
+            f" | custom ayan : {manager._app.custom_ayan}"
             if ayanamsa == 255
             else ""
         ),

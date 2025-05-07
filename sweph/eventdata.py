@@ -466,6 +466,8 @@ class EventData:
             # data changed
             try:
                 # todo grab weekday somewhere if possible
+                # swisseph.day_of_week()
+                #    Calculate day of week number [0;6] from Julian day number (monday is 0).
                 # get datetime string, assuming naive date-time
                 dt_str = entry.get_text().strip()
                 # grab self.lon if 'a' in datetime (local apparent time)
@@ -478,7 +480,7 @@ class EventData:
                 self._notify.info(
                     f"{datetime_name} manual entry valid",
                     source="eventdata",
-                    route=["terminal"],
+                    route=["none"],
                 )
                 Y, M, D, h, m, s, calendar, _ = result
                 # manual input : assume event time
@@ -541,7 +543,7 @@ class EventData:
         self._notify.debug(
             msg_,
             source="eventdata",
-            route=["terminal"],
+            route=["none"],
         )
         # all good : set new old date-time
         self.old_date_time = dt_event_str
@@ -559,7 +561,7 @@ class EventData:
         self._notify.debug(
             f"{datetime_name} julian day : {jd_ut}",
             source="eventdata",
-            route=["terminal"],
+            route=["none"],
         )
         # if datetime two is NOT empty, user is interested in event 2
         # in this case datetime two is mandatory, the rest is optional, aka
@@ -571,7 +573,7 @@ class EventData:
                 "datetime 2 is none : user not interested in event 2 : skipping ..."
                 f"\n\te2 active : {self._app.e2_active}",
                 source="eventdata",
-                route=["terminal"],
+                route=["none"],
             )
         elif self._app.e2_chart.get("datetime", ""):
             self._app.e2_active = True
