@@ -63,10 +63,13 @@ class TablesWidget(Gtk.Notebook):
         """create text content for positions & houses"""
         houses = calculate_houses()
         cusps, ascmc = houses if houses else ((), ())
+        if ascmc:
+            ascendant = ascmc[0]
+            midheaven = ascmc[1]
         self._notify.debug(
-            f"maketablecontent :\n\tcusps : {cusps}\n\tascmc : {ascmc}",
+            f"maketablecontent :\n\tcusps : {cusps} | type : {type(cusps)}\n\tascmc : {ascmc} | type : {type(ascmc)}",
             source="panetables",
-            route=["terminal"],
+            route=["none"],
         )
         # dashes : u2014 full width ; u2012 monospace-specific ; u2015 longer
         # u2017 double bottom u2502 vertical full
@@ -75,7 +78,7 @@ class TablesWidget(Gtk.Notebook):
         h_ = "\u01ee"  # victormonolightastro
         vic_spc = "\u01ac"  # custom [space] to match glyphs (582 font width)
         asc = "\u01bf"
-        dsc = "\u01c0"
+        mc = "\u01c1"
         line = f"{h_ * n_chars}\n"
         # text to display in tables
         text = f" positions {h_ * 29}\n"
@@ -97,8 +100,8 @@ class TablesWidget(Gtk.Notebook):
             # add cusp degree : lon > sign
             text += f" {i:2d} {v_} {self.format_dms(cusp):20}\n"
         text += f" cross points {h_ * 3}\n"
-        text += f" {asc} : {self.format_dms(ascmc[0])}\n"
-        text += f" {dsc} : {self.format_dms(ascmc[1])}\n"
+        text += f" {asc} :  {self.format_dms(ascendant)}\n"
+        text += f" {mc} :  {self.format_dms(midheaven)}\n"
         text += line
         return text
 

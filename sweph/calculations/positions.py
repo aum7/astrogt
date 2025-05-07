@@ -23,6 +23,7 @@ def calculate_positions(event: Optional[str] = None) -> Dict:
             route=["terminal", "user"],
         )
         return {}
+    is_helio = "heliocentric" in app.selected_flags
     positions = {}
     events: List[str] = [event] if event else ["e1", "e2"]
     if "e2" in events and not app.e2_sweph.get("jd_ut"):
@@ -44,6 +45,13 @@ def calculate_positions(event: Optional[str] = None) -> Dict:
                 route=["terminal"],
             )
             return {}
+        # todo keep track before / after toggle
+        if is_helio and "sun" in objs:
+            objs.remove("sun")
+            objs.add("earth")
+        elif not is_helio and "earth" in objs:
+            objs.remove("earth")
+            objs.add("sun")
         # swe.calc_ut() with topocentric flag needs topographic location
         if (
             app.selected_flags

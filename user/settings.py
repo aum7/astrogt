@@ -18,6 +18,7 @@ OBJECTS = {
     8: ("ne", "neptune", "ne", "neptune"),
     9: ("pl", "pluto", "pl", "pluto"),
     11: ("ra", "true node", "ra", "rahu"),
+    14: ("ea", "earth", "ea", "earth"),
 }
 SWE_FLAG = {
     # default flags for sweph calculations

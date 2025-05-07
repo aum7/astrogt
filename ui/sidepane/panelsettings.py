@@ -43,6 +43,8 @@ def setup_settings(manager) -> CollapsePanel:
     # convert flags to integer
     app.sweph_flag = sum(manager.SWEPH_FLAG_MAP[k] for k, v in SWE_FLAG.items() if v[0])
     app.is_sidereal = "sidereal zodiac" in app.selected_flags
+    # app.is_helio = "heliocentric" in app.selected_flags
+    # app.is_topo = "topocentric" in app.selected_flags
     # main panel for settings
     clp_settings = CollapsePanel(title="settings", expanded=False)
     clp_settings.set_margin_end(manager.margin_end)
@@ -829,9 +831,30 @@ def chart_info_string(entry, info, manager):
 def flags_toggled(button, flag, manager):
     """flags panel : update selected sweph flags"""
     if button.get_active():
+        # helio vs geo centric
+        if flag == "heliocentric":
+            # init : topocentric is rivaling
+            manager.is_topocentric = "topocentric" in manager._app.selected_flags
+            if manager.is_topocentric:
+                manager._app.selected_flags.discard("topocentric")
+                # update checkbox
+                for row in manager.lbx_flags:
+                    check = row.get_child()
+                    if check.get_label() == "topocentric":
+                        check.set_active(False)
+                        break
         # add to selected flags
         manager._app.selected_flags.add(flag)
     else:
+        # reverse above logic
+        if flag == "heliocentric":
+            # todo only add if was active before toggle
+            manager._app.selected_flags.add("topocentric")
+            for row in manager.lbx_flags:
+                check = row.get_child()
+                if check.get_label == "topocentric":
+                    check.set_active(True)
+                    break
         # remove from selected flags
         manager._app.selected_flags.discard(flag)
     # update sweph flag
