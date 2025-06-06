@@ -2,6 +2,8 @@
 # ad 1 (ce) = jd 1721423.5
 # 2000-01-01 12:00 = jd 2451545.0
 # jd 0 = 4714-11-24 bce (gregorian) = monday 4713-01-01 bce 12:00 (julian)
+# 1975-02-08 14:10:00 = 2442452.0902778
+# 1975-02-08 12:10:00 (utc) = 2442452.0069444
 import re
 import swisseph as swe
 
@@ -86,6 +88,7 @@ def validate_datetime(manager, date_time, lon=None):
                 manager._notify.error("local apparent time : longitude missing")
                 return False, None, (Y, M, D, decimal_hour)
             jd = swe.lat_to_lmt(jd, lon)
+        print(f"jd : {jd}")
         # validate date-time
         is_valid, jd, dt_corr = swe.date_conversion(Y, M, D, decimal_hour, calendar)
         if not is_valid:
@@ -99,11 +102,15 @@ def validate_datetime(manager, date_time, lon=None):
         h_ = int(h_decimal)
         m_ = int((h_decimal - h_) * 60)
         s_ = int(round((((h_decimal - h_) * 60) - m_) * 60))
-        # manager._notify.debug(
-        #     f"\n\tdate-time as corrected : {Y_}-{M_}-{D_} {h_}:{m_}:{s_}",
-        #     source="swetime",
-        #     route=["terminal"],
-        # )
+        # date_conversion returns ie 1975-2-8 14:9:60 for input 1975 02 08 14 10
+        if s_ >= 60:
+            s_ = 0
+            m_ += 1
+        manager._notify.debug(
+            f"\n\tdate-time as corrected : {Y_}-{M_}-{D_} {h_}:{m_}:{s_}",
+            source="swetime",
+            route=["terminal"],
+        )
     except ValueError as e:
         manager._notify.warning(
             f"{date_time}\n\terror\n\t{e}\n\t{msg_negative_year}",
@@ -152,6 +159,10 @@ def jd_to_custom_iso(jd, calendar=b"g"):
     h = int(h_)
     m = int((h_ - h) * 60)
     s = int(round((((h_ - h) * 60) - m) * 60))
+    # todo : leave this : date_conversion might return erroneous datetime
+    # if s >= 60:
+    #     s = 0
+    #     m += 1
     return f"{Y}-{M:02d}-{D:02d} {h:02d}:{m:02d}:{s:02d}"
 
 

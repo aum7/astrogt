@@ -18,7 +18,7 @@ OBJECTS = {
     8: ("ne", "neptune", "ne", "neptune"),
     9: ("pl", "pluto", "pl", "pluto"),
     11: ("ra", "true node", "ra", "rahu"),
-    14: ("ea", "earth", "ea", "earth"),
+    # 14: ("ea", "earth", "ea", "earth"),
 }
 SWE_FLAG = {
     # default flags for sweph calculations
@@ -47,7 +47,7 @@ if checked also select ayanamsa below""",
     # --- calculate heliocentric positions : astrology uses geocentric positions
     # FLG_HELCTR
     # "heliocentric": (False, "calculate heliocentric (vs geocentric) positions"),
-    "heliocentric": (False, "calculate heliocentric (vs geocentric) positions"),
+    # "heliocentric": (False, "calculate heliocentric (vs geocentric) positions"),
     # --- use default sweph ephemeris & speed calculations
     # "default flag": (True, "use default (sweph ephemeris & speed calculations)"),
     "default flag": (True, "use default (sweph ephemeris & speed calculations)"),

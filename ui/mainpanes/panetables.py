@@ -87,6 +87,7 @@ class TablesWidget(Gtk.Notebook):
         text += f" name {v_}      sign {vic_spc} {v_}       lat {v_}        lon {v_} house\n"
         for _, obj in pos_dict.items():
             if obj.get("lon speed") < 0:
+                print(f"{obj['name']} : {obj['lon speed']}")
                 retro = "R"
             # objects
             text += f" {obj['name']}{retro}  {v_}"

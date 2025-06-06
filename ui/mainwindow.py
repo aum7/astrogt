@@ -12,6 +12,7 @@ from .hotkeymanager import HotkeyManager
 from ui.helpers import _event_selection
 from ui.mainpanes.panesmanager import PanesManager
 from ui.mainpanes.panetables import draw_tables
+from ui.mainpanes.panechart.astrochart import AstroChart
 
 
 class MainWindow(
@@ -162,12 +163,13 @@ class MainWindow(
             label3 = Gtk.Label(label="data graph")
             label3.add_css_class("label-bl")
 
-            stack.add_titled(label1, "chart", "-chart")
-            stack.add_titled(label2, "editor", "-editor")
-            stack.add_titled(label3, "graph", "-graph")
+            astro_chart = AstroChart()
+            stack.add_titled(astro_chart, "chart", "-chart")
             # store custom (table) widget reference for updates
             self.tables[pane] = draw_tables()
             stack.add_titled(self.tables[pane], "tables", f"{pane}-tables")
+            stack.add_titled(label2, "editor", "-editor")
+            stack.add_titled(label3, "graph", "-graph")
             # set stack as child of frame
             frame = getattr(self, f"frm_{pane.replace('-', '_')}", None)
             if frame:
