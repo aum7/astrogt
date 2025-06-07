@@ -99,6 +99,10 @@ def validate_datetime(manager, date_time, lon=None):
         h_ = int(h_decimal)
         m_ = int((h_decimal - h_) * 60)
         s_ = int(round((((h_decimal - h_) * 60) - m_) * 60))
+        # date conversion returns 60 seconds
+        if s_ >= 60:
+            s_ = 0
+            m_ += 1
         # manager._notify.debug(
         #     f"\n\tdate-time as corrected : {Y_}-{M_}-{D_} {h_}:{m_}:{s_}",
         #     source="swetime",
