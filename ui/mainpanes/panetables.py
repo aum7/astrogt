@@ -74,9 +74,9 @@ class TablesWidget(Gtk.Notebook):
             "name",
             "lat",
             "lon",
-            "dist",
+            # "dist",
             # "lat speed",
-            # "lon speed",
+            "lon speed",
             # "dist speed",
         ]
         # add header
