@@ -82,18 +82,20 @@ class TablesWidget(Gtk.Notebook):
         line = f"{h_ * n_chars}\n"
         # text to display in tables
         text = f" positions {h_ * 29}\n"
-        retro = " "
+        # retro = " "
         # header row
         text += f" name {v_}      sign {vic_spc} {v_}       lat {v_}        lon {v_} house\n"
         for _, obj in pos_dict.items():
-            if obj.get("lon speed") < 0:
-                print(f"{obj['name']} : {obj['lon speed']}")
-                retro = "R"
+            # if obj.get("lon speed") < 0:
+            #     print(f"{obj['name']} : {obj.get('lon speed')}")
+            #     retro = "R"
+            retro = "R" if obj.get('lon speed') < 0 else " "
             # objects
             text += f" {obj['name']}{retro}  {v_}"
             text += f" {self.format_dms(obj.get('lon')):10} {v_}"
             text += f"{obj.get('lat', 0):10.6f} {v_}"
             text += f"{obj.get('lon', 0):11.6f}"
+            # text += f"{obj.get('lon speed', 0):11.6f}"
             text += f"{self.which_house(obj.get('lon'), cusps)}\n"
         text += line
         # add houses below objects positions
