@@ -108,15 +108,19 @@ class TablesWidget(Gtk.Notebook):
         text_view.add_css_class("table-text")
         buffer = text_view.get_buffer()
 
+        retro = " "
         text_line = "-" * 30 + "\n"
         text = text_line
         text += " positions :\n"
         # header row
         text += " name | lat       | lon\n"
         for _, obj in pos_dict.items():
-            text += f" {obj['name']:4} "
+            if obj.get("lon speed") < 0:
+                retro = "R"
+            text += f" {obj['name']:4}{retro} "
             text += f" {obj.get('lat', 0):10.6f} "
-            text += f" {obj.get('lon', 0):11.6f}\n"
+            text += f" {obj.get('lon', 0):11.6f}"
+            text += f" {obj.get('lon speed', 0):11.6f}\n"
         text += text_line
         buffer.set_text(text)
         scroll.set_child(text_view)
