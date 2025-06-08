@@ -69,14 +69,14 @@ if checked also select ayanamsa below""",
     # --- no abberation : small irregularity in the motion of the moons
     # FLG_NOABERR
     # "no aberration": (False, "do NOT use aberration (small irregularity of moon)"),
-    "no abberation": (
-        False,
-        "do NOT use aberration if checked (small irregularity of moon)",
-    ),
+    # "no abberation": (
+    #     False,
+    #     "do NOT use aberration if checked (small irregularity of moon)",
+    # ),
     # --- no gravity deflection
     # FLG_NOGDEFL
     # "no deflection": (False, "do NOT use gravitational deflection"),
-    "no deflection": (False, "do NOT use gravitational deflection if checked"),
+    # "no deflection": (False, "do NOT use gravitational deflection if checked"),
     # --- return equatorial positions (right ascension & declination)
     # else return ecliptic (default, latitude & longitude) positions
     # FLG_EQUATORIAL

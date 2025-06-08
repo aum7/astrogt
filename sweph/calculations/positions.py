@@ -37,7 +37,6 @@ def calculate_positions(event: Optional[str] = None) -> Dict:
     for event in events:
         sweph = app.e1_sweph if event == "e1" else app.e2_sweph
         objs = app.selected_objects_e1 if event == "e1" else app.selected_objects_e2
-        # print(f"positions : sweph : {sweph}\n\tselobjs : {objs}")
         if not sweph or "jd_ut" not in sweph or not objs:
             notify.debug(
                 f"missing :\n\tsweph : {sweph}\n\tobjs : {objs}\n\texiting ...",
@@ -53,8 +52,6 @@ def calculate_positions(event: Optional[str] = None) -> Dict:
         #     objs.remove("earth")
         #     objs.add("sun")
         # swe.calc_ut() with topocentric flag needs topographic location
-        # print(f"sweph : {sweph.keys()}")
-        print(f"flags used : {app.selected_flags} | sweph flag : {app.sweph_flag}")
         if (
             app.selected_flags
             and "topocentric" in app.selected_flags
@@ -62,10 +59,7 @@ def calculate_positions(event: Optional[str] = None) -> Dict:
         ):
             """coordinates are reversed here : lon lat alt"""
             # print("found 'topocentric' flag")
-            # swe.set_topo(sweph["lon"], sweph["lat"], sweph["alt"])
-            # swe.set_topo(0, 0, 0)
             swe.set_topo(sweph["lon"], sweph["lat"], sweph["alt"])
-            # print(f"lon-lat-alt : {sweph['lon']}-{sweph['lat']}-{sweph['alt']}")
         use_mean_node = app.chart_settings["mean node"]
         sweph_flag = app.sweph_flag
         jd_ut = sweph.get("jd_ut")
@@ -91,8 +85,8 @@ def calculate_positions(event: Optional[str] = None) -> Dict:
                 # print(f"positions : result : {result}")
                 data = result[0] if isinstance(result, tuple) else result
                 # todo test
-                return_flag = result[1]  # if isinstance(result, tuple)
-                print(f"returnflag : {return_flag} | in flag : {sweph_flag}")
+                # return_flag = result[1]
+                # print(f"returnflag : {return_flag} | in flag : {sweph_flag}")
                 positions[code] = {
                     "name": name,
                     "lon": data[0],

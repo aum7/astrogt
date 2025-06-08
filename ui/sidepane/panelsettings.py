@@ -31,8 +31,8 @@ def setup_settings(manager) -> CollapsePanel:
         # "heliocentric": swe.FLG_HELCTR,
         "default flag": swe.FLG_SWIEPH | swe.FLG_SPEED,
         "no nutation": swe.FLG_NONUT,
-        "no abberation": swe.FLG_NOABERR,
-        "no deflection": swe.FLG_NOGDEFL,
+        # "no abberation": swe.FLG_NOABERR,
+        # "no deflection": swe.FLG_NOGDEFL,
         # "equatorial": swe.FLG_EQUATORIAL,
         # "cartesian": swe.FLG_XYZ,
         # "radians": swe.FLG_RADIANS,
@@ -467,6 +467,7 @@ more info in user/settings.py > SWE_FLAG"""
     manager.subpnl_ayanamsa.set_title_tooltip(
         "select 'sidereal zodiac' in settings / sweph flags to enable ayanamsa selection"
     )
+    # todo remove ???
     manager.subpnl_ayanamsa.toggle_expand(manager._app.is_sidereal)
     manager.subpnl_ayanamsa.toggle_sensitive(manager._app.is_sidereal)
     # ------- sub-sub-panel custom ayanamsa --------------
@@ -504,6 +505,7 @@ more info in user/settings.py > SWE_FLAG"""
         ayanamsa_changed(dropdown, param, manager)
 
     ddn_ayanamsa.connect("notify::selected", ayanamsa_notify_cb, manager)
+    set_ayanamsa(manager)
     # set initial state of sub-sub-panel custom ayanamsa
     key0 = list(AYANAMSA.keys())[ddn_ayanamsa.get_selected()]
     is_user_defined0 = key0 == 255

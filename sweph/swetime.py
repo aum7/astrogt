@@ -1,3 +1,4 @@
+# sweph/swetime.py
 # astronomical year 0 (1 bc) = jd 1721057.5
 # ad 1 (ce) = jd 1721423.5
 # 2000-01-01 12:00 = jd 2451545.0
@@ -88,7 +89,7 @@ def validate_datetime(manager, date_time, lon=None):
                 manager._notify.error("local apparent time : longitude missing")
                 return False, None, (Y, M, D, decimal_hour)
             jd = swe.lat_to_lmt(jd, lon)
-        print(f"jd : {jd}")
+        print(f"swetime : jd : {jd}")
         # validate date-time
         is_valid, jd, dt_corr = swe.date_conversion(Y, M, D, decimal_hour, calendar)
         if not is_valid:

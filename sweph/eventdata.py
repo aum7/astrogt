@@ -385,7 +385,7 @@ class EventData:
                     # print(f"timenow : dt_event_str : {dt_event_str}")
                     tz_offset_ = dt_event.utcoffset()
                     tz_offset_str = str(tz_offset_)
-                    # print(f"timenow : tzoffstr : {tz_offset_str}")
+                    print(f"timenow : tzoffstr : {tz_offset_str}")
                     # error : invalid literal ... -1 day, 20:00:00 [workaround]
                     # parse timezone string to decimal hours
                     parts = [p for p in tz_offset_str.split(",") if p]
@@ -393,7 +393,7 @@ class EventData:
                     h, m, s = map(int, parts[-1].strip().split(":"))
                     # convert to decimal
                     self.tz_offset = days * 24 + h + m / 60 + s / 3600
-                    # print(f"timenow : tz_offset : {self.tz_offset}")
+                    print(f"timenow : tz_offset : {self.tz_offset}")
                     self._notify.info(
                         f"{datetime_name} timezone : "
                         f"using time now for {self.timezone}",
@@ -485,21 +485,32 @@ class EventData:
                 Y, M, D, h, m, s, calendar, _ = result
                 # manual input : assume event time
                 # we need timezone offset for event location
-                dt_utc_now = datetime.now(timezone.utc).replace(microsecond=0)
+                # dt_utc_now = datetime.now(timezone.utc).replace(microsecond=0)
                 if self.timezone:
-                    # get timezone offset, from now datetime
-                    dt_event_now = dt_utc_now.astimezone(ZoneInfo(self.timezone))
-                    tz_offset_ = dt_event_now.utcoffset()
-                    # as string
-                    tz_offset_str = str(tz_offset_)
-                    # error : invalid literal ... -1 day, 20:00:00 [workaround]
-                    # parse timezone string to decimal hours
-                    parts = [p for p in tz_offset_str.split(",") if p]
-                    days_ = int(parts[0].split()[0]) if "day" in parts[0] else 0
-                    h_, m_, s_ = map(int, parts[-1].strip().split(":"))
-                    # convert to decimal
-                    self.tz_offset = days_ * 24 + h_ + m_ / 60 + s_ / 3600
-                    # print(f"manual|arrow_l/r : tz_offset : {self.tz_offset}")
+                    # python datetime only goes down to year 1
+                    if Y >= 1:
+                        # get timezone offset from event datetime
+                        dt_event = datetime(
+                            Y, M, D, h, m, s, tzinfo=ZoneInfo(self.timezone)
+                        )
+                        # dt_utc_now.astimezone(ZoneInfo(self.timezone))
+                        tz_offset_ = dt_event.utcoffset()
+                        # as string
+                        tz_offset_str = str(tz_offset_)
+                        # error : invalid literal ... -1 day, 20:00:00 [workaround]
+                        # parse timezone string to decimal hours
+                        parts = [p for p in tz_offset_str.split(",") if p]
+                        days_ = int(parts[0].split()[0]) if "day" in parts[0] else 0
+                        h_, m_, s_ = map(int, parts[-1].strip().split(":"))
+                        # convert to decimal
+                        self.tz_offset = days_ * 24 + h_ + m_ / 60 + s_ / 3600
+                    else:
+                        self.tz_offset = 0.0
+                        self._notify.info(
+                            "year below 1 : using fixed utc offset",
+                            source="eventdata",
+                            route=["terminal"],
+                        )
                     dt_event_str = f"{Y}-{M:02d}-{D:02d} {h:02d}:{m:02d}:{s:02d}"
                     # print(f"dteventstr : {dt_event_str}")
                     dt_utc = naive_to_utc(Y, M, D, h, m, s, self.tz_offset)
@@ -561,7 +572,7 @@ class EventData:
         self._notify.debug(
             f"{datetime_name} julian day : {jd_ut}",
             source="eventdata",
-            route=["none"],
+            route=["terminal"],
         )
         # if datetime two is NOT empty, user is interested in event 2
         # in this case datetime two is mandatory, the rest is optional, aka
