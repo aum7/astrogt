@@ -81,15 +81,15 @@ if checked also select ayanamsa below""",
     # else return ecliptic (default, latitude & longitude) positions
     # FLG_EQUATORIAL
     # "equatorial": (False, "return equatorial (vs ecliptic) positions"),
-    "equatorial": (False, "return equatorial (vs ecliptic) positions"),
+    # "equatorial": (False, "return equatorial (vs ecliptic) positions"),
     # --- return cartesian (x, y, z) else polar (default) coordinates
     # FLG_XYZ
     # "cartesian": (False, "return cartesian (x, y, z vs polar degrees) coordinates"),
-    "cartesian": (False, "return cartesian (x, y, z vs polar degrees) coordinates"),
+    # "cartesian": (False, "return cartesian (x, y, z vs polar degrees) coordinates"),
     # --- return radian else degree (default) units
     # FLG_RADIANS
     # "radians": (False, "return radian (vs degree) units"),
-    "radians": (False, "return radian (vs degree) units"),
+    # "radians": (False, "return radian (vs degree) units"),
 }
 # add or remove houses as you please
 # https://astrorigin.com/pyswisseph/sphinx/programmers_manual/house_cusp_calculation.html?highlight=houses#swisseph.houses

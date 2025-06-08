@@ -53,6 +53,8 @@ def calculate_positions(event: Optional[str] = None) -> Dict:
         #     objs.remove("earth")
         #     objs.add("sun")
         # swe.calc_ut() with topocentric flag needs topographic location
+        # print(f"sweph : {sweph.keys()}")
+        print(f"flags used : {app.selected_flags} | sweph flag : {app.sweph_flag}")
         if (
             app.selected_flags
             and "topocentric" in app.selected_flags
@@ -60,14 +62,17 @@ def calculate_positions(event: Optional[str] = None) -> Dict:
         ):
             """coordinates are reversed here : lon lat alt"""
             # print("found 'topocentric' flag")
+            # swe.set_topo(sweph["lon"], sweph["lat"], sweph["alt"])
+            # swe.set_topo(0, 0, 0)
             swe.set_topo(sweph["lon"], sweph["lat"], sweph["alt"])
+            # print(f"lon-lat-alt : {sweph['lon']}-{sweph['lat']}-{sweph['alt']}")
         use_mean_node = app.chart_settings["mean node"]
         sweph_flag = app.sweph_flag
         jd_ut = sweph.get("jd_ut")
         notify.debug(
             f"\n\tusemeannode : {use_mean_node}\n\tswephflag : {sweph_flag}\n\tjdut : {jd_ut}",
             source="positions",
-            route=["none"],
+            route=["terminal"],
         )
         for obj in objs:
             code, name = object_name_to_code(obj, use_mean_node)
@@ -85,6 +90,9 @@ def calculate_positions(event: Optional[str] = None) -> Dict:
                 result = swe.calc_ut(jd_ut, code, sweph_flag)
                 # print(f"positions : result : {result}")
                 data = result[0] if isinstance(result, tuple) else result
+                # todo test
+                return_flag = result[1]  # if isinstance(result, tuple)
+                print(f"returnflag : {return_flag} | in flag : {sweph_flag}")
                 positions[code] = {
                     "name": name,
                     "lon": data[0],

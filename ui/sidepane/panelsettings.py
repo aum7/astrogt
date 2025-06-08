@@ -28,16 +28,17 @@ def setup_settings(manager) -> CollapsePanel:
         "sidereal zodiac": swe.FLG_SIDEREAL,
         "true positions": swe.FLG_TRUEPOS,
         "topocentric": swe.FLG_TOPOCTR,
-        "heliocentric": swe.FLG_HELCTR,
+        # "heliocentric": swe.FLG_HELCTR,
         "default flag": swe.FLG_SWIEPH | swe.FLG_SPEED,
         "no nutation": swe.FLG_NONUT,
         "no abberation": swe.FLG_NOABERR,
         "no deflection": swe.FLG_NOGDEFL,
-        "equatorial": swe.FLG_EQUATORIAL,
-        "cartesian": swe.FLG_XYZ,
-        "radians": swe.FLG_RADIANS,
+        # "equatorial": swe.FLG_EQUATORIAL,
+        # "cartesian": swe.FLG_XYZ,
+        # "radians": swe.FLG_RADIANS,
     }
-    MAIN_FLAGS = ["sidereal zodiac", "true positions", "topocentric", "heliocentric"]
+    MAIN_FLAGS = ["sidereal zodiac", "true positions", "topocentric"]
+    # MAIN_FLAGS = ["sidereal zodiac", "true positions", "topocentric", "heliocentric"]
     # selected flags init : track as strings
     app.selected_flags = {k for k, v in SWE_FLAG.items() if v[0]}
     # convert flags to integer
