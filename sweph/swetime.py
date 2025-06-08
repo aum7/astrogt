@@ -89,7 +89,7 @@ def validate_datetime(manager, date_time, lon=None):
                 manager._notify.error("local apparent time : longitude missing")
                 return False, None, (Y, M, D, decimal_hour)
             jd = swe.lat_to_lmt(jd, lon)
-        print(f"swetime : jd : {jd}")
+        # print(f"swetime : jd : {jd}")
         # validate date-time
         is_valid, jd, dt_corr = swe.date_conversion(Y, M, D, decimal_hour, calendar)
         if not is_valid:

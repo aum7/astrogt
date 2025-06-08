@@ -66,7 +66,7 @@ def calculate_positions(event: Optional[str] = None) -> Dict:
         notify.debug(
             f"\n\tusemeannode : {use_mean_node}\n\tswephflag : {sweph_flag}\n\tjdut : {jd_ut}",
             source="positions",
-            route=["terminal"],
+            route=["none"],
         )
         for obj in objs:
             code, name = object_name_to_code(obj, use_mean_node)
