@@ -23,7 +23,6 @@ def calculate_positions(event: Optional[str] = None) -> Dict:
             route=["terminal", "user"],
         )
         return {}
-    # is_helio = "heliocentric" in app.selected_flags
     positions = {}
     events: List[str] = [event] if event else ["e1", "e2"]
     if "e2" in events and not app.e2_sweph.get("jd_ut"):
@@ -44,13 +43,6 @@ def calculate_positions(event: Optional[str] = None) -> Dict:
                 route=["terminal"],
             )
             return {}
-        # todo keep track before / after toggle
-        # if is_helio and "sun" in objs:
-        #     objs.remove("sun")
-        #     objs.add("earth")
-        # elif not is_helio and "earth" in objs:
-        #     objs.remove("earth")
-        #     objs.add("sun")
         # swe.calc_ut() with topocentric flag needs topographic location
         if (
             app.selected_flags
@@ -58,7 +50,6 @@ def calculate_positions(event: Optional[str] = None) -> Dict:
             and all(k in sweph for k in ("lon", "lat", "alt"))
         ):
             """coordinates are reversed here : lon lat alt"""
-            # print("found 'topocentric' flag")
             swe.set_topo(sweph["lon"], sweph["lat"], sweph["alt"])
         use_mean_node = app.chart_settings["mean node"]
         sweph_flag = app.sweph_flag
@@ -84,9 +75,6 @@ def calculate_positions(event: Optional[str] = None) -> Dict:
                 result = swe.calc_ut(jd_ut, code, sweph_flag)
                 # print(f"positions : result : {result}")
                 data = result[0] if isinstance(result, tuple) else result
-                # todo test
-                # return_flag = result[1]
-                # print(f"returnflag : {return_flag} | in flag : {sweph_flag}")
                 positions[code] = {
                     "name": name,
                     "lon": data[0],
