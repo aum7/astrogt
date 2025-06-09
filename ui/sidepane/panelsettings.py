@@ -23,7 +23,7 @@ from user.settings import (
 def setup_settings(manager) -> CollapsePanel:
     """setup widget for settings, ie objects, sweph flags, glyphs etc"""
     # shortich : both used interchangeably
-    app = manager._app
+    app = manager.app
     manager.SWEPH_FLAG_MAP = {
         "sidereal zodiac": swe.FLG_SIDEREAL,
         "true positions": swe.FLG_TRUEPOS,
@@ -38,14 +38,11 @@ def setup_settings(manager) -> CollapsePanel:
         # "radians": swe.FLG_RADIANS,
     }
     MAIN_FLAGS = ["sidereal zodiac", "true positions", "topocentric"]
-    # MAIN_FLAGS = ["sidereal zodiac", "true positions", "topocentric", "heliocentric"]
     # selected flags init : track as strings
     app.selected_flags = {k for k, v in SWE_FLAG.items() if v[0]}
     # convert flags to integer
     app.sweph_flag = sum(manager.SWEPH_FLAG_MAP[k] for k, v in SWE_FLAG.items() if v[0])
     app.is_sidereal = "sidereal zodiac" in app.selected_flags
-    # app.is_helio = "heliocentric" in app.selected_flags
-    # app.is_topo = "topocentric" in app.selected_flags
     # main panel for settings
     clp_settings = CollapsePanel(title="settings", expanded=False)
     clp_settings.set_margin_end(manager.margin_end)
@@ -137,7 +134,7 @@ event 1 & 2 can have different objects"""
     default_housesys = 0
     ddn_housesys.set_selected(default_housesys)
     hsys, _, short_name = HOUSE_SYSTEMS[default_housesys]
-    manager._app.selected_house_system = hsys
+    manager.app.selected_house_system = hsys
     manager.selected_house_sys_str = short_name
     ddn_housesys.connect("notify::selected", house_system_changed, manager)
     subpnl_housesys.add_widget(ddn_housesys)
@@ -395,7 +392,7 @@ more info in user/settings.py > SWE_FLAG"""
     subsubpnl_flags_extra.add_widget(box_flags_extra)
     # insert sub-sub-panel into sub-panel
     subpnl_flags.add_widget(subsubpnl_flags_extra)
-    manager._notify.debug(
+    manager.notify.debug(
         f"swephflag : {app.sweph_flag}",
         source="panelsettings",
         route=["none"],
@@ -468,8 +465,8 @@ more info in user/settings.py > SWE_FLAG"""
         "select 'sidereal zodiac' in settings / sweph flags to enable ayanamsa selection"
     )
     # todo remove ???
-    manager.subpnl_ayanamsa.toggle_expand(manager._app.is_sidereal)
-    manager.subpnl_ayanamsa.toggle_sensitive(manager._app.is_sidereal)
+    manager.subpnl_ayanamsa.toggle_expand(manager.app.is_sidereal)
+    manager.subpnl_ayanamsa.toggle_sensitive(manager.app.is_sidereal)
     # ------- sub-sub-panel custom ayanamsa --------------
     subsubpnl_custom_ayanamsa = CollapsePanel(
         title="custom ayanamsa",
@@ -617,15 +614,15 @@ def objects_toggle_event(button, manager):
         img.set_tooltip_text("select objects for event 2")
     # update checkboxes for event set
     objs = (
-        manager._app.selected_objects_e1
+        manager.app.selected_objects_e1
         if manager.selected_objects_event == 1
-        else manager._app.selected_objects_e2
+        else manager.app.selected_objects_e2
     )
     for row in manager.lbx_objects:
         check = row.get_child()
         name = check.get_label()
         check.set_active(name in objs)
-    manager._notify.debug(
+    manager.notify.debug(
         f"selected objects for e{manager.selected_objects_event}\n\t{objs}",
         source="panelsettings",
         route=["none"],
@@ -665,11 +662,11 @@ def objects_select_none(button, manager):
 def objects_toggled(checkbutton, name, manager):
     """objects panel : toggle selected objects per event"""
     if manager.selected_objects_event == 1:
-        sweph = manager._app.e1_sweph
-        sel_objs = manager._app.selected_objects_e1
+        sweph = manager.app.e1_sweph
+        sel_objs = manager.app.selected_objects_e1
     else:
-        sweph = manager._app.e2_sweph
-        sel_objs = manager._app.selected_objects_e2
+        sweph = manager.app.e2_sweph
+        sel_objs = manager.app.selected_objects_e2
 
     if checkbutton.get_active():
         sel_objs.add(name)
@@ -678,7 +675,7 @@ def objects_toggled(checkbutton, name, manager):
     # recalculate positions on objecs change
     if sweph:
         calculate_positions(f"e{manager.selected_objects_event}")
-    manager._notify.debug(
+    manager.notify.debug(
         f"\n\tselected objects : e{manager.selected_objects_event} : {sel_objs}",
         source="panelsettings",
         route=["none"],
@@ -690,11 +687,11 @@ def house_system_changed(dropdown, _, manager):
     idx = dropdown.get_selected()
     # todo modify to include short name for chart info
     hsys, _, short_name = HOUSE_SYSTEMS[idx]
-    manager._app.selected_house_system = hsys
+    manager.app.selected_house_system = hsys
     manager.selected_house_sys_str = short_name
     calculate_positions(event=None)
-    manager._notify.debug(
-        f"selectedhousesystem : {manager._app.selected_house_system}"
+    manager.notify.debug(
+        f"selectedhousesystem : {manager.app.selected_house_system}"
         f"\t{manager.selected_house_sys_str}",
         source="panelsettings",
         route=["terminal"],
@@ -703,9 +700,9 @@ def house_system_changed(dropdown, _, manager):
 
 def chart_settings_toggled(button, setting, manager):
     """chart settings panel : update chart settings"""
-    manager._app.chart_settings[setting] = button.get_active()
+    manager.app.chart_settings[setting] = button.get_active()
     if setting in ["mean node", "true mc & ic"]:
-        manager._notify.debug(
+        manager.notify.debug(
             f"chartsettings : {setting} toggled ({button.get_active()}) : calling calculatepositions ...",
             source="panelsettings",
             route=["terminal"],
@@ -715,7 +712,7 @@ def chart_settings_toggled(button, setting, manager):
     if setting in ["enable glyphs", "fixed asc", "harmonics ring"]:
         # todo update astro chart drawing
         # pass
-        manager._notify.debug(
+        manager.notify.debug(
             f"chartsettings : {setting} toggled ({button.get_active()}) : calling chart drawing (todo) ...",
             source="panelsettings",
             route=["terminal"],
@@ -729,7 +726,7 @@ def naksatras_ring(button, key, manager):
     try:
         value = int(manager.ent_1st_nak.get_text())
     except ValueError:
-        manager._notify.warning(
+        manager.notify.warning(
             "set naksatra 1 to 27 / 28",
             source="panelsettings",
             route=["terminal", "user"],
@@ -742,11 +739,11 @@ def naksatras_ring(button, key, manager):
     val_28 = manager.chk_28_naks.get_active()
     val_1st = manager.ent_1st_nak.get_text()
     # store values to settings
-    manager._app.chart_settings["naksatras ring"] = val_ring
-    manager._app.chart_settings["28 naksatras"] = val_28
-    manager._app.chart_settings["1st naksatra"] = val_1st
+    manager.app.chart_settings["naksatras ring"] = val_ring
+    manager.app.chart_settings["28 naksatras"] = val_28
+    manager.app.chart_settings["1st naksatra"] = val_1st
     # todo update astro chart drawings
-    manager._notify.debug(
+    manager.notify.debug(
         f"naksatrasring : {key} | ring : {val_ring} | 28 : {val_28} | naks : {manager.naks_range} | 1st : {val_1st}",
         source="panelsettings",
         route=["terminal"],
@@ -766,13 +763,13 @@ def harmonics_ring(entry, manager):
         # invalid input
         entry.add_css_class("entry-warning")
         entry.set_text(
-            " ".join(str(x) for x in manager._app.chart_settings["harmonics ring"])
+            " ".join(str(x) for x in manager.app.chart_settings["harmonics ring"])
         )
     else:
         entry.remove_css_class("entry-warning")
-        manager._app.chart_settings["harmonics ring"] = text
-    manager._notify.debug(
-        f"harmonicsring : {manager._app.chart_settings['harmonics ring']}",
+        manager.app.chart_settings["harmonics ring"] = text
+    manager.notify.debug(
+        f"harmonicsring : {manager.app.chart_settings['harmonics ring']}",
         source="panelsettings",
         route=["terminal"],
     )
@@ -809,7 +806,7 @@ def chart_info_string(entry, info, manager):
     ):
         # invalid input : user responsible for correct input
         entry.add_css_class("entry-warning")
-        manager._notify.warning(
+        manager.notify.warning(
             f"invalid chart info string :"
             f"\n\tallowed :\t{' '.join(allowed[info])} {allowed['chars']}"
             f"\n\treceived :\t{value}",
@@ -822,9 +819,9 @@ def chart_info_string(entry, info, manager):
     else:
         entry.remove_css_class("entry-warning")
     # update chart settings
-    manager._app.chart_settings[info] = value
-    manager._notify.success(
-        f"chartinfostring : {manager._app.chart_settings[info]}",
+    manager.app.chart_settings[info] = value
+    manager.notify.success(
+        f"chartinfostring : {manager.app.chart_settings[info]}",
         source="panelsettings",
         route=["terminal", "user"],
         timeout=4,
@@ -837,9 +834,9 @@ def flags_toggled(button, flag, manager):
         # helio vs geo centric
         if flag == "heliocentric":
             # init : topocentric is rivaling
-            manager.is_topocentric = "topocentric" in manager._app.selected_flags
+            manager.is_topocentric = "topocentric" in manager.app.selected_flags
             if manager.is_topocentric:
-                manager._app.selected_flags.discard("topocentric")
+                manager.app.selected_flags.discard("topocentric")
                 # update checkbox
                 for row in manager.lbx_flags:
                     check = row.get_child()
@@ -847,35 +844,35 @@ def flags_toggled(button, flag, manager):
                         check.set_active(False)
                         break
         # add to selected flags
-        manager._app.selected_flags.add(flag)
+        manager.app.selected_flags.add(flag)
     else:
         # reverse above logic
         if flag == "heliocentric":
             # todo only add if was active before toggle
-            manager._app.selected_flags.add("topocentric")
+            manager.app.selected_flags.add("topocentric")
             for row in manager.lbx_flags:
                 check = row.get_child()
                 if check.get_label == "topocentric":
                     check.set_active(True)
                     break
         # remove from selected flags
-        manager._app.selected_flags.discard(flag)
+        manager.app.selected_flags.discard(flag)
     # update sweph flag
-    manager._app.sweph_flag = sum(
-        manager.SWEPH_FLAG_MAP[f] for f in manager._app.selected_flags
+    manager.app.sweph_flag = sum(
+        manager.SWEPH_FLAG_MAP[f] for f in manager.app.selected_flags
     )
     # update ayanamsa panel based on sidereal flag
-    manager._app.is_sidereal = "sidereal zodiac" in manager._app.selected_flags
-    manager.subpnl_ayanamsa.toggle_sensitive(manager._app.is_sidereal)
-    manager.subpnl_ayanamsa.toggle_expand(manager._app.is_sidereal)
-    if manager._app.is_sidereal:
+    manager.app.is_sidereal = "sidereal zodiac" in manager.app.selected_flags
+    manager.subpnl_ayanamsa.toggle_sensitive(manager.app.is_sidereal)
+    manager.subpnl_ayanamsa.toggle_expand(manager.app.is_sidereal)
+    if manager.app.is_sidereal:
         set_ayanamsa(manager)
     # update positions on flag change
     calculate_positions(event=None)
-    manager._notify.debug(
+    manager.notify.debug(
         f"flagstoggled :"
-        f"\n\tselected flags : {manager._app.selected_flags}"
-        f"\n\tsweph flag : {manager._app.sweph_flag}"
+        f"\n\tselected flags : {manager.app.selected_flags}"
+        f"\n\tsweph flag : {manager.app.sweph_flag}"
         "\n\tcalled calculatepositions ...",
         source="panelsettings",
         route=["terminal"],
@@ -885,9 +882,9 @@ def flags_toggled(button, flag, manager):
 def solar_year_changed(dropdown, _, manager):
     """solar & lunar period panel : select solar year period"""
     idx = dropdown.get_selected()
-    manager._app.selected_year_period = list(SOLAR_YEAR.values())[idx][0]
-    manager._notify.debug(
-        f"sol & lun period panel :\n\tsolar year :\t{manager._app.selected_year_period} | "
+    manager.app.selected_year_period = list(SOLAR_YEAR.values())[idx][0]
+    manager.notify.debug(
+        f"sol & lun period panel :\n\tsolar year :\t{manager.app.selected_year_period} | "
         f"{list(SOLAR_YEAR.keys())[idx]}",
         source="panelsettings",
         route=["terminal"],
@@ -897,9 +894,9 @@ def solar_year_changed(dropdown, _, manager):
 def lunar_month_changed(dropdown, _, manager):
     """solar & lunar period panel : select lunar month period"""
     idx = dropdown.get_selected()
-    manager._app.selected_month_period = list(LUNAR_MONTH.values())[idx][0]
-    manager._notify.debug(
-        f"sol & lun period panel :\n\tlunar month :\t{manager._app.selected_month_period} | "
+    manager.app.selected_month_period = list(LUNAR_MONTH.values())[idx][0]
+    manager.notify.debug(
+        f"sol & lun period panel :\n\tlunar month :\t{manager.app.selected_month_period} | "
         f"{list(LUNAR_MONTH.keys())[idx]}",
         source="panelsettings",
         route=["terminal"],
@@ -909,12 +906,12 @@ def lunar_month_changed(dropdown, _, manager):
 def ayanamsa_changed(dropdown, _, manager):
     """ayanamsa panel : select ayanamsa for sidereal zodiac"""
     idx = dropdown.get_selected()
-    manager._app.selected_ayanamsa = list(AYANAMSA.keys())[idx]
+    manager.app.selected_ayanamsa = list(AYANAMSA.keys())[idx]
     set_ayanamsa(manager)
     # update positions
     calculate_positions(event=None)
-    manager._notify.debug(
-        f"ayanamsa panel : selected : {manager._app.selected_ayanamsa}"
+    manager.notify.debug(
+        f"ayanamsa panel : selected : {manager.app.selected_ayanamsa}"
         "\n\tcalled calculatepositions ...",
         source="panelsettings",
         route=["terminal"],
@@ -932,25 +929,25 @@ def custom_ayanamsa_changed(entry, key, manager):
             custom_jd = float(custom_julian_day)
         except ValueError:
             entry.add_css_class("entry-warning")
-            manager._notify.warning(
+            manager.notify.warning(
                 f"invalid custom julian day utc : {custom_julian_day}",
                 source="panelsettings",
                 route=["terminal", "user"],
                 timeout=4,
             )
             return
-        if manager._app.custom_julian_day == custom_jd:
-            manager._notify.debug(
+        if manager.app.custom_julian_day == custom_jd:
+            manager.notify.debug(
                 "custom julian day not changed : exiting ...",
                 source="panelsettings",
                 route=["none"],
             )
             return
-        manager._app.custom_julian_day = custom_jd
+        manager.app.custom_julian_day = custom_jd
         set_ayanamsa(manager)
         calculate_positions(event=None)
-        manager._notify.debug(
-            f"customjulday : {manager._app.custom_julian_day}",
+        manager.notify.debug(
+            f"customjulday : {manager.app.custom_julian_day}",
             source="panelsettings",
             route=["terminal"],
         )
@@ -963,25 +960,25 @@ def custom_ayanamsa_changed(entry, key, manager):
             custom_ayan = float(custom_ayan_string)
         except ValueError:
             entry.add_css_class("entry-warning")
-            manager._notify.warning(
+            manager.notify.warning(
                 f"invalid custom ayanamsa value : {custom_ayan_string}",
                 source="panelsettings",
                 route=["terminal", "user"],
                 timeout=4,
             )
             return
-        if manager._app.custom_ayan == custom_ayan:
-            manager._notify.debug(
+        if manager.app.custom_ayan == custom_ayan:
+            manager.notify.debug(
                 "custom julian day not changed : exiting ...",
                 source="panelsettings",
                 route=["none"],
             )
             return
-        manager._app.custom_ayan = custom_ayan
+        manager.app.custom_ayan = custom_ayan
         set_ayanamsa(manager)
         calculate_positions(event=None)
-        manager._notify.debug(
-            f"customayanamsa : {manager._app.custom_ayan}",
+        manager.notify.debug(
+            f"customayanamsa : {manager.app.custom_ayan}",
             source="panelsettings",
             route=["terminal"],
         )
@@ -989,37 +986,37 @@ def custom_ayanamsa_changed(entry, key, manager):
 
 def set_ayanamsa(manager):
     """set selected ayanamsa"""
-    if "sidereal zodiac" not in manager._app.selected_flags:
+    if "sidereal zodiac" not in manager.app.selected_flags:
         return
-    ayanamsa = manager._app.selected_ayanamsa
+    ayanamsa = manager.app.selected_ayanamsa
     # custom ayanamsa
     if ayanamsa == 255:
         swe.set_sid_mode(
-            ayanamsa, manager._app.custom_julian_day, manager._app.custom_ayan
+            ayanamsa, manager.app.custom_julian_day, manager.app.custom_ayan
         )
     # one of predefined ayanamsas
     else:
         swe.set_sid_mode(ayanamsa)
-    manager._notify.debug(
+    manager.notify.debug(
         f"set ayanamsa : {ayanamsa}"
         + (
-            f" | custom jd : {manager._app.custom_julian_day}"
-            f" | custom ayan : {manager._app.custom_ayan}"
+            f" | custom jd : {manager.app.custom_julian_day}"
+            f" | custom ayan : {manager.app.custom_ayan}"
             if ayanamsa == 255
             else ""
         ),
         source="panelsettings",
-        route=["terminal"],
+        route=["none"],
     )
 
 
 def files_changed(entry, key, manager):
     """file paths & names are customizable"""
     value = entry.get_text().strip()
-    if manager._app.files[key] == value:
+    if manager.app.files[key] == value:
         return
-    manager._app.files[key] = value
-    manager._notify.debug(
+    manager.app.files[key] = value
+    manager.notify.debug(
         f"files panel : {key} = {value}",
         source="panelsettings",
         route=["terminal"],

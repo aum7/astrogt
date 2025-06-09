@@ -1,13 +1,12 @@
 # ui/mainpanes/panetables.py
 # ruff: noqa: E402
-# import swisseph as swe
 import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from swisseph import contrib as swh
 from typing import Tuple
-from sweph.calculations.houses import calculate_houses
+# from sweph.calculations.houses import calculate_houses
 
 
 class TablesWidget(Gtk.Notebook):
@@ -15,61 +14,101 @@ class TablesWidget(Gtk.Notebook):
 
     def __init__(self):
         super().__init__()
-        self._app = Gtk.Application.get_default()
-        self._notify = self._app.notify_manager
+        self.app = Gtk.Application.get_default()
+        self.notify = self.app.notify_manager
         # add styling
         self.add_css_class("no-border")
         self.set_tab_pos(Gtk.PositionType.TOP)
         self.set_scrollable(True)
         self.table_pages = {}
         self.mrg = 9
+        # event data storage
+        self.events_data = {}
+        # connect to positions & houses signals
+        signal = self.app.signal_manager
+        signal._connect("positions_changed", self.positions_changed)
+        signal._connect("houses_changed", self.houses_changed)
 
-    def update_data(self, positions):
-        """update positions on event data change"""
-        if "event" in positions:
-            event = positions["event"]
-            self.table_pages[event] = positions
-            existing_page = None
-            for i in range(self.get_n_pages()):
-                page_label = self.get_tab_label_text(self.get_nth_page(i))
-                if page_label.strip() == f"{event}":
-                    existing_page = self.get_nth_page(i)
-                    break
-            # get objects positions
-            event_positions = {
-                k: v
-                for k, v in positions.items()
-                if k != "event" and isinstance(k, str) and k.isdigit()
+    def positions_changed(self, event, positions_data):
+        # callback for signal
+        if event not in self.events_data:
+            self.events_data[event] = {
+                "event": event,
+                "positions": None,
+                "houses": None,
             }
-            if event_positions:
-                # extra space = avoid sidepane toggle button
-                if existing_page:
-                    # update existing page
-                    scroll = existing_page
-                    text_view = scroll.get_child()
-                    if isinstance(text_view, Gtk.TextView):
-                        buffer = text_view.get_buffer()
-                        text = self.make_table_content(event_positions)
-                        buffer.set_text(text)
-                else:
-                    # create new page if missing
-                    label = Gtk.Label(label=f"  {event}")
-                    label.set_tooltip_text("right-click tab to access context menu")
-                    text = self.make_table(event_positions)
-                    self.append_page(text, label)
-                    self.set_current_page(-1)
+        self.events_data[event]["positions"] = positions_data
+        self.update_data(self.events_data[event])
 
-    def make_table_content(self, pos_dict):
+    def houses_changed(self, event, houses_data):
+        # callback for signal
+        if event not in self.events_data:
+            self.events_data[event] = {
+                "event": event,
+                "positions": None,
+                "houses": None,
+            }
+        self.events_data[event]["houses"] = houses_data
+        self.update_data(self.events_data[event])
+
+    def update_data(self, data):
+        """update positions on event data change"""
+        if "event" not in data:
+            return
+        event = data["event"]
+        self.table_pages[event] = data
+        existing_page = None
+        for i in range(self.get_n_pages()):
+            page_label = self.get_tab_label_text(self.get_nth_page(i))
+            if page_label.strip() == f"{event}":
+                existing_page = self.get_nth_page(i)
+                break
+        # get positions & houses
+        pos_dict = data.get("positions", {})
+        houses_data = data.get("houses", None)
+        # debug
+        if houses_data is None:
+            self.notify.debug(
+                f"updatedata : housesdata : {houses_data}",
+                source="panetables",
+                route=["terminal"],
+            )
+            return
+        # if houses_data:
+        try:
+            cusps, ascmc = houses_data
+        except Exception as e:
+            self.notify.error(
+                f"housesdata for {event} failed\n\terror : {e}",
+                source="panetables",
+                route=["terminal"],
+            )
+            return
+        if pos_dict:
+            if existing_page:
+                scroll = existing_page
+                text_view = scroll.get_child()
+                if isinstance(text_view, Gtk.TextView):
+                    buffer = text_view.get_buffer()
+                    text = self.make_table_content(pos_dict, cusps, ascmc)
+                    buffer.set_text(text)
+            else:
+                # create new page if missing
+                label = Gtk.Label(label=f"  {event}")
+                label.set_tooltip_text("right-click tab to access context menu")
+                text = self.make_table(pos_dict, cusps, ascmc)
+                self.append_page(text, label)
+                self.set_current_page(-1)
+
+    def make_table_content(self, pos_dict, cusps, ascmc):
         """create text content for positions & houses"""
-        houses = calculate_houses()
-        cusps, ascmc = houses if houses else ((), ())
         if ascmc:
             ascendant = ascmc[0]
             midheaven = ascmc[1]
-        self._notify.debug(
+        self.notify.debug(
             f"maketablecontent :\n\tcusps : {cusps} | type : {type(cusps)}\n\tascmc : {ascmc} | type : {type(ascmc)}",
             source="panetables",
-            route=["none"],
+            route=["terminal"],
         )
         # dashes : u2014 full width ; u2012 monospace-specific ; u2015 longer
         # u2017 double bottom u2502 vertical full
@@ -84,7 +123,9 @@ class TablesWidget(Gtk.Notebook):
         text = f" positions {h_ * 29}\n"
         # header row
         text += f" name {v_}      sign {vic_spc} {v_}       lat {v_}        lon {v_} house\n"
-        for _, obj in pos_dict.items():
+        for key, obj in pos_dict.items():
+            if key == "event":
+                continue
             # print(f"{obj['name']} : {obj.get('lon speed')}")
             retro = "R" if obj.get("lon speed") < 0 else " "
             # objects
@@ -108,7 +149,7 @@ class TablesWidget(Gtk.Notebook):
         text += line
         return text
 
-    def make_table(self, pos_dict):
+    def make_table(self, pos_dict, cusps, ascmc):
         """create text with positions & houses data"""
         scroll = Gtk.ScrolledWindow()
         scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
@@ -124,7 +165,7 @@ class TablesWidget(Gtk.Notebook):
         text_view.set_cursor_visible(False)
         text_view.add_css_class("table-text")
         buffer = text_view.get_buffer()
-        text = self.make_table_content(pos_dict)
+        text = self.make_table_content(pos_dict, cusps, ascmc)
         buffer.set_text(text)
         scroll.set_child(text_view)
         return scroll
@@ -166,21 +207,21 @@ def draw_tables():
     return TablesWidget()
 
 
-def update_tables(positions=None):
-    """get object positions for tables"""
+def update_tables(data=None):
+    """update object positions & houses"""
     # get main window reference
-    _app = Gtk.Application.get_default()
-    _notify = _app.notify_manager
-    if positions is None:
-        _notify.debug(
-            f"received none positions : {positions} : exiting ...",
+    app = Gtk.Application.get_default()
+    notify = app.notify_manager
+    if data is None:
+        notify.debug(
+            "received no data : exiting ...",
             source="panetables",
             route=["terminal"],
         )
         return
-    if _app and _app.props.active_window:
-        win = _app.props.active_window
+    if app and app.props.active_window:
+        win = app.props.active_window
         if hasattr(win, "tables"):
             # update all pane widgets with new data
             for table in win.tables.values():
-                table.update_data(positions)
+                table.update_data(data)

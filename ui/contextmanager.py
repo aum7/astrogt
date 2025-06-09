@@ -16,7 +16,7 @@ class ContextManager:
 
     # type hints for inherited attributes
     rvl_side_pane: Gtk.Revealer
-    _notify: Callable
+    notify: Callable
     get_stack: Callable
     frm_top_left: Gtk.Frame
     frm_top_right: Gtk.Frame
@@ -98,7 +98,7 @@ class ContextManager:
                 pop_ctx.popup()
                 return
             current = parent
-        self._notify.error(
+        self.notify.error(
             "frame container not found",
             source="contextmanager",
             route=["terminal"],

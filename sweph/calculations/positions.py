@@ -5,16 +5,17 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
-from typing import Dict, List, Optional, Tuple
+from typing import List, Optional, Tuple
 from user.settings import OBJECTS
-from ui.mainpanes.panetables import update_tables
+# from ui.mainpanes.panetables import update_tables
 
 
-def calculate_positions(event: Optional[str] = None) -> Dict:
+def calculate_positions(event: Optional[str] = None) -> None:
     """calculate planetary positions for one or both events"""
     # get app
     app = Gtk.Application.get_default()
     notify = app.notify_manager
+    # print(f"positions : event : {event}")
     # event 1 data is mandatory
     if not app.e1_sweph.get("jd_ut"):
         notify.warning(
@@ -22,8 +23,7 @@ def calculate_positions(event: Optional[str] = None) -> Dict:
             source="positions",
             route=["terminal", "user"],
         )
-        return {}
-    positions = {}
+        return
     events: List[str] = [event] if event else ["e1", "e2"]
     if "e2" in events and not app.e2_sweph.get("jd_ut"):
         # skip e2 if no datetime / julian day utc set = user not interested in e2
@@ -38,11 +38,11 @@ def calculate_positions(event: Optional[str] = None) -> Dict:
         objs = app.selected_objects_e1 if event == "e1" else app.selected_objects_e2
         if not sweph or "jd_ut" not in sweph or not objs:
             notify.debug(
-                f"missing :\n\tsweph : {sweph}\n\tobjs : {objs}\n\texiting ...",
+                f"missing data for event : {event}\n\tsweph : {sweph}\n\tobjs : {objs}\n\texiting ...",
                 source="positions",
                 route=["terminal"],
             )
-            return {}
+            return
         # swe.calc_ut() with topocentric flag needs topographic location
         if (
             app.selected_flags
@@ -52,13 +52,15 @@ def calculate_positions(event: Optional[str] = None) -> Dict:
             """coordinates are reversed here : lon lat alt"""
             swe.set_topo(sweph["lon"], sweph["lat"], sweph["alt"])
         use_mean_node = app.chart_settings["mean node"]
-        sweph_flag = app.sweph_flag
+        # sweph_flag = app.sweph_flag
         jd_ut = sweph.get("jd_ut")
         notify.debug(
-            f"\n\tusemeannode : {use_mean_node}\n\tswephflag : {sweph_flag}\n\tjdut : {jd_ut}",
+            f"\n\tusemeannode : {use_mean_node}\n\tswephflag : {app.sweph_flag}\n\tjdut : {jd_ut}",
             source="positions",
             route=["none"],
         )
+        # clear previous positions
+        positions = {}
         for obj in objs:
             code, name = object_name_to_code(obj, use_mean_node)
             notify.debug(
@@ -72,8 +74,8 @@ def calculate_positions(event: Optional[str] = None) -> Dict:
             # longitude, latitude, distance
             # lon speed, lat speed, dist speed
             try:
-                result = swe.calc_ut(jd_ut, code, sweph_flag)
-                # print(f"positions : result : {result}")
+                result = swe.calc_ut(jd_ut, code, app.sweph_flag)
+                # print(f"positions with speeds & flag used : {result}")
                 data = result[0] if isinstance(result, tuple) else result
                 positions[code] = {
                     "name": name,
@@ -86,7 +88,7 @@ def calculate_positions(event: Optional[str] = None) -> Dict:
                 }
             except swe.Error as e:
                 notify.warning(
-                    f"swe.calc_ut() failed\n\tdata {positions[code]} swe error :\n\t{e}",
+                    f"swe.calc_ut() failed for : {event}\n\tdata {positions[code]}\n\tswe error :\n\t{e}",
                     source="positions",
                     route=["terminal"],
                 )
@@ -95,16 +97,14 @@ def calculate_positions(event: Optional[str] = None) -> Dict:
         positions_ordered = {"event": event}
         for k in keys:
             positions_ordered[str(k)] = positions[k]
-        positions.clear()
-        positions.update(positions_ordered)
-    # call tables & serve positions
-    notify.debug(
-        f"sending positions : {positions}",
-        source="positions",
-        route=["none"],
-    )
-    update_tables(positions)
-    return positions
+        app.signal_manager._emit("positions_changed", event, positions_ordered)
+        notify.debug(
+            f"{event} positions changed",
+            source="positions",
+            route=["terminal"],
+        )
+    # update_tables(positions)
+    return
 
 
 def object_name_to_code(name: str, use_mean_node: bool) -> Tuple[Optional[int], str]:
@@ -119,3 +119,9 @@ def object_name_to_code(name: str, use_mean_node: bool) -> Tuple[Optional[int], 
         # return mean node int & same short name as true node
         return 10, "ra"
     return None, ""
+
+
+def connect_signals_positions(signal_manager):
+    signal_manager._connect("event_changed", calculate_positions)
+    # this should be in tables & astro chart so we know to delete e2 tables & outer charts
+    # signal_manager._connect("e2_cleared", calculate_positions)

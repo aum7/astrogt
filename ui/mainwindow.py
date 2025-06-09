@@ -1,4 +1,4 @@
-# mainwindow.py
+# ui/mainwindow.py
 # ruff: noqa: E402
 import gi
 
@@ -13,6 +13,8 @@ from ui.helpers import _event_selection
 from ui.mainpanes.panesmanager import PanesManager
 from ui.mainpanes.panetables import draw_tables
 from ui.mainpanes.panechart.astrochart import AstroChart
+from sweph.calculations.positions import connect_signals_positions
+from sweph.calculations.houses import connect_signals_houses
 
 
 class MainWindow(
@@ -29,8 +31,8 @@ class MainWindow(
         Gtk.ApplicationWindow.__init__(self, *args, **kwargs)
         SidepaneManager.__init__(self, app=self.get_application())
         PanesManager.__init__(self)
-        self._app = self.get_application() or Gtk.Application.get_default()
-        self._notify = self._app.notify_manager
+        self.app = self.get_application() or Gtk.Application.get_default()
+        self.notify = self.app.notify_manager
         # custom info in window title bar
         self.headerbar = Gtk.HeaderBar()
         self.headerbar.set_show_title_buttons(True)
@@ -51,6 +53,9 @@ class MainWindow(
         self.setup_hotkeys()
         # intercept toggle pane button
         self._hotkeys.intercept_button_controller(self.btn_toggle_pane, "toggle_pane")
+        # connect signals
+        connect_signals_positions(self.get_application().signal_manager)
+        connect_signals_houses(self.get_application().signal_manager)
         # show all 4 panes
         self.panes_all
         # 4 main stacks as panes
@@ -90,13 +95,13 @@ class MainWindow(
                 n_press,
                 x,
                 y,
-                "event one" if self._app.selected_event == "event two" else "event two",
+                "event one" if self.app.selected_event == "event two" else "event two",
             ),
         )
 
     # hotkey action functions
     def show_help(self):
-        self._notify.debug(
+        self.notify.debug(
             "manual\n"
             "\nhover mouse over buttons & text = show tooltips"
             "\nhover mouse over notification message = do not hide message"
@@ -129,12 +134,12 @@ class MainWindow(
 
     def update_main_title(self, change_time=None):
         """show selected event & its datetime in main titlebar"""
-        event = self._app.selected_event
+        event = self.app.selected_event
         dt = None
         if event == "event one":
-            dt = self._app.e1_chart.get("datetime")
+            dt = self.app.e1_chart.get("datetime")
         elif event == "event two":
-            dt = self._app.e2_chart.get("datetime")
+            dt = self.app.e2_chart.get("datetime")
         title = "astrogt"
         if event and dt:
             title += f" | {event} : {dt}"

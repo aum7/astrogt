@@ -58,14 +58,14 @@ def validate_datetime(manager, date_time, lon=None):
             msg_negative_year = ""
         # swiseph time range
         if Y < -13200:
-            manager._notify.info(
+            manager.notify.info(
                 f"year {Y} out of sweph range (-13200 - 17191)\n\tyear set to -13000",
                 source="swetime",
                 route=["terminal", "user"],
             )
             Y = -13000
         elif Y > 17191:
-            manager._notify.info(
+            manager.notify.info(
                 f"year {Y} out of sweph range (-13200 - 17191)\n\tyear set to 17000",
                 source="swetime",
                 route=["terminal", "user"],
@@ -86,7 +86,7 @@ def validate_datetime(manager, date_time, lon=None):
         jd = swe.julday(Y, M, D, decimal_hour, calendar_int)
         if local_time == "a":
             if not lon:
-                manager._notify.error("local apparent time : longitude missing")
+                manager.notify.error("local apparent time : longitude missing")
                 return False, None, (Y, M, D, decimal_hour)
             jd = swe.lat_to_lmt(jd, lon)
         # print(f"swetime : jd : {jd}")
@@ -107,13 +107,13 @@ def validate_datetime(manager, date_time, lon=None):
         if s_ >= 60:
             s_ = 0
             m_ += 1
-        manager._notify.debug(
+        manager.notify.debug(
             f"\n\tdate-time as corrected : {Y_}-{M_}-{D_} {h_}:{m_}:{s_}",
             source="swetime",
-            route=["terminal"],
+            route=["none"],
         )
     except ValueError as e:
-        manager._notify.warning(
+        manager.notify.warning(
             f"{date_time}\n\terror\n\t{e}\n\t{msg_negative_year}",
             source="swetime",
             route=["terminal"],
@@ -143,7 +143,7 @@ def custom_iso_to_jd(
     # in : jd_lat, geolon ; out : jd_lmt, err (string);
     if local_time == "a":
         if not lon:
-            manager._notify.error("local apparent time : longitude missing")
+            manager.notify.error("local apparent time : longitude missing")
             return False, None, (year, month, day, decimal_hour)
         jd = swe.lat_to_lmt(jd, lon)
     is_valid, jd, dt_corr = swe.date_conversion(

@@ -9,7 +9,7 @@ from zoneinfo import ZoneInfo
 from timezonefinder import TimezoneFinder
 from ui.helpers import _decimal_to_dms
 from sweph.swetime import validate_datetime, naive_to_utc, utc_to_jd
-from sweph.calculations.positions import calculate_positions
+# from sweph.calculations.positions import calculate_positions
 
 
 class EventData:
@@ -25,8 +25,8 @@ class EventData:
         app=None,
     ):
         """get user input and prepare for swe"""
-        self._app = app or Gtk.Application.get_default()
-        self._notify = self._app.notify_manager
+        self.app = app or Gtk.Application.get_default()
+        self.notify = self.app.notify_manager
         # attributes as widgets
         self.country = country
         self.city = city
@@ -44,10 +44,10 @@ class EventData:
         self.old_date_time = ""
         self.old_location = ""
         # separate data by event
-        self._app.e1_sweph = {}
-        self._app.e1_chart = {}
-        self._app.e2_sweph = {}
-        self._app.e2_chart = {}
+        self.app.e1_sweph = {}
+        self.app.e1_chart = {}
+        self.app.e2_sweph = {}
+        self.app.e2_chart = {}
         # connect signals for entry completion
         for widget, callback in [
             (self.name, self.on_name_change),
@@ -71,10 +71,10 @@ class EventData:
         south & west are -ve : -16.75 -72.678"""
         location_name = entry.get_name()
         location = entry.get_text().strip()
-        mainwindow = self._app.get_active_window()
+        mainwindow = self.app.get_active_window()
         if not location:
             if location_name == "location one":
-                self._notify.warning(
+                self.notify.warning(
                     f"\n\tmandatory data missing : {location_name}",
                     source="eventdata",
                     route=["terminal", "user"],
@@ -82,20 +82,20 @@ class EventData:
                 return
             elif location_name == "location two":
                 # handle empty location : erase location 2 data
-                self._app.e2_chart["location"] = ""
-                self._app.e2_chart["timezone"] = ""
-                self._app.e2_sweph["lat"] = None
-                self._app.e2_sweph["lon"] = None
-                self._app.e2_sweph["alt"] = None
+                self.app.e2_chart["location"] = ""
+                self.app.e2_chart["timezone"] = ""
+                self.app.e2_sweph["lat"] = None
+                self.app.e2_sweph["lon"] = None
+                self.app.e2_sweph["alt"] = None
                 self.old_location = ""
-                self._notify.info(
+                self.notify.info(
                     f"{location_name} cleared",
                     source="eventdata",
                     route=["terminal"],
                 )
                 return
         if location == self.old_location:
-            self._notify.debug(
+            self.notify.debug(
                 f"{location_name} not changed",
                 source="eventdata",
                 route=["terminal"],
@@ -227,7 +227,7 @@ class EventData:
                 # if not int(alt):
                 #     raise ValueError(f"{location_name} int(alt) : {int(alt)} failed")
             except ValueError as e:
-                self._notify.info(
+                self.notify.info(
                     f"{location_name} : alt validation failed\n\tsetting alt to 0 string\n\terror :\n\t{e}",
                     source="eventdata",
                     route=["terminal"],
@@ -252,19 +252,19 @@ class EventData:
             if timezone_:
                 self.timezone = timezone_
             else:
-                self._notify.debug(
+                self.notify.debug(
                     f"{location_name} timezone not received",
                     source="eventdata",
                     route=["terminal"],
                 )
             self.old_location = location_formatted
-            self._notify.success(
+            self.notify.success(
                 f"{location_name} valid & formatted",
                 source="eventdata",
                 route=["user", "terminal"],
             )
         except Exception as e:
-            self._notify.error(
+            self.notify.error(
                 f"{location_name} invalid : we accept"
                 "\n1. deg-min-(sec) with direction"
                 "\n\t32 21 (9) n 77 66 (11) w (alt (m))"
@@ -289,14 +289,14 @@ class EventData:
                 country = mainwindow.country_one.get_selected_item().get_string()
             if hasattr(mainwindow, "city_one"):
                 city = mainwindow.city_one.get_text()
-            self._app.e1_chart["country"] = country
-            self._app.e1_chart["city"] = city
-            self._app.e1_chart["location"] = location_formatted
-            self._app.e1_chart["timezone"] = timezone_
+            self.app.e1_chart["country"] = country
+            self.app.e1_chart["city"] = city
+            self.app.e1_chart["location"] = location_formatted
+            self.app.e1_chart["timezone"] = timezone_
             # received data
-            self._app.e1_sweph["lat"] = lat
-            self._app.e1_sweph["lon"] = lon
-            self._app.e1_sweph["alt"] = int(alt)
+            self.app.e1_sweph["lat"] = lat
+            self.app.e1_sweph["lon"] = lon
+            self.app.e1_sweph["alt"] = int(alt)
             # msg_ = f"{location_name} updated"
         else:
             # grab country & city
@@ -304,16 +304,16 @@ class EventData:
                 country = mainwindow.country_two.get_selected_item().get_string()
             if hasattr(mainwindow, "city_two"):
                 city = mainwindow.city_two.get_text()
-            self._app.e2_chart["country"] = country
-            self._app.e2_chart["city"] = city
-            self._app.e2_chart["location"] = location_formatted
-            self._app.e2_chart["timezone"] = timezone_
+            self.app.e2_chart["country"] = country
+            self.app.e2_chart["city"] = city
+            self.app.e2_chart["location"] = location_formatted
+            self.app.e2_chart["timezone"] = timezone_
             # received data
-            self._app.e2_sweph["lat"] = lat
-            self._app.e2_sweph["lon"] = lon
-            self._app.e2_sweph["alt"] = int(alt)
+            self.app.e2_sweph["lat"] = lat
+            self.app.e2_sweph["lon"] = lon
+            self.app.e2_sweph["alt"] = int(alt)
             # msg_ = f"{location_name} updated"
-        self._notify.success(
+        self.notify.success(
             f"{location_name} updated",
             source="eventdata",
             route=["terminal"],
@@ -325,21 +325,21 @@ class EventData:
         name_name = entry.get_name()
         name = entry.get_text().strip()
         if name_name == "name one" and not name:
-            self._notify.warning(
+            self.notify.warning(
                 f"\n\tmandatory data missing : {name_name}",
                 source="eventdata",
                 route=["terminal", "user"],
             )
             return
         if name == self.old_name:
-            self._notify.debug(
+            self.notify.debug(
                 f"{name_name} not changed",
                 source="eventdata",
                 route=["terminal"],
             )
             return
         if len(name) > 30:
-            self._notify.warning(
+            self.notify.warning(
                 f"\n\t{name_name} too long : max 30 characters",
                 source="eventdata",
                 route=["terminal", "user"],
@@ -349,12 +349,12 @@ class EventData:
         self.old_name = name
         # save by event
         if name_name == "name one":
-            self._app.e1_chart["name"] = name
-            msg_ = f"{name_name} updated : {self._app.e1_chart.get('name')}"
+            self.app.e1_chart["name"] = name
+            msg_ = f"{name_name} updated : {self.app.e1_chart.get('name')}"
         else:
-            self._app.e2_chart["name"] = name
-            msg_ = f"{name_name} updated : {self._app.e2_chart.get('name')}"
-        self._notify.success(
+            self.app.e2_chart["name"] = name
+            msg_ = f"{name_name} updated : {self.app.e2_chart.get('name')}"
+        self.notify.success(
             msg_,
             source="eventdata",
             route=["terminal"],
@@ -394,7 +394,7 @@ class EventData:
                     # convert to decimal
                     self.tz_offset = days * 24 + h + m / 60 + s / 3600
                     print(f"timenow : tz_offset : {self.tz_offset}")
-                    self._notify.info(
+                    self.notify.info(
                         f"{datetime_name} timezone : "
                         f"using time now for {self.timezone}",
                         source="eventdata",
@@ -403,7 +403,7 @@ class EventData:
                 else:
                     # copy utc string to event string for presentation
                     dt_event_str = dt_utc_str
-                    self._notify.warning(
+                    self.notify.warning(
                         f"\n\t{datetime_name} no timezone : using utc now"
                         "\n\tlocation should be set to calculate timezone",
                         source="eventdata",
@@ -421,7 +421,7 @@ class EventData:
                     calendar=b"g",
                 )
             except Exception as e:
-                self._notify.error(
+                self.notify.error(
                     f"{datetime_name} (hk) time now failed\n\terror\n\t{e}\n",
                     source="eventdata",
                     route=["terminal"],
@@ -434,7 +434,7 @@ class EventData:
             # event one date-time is mandatory
             if not date_time:
                 if datetime_name == "datetime one":
-                    self._notify.warning(
+                    self.notify.warning(
                         f"\n\tmandatory data missing : {datetime_name}",
                         source="eventdata",
                         route=["terminal", "user"],
@@ -442,22 +442,23 @@ class EventData:
                     return
                 elif datetime_name == "datetime two":
                     # datetime two is optional : if deleted > clear data 2
-                    if self._app.e2_chart or self._app.e2_sweph:
-                        self._app.e2_chart = {}
-                        self._app.e2_sweph = {}
+                    if self.app.e2_chart or self.app.e2_sweph:
+                        self.app.e2_chart = {}
+                        self.app.e2_sweph = {}
                         # flip e2 active flag
-                        self._app.e2_active = False
+                        self.app.e2_active = False
                         self.old_date_time = ""
-                        self._notify.info(
+                        self.notify.info(
                             f"{datetime_name}: cleared event 2 data"
-                            f"\n\te2 active : {self._app.e2_active}",
+                            f"\n\te2 active : {self.app.e2_active}",
                             source="eventdata",
                             route=["terminal"],
                         )
-                        calculate_positions("e1")
+                        # calculate_positions("e1")
+                        self.app.signal_manager._emit("e2_cleared", None)
                         return
             if date_time == self.old_date_time:
-                self._notify.debug(
+                self.notify.debug(
                     f"{datetime_name} not changed",
                     source="eventdata",
                     route=["terminal"],
@@ -477,7 +478,7 @@ class EventData:
                     result = validate_datetime(self, dt_str)
                 if not result:
                     raise ValueError(f"\t{datetime_name} validation failed")
-                self._notify.info(
+                self.notify.info(
                     f"{datetime_name} manual entry valid",
                     source="eventdata",
                     route=["none"],
@@ -506,7 +507,7 @@ class EventData:
                         self.tz_offset = days_ * 24 + h_ + m_ / 60 + s_ / 3600
                     else:
                         self.tz_offset = 0.0
-                        self._notify.info(
+                        self.notify.info(
                             "year below 1 : using fixed utc offset",
                             source="eventdata",
                             route=["terminal"],
@@ -524,14 +525,14 @@ class EventData:
                     # print(f"utcfromnaive : {dt_utc} | type : {type(dt_utc)}")
                     # print(f"manualdt utc : jdut : {jd_ut} | tzoffset : 0.0")
                     dt_event_str = f"{dt_utc[0]}-{dt_utc[1]:02d}-{dt_utc[2]:02d} {dt_utc[3]:02d}:{dt_utc[4]:02d}:{int(dt_utc[5]):02d}"
-                    self._notify.info(
+                    self.notify.info(
                         f"\n\t{datetime_name} no timezone : using utc"
                         "\n\tlocation should be set to calculate timezone",
                         source="eventdata",
                         route=["terminal", "user"],
                     )
             except Exception as e:
-                self._notify.warning(
+                self.notify.warning(
                     f"{datetime_name} error"
                     "\n\twe accept space-separated : yyyy mm dd HH MM SS"
                     "\n\t\tand - : for separators (iso date-time, 24 hour format)"
@@ -546,12 +547,12 @@ class EventData:
             entry.set_text(dt_event_str)
         # save datetime by event
         if datetime_name == "datetime one":
-            self._app.e1_chart["datetime"] = dt_event_str
-            msg_ = f"{datetime_name} updated : {self._app.e1_chart.get('datetime')}"
+            self.app.e1_chart["datetime"] = dt_event_str
+            msg_ = f"{datetime_name} updated : {self.app.e1_chart.get('datetime')}"
         else:
-            self._app.e2_chart["datetime"] = dt_event_str
-            msg_ = f"{datetime_name} updated : {self._app.e2_chart.get('datetime')}"
-        self._notify.debug(
+            self.app.e2_chart["datetime"] = dt_event_str
+            msg_ = f"{datetime_name} updated : {self.app.e2_chart.get('datetime')}"
+        self.notify.debug(
             msg_,
             source="eventdata",
             route=["none"],
@@ -559,48 +560,48 @@ class EventData:
         # all good : set new old date-time
         self.old_date_time = dt_event_str
         if not jd_ut:
-            self._notify.error(
+            self.notify.error(
                 f"{datetime_name} failed to calculate julian day",
                 source="eventdata",
                 route=["terminal"],
             )
             return
         if datetime_name == "datetime one":
-            self._app.e1_sweph["jd_ut"] = jd_ut
+            self.app.e1_sweph["jd_ut"] = jd_ut
         else:
-            self._app.e2_sweph["jd_ut"] = jd_ut
-        self._notify.debug(
+            self.app.e2_sweph["jd_ut"] = jd_ut
+        self.notify.debug(
             f"{datetime_name} julian day : {jd_ut}",
             source="eventdata",
-            route=["terminal"],
+            route=["none"],
         )
         # if datetime two is NOT empty, user is interested in event 2
         # in this case datetime two is mandatory, the rest is optional, aka
         # if exists > use it, else use event 1 data
-        if not self._app.e2_chart.get("datetime"):
+        if not self.app.e2_chart.get("datetime"):
             # declare event two active : needed for calculations todo ???
-            self._app.e2_active = False
-            self._notify.debug(
+            self.app.e2_active = False
+            self.notify.debug(
                 "datetime 2 is none : user not interested in event 2 : skipping ..."
-                f"\n\te2 active : {self._app.e2_active}",
+                f"\n\te2 active : {self.app.e2_active}",
                 source="eventdata",
                 route=["none"],
             )
-        elif self._app.e2_chart.get("datetime", ""):
-            self._app.e2_active = True
-            self._notify.debug(
-                f"\n\tdatetime 2 not empty : {self._app.e2_chart.get('datetime')} : "
+        elif self.app.e2_chart.get("datetime", ""):
+            self.app.e2_active = True
+            self.notify.debug(
+                f"\n\tdatetime 2 not empty : {self.app.e2_chart.get('datetime')} : "
                 "merging e1 > e2 data"
-                f"\n\te2 active : {self._app.e2_active}",
+                f"\n\te2 active : {self.app.e2_active}",
                 source="eventdata",
                 route=["terminal"],
             )
-            if self._app.e2_chart.get("location", "") == "":
+            if self.app.e2_chart.get("location", "") == "":
                 for key in ["country", "city", "location", "timezone"]:
-                    self._app.e2_chart[key] = self._app.e1_chart.get(key)
+                    self.app.e2_chart[key] = self.app.e1_chart.get(key)
                 for key in ["lat", "lon", "alt"]:
-                    self._app.e2_sweph[key] = self._app.e1_sweph.get(key)
-            self._notify.debug(
+                    self.app.e2_sweph[key] = self.app.e1_sweph.get(key)
+            self.notify.debug(
                 "cou & cit & loc & tz + lat & lon & alt : data 1 => 2",
                 source="eventdata",
                 route=["terminal"],
@@ -608,13 +609,13 @@ class EventData:
         # debug-print all data
         import json
 
-        self._notify.debug(
+        self.notify.debug(
             "\n----- COLLECTED DATA -----"
-            f"\n\tchart 1\t{json.dumps(self._app.e1_chart, sort_keys=True, indent=6, ensure_ascii=False)}"
-            f"\n\tsweph 1\t{json.dumps(self._app.e1_sweph, sort_keys=True, indent=6, ensure_ascii=False)}"
+            f"\n\tchart 1\t{json.dumps(self.app.e1_chart, sort_keys=True, indent=6, ensure_ascii=False)}"
+            f"\n\tsweph 1\t{json.dumps(self.app.e1_sweph, sort_keys=True, indent=6, ensure_ascii=False)}"
             "\n--------------------------"
-            f"\n\tchart 2\t{json.dumps(self._app.e2_chart, sort_keys=True, indent=6, ensure_ascii=False)}"
-            f"\n\tsweph 2\t{json.dumps(self._app.e2_sweph, sort_keys=True, indent=6, ensure_ascii=False)}"
+            f"\n\tchart 2\t{json.dumps(self.app.e2_chart, sort_keys=True, indent=6, ensure_ascii=False)}"
+            f"\n\tsweph 2\t{json.dumps(self.app.e2_sweph, sort_keys=True, indent=6, ensure_ascii=False)}"
             "\n--------------------------",
             source="eventdata",
             route=["none"],
@@ -624,11 +625,13 @@ class EventData:
             event = "e1"
         else:
             event = "e2"
-        self._notify.debug(
-            f"{datetime_name} ({event}): calling updatepositions ...",
+        self.app.signal_manager._emit("event_changed", event)
+        self.notify.debug(
+            f"{datetime_name} ({event}): emitted event changed signal",
+            # f"{datetime_name} ({event}): calling updatepositions ...",
             source="eventdata",
             route=["none"],
         )
-        calculate_positions(event)
-        self._app.props.active_window.update_main_title()
+        # calculate_positions(event)
+        self.app.props.active_window.update_main_title()
         return

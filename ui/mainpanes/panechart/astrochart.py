@@ -14,6 +14,7 @@ class AstroChart(Gtk.Box):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         app = Gtk.Application.get_default()
+        self.app = app
         notify = app.notify_manager
         notify.debug(
             "astrochart : OLO",
@@ -51,6 +52,9 @@ class AstroChart(Gtk.Box):
     def update_data(self, positions, houses):
         self.positions = positions
         self.houses = houses
+        self.info_data = self.app.e1_chart
+        print(f"astrochart : info : {self.info_data}")
+        self.circles["info"].info_data = self.app.e1_chart
         self.circles["event"].guests = [
             AstroObject(obj)
             for obj in positions.values()

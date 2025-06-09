@@ -52,8 +52,8 @@ class SidepaneManager:
     }
 
     def __init__(self, app=None, *args, **kwargs):
-        self._app = app or Gtk.Application.get_default()
-        self._notify = self._app.notify_manager
+        self.app = app or Gtk.Application.get_default()
+        self.notify = self.app.notify_manager
         # initialize attributes
         self.margin_end = 7
         # intialize panels
@@ -70,7 +70,7 @@ class SidepaneManager:
         # 2 events todo expand event one
         self.clp_event_one = setup_event(self, "event one", True)
         self.clp_event_two = setup_event(self, "event two", False)
-        if self._app.selected_event == "event one":
+        if self.app.selected_event == "event one":
             self.clp_event_one.add_title_css_class("label-event-selected")
         else:
             self.clp_event_two.add_title_css_class("label-event-selected")
@@ -170,7 +170,7 @@ or ie panes have been manually resized (click any text to focus sidepane)"""
             dropdown_index = period_values.index(new_value)
             self.ddn_time_periods.set_selected(dropdown_index)
             # notify new value
-            # manager._notify.info(
+            # manager.notify.info(
             #     f"selected period : {new_value}", source="change time", timeout=3
             # )
             key = next(k for k, v in self.CHANGE_TIME_PERIODS.items() if v == new_value)
@@ -181,10 +181,10 @@ or ie panes have been manually resized (click any text to focus sidepane)"""
     def change_event_time(self, change_delta):
         """adjust selected event time by julian day delta"""
         # get active entry based on selected event
-        if self._app.selected_event == "event one" and self._app.EVENT_ONE:
-            entry = self._app.EVENT_ONE.date_time
-        elif self._app.selected_event == "event two" and self._app.EVENT_TWO:
-            entry = self._app.EVENT_TWO.date_time
+        if self.app.selected_event == "event one" and self.app.EVENT_ONE:
+            entry = self.app.EVENT_ONE.date_time
+        elif self.app.selected_event == "event two" and self.app.EVENT_TWO:
+            entry = self.app.EVENT_TWO.date_time
         # get datetime string ! datetime is naive here !
         datetime_name = entry.get_name()
         current_text = entry.get_text()
@@ -206,7 +206,7 @@ or ie panes have been manually resized (click any text to focus sidepane)"""
             dt_str = jd_to_custom_iso(jd)
             # present string back to user
             entry.set_text(dt_str)
-            self._notify.info(
+            self.notify.info(
                 f"{datetime_name} set to now utc\n\t{dt_str}",
                 source="sidepane",
                 route=["terminal"],
@@ -228,24 +228,24 @@ or ie panes have been manually resized (click any text to focus sidepane)"""
             new_text = jd_to_custom_iso(jd_new)
             # present string back to user
             entry.set_text(new_text)
-            # self._notify.debug(
+            # self.notify.debug(
             #     f"\n\tchange time new : {new_text}",
             #     source="sidepane",
             #     route=["terminal"],
             # )
             if datetime_name == "datetime one":
-                # self._app.EVENT_ONE.is_hotkey_arrow = True
-                self._app.EVENT_ONE.on_datetime_change(entry)
+                # self.app.EVENT_ONE.is_hotkey_arrow = True
+                self.app.EVENT_ONE.on_datetime_change(entry)
             else:
-                # self._app.EVENT_TWO.is_hotkey_arrow = True
-                self._app.EVENT_TWO.on_datetime_change(entry)
+                # self.app.EVENT_TWO.is_hotkey_arrow = True
+                self.app.EVENT_TWO.on_datetime_change(entry)
             change_time_period = self.time_periods_list[
                 self.ddn_time_periods.get_selected()
             ]
             # update main window title
             self.update_main_title(change_time_period)
         except Exception as e:
-            self._notify.error(
+            self.notify.error(
                 f"\n\t{datetime_name}\n\terror\n\t{e}\n",
                 source="sidepane",
                 route=["terminal"],
@@ -254,27 +254,27 @@ or ie panes have been manually resized (click any text to focus sidepane)"""
 
     def on_time_now(self):
         """get time now (utc) for computer / app location"""
-        if self._app.selected_event == "event one" and self._app.EVENT_ONE:
-            entry = self._app.EVENT_ONE.date_time
-            self._app.EVENT_ONE.is_hotkey_now = True
-            self._app.EVENT_ONE.on_datetime_change(entry)
-        elif self._app.selected_event == "event two" and self._app.EVENT_TWO:
-            entry = self._app.EVENT_TWO.date_time
-            self._app.EVENT_TWO.is_hotkey_now = True
-            self._app.EVENT_TWO.on_datetime_change(entry)
+        if self.app.selected_event == "event one" and self.app.EVENT_ONE:
+            entry = self.app.EVENT_ONE.date_time
+            self.app.EVENT_ONE.is_hotkey_now = True
+            self.app.EVENT_ONE.on_datetime_change(entry)
+        elif self.app.selected_event == "event two" and self.app.EVENT_TWO:
+            entry = self.app.EVENT_TWO.date_time
+            self.app.EVENT_TWO.is_hotkey_now = True
+            self.app.EVENT_TWO.on_datetime_change(entry)
 
     # button handlers
     def obc_default(self, widget, data):
-        self._notify.debug(f"{data} clicked", source="sidepane", route=["terminal"])
+        self.notify.debug(f"{data} clicked", source="sidepane", route=["terminal"])
 
     def obc_settings(self, widget, data):
-        self._notify.debug(f"{data} clicked", source="sidepane", route=["terminal"])
+        self.notify.debug(f"{data} clicked", source="sidepane", route=["terminal"])
 
     def obc_file_save(self, widget, data):
-        self._notify.debug(f"{data} clicked", source="sidepane", route=["terminal"])
+        self.notify.debug(f"{data} clicked", source="sidepane", route=["terminal"])
 
     def obc_file_load(self, widget, data):
-        self._notify.debug(f"{data} clicked", source="sidepane", route=["terminal"])
+        self.notify.debug(f"{data} clicked", source="sidepane", route=["terminal"])
 
     # change time handlers
     def obc_arrow_l(

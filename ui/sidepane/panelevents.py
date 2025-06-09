@@ -55,7 +55,7 @@ delete datetime 2 = clear event 2 data"""
     lbl_country.add_css_class("label")
     lbl_country.set_halign(Gtk.Align.START)
 
-    event_location = EventLocation(manager, app=manager._app)
+    event_location = EventLocation(manager, app=manager.app)
     countries = event_location.get_countries()
 
     ddn_country = Gtk.DropDown.new_from_strings(countries)
@@ -191,22 +191,22 @@ only use [space] as separator
     subpnl_datetime.add_widget(ent_datetime)
     # create eventdata instance & store widgets
     if event_name == "event one":
-        manager._app.EVENT_ONE = EventData(
+        manager.app.EVENT_ONE = EventData(
             name=ent_event_name,
             country=ddn_country,
             city=ent_city,
             location=ent_location,
             date_time=ent_datetime,
-            app=manager._app,
+            app=manager.app,
         )
     else:
-        manager._app.EVENT_TWO = EventData(
+        manager.app.EVENT_TWO = EventData(
             name=ent_event_name,
             country=ddn_country,
             city=ent_city,
             location=ent_location,
             date_time=ent_datetime,
-            app=manager._app,
+            app=manager.app,
         )
     # main box for event panels
     box_event = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)

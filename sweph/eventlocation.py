@@ -9,8 +9,8 @@ from gi.repository import Gtk  # type: ignore
 class EventLocation:
     def __init__(self, parent=None, app=None):
         self.parent = parent
-        self._app = app or Gtk.Application.get_default()
-        self._notify = self._app.notify_manager
+        self.app = app or Gtk.Application.get_default()
+        self.notify = self.app.notify_manager
         self.location_callback = None
         self.countries = []
         self.country_map = {}
@@ -69,14 +69,14 @@ class EventLocation:
             self.check_cities(sorted(cities))
 
         except Exception as e:
-            self._notify.error(
+            self.notify.error(
                 f"atlas db error\n\t{e}",
                 source="eventlocation",
             )
 
     def check_cities(self, cities):
         if len(cities) == 0:
-            self._notify.warning(
+            self.notify.warning(
                 "city not found",
                 source="eventlocation",
                 route=["user"],

@@ -1,3 +1,4 @@
+# main.py
 # ruff: noqa: E402
 # launch inspector (Ctrl+Shift+I or Ctrl+Shift+D) when app is running
 # os.environ["GTK_DEBUG"] = "keybindings geometry size-request actions constraints"
@@ -11,7 +12,7 @@ gi.require_version("Gio", "2.0")
 from gi.repository import Gtk, Adw, Gio  # type: ignore
 from ui.mainwindow import MainWindow
 from ui.notifymanager import NotifyManager
-# from ui.signalmanager import SignalManager
+from ui.signalmanager import SignalManager
 
 
 class AstrogtApp(Gtk.Application):
@@ -24,7 +25,7 @@ class AstrogtApp(Gtk.Application):
         self.EVENT_ONE = None
         self.EVENT_TWO = None
         # managers
-        # self.signal_manager = SignalManager(self)
+        self.signal_manager = SignalManager(self)
         self.notify_manager = NotifyManager(self)
         # initialize sweph
         ephemeris_path = os.path.join(os.path.dirname(__file__), "sweph/ephe")
