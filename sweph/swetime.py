@@ -14,7 +14,7 @@ def validate_datetime(manager, date_time, lon=None):
     parse numbers & letters
     check calendar & local time
     validate
-    return jd, corrected Y, M, D, h, m, s"""
+    return jd, corrected Y, M, D, h, m, s, weekday"""
     # mean solar time, aka local mean time (lmt) - modern (utc)
     # true solar time, aka local apparent time (lat) - pre-clock
     # diff = equation of time : historical date lat => to lmt (equation of time)
@@ -81,7 +81,6 @@ def validate_datetime(manager, date_time, lon=None):
             local_time = "a"  # apparent
         # check if date-time is valid
         decimal_hour = h + m / 60 + s / 3600
-        # calendar_int = swe.GREG_CAL if calendar == b"g" else swe.JUL_CAL
         calendar_int = bytes_to_calendar_int(calendar)
         jd = swe.julday(Y, M, D, decimal_hour, calendar_int)
         if local_time == "a":
@@ -90,6 +89,7 @@ def validate_datetime(manager, date_time, lon=None):
                 return False, None, (Y, M, D, decimal_hour)
             jd = swe.lat_to_lmt(jd, lon)
         # print(f"swetime : jd : {jd}")
+        # assume jd is correct : get weekday
         # validate date-time
         is_valid, jd, dt_corr = swe.date_conversion(Y, M, D, decimal_hour, calendar)
         if not is_valid:

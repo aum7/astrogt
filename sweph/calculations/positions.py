@@ -7,15 +7,12 @@ gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from typing import List, Optional, Tuple
 from user.settings import OBJECTS
-# from ui.mainpanes.panetables import update_tables
 
 
 def calculate_positions(event: Optional[str] = None) -> None:
     """calculate planetary positions for one or both events"""
-    # get app
     app = Gtk.Application.get_default()
     notify = app.notify_manager
-    # print(f"positions : event : {event}")
     # event 1 data is mandatory
     if not app.e1_sweph.get("jd_ut"):
         notify.warning(
@@ -52,7 +49,6 @@ def calculate_positions(event: Optional[str] = None) -> None:
             """coordinates are reversed here : lon lat alt"""
             swe.set_topo(sweph["lon"], sweph["lat"], sweph["alt"])
         use_mean_node = app.chart_settings["mean node"]
-        # sweph_flag = app.sweph_flag
         jd_ut = sweph.get("jd_ut")
         notify.debug(
             f"\n\tusemeannode : {use_mean_node}\n\tswephflag : {app.sweph_flag}\n\tjdut : {jd_ut}",
@@ -71,8 +67,7 @@ def calculate_positions(event: Optional[str] = None) -> None:
             if code is None:
                 continue
             # calc_ut() returns array of 6 floats [0] + error string [1]:
-            # longitude, latitude, distance
-            # lon speed, lat speed, dist speed
+            # longitude, latitude, distance, lon speed, lat speed, dist speed
             try:
                 result = swe.calc_ut(jd_ut, code, app.sweph_flag)
                 # print(f"positions with speeds & flag used : {result}")
@@ -103,7 +98,6 @@ def calculate_positions(event: Optional[str] = None) -> None:
             source="positions",
             route=["terminal"],
         )
-    # update_tables(positions)
     return
 
 
@@ -123,5 +117,3 @@ def object_name_to_code(name: str, use_mean_node: bool) -> Tuple[Optional[int], 
 
 def connect_signals_positions(signal_manager):
     signal_manager._connect("event_changed", calculate_positions)
-    # this should be in tables & astro chart so we know to delete e2 tables & outer charts
-    # signal_manager._connect("e2_cleared", calculate_positions)

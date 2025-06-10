@@ -6,7 +6,6 @@ gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from swisseph import contrib as swh
 from typing import Tuple
-# from sweph.calculations.houses import calculate_houses
 
 
 class TablesWidget(Gtk.Notebook):
@@ -24,10 +23,11 @@ class TablesWidget(Gtk.Notebook):
         self.mrg = 9
         # event data storage
         self.events_data = {}
-        # connect to positions & houses signals
+        # connect to signals
         signal = self.app.signal_manager
         signal._connect("positions_changed", self.positions_changed)
         signal._connect("houses_changed", self.houses_changed)
+        signal._connect("e2_cleared", self.e2_cleared)
 
     def positions_changed(self, event, positions_data):
         # callback for signal
@@ -50,6 +50,27 @@ class TablesWidget(Gtk.Notebook):
             }
         self.events_data[event]["houses"] = houses_data
         self.update_data(self.events_data[event])
+
+    def e2_cleared(self, _):
+        # callback
+        event = "e2"
+        if event in self.events_data:
+            # remove tab if exists
+            for i in range(self.get_n_pages()):
+                page = self.get_nth_page(i)
+                label = self.get_tab_label_text(page)
+                if label.strip() == event:
+                    self.remove_page(i)
+                    break
+            # remove e2 from data storage
+            del self.events_data[event]
+            if event in self.table_pages:
+                del self.table_pages[event]
+            self.notify.info(
+                f"cleared table for {event}",
+                source="panetables",
+                route=["terminal", "user"],
+            )
 
     def update_data(self, data):
         """update positions on event data change"""
@@ -108,7 +129,7 @@ class TablesWidget(Gtk.Notebook):
         self.notify.debug(
             f"maketablecontent :\n\tcusps : {cusps} | type : {type(cusps)}\n\tascmc : {ascmc} | type : {type(ascmc)}",
             source="panetables",
-            route=["terminal"],
+            route=["none"],
         )
         # dashes : u2014 full width ; u2012 monospace-specific ; u2015 longer
         # u2017 double bottom u2502 vertical full

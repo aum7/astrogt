@@ -9,7 +9,6 @@ from zoneinfo import ZoneInfo
 from timezonefinder import TimezoneFinder
 from ui.helpers import _decimal_to_dms
 from sweph.swetime import validate_datetime, naive_to_utc, utc_to_jd
-# from sweph.calculations.positions import calculate_positions
 
 
 class EventData:
@@ -89,7 +88,8 @@ class EventData:
                 self.app.e2_sweph["alt"] = None
                 self.old_location = ""
                 self.notify.info(
-                    f"{location_name} cleared",
+                    f"{location_name} cleared, timezone copied from location one",
+                    # f"{location_name} cleared",
                     source="eventdata",
                     route=["terminal"],
                 )
@@ -466,9 +466,6 @@ class EventData:
                 return
             # data changed
             try:
-                # todo grab weekday somewhere if possible
-                # swisseph.day_of_week()
-                #    Calculate day of week number [0;6] from Julian day number (monday is 0).
                 # get datetime string, assuming naive date-time
                 dt_str = entry.get_text().strip()
                 # grab self.lon if 'a' in datetime (local apparent time)
@@ -484,9 +481,7 @@ class EventData:
                     route=["none"],
                 )
                 Y, M, D, h, m, s, calendar, _ = result
-                # manual input : assume event time
-                # we need timezone offset for event location
-                # dt_utc_now = datetime.now(timezone.utc).replace(microsecond=0)
+                # assume event time ; we need timezone offset for event location
                 if self.timezone:
                     # python datetime only goes down to year 1
                     if Y >= 1:
@@ -494,7 +489,10 @@ class EventData:
                         dt_event = datetime(
                             Y, M, D, h, m, s, tzinfo=ZoneInfo(self.timezone)
                         )
-                        # dt_utc_now.astimezone(ZoneInfo(self.timezone))
+                        # calculate weekday
+                        weekday_idx = dt_event.weekday()  # monday = 0
+                        weekdays = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+                        wday = weekdays[weekday_idx]
                         tz_offset_ = dt_event.utcoffset()
                         # as string
                         tz_offset_str = str(tz_offset_)
@@ -507,6 +505,7 @@ class EventData:
                         self.tz_offset = days_ * 24 + h_ + m_ / 60 + s_ / 3600
                     else:
                         self.tz_offset = 0.0
+                        wday = "-"
                         self.notify.info(
                             "year below 1 : using fixed utc offset",
                             source="eventdata",
@@ -519,14 +518,49 @@ class EventData:
                     # print(f"utcfromnaive : {dt_utc} | type : {type(dt_utc)}")
                     # print(f"manualdt tz : jdut : {jd_ut} | tzoffset : {self.tz_offset}")
                 else:
-                    # take date-time string as utc : seconds is float
-                    dt_utc = naive_to_utc(Y, M, D, h, m, s, 0.0)
+                    # todo how do we handle e2 datetime
+                    # we assume e1 timezone exists : use it if e2 timezone is empty
+                    if datetime_name == "datetime two" and Y >= 1:
+                        tz = self.app.e1_chart["timezone"]
+                        dt_event = datetime(Y, M, D, h, m, s, tzinfo=ZoneInfo(tz))
+                        # calculate weekday
+                        weekday_idx = dt_event.weekday()  # monday = 0
+                        weekdays = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+                        wday = weekdays[weekday_idx]
+                        tz_offset_ = dt_event.utcoffset()
+                        # as string
+                        tz_offset_str = str(tz_offset_)
+                        # error : invalid literal ... -1 day, 20:00:00 [workaround]
+                        # parse timezone string to decimal hours
+                        parts = [p for p in tz_offset_str.split(",") if p]
+                        days_ = int(parts[0].split()[0]) if "day" in parts[0] else 0
+                        h_, m_, s_ = map(int, parts[-1].strip().split(":"))
+                        # convert to decimal
+                        self.tz_offset = days_ * 24 + h_ + m_ / 60 + s_ / 3600
+                    else:
+                        self.tz_offset = 0.0
+                        wday = "-"
+                        self.notify.info(
+                            "year below 1 : using fixed utc offset",
+                            source="eventdata",
+                            route=["terminal"],
+                        )
+                    dt_event_str = f"{Y}-{M:02d}-{D:02d} {h:02d}:{m:02d}:{s:02d}"
+                    # print(f"dteventstr : {dt_event_str}")
+                    dt_utc = naive_to_utc(Y, M, D, h, m, s, self.tz_offset)
                     _, jd_ut = utc_to_jd(*dt_utc, calendar)
                     # print(f"utcfromnaive : {dt_utc} | type : {type(dt_utc)}")
+                    # print(f"manualdt tz : jdut : {jd_ut} | tzoffset : {self.tz_offset}")
+
+                    # take date-time string as utc : seconds is float
+                    # dt_utc = naive_to_utc(Y, M, D, h, m, s, 0.0)
+                    # _, jd_ut = utc_to_jd(*dt_utc, calendar)
+                    # print(f"utcfromnaive : {dt_utc} | type : {type(dt_utc)}")
                     # print(f"manualdt utc : jdut : {jd_ut} | tzoffset : 0.0")
-                    dt_event_str = f"{dt_utc[0]}-{dt_utc[1]:02d}-{dt_utc[2]:02d} {dt_utc[3]:02d}:{dt_utc[4]:02d}:{int(dt_utc[5]):02d}"
+                    # dt_event_str = f"{dt_utc[0]}-{dt_utc[1]:02d}-{dt_utc[2]:02d} {dt_utc[3]:02d}:{dt_utc[4]:02d}:{int(dt_utc[5]):02d}"
+                    # wday = "-"
                     self.notify.info(
-                        f"\n\t{datetime_name} no timezone : using utc"
+                        f"\n\t{datetime_name} no timezone : using event one timezone"
                         "\n\tlocation should be set to calculate timezone",
                         source="eventdata",
                         route=["terminal", "user"],
@@ -545,12 +579,15 @@ class EventData:
         # update datetime entry
         if dt_event_str:
             entry.set_text(dt_event_str)
+        print(f"eventdata : wday : {wday}")
         # save datetime by event
         if datetime_name == "datetime one":
             self.app.e1_chart["datetime"] = dt_event_str
+            self.app.e1_chart["wday"] = wday
             msg_ = f"{datetime_name} updated : {self.app.e1_chart.get('datetime')}"
         else:
             self.app.e2_chart["datetime"] = dt_event_str
+            self.app.e2_chart["wday"] = wday
             msg_ = f"{datetime_name} updated : {self.app.e2_chart.get('datetime')}"
         self.notify.debug(
             msg_,
@@ -579,7 +616,7 @@ class EventData:
         # in this case datetime two is mandatory, the rest is optional, aka
         # if exists > use it, else use event 1 data
         if not self.app.e2_chart.get("datetime"):
-            # declare event two active : needed for calculations todo ???
+            # declare e2 NOT active
             self.app.e2_active = False
             self.notify.debug(
                 "datetime 2 is none : user not interested in event 2 : skipping ..."
@@ -587,7 +624,9 @@ class EventData:
                 source="eventdata",
                 route=["none"],
             )
-        elif self.app.e2_chart.get("datetime", ""):
+        elif self.app.e2_chart.get("datetime"):
+            # elif self.app.e2_chart.get("datetime", ""):
+            # declare e2 active
             self.app.e2_active = True
             self.notify.debug(
                 f"\n\tdatetime 2 not empty : {self.app.e2_chart.get('datetime')} : "
@@ -618,7 +657,7 @@ class EventData:
             f"\n\tsweph 2\t{json.dumps(self.app.e2_sweph, sort_keys=True, indent=6, ensure_ascii=False)}"
             "\n--------------------------",
             source="eventdata",
-            route=["none"],
+            route=["terminal"],
         )
         # detect event & pass it further
         if datetime_name == "datetime one":
