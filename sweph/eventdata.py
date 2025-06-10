@@ -382,15 +382,14 @@ class EventData:
                     if self.timezone
                     else (
                         self.app.e1_chart.get("timezone")
-                        if datetime_name == "datetime one"
+                        if datetime_name == "datetime two"
                         else None
                     )
                 )
                 if tz:
                     dt_event = dt_utc.astimezone(ZoneInfo(tz))
                     # get weekday
-                    weekday_idx = dt_event.weekday()
-                    wday = weekdays[weekday_idx]
+                    wday = weekdays[dt_event.weekday()]
                     dt_event_str = dt_event.strftime("%Y-%m-%d %H:%M:%S")
                     tz_offset_ = dt_event.utcoffset()
                     tz_offset_str = str(tz_offset_)
@@ -593,7 +592,7 @@ class EventData:
                 route=["terminal"],
             )
             if self.app.e2_chart.get("location", "") == "":
-                for key in ["country", "city", "location", "timezone"]:
+                for key in ["country", "city", "location", "timezone", "iso3"]:
                     self.app.e2_chart[key] = self.app.e1_chart.get(key)
                 for key in ["lat", "lon", "alt"]:
                     self.app.e2_sweph[key] = self.app.e1_sweph.get(key)

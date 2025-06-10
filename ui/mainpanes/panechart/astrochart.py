@@ -15,26 +15,27 @@ class AstroChart(Gtk.Box):
         super().__init__(*args, **kwargs)
         app = Gtk.Application.get_default()
         self.app = app
-        notify = app.notify_manager
-        notify.debug(
-            "astrochart : OLO",
-            source="astrochart",
-            route=["terminal"],
-        )
+        # notify = app.notify_manager
+        # notify.debug(
+        #     "astrochart : OLO",
+        #     source="astrochart",
+        #     route=["terminal"],
+        # )
         self.drawing_area = Gtk.DrawingArea()
         self.drawing_area.set_draw_func(self.draw)
         self.drawing_area.set_hexpand(True)
         self.drawing_area.set_vexpand(True)
         self.append(self.drawing_area)
-        # self.set_child(self.drawing_area)
         # chart circles
         self.circles = {
-            # top layer
+            # top layer : event 1 data
             "info": CircleLayer(layer="info", chart=self, guests=[]),
-            # mandatory event 1 layer
+            # event 1 layer : mandatory
             "event": CircleLayer(layer="event", chart=self, guests=[]),
+            # signs layer
+            "sign": CircleLayer(layer="sign", chart=self, guests=[]),
             # optional layers : transit
-            # "transit": CircleLayer(layer="info", chart=self, guests=[]),
+            # "transit": CircleLayer(layer="transit", chart=self, guests=[]),
             # progression
             # "progression": CircleLayer(layer="progression", chart=self, guests=[]),
             # solar return
