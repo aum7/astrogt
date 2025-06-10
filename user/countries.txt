@@ -1,6 +1,6 @@
 ﻿# countries from geonames.org: 2024-06-01 : 249 countries
-# !!! UN/COMMENT ANY COUNTRY THAT YOU NEED !!!
-# un/comment = delete '# ', and save file
+# !!! UNCOMMENT ANY COUNTRY THAT YOU NEED !!!
+# un/comment = delete/add '# ', and save file
 # can be re-arranged [NOT recommended, they are sorted alphabetically, by
 # country name (middle field)] : move line up / down, and save file
 # re-arranging is only relevant for un-commented lines

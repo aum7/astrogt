@@ -1,3 +1,4 @@
+# ui/sidepane/panelevents.py
 # ruff: noqa: E402
 import gi
 
@@ -56,6 +57,8 @@ delete datetime 2 = clear event 2 data"""
     lbl_country.set_halign(Gtk.Align.START)
 
     event_location = EventLocation(manager, app=manager.app)
+    # make event_location available to get iso3 of selected country
+    manager.event_location = event_location
     countries = event_location.get_countries()
 
     ddn_country = Gtk.DropDown.new_from_strings(countries)
