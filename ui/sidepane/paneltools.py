@@ -1,4 +1,4 @@
-# paneltools.py
+# ui/paneltools.py
 # ruff: noqa: E402
 import gi
 
