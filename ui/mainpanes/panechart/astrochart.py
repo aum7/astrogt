@@ -3,7 +3,7 @@
 import gi
 
 gi.require_version("Gtk", "4.0")
-from gi.repository import Gtk, cairo  # type: ignore
+from gi.repository import Gtk  # type: ignore
 from ui.mainpanes.panechart.chartcircles import CircleEvent, CircleSigns, CircleInfo
 from math import pi, cos, sin, radians
 
@@ -27,23 +27,34 @@ class AstroChart(Gtk.Box):
         self.e1_chart_info = {}
         # subscribe to signals
         signal = self.app.signal_manager
+        signal._connect("event_changed", self.event_changed)
         signal._connect("positions_changed", self.positions_changed)
         signal._connect("houses_changed", self.houses_changed)
         signal._connect("e2_cleared", self.e2_cleared)
 
+    def event_changed(self, event):
+        if event == "e1":
+            self.e1_chart_info = self.app.e1_chart
+            print(f"astrochart : e1chart : {self.e1_chart_info}")
+            self.queue_draw()
+
     def positions_changed(self, event, positions):
         if event == "e1":
             self.positions = positions
+            print(f"astrochart : positions : {self.positions}")
             self.queue_draw()
 
     def houses_changed(self, event, houses):
         if event == "e1":
             self.houses = houses
+            print(f"astrochart : houses : {self.houses}")
             self.queue_draw()
 
-    def e2_cleared(self, _):
+    def e2_cleared(self, event):
         """clear event 2 circles"""
-        pass
+        if event == "e2":
+            print(f"astrochart : {event} cleared")
+            self.queue_draw()
 
     def draw(self, area, cr, width, height):
         # get center and base radius
@@ -54,7 +65,7 @@ class AstroChart(Gtk.Box):
         e1_chart_info = getattr(self.app, "e1_chart", {})
         # chart circles
         circle_event = CircleEvent(
-            radius=base * 0.9,
+            radius=base * 0.8,
             cx=cx,
             cy=cy,
             guests=[

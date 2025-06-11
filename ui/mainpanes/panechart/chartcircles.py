@@ -1,9 +1,5 @@
 # ui/mainpanes/panechart/chartcircles.py
-# ruff: noqa: E402
-import gi
-
-gi.require_version("Gtk", "4.0")
-from gi.repository import cairo  # type: ignore
+import cairo
 from math import pi, cos, sin
 # colors
 # redish    1,0.7,0.7
@@ -39,28 +35,36 @@ class CircleInfo(CircleBase):
 
     def __init__(self, radius, cx, cy, event_data):
         super().__init__(radius, cx, cy)
-        # self.event_data = event_data
-        self.event_data = {"name": "mi mua", "datetime": "1975-02-08 14:10:00"}
+        self.event_data = event_data
+        # self.event_data = {"name": "mi mua", "date": "1975-02-08", "time": "14:10:00"}
         self.font_size = 18
 
     def draw(self, cr):
-        """ircle with info text"""
+        """circle with info text"""
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
-        cr.set_source_rgba(0.15, 0.15, 0.15, 0)  # todo set alpha
+        cr.set_source_rgba(0.15, 0.15, 0.15, 1)
         cr.fill_preserve()
         # circle border
         cr.set_source_rgba(1, 1, 1, 1)
-        cr.set_line_width(0)  # thinnest possible
+        cr.set_line_width(1)
+        # cr.new_path()
         cr.stroke()
-        # event 1 info text
-        info_text = (
-            f"{self.event_data.get('name', '')}\n{self.event_data.get('datetime', '')}"
-        )
-        self.set_custom_font(cr, self.font_size)
-        _, _, tw, th, _, _ = cr.text_extents(info_text)
-        cr.move_to(self.cx - tw / 2, self.cy - th / 2)
         cr.set_source_rgba(1, 1, 1, 1)
-        cr.show_text(info_text)
+        self.set_custom_font(cr, self.font_size)
+        # event 1 info text
+        info_text = f"{self.event_data.get('name', '')}\n{self.event_data.get('date', '')}\n{self.event_data.get('time', '')}"
+        lines = info_text.split("\n")
+        line_spacing = self.font_size * 1.2
+        total_height = (len(lines) - 1) * self.font_size
+        # calculate start y to roughly center text block
+        y = self.cy - total_height / 2
+        for line in lines:
+            _, _, tw, _, _, _ = cr.text_extents(line)
+            x = self.cx - tw / 2
+            cr.move_to(x, y)
+            cr.show_text(line)
+            cr.new_path()  # clear drawn path
+            y += line_spacing
 
 
 class CircleEvent(CircleBase):
@@ -73,7 +77,10 @@ class CircleEvent(CircleBase):
 
     def draw(self, cr):
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
-        cr.set_source_rgba(1, 0.7, 0.7, 1)  # redish for fixed
+        cr.set_source_rgba(0.18, 0.15, 0.15, 1)  # redish for fixed
+        cr.fill_preserve()
+        cr.set_source_rgba(1, 1, 1, 1)
+        cr.set_line_width(1)
         cr.stroke()
         # guests
         for guest in self.guests:
@@ -97,7 +104,6 @@ class CircleSigns(CircleBase):
         super().__init__(radius, cx, cy)
         self.font_size = 18
         self.signs = [
-            "\u0192",  # 01 aries
             "\u019d",  # 12 pisces
             "\u019c",  # 11
             "\u019b",  # 10
@@ -109,33 +115,38 @@ class CircleSigns(CircleBase):
             "\u0195",  # 04
             "\u0194",  # 03
             "\u0193",  # 02
+            "\u0192",  # 01 aries
         ]
 
     def draw(self, cr):
-        segment_angle = 2 * pi / 12
-        offset = segment_angle / 2
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
         cr.set_source_rgba(0.5, 0.5, 0.5, 0)  # todo set alpha
-        cr.set_line_width(0)
+        cr.fill_preserve()
+        cr.set_source_rgba(1, 1, 1, 1)
+        cr.set_line_width(1)
         cr.stroke()
+        # cr.new_path()
+        segment_angle = 2 * pi / 12
+        offset = segment_angle / 2
         # sign borders
         for j in range(12):
             angle = j * segment_angle + pi  # start at left
-            x1 = self.cx + self.radius * 0.9 * cos(angle)
-            y1 = self.cy + self.radius * 0.0 * sin(angle)
+            x1 = self.cx + self.radius * 0.84 * cos(angle)
+            y1 = self.cy + self.radius * 0.84 * sin(angle)
             x2 = self.cx + self.radius * cos(angle)
             y2 = self.cy + self.radius * sin(angle)
             cr.move_to(x1, y1)
             cr.line_to(x2, y2)
             cr.set_source_rgba(1, 1, 1, 1)
-            cr.set_line_width(0)
+            cr.set_line_width(1)
             cr.stroke()
+            # cr.new_path()
         # glyphs
         self.set_custom_font(cr, self.font_size)
         for i, glyph in enumerate(self.signs):
-            angle = (i * segment_angle) + offset
-            x = self.cx + self.radius * cos(angle)
-            y = self.cy + self.radius * sin(angle)
+            angle = pi + i * segment_angle + offset
+            x = self.cx + self.radius * 0.92 * cos(angle)
+            y = self.cy + self.radius * 0.92 * sin(angle)
             _, _, tw, th, _, _ = cr.text_extents(glyph)
             cr.save()
             cr.translate(x, y)
@@ -143,6 +154,7 @@ class CircleSigns(CircleBase):
             cr.move_to(-tw / 2, th / 2)
             cr.set_source_rgba(1, 1, 1, 1)
             cr.show_text(glyph)
+            cr.new_path()
             cr.restore()
 
 

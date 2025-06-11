@@ -455,7 +455,7 @@ class EventData:
                             source="eventdata",
                             route=["terminal"],
                         )
-                        self.app.signal_manager._emit("e2_cleared", None)
+                        self.app.signal_manager._emit("e2_cleared", "e2")
                         return
             # data not changed
             if date_time == self.old_date_time:
