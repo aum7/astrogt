@@ -94,28 +94,39 @@ class CircleLayer:
         # cr.stroke()
         if self.layer == "info":
             radius = base * 0.5
-            cr.set_operator(cairo.OPERATOR_SOURCE)
+            font_size = 16
+            # cr.set_operator(cairo.OPERATOR_SOURCE)
             cr.arc(cx, cy, radius, 0, 2 * pi)
-            cr.set_source_rgba(0.0, 0.0, 0.0, 1)
+            cr.set_source_rgba(0.15, 0.15, 0.15, 1)
             cr.fill_preserve()
-            cr.set_operator(cairo.OPERATOR_OVER)
+            # cr.set_operator(cairo.OPERATOR_OVER)
             cr.set_source_rgba(1, 1, 1, 1)
             cr.stroke()
             # if hasattr(self, "info_data"):
             # if self.info_data:
-            info = self.info_data
+            # info = self.info_data
             # text = f"{info.get('name', '')}\n{info.get('country', '')}\n{info.get('city', '')}\n{info.get('location', '')}\n{info.get('datetime')}"
-            text = "dummy text\nhere\njust for\nfun"
+            text = "dummy text\ndummy text\ndummy text\ndummy text"
+            lines = text.split("\n")
             cr.set_source_rgba(1, 1, 1, 1)
             cr.select_font_face(
                 "VictorMonoLightAstro",
                 cairo.FONT_SLANT_NORMAL,
                 cairo.FONT_WEIGHT_NORMAL,
             )
-            cr.set_font_size(16)
-            xbearing, ybearing, tw, th, xadvance, yadvance = cr.text_extents(text)
-            cr.move_to(cx - tw / 2, cy - th / 2)
-            cr.show_text(text)
+            cr.set_font_size(font_size)
+            line_spacing = font_size * 1.2
+            total_height = (len(lines) - 1) * font_size
+            # calculate start y to roughly center text block
+            y = cy - total_height / 2
+
+            for line in lines:
+                xbearing, ybearing, tw, th, xadvance, yadvance = cr.text_extents(line)
+                x = cx - tw / 2
+                cr.move_to(x, y)
+                cr.show_text(line)
+                cr.new_path()
+                y += line_spacing
             return
         # draw guests
         for obj in self.guests:
