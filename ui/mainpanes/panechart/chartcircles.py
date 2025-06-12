@@ -35,9 +35,11 @@ class CircleInfo(CircleBase):
 
     def __init__(self, radius, cx, cy, event_data):
         super().__init__(radius, cx, cy)
-        self.event_data = event_data
-        # self.event_data = {"name": "mi mua", "date": "1975-02-08", "time": "14:10:00"}
         self.font_size = 18
+        self.event_data = event_data
+        if not self.event_data:
+            return
+        # print(f"chartcircles : circleinfo : e1 data : {self.event_data}")
 
     def draw(self, cr):
         """circle with info text"""
@@ -47,12 +49,17 @@ class CircleInfo(CircleBase):
         # circle border
         cr.set_source_rgba(1, 1, 1, 1)
         cr.set_line_width(1)
-        # cr.new_path()
         cr.stroke()
         cr.set_source_rgba(1, 1, 1, 1)
         self.set_custom_font(cr, self.font_size)
         # event 1 info text
-        info_text = f"{self.event_data.get('name', '')}\n{self.event_data.get('date', '')}\n{self.event_data.get('time', '')}"
+        if not self.event_data:
+            return
+        info_text = (
+            f"{self.event_data.get('name', '')}"
+            f"\n{self.event_data.get('datetime', '')}"
+            f"\n{self.event_data.get('iso3', '')} | {self.event_data.get('city')}"
+        )
         lines = info_text.split("\n")
         line_spacing = self.font_size * 1.2
         total_height = (len(lines) - 1) * self.font_size
@@ -70,10 +77,16 @@ class CircleInfo(CircleBase):
 class CircleEvent(CircleBase):
     """objects / planets & house cusps"""
 
-    def __init__(self, radius, cx, cy, guests, houses):
+    def __init__(self, radius, cx, cy, guests, houses, ascmc):
         super().__init__(radius, cx, cy)
         self.guests = guests
         self.houses = houses
+        self.ascmc = ascmc
+        if not self.guests or not self.houses or not self.ascmc:
+            return
+        # print(f"chartcircles : circleevent : guests : {[g.data for g in guests]}")
+        # print(f"chartcircles : circleevent : houses : {houses}")
+        # print(f"chartcircles : circleevent : ascmc : {ascmc}")
 
     def draw(self, cr):
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
@@ -87,13 +100,13 @@ class CircleEvent(CircleBase):
             guest.draw(cr, self.cx, self.cy, self.radius)
         # houses
         for angle in self.houses:
-            x1 = self.cx + self.radius * 0.9 * cos(angle)
-            y1 = self.cy + self.radius * 0.0 * sin(angle)
+            x1 = self.cx + self.radius * 0.5 * cos(angle)
+            y1 = self.cy + self.radius * 0.5 * sin(angle)
             x2 = self.cx + self.radius * cos(angle)
             y2 = self.cy + self.radius * sin(angle)
             cr.move_to(x1, y1)
             cr.line_to(x2, y2)
-            cr.set_source_rgba(1, 1, 1, 1)
+            cr.set_source_rgba(1, 1, 1, 0.3)
             cr.stroke()
 
 
@@ -125,7 +138,6 @@ class CircleSigns(CircleBase):
         cr.set_source_rgba(1, 1, 1, 1)
         cr.set_line_width(1)
         cr.stroke()
-        # cr.new_path()
         segment_angle = 2 * pi / 12
         offset = segment_angle / 2
         # sign borders
@@ -140,7 +152,6 @@ class CircleSigns(CircleBase):
             cr.set_source_rgba(1, 1, 1, 1)
             cr.set_line_width(1)
             cr.stroke()
-            # cr.new_path()
         # glyphs
         self.set_custom_font(cr, self.font_size)
         for i, glyph in enumerate(self.signs):

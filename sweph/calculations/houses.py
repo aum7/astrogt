@@ -49,7 +49,7 @@ def calculate_houses(event: Optional[str] = None) -> None:
             notify.debug(
                 f"{event} houses changed",
                 source="houses",
-                route=["terminal"],
+                route=["none"],
             )
         except swe.Error as e:
             notify.warning(

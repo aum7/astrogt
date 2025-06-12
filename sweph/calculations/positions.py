@@ -96,7 +96,7 @@ def calculate_positions(event: Optional[str] = None) -> None:
         notify.debug(
             f"{event} positions changed",
             source="positions",
-            route=["terminal"],
+            route=["none"],
         )
     return
 

@@ -51,26 +51,26 @@ class TablesWidget(Gtk.Notebook):
         self.events_data[event]["houses"] = houses_data
         self.update_data(self.events_data[event])
 
-    def e2_cleared(self, _):
+    def e2_cleared(self, event):
         # callback
-        event = "e2"
-        if event in self.events_data:
-            # remove tab if exists
-            for i in range(self.get_n_pages()):
-                page = self.get_nth_page(i)
-                label = self.get_tab_label_text(page)
-                if label.strip() == event:
-                    self.remove_page(i)
-                    break
-            # remove e2 from data storage
-            del self.events_data[event]
-            if event in self.table_pages:
-                del self.table_pages[event]
-            self.notify.info(
-                f"cleared table for {event}",
-                source="panetables",
-                route=["terminal", "user"],
-            )
+        if event == "e2":
+            if event in self.events_data:
+                # remove tab if exists
+                for i in range(self.get_n_pages()):
+                    page = self.get_nth_page(i)
+                    label = self.get_tab_label_text(page)
+                    if label.strip() == event:
+                        self.remove_page(i)
+                        break
+                # remove e2 from data storage
+                del self.events_data[event]
+                if event in self.table_pages:
+                    del self.table_pages[event]
+                self.notify.info(
+                    f"cleared table for {event}",
+                    source="panetables",
+                    route=["terminal", "user"],
+                )
 
     def update_data(self, data):
         """update positions on event data change"""
@@ -92,10 +92,9 @@ class TablesWidget(Gtk.Notebook):
             self.notify.debug(
                 f"updatedata : housesdata : {houses_data}",
                 source="panetables",
-                route=["terminal"],
+                route=["none"],
             )
             return
-        # if houses_data:
         try:
             cusps, ascmc = houses_data
         except Exception as e:

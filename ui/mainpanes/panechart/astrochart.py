@@ -24,6 +24,7 @@ class AstroChart(Gtk.Box):
         # initial data
         self.positions = {}
         self.houses = {}
+        self.ascmc = None
         self.e1_chart_info = {}
         # subscribe to signals
         signal = self.app.signal_manager
@@ -34,35 +35,46 @@ class AstroChart(Gtk.Box):
 
     def event_changed(self, event):
         if event == "e1":
-            self.e1_chart_info = self.app.e1_chart
-            print(f"astrochart : e1chart : {self.e1_chart_info}")
-            self.queue_draw()
+            self.e1_chart_info = getattr(self.app, "e1_chart", {})
+            # print("astrochart : e1 changed")
+        self.drawing_area.queue_draw()
 
     def positions_changed(self, event, positions):
         if event == "e1":
             self.positions = positions
-            print(f"astrochart : positions : {self.positions}")
-            self.queue_draw()
+        self.drawing_area.queue_draw()
+        # print(f"astrochart : {event} positions changed")
 
     def houses_changed(self, event, houses):
         if event == "e1":
-            self.houses = houses
-            print(f"astrochart : houses : {self.houses}")
-            self.queue_draw()
+            try:
+                cusps, ascmc = houses
+            except Exception as e:
+                self.notify(
+                    f"invalid houses data\n\terror :\n\t{e}",
+                    source="astrochart",
+                    route=["terminal"],
+                )
+            self.houses = cusps
+            self.ascmc = ascmc
+        self.drawing_area.queue_draw()
+        # print(f"astrochart : {event} houses changed")
 
     def e2_cleared(self, event):
         """clear event 2 circles"""
         if event == "e2":
-            print(f"astrochart : {event} cleared")
-            self.queue_draw()
+            self.notify.info(
+                f"{event} cleared",
+                source="astrochart",
+                route=["terminal"],
+            )
+        self.drawing_area.queue_draw()
 
     def draw(self, area, cr, width, height):
         # get center and base radius
         cx = width / 2
         cy = height / 2
         base = min(width, height) * 0.5
-        # get chart info data
-        e1_chart_info = getattr(self.app, "e1_chart", {})
         # chart circles
         circle_event = CircleEvent(
             radius=base * 0.8,
@@ -74,14 +86,15 @@ class AstroChart(Gtk.Box):
                 if isinstance(obj, dict) and "lon" in obj
             ],
             houses=self.houses if self.houses else [],
+            ascmc=self.ascmc if self.ascmc else [],
         )
         circle_signs = CircleSigns(radius=base * 0.95, cx=cx, cy=cy)
         circle_info = CircleInfo(
-            radius=base * 0.5, cx=cx, cy=cy, event_data=e1_chart_info
+            radius=base * 0.5, cx=cx, cy=cy, event_data=self.e1_chart_info
         )
-        # draw layers from bottom (event) to top (info)
-        circle_event.draw(cr)
+        # draw layers from bottom (signs) to top (info)
         circle_signs.draw(cr)
+        circle_event.draw(cr)
         circle_info.draw(cr)
 
     def create_astro_object(self, obj):

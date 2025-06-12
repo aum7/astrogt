@@ -613,7 +613,7 @@ class EventData:
             f"\n\tsweph 2\t{json.dumps(self.app.e2_sweph, sort_keys=True, indent=6, ensure_ascii=False)}"
             "\n--------------------------",
             source="eventdata",
-            route=["terminal"],
+            route=["none"],
         )
         # detect event & emit signal
         if datetime_name == "datetime one":
