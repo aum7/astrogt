@@ -1,7 +1,7 @@
 # ui/mainpanes/panechart/chartcircles.py
 import cairo
-from math import pi, cos, sin
-# colors
+from math import pi, cos, sin, radians
+# background colors
 # redish    1,0.7,0.7
 # greenish  0.8,1,0.83
 # yellowish 0.2,0.2,0
@@ -28,6 +28,17 @@ class CircleBase:
     def draw(self, cr):
         """subclass must override this method"""
         raise NotImplementedError
+
+    def draw_rotated_text(self, cr, text, x, y, angle):
+        _, _, tw, th, _, _ = cr.text_extents(text)
+        cr.save()
+        cr.translate(x, y)
+        cr.rotate(angle + pi / 2)
+        cr.move_to(-tw / 2, th / 2)
+        cr.set_source_rgba(1, 1, 1, 1)
+        cr.show_text(text)
+        cr.new_path()
+        cr.restore()
 
 
 class CircleInfo(CircleBase):
@@ -82,24 +93,68 @@ class CircleEvent(CircleBase):
         self.guests = guests
         self.houses = houses
         self.ascmc = ascmc
+        # radius factor for middle circle (0° latitude )
+        self.middle_factor = 0.82
+        # inner circle factor (min latitude value)
+        self.inner_factor = 2 * self.middle_factor - 1.0
         if not self.guests or not self.houses or not self.ascmc:
             return
         # print(f"chartcircles : circleevent : guests : {[g.data for g in guests]}")
-        # print(f"chartcircles : circleevent : houses : {houses}")
+        # print(f"chartcircles : circleevent : self.houses : {self.houses}")
         # print(f"chartcircles : circleevent : ascmc : {ascmc}")
 
     def draw(self, cr):
+        # main circle of event 1
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
         cr.set_source_rgba(0.18, 0.15, 0.15, 1)  # redish for fixed
         cr.fill_preserve()
         cr.set_source_rgba(1, 1, 1, 1)
         cr.set_line_width(1)
         cr.stroke()
-        # guests
-        for guest in self.guests:
-            guest.draw(cr, self.cx, self.cy, self.radius)
+        # middle circle = lat 0°
+        cr.arc(self.cx, self.cy, self.radius * self.middle_factor, 0, 2 * pi)
+        cr.set_source_rgba(1, 1, 1, 0.2)
+        cr.set_line_width(1)
+        cr.stroke()
+        # ascendant & midheaven
+        if self.ascmc:
+            radius_factor = 1.0
+            ascendant = self.ascmc[0]
+            midheaven = self.ascmc[1]
+            marker_size = self.radius * 0.03
+            asc_angle = pi - radians(ascendant)
+            asc_x = self.cx + self.radius * radius_factor * cos(asc_angle)
+            asc_y = self.cy + self.radius * radius_factor * sin(asc_angle)
+            mc_angle = pi - radians(midheaven)
+            mc_x = self.cx + self.radius * radius_factor * cos(mc_angle)
+            mc_y = self.cy + self.radius * radius_factor * sin(mc_angle)
+            # marker for ascendant : triangle
+            cr.save()
+            cr.set_source_rgba(1, 1, 1, 1)
+            cr.translate(asc_x, asc_y)
+            cr.rotate(asc_angle + pi / 2)
+            cr.move_to(0, marker_size)
+            cr.line_to(marker_size, -marker_size / 2)
+            cr.line_to(-marker_size, -marker_size / 2)
+            cr.close_path()
+            cr.fill()
+            cr.restore()
+            # marker for midheaven : rotated square (diamond)
+            cr.save()
+            cr.set_source_rgba(1, 1, 1, 1)
+            cr.translate(mc_x, mc_y)
+            cr.rotate(mc_angle + pi / 2)
+            cr.move_to(0, -marker_size)
+            cr.line_to(marker_size, 0)
+            cr.line_to(0, marker_size)
+            cr.line_to(-marker_size, 0)
+            cr.close_path()
+            cr.fill()
+            cr.restore()
+
         # houses
         for angle in self.houses:
+            angle = pi - radians(angle)
             x1 = self.cx + self.radius * 0.5 * cos(angle)
             y1 = self.cy + self.radius * 0.5 * sin(angle)
             x2 = self.cx + self.radius * cos(angle)
@@ -108,6 +163,38 @@ class CircleEvent(CircleBase):
             cr.line_to(x2, y2)
             cr.set_source_rgba(1, 1, 1, 0.3)
             cr.stroke()
+        # guests with adjusted radius based on latitude
+        for guest in self.guests:
+            lat = guest.data.get("lat", 0)
+            name = guest.data.get("name", "").lower()
+            # sun always 0 lat
+            if name == "su":
+                factor = self.middle_factor
+            # pluto has max lat range of them all
+            elif name == "pl":
+                max_val = 18.0
+                if lat >= 0:
+                    factor = self.middle_factor + (lat / max_val) * (
+                        1.0 - self.middle_factor
+                    )
+                else:
+                    factor = self.middle_factor + (lat / max_val) * (
+                        self.middle_factor - self.inner_factor
+                    )
+            # other planets
+            else:
+                max_val = 8.0
+                if lat >= 0:
+                    factor = self.middle_factor + (lat / max_val) * (
+                        1.0 - self.middle_factor
+                    )
+                else:
+                    factor = self.middle_factor + (lat / max_val) * (
+                        self.middle_factor - self.inner_factor
+                    )
+            # compute object drawing radius
+            obj_radius = self.radius * factor
+            guest.draw(cr, self.cx, self.cy, obj_radius)
 
 
 class CircleSigns(CircleBase):
@@ -117,18 +204,18 @@ class CircleSigns(CircleBase):
         super().__init__(radius, cx, cy)
         self.font_size = 18
         self.signs = [
-            "\u019d",  # 12 pisces
-            "\u019c",  # 11
-            "\u019b",  # 10
-            "\u019a",  # 09
-            "\u0199",  # 08
-            "\u0198",  # 07
-            "\u0197",  # 06
-            "\u0196",  # 05
-            "\u0195",  # 04
-            "\u0194",  # 03
-            "\u0193",  # 02
             "\u0192",  # 01 aries
+            "\u0193",  # 02
+            "\u0194",  # 03
+            "\u0195",  # 04
+            "\u0196",  # 05
+            "\u0197",  # 06
+            "\u0198",  # 07
+            "\u0199",  # 08
+            "\u019a",  # 09
+            "\u019b",  # 10
+            "\u019c",  # 11
+            "\u019d",  # 12 pisces
         ]
 
     def draw(self, cr):
@@ -142,7 +229,7 @@ class CircleSigns(CircleBase):
         offset = segment_angle / 2
         # sign borders
         for j in range(12):
-            angle = j * segment_angle + pi  # start at left
+            angle = pi - j * segment_angle  # start at left
             x1 = self.cx + self.radius * 0.84 * cos(angle)
             y1 = self.cy + self.radius * 0.84 * sin(angle)
             x2 = self.cx + self.radius * cos(angle)
@@ -155,18 +242,10 @@ class CircleSigns(CircleBase):
         # glyphs
         self.set_custom_font(cr, self.font_size)
         for i, glyph in enumerate(self.signs):
-            angle = pi + i * segment_angle + offset
+            angle = pi - i * segment_angle - offset
             x = self.cx + self.radius * 0.92 * cos(angle)
             y = self.cy + self.radius * 0.92 * sin(angle)
-            _, _, tw, th, _, _ = cr.text_extents(glyph)
-            cr.save()
-            cr.translate(x, y)
-            cr.rotate(angle + pi / 2)
-            cr.move_to(-tw / 2, th / 2)
-            cr.set_source_rgba(1, 1, 1, 1)
-            cr.show_text(glyph)
-            cr.new_path()
-            cr.restore()
+            self.draw_rotated_text(cr, glyph, x, y, angle)
 
 
 # additional optional circles : varga, naksatras

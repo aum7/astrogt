@@ -14,7 +14,7 @@ class PanesManager(Gtk.Stack):
     stack: Gtk.Stack
     STACK_BUTTONS: Dict[str, str] = {
         "astro": "astrology chart",
-        "tables": "calculation results",
+        "tables": "calculation tables",
         "editor": "text editor",
         "graph": "data graph",
     }

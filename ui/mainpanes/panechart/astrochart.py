@@ -5,6 +5,7 @@ import gi
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from ui.mainpanes.panechart.chartcircles import CircleEvent, CircleSigns, CircleInfo
+from user.settings import OBJECTS
 from math import pi, cos, sin, radians
 
 
@@ -75,16 +76,22 @@ class AstroChart(Gtk.Box):
         cx = width / 2
         cy = height / 2
         base = min(width, height) * 0.5
+        # sort by scale : smaller in front of larger circles
+        guests = sorted(
+            [
+                self.create_astro_object(obj)
+                for obj in self.positions.values()
+                if isinstance(obj, dict) and "lon" in obj
+            ],
+            key=lambda o: o.scale,
+            reverse=True,
+        )
         # chart circles
         circle_event = CircleEvent(
             radius=base * 0.8,
             cx=cx,
             cy=cy,
-            guests=[
-                self.create_astro_object(obj)
-                for obj in self.positions.values()
-                if isinstance(obj, dict) and "lon" in obj
-            ],
+            guests=guests,
             houses=self.houses if self.houses else [],
             ascmc=self.ascmc if self.ascmc else [],
         )
@@ -104,13 +111,27 @@ class AstroChart(Gtk.Box):
 class AstroObject:
     def __init__(self, data):
         self.data = data
+        # print(f"astrochart : objects : {data}")
+        self.size = 8
+        name = self.data.get("name", "su").lower()
+        # default color & scale
+        self.color = (0.1, 0.1, 0.1, 0.5)
+        self.scale = 1.0
+
+        for obj in OBJECTS.values():
+            if obj[0].lower() == name:
+                self.color = obj[4]
+                self.scale = obj[5]
+                break
 
     def draw(self, cr, cx, cy, radius):
-        angle = radians(self.data.get("lon", 0))
+        # compute angle & draw in ccw direction, start at left (ari)
+        angle = pi - radians(self.data.get("lon", 0))
+        # determine radius by scale
+        obj_size = self.size * self.scale
         x = cx + radius * cos(angle)
         y = cy + radius * sin(angle)
         # simple circle marker for object / planet
-        cr.arc(x, y, 8, 0, 2 * pi)
-        color = self.data.get("color", (0.2, 0.3, 0.8, 1))
-        cr.set_source_rgba(*color)
+        cr.arc(x, y, obj_size, 0, 2 * pi)
+        cr.set_source_rgba(*self.color)
         cr.fill()
