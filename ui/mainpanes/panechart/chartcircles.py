@@ -106,28 +106,38 @@ class CircleEvent(CircleBase):
     def draw(self, cr):
         # main circle of event 1
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
-        cr.set_source_rgba(0.18, 0.15, 0.15, 1)  # redish for fixed
+        cr.set_source_rgba(0.2, 0.0, 0.0, 0.3)  # redish for fixed
+        # cr.set_source_rgba(0.18, 0.15, 0.15, 1)  # redish for fixed
         cr.fill_preserve()
         cr.set_source_rgba(1, 1, 1, 1)
         cr.set_line_width(1)
         cr.stroke()
         # middle circle = lat 0°
         cr.arc(self.cx, self.cy, self.radius * self.middle_factor, 0, 2 * pi)
-        cr.set_source_rgba(1, 1, 1, 0.2)
+        cr.set_source_rgba(1, 1, 1, 0.5)
         cr.set_line_width(1)
         cr.stroke()
+        # houses
+        for angle in self.houses:
+            angle = pi - radians(angle)
+            x1 = self.cx + self.radius * 0.5 * cos(angle)
+            y1 = self.cy + self.radius * 0.5 * sin(angle)
+            x2 = self.cx + self.radius * cos(angle)
+            y2 = self.cy + self.radius * sin(angle)
+            cr.move_to(x1, y1)
+            cr.line_to(x2, y2)
+            cr.set_source_rgba(1, 1, 1, 0.3)
+            cr.stroke()
         # ascendant & midheaven
         if self.ascmc:
             radius_factor = 1.0
             ascendant = self.ascmc[0]
             midheaven = self.ascmc[1]
             marker_size = self.radius * 0.03
+            # ascendant
             asc_angle = pi - radians(ascendant)
             asc_x = self.cx + self.radius * radius_factor * cos(asc_angle)
             asc_y = self.cy + self.radius * radius_factor * sin(asc_angle)
-            mc_angle = pi - radians(midheaven)
-            mc_x = self.cx + self.radius * radius_factor * cos(mc_angle)
-            mc_y = self.cy + self.radius * radius_factor * sin(mc_angle)
             # marker for ascendant : triangle
             cr.save()
             cr.set_source_rgba(1, 1, 1, 1)
@@ -139,6 +149,25 @@ class CircleEvent(CircleBase):
             cr.close_path()
             cr.fill()
             cr.restore()
+            # descendant
+            dsc_angle = asc_angle + pi
+            dsc_x = self.cx + self.radius * radius_factor * cos(dsc_angle)
+            dsc_y = self.cy + self.radius * radius_factor * sin(dsc_angle)
+            # marker for descendant : triangle black
+            cr.save()
+            cr.set_source_rgba(0, 0, 0, 1)
+            cr.translate(dsc_x, dsc_y)
+            cr.rotate(dsc_angle + pi / 2)
+            cr.move_to(0, marker_size)
+            cr.line_to(marker_size, -marker_size / 2)
+            cr.line_to(-marker_size, -marker_size / 2)
+            cr.close_path()
+            cr.fill()
+            cr.restore()
+            # midheaven (zenith)
+            mc_angle = pi - radians(midheaven)
+            mc_x = self.cx + self.radius * radius_factor * cos(mc_angle)
+            mc_y = self.cy + self.radius * radius_factor * sin(mc_angle)
             # marker for midheaven : rotated square (diamond)
             cr.save()
             cr.set_source_rgba(1, 1, 1, 1)
@@ -151,18 +180,22 @@ class CircleEvent(CircleBase):
             cr.close_path()
             cr.fill()
             cr.restore()
-
-        # houses
-        for angle in self.houses:
-            angle = pi - radians(angle)
-            x1 = self.cx + self.radius * 0.5 * cos(angle)
-            y1 = self.cy + self.radius * 0.5 * sin(angle)
-            x2 = self.cx + self.radius * cos(angle)
-            y2 = self.cy + self.radius * sin(angle)
-            cr.move_to(x1, y1)
-            cr.line_to(x2, y2)
-            cr.set_source_rgba(1, 1, 1, 0.3)
-            cr.stroke()
+            # nadir
+            ic_angle = mc_angle + pi
+            ic_x = self.cx + self.radius * radius_factor * cos(ic_angle)
+            ic_y = self.cy + self.radius * radius_factor * sin(ic_angle)
+            # marker for nadir : rotated square black
+            cr.save()
+            cr.set_source_rgba(0, 0, 0, 1)
+            cr.translate(ic_x, ic_y)
+            cr.rotate(ic_angle + pi / 2)
+            cr.move_to(0, -marker_size)
+            cr.line_to(marker_size, 0)
+            cr.line_to(0, marker_size)
+            cr.line_to(-marker_size, 0)
+            cr.close_path()
+            cr.fill()
+            cr.restore()
         # guests with adjusted radius based on latitude
         for guest in self.guests:
             lat = guest.data.get("lat", 0)

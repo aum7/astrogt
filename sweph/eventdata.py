@@ -363,6 +363,30 @@ class EventData:
 
     def on_datetime_change(self, entry):
         """process date & time"""
+        # check for mandatory fields first
+        if entry.get_name() == "datetime one":
+            if self.lon is None:
+                self.notify.warning(
+                    "event one : set location first",
+                    source="eventdata",
+                    route=["terminal", "user"],
+                )
+                return
+            # if self.name is None: # ko, self.name is gtk.entry
+            #     self.notify.warning(
+            #         "event one : set name first",
+            #         source="eventdata",
+            #         route=["terminal", "user"],
+            #     )
+        elif entry.get_name() == "datetime two":
+            # e1 data might be merged
+            if self.app.e1_chart.get("location") is None:
+                self.notify.warning(
+                    "event two : event one must be set first",
+                    source="eventdata",
+                    route=["terminal", "user"],
+                )
+                return
         datetime_name = entry.get_name()
         date_time = entry.get_text().strip()
         # we need datetime utc & for event location
@@ -371,8 +395,17 @@ class EventData:
         dt_event = None
         dt_event_str = ""
         weekdays = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]  # monday = 0
-        # datetime set by hotkey time now utc : validation not needed
+        wday = "-"
         if self.is_hotkey_now:
+            # if datetime_name == "datetime one" and self.lon is None:
+            #     self.notify.warning(
+            #         f"{datetime_name}: set location first",
+            #         source="eventdata",
+            #         route=["terminal", "user"],
+            #     )
+            #     self.is_hotkey_now = False
+            #     return
+            # datetime set by hotkey time now utc : validation not needed
             """get utc from computer time"""
             try:
                 dt_utc = datetime.now(timezone.utc).replace(microsecond=0)
@@ -400,7 +433,7 @@ class EventData:
                     h, m, s = map(int, parts[-1].strip().split(":"))
                     # convert to decimal hour
                     self.tz_offset = days * 24 + h + m / 60 + s / 3600
-                    print(f"timenow : tz_offset : {self.tz_offset}")
+                    # print(f"timenow : tz_offset : {self.tz_offset}")
                     msg = (
                         f"{datetime_name} timezone : using time now for {tz}"
                         if self.timezone

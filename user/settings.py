@@ -7,15 +7,15 @@
 # original sweph documentation, ie swephprg.pdf & swisseph.pdf at
 # https://github.com/aloistr/swisseph/tree/master/doc
 OBJECTS = {  # one-but-last = color ; last = size scale = drawing order
-    0: ("su", "sun", "sy", "surya", (0.8, 0.7, 0.0, 1), 0.88),
-    1: ("mo", "moon", "ca", "candra", (0.7, 0.7, 0.7, 1), 0.82),
-    2: ("me", "mercury", "bu", "budha", (0.2, 0.5, 0.2, 1), 0.84),
-    3: ("ve", "venus", "sk", "sukra", (0.976, 0.2588, 0.6196, 1), 0.86),
-    4: ("ma", "mars", "ma", "mangala", (0.7, 0.1, 0.1, 1), 0.9),
-    5: ("ju", "jupiter", "gu", "guru", (0.7, 0.4, 0.0, 1), 0.92),
-    6: ("sa", "saturn", "sa", "sani", (0.1176, 0.5647, 1.0, 1), 0.94),
-    7: ("ur", "uranus", "ur", "uranus", (0.4, 0.4, 0.4, 1), 0.96),
-    8: ("ne", "neptune", "ne", "neptune", (0.3, 0.3, 0.3, 1), 0.98),
+    0: ("su", "sun", "sy", "surya", (1.0, 0.898, 0.0, 1), 0.82),
+    1: ("mo", "moon", "ca", "candra", (0.95, 0.95, 0.95, 1), 0.73),
+    2: ("me", "mercury", "bu", "budha", (0.2, 0.5, 0.2, 1), 0.76),
+    3: ("ve", "venus", "sk", "sukra", (0.976, 0.2588, 0.6196, 1), 0.79),
+    4: ("ma", "mars", "ma", "mangala", (0.7, 0.1, 0.1, 1), 0.85),
+    5: ("ju", "jupiter", "gu", "guru", (0.7, 0.4, 0.0, 1), 0.88),
+    6: ("sa", "saturn", "sa", "sani", (0.1176, 0.5647, 1.0, 1), 0.91),
+    7: ("ur", "uranus", "ur", "uranus", (0.4, 0.4, 0.4, 1), 0.94),
+    8: ("ne", "neptune", "ne", "neptune", (0.2157, 0.1686, 1.0, 1), 0.97),
     9: ("pl", "pluto", "pl", "pluto", (0.1, 0.1, 0.1, 1), 1.0),
     11: ("ra", "true node", "ra", "rahu", (0.8667, 0.7529, 0.7059, 1), 0.8),
     # 14: ("ea", "earth", "ea", "earth"),ke color (0.3, 0.3, 0.3, 1)
