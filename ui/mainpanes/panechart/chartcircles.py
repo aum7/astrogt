@@ -17,6 +17,10 @@ class CircleBase:
         self.cy = cy
         self.rotation = rotation  # in radians
 
+    def draw(self, cr):
+        """subclass must override this method"""
+        raise NotImplementedError
+
     def set_custom_font(self, cr, font_size=16):
         cr.select_font_face(
             "VictorMonoLightAstro",
@@ -24,10 +28,6 @@ class CircleBase:
             cairo.FONT_WEIGHT_NORMAL,
         )
         cr.set_font_size(font_size)
-
-    def draw(self, cr):
-        """subclass must override this method"""
-        raise NotImplementedError
 
     def draw_rotated_text(self, cr, text, x, y, angle):
         _, _, tw, th, _, _ = cr.text_extents(text)
@@ -44,13 +44,17 @@ class CircleBase:
 class CircleInfo(CircleBase):
     """show event 1 info in center circle"""
 
-    def __init__(self, radius, cx, cy, event_data):
+    def __init__(self, radius, cx, cy, event_data, chart_settings, extra_info):
         super().__init__(radius, cx, cy)
         self.font_size = 18
-        self.event_data = event_data
+        self.event_data = event_data or {}
+        self.chart_settings = chart_settings or {}
+        self.extra_info = extra_info
         if not self.event_data:
             return
         # print(f"chartcircles : circleinfo : e1 data : {self.event_data}")
+        # print(f"chartcircles : circleinfo : chartsettings : {self.chart_settings}")
+        # print(f"chartcircles : circleinfo : house system : {self.house_system}")
 
     def draw(self, cr):
         """circle with info text"""
@@ -63,14 +67,29 @@ class CircleInfo(CircleBase):
         cr.stroke()
         cr.set_source_rgba(1, 1, 1, 1)
         self.set_custom_font(cr, self.font_size)
-        # event 1 info text
-        if not self.event_data:
-            return
-        info_text = (
-            f"{self.event_data.get('name', '')}"
-            f"\n{self.event_data.get('datetime', '')}"
-            f"\n{self.event_data.get('iso3', '')} | {self.event_data.get('city')}"
+        # event 1 default chart info string (format)
+        fmt_basic = self.chart_settings.get(
+            "chart info string",
+            "{name}\n{date}\n{wday} {time_short}\n{city} @ {country}\n{lat}\n{lon}",
         )
+        # print(f"chartcircles : circleinfo : ... string : {fmt_basic}")
+        fmt_extra = self.chart_settings.get(
+            "chart info string extra",
+            "{hsys} | {zod}\n{aynm}",
+            # "chart info string extra", "{hsys} | {zod}\n{aynm} | {ayvl}"
+        )
+        # print(f"chartcircles : circleinfo : ... string extra : {fmt_extra}")
+        try:
+            info_text = (
+                fmt_basic.format(**self.event_data)
+                + "\n"  # + f"{self.house_system}"
+                + fmt_extra.format(**self.extra_info)
+            )
+            print(f"chartcircles : circleinfo : infotext : {info_text}")
+        except Exception as e:
+            # fallback to default info string
+            info_text = f"{self.event_data.get('name', '')}"
+            print(f"chartcircles : circleinfo : exception reached\n\terror :\n\t{e}")
         lines = info_text.split("\n")
         line_spacing = self.font_size * 1.2
         total_height = (len(lines) - 1) * self.font_size

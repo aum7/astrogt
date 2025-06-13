@@ -7,6 +7,7 @@ gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from ui.collapsepanel import CollapsePanel
 from sweph.calculations.positions import calculate_positions
+from sweph.calculations.houses import calculate_houses
 from user.settings import (
     OBJECTS,
     HOUSE_SYSTEMS,
@@ -135,7 +136,7 @@ event 1 & 2 can have different objects"""
     ddn_housesys.set_selected(default_housesys)
     hsys, _, short_name = HOUSE_SYSTEMS[default_housesys]
     manager.app.selected_house_system = hsys
-    manager.selected_house_sys_str = short_name
+    manager.app.selected_house_sys_str = short_name
     ddn_housesys.connect("notify::selected", house_system_changed, manager)
     subpnl_housesys.add_widget(ddn_housesys)
     # --- sub-panel chart settings --------------------
@@ -688,11 +689,12 @@ def house_system_changed(dropdown, _, manager):
     # todo modify to include short name for chart info
     hsys, _, short_name = HOUSE_SYSTEMS[idx]
     manager.app.selected_house_system = hsys
-    manager.selected_house_sys_str = short_name
-    calculate_positions(event=None)
+    manager.app.selected_house_sys_str = short_name
+    # calculate_positions(event=None)
+    calculate_houses(event=None)
     manager.notify.debug(
         f"selectedhousesystem : {manager.app.selected_house_system}"
-        f"\t{manager.selected_house_sys_str}",
+        f"\t{manager.app.selected_house_sys_str}",
         source="panelsettings",
         route=["terminal"],
     )
@@ -781,15 +783,19 @@ def chart_info_string(entry, info, manager):
 
     allowed = {
         "chart info string": {
-            "{event}",
+            "{name}",
+            "{datetime}",
             "{date}",
-            "{wday}",
             "{time}",
-            "{time[:5]}",
-            "{ctry}",
+            "{time_short}",
+            "{wday}",
+            "{country}",
+            "{iso3}",
             "{city}",
+            "{location}",
             "{lat}",
             "{lon}",
+            "{timezone}",
         },
         "chart info string extra": {
             "{hsys}",
@@ -820,11 +826,11 @@ def chart_info_string(entry, info, manager):
         entry.remove_css_class("entry-warning")
     # update chart settings
     manager.app.chart_settings[info] = value
+    manager.signal._emit("settings_changed", value)
     manager.notify.success(
         f"chartinfostring : {manager.app.chart_settings[info]}",
         source="panelsettings",
-        route=["terminal", "user"],
-        timeout=4,
+        route=["none"],
     )
 
 

@@ -148,30 +148,32 @@ CHART_SETTINGS = {
     ),
     # --- event data to be presented in chart info
     # construct your own 'chart info' format
-    # allowed fields: 1: {event} name | 2: weekday {wday} | 3: event {date} |
-    # 4: {time} | 5: {city} | 6: country {ctry} | 7: {lat}itude |
-    # 8: {lon}gitude ; for short time format (no seconds) use {time[:5]}
+    # allowed fields: 1: event {name} | 2: weekday {wday} | 3: event {date} |
+    # 4: {time} | 5: {city} | 6: {country} | 7: {lat}itude |
+    # 8: {lon}gitude ; for short time format (no seconds) use {time_short}
     "chart info string": (
-        r"{event}\n{date}\n{wday} {time[:5]}\n{city} @ {ctry}\n{lat}\n{lon}",
+        r"{name}\n{date}\n{wday} {time_short}\n{city} @ {country}\n{lat}\n{lon}",
+        # r"{name}\n{date}\n{wday} {time_short}\n{city} @ {country}\n{lat}\n{lon}",
         r"""construct your own 'chart info' format : allowed fields :
-    1: {event} name | 2: weekday {wday} |
-    3: event {date} | 4: {time} |
-    5: {city} | 6: country {ctry} |
-    7: {lat}itude | 8: {lon}gitude
-for short time format (no seconds) use {time[:5]}
+    1: event {name} | 2: {datetime} | 3: {date} | 4: {time}
+    5: {time_short} (no seconds) | 6: {wday} weekday
+    7: {country} | 8: {iso3} country code | 9: {city}
+    10: {location} | 11: {lat}itude | 12: {lon}gitude
+    13: {timezone} | chars: @ | - :
 \n = new line
-example : {event}\n{date}\n{wday} {time[:5]}\n{city} @ {ctry}\n{lat}\n{lon} """,
+example : {name}\n{date}\n{wday} {time_short}\n{city} @ {country}\n{lat}\n{lon}""",
     ),
     # - data same for both charts
     # additional 'chart info' format: allowed fields: 1: house system {hsys} |
     # 2: {zod}iac | 3: ayanamsa name {aynm} | 4: ayanamsa value {ayvl}
     "chart info string extra": (
-        r"{hsys} | {zod}\n{aynm} | {ayvl}",
+        r"{hsys} | {zod}\n{aynm}",
+        # r"{hsys} | {zod}\n{aynm} | {ayvl}",
         r"""additional 'chart info' format : allowed fields :
-    1: house system {hsys} | 2: {zod}iac |
+    1: house system {hsys} | 2: {zod}iac
     3: ayanamsa name {aynm} | 4: ayanamsa value {ayvl}
-    example : {hsys} | {zod}\n{aynm} | {ayvl}
-    \n = new line""",
+    \n = new line
+    example : {hsys} | {zod}\n{aynm} | {ayvl}""",
     ),
 }
 # --- time constants ---
@@ -279,15 +281,15 @@ FILES = {
         "path to event / birth charts database folder ; inside go saved charts",
     ),
     # --- construct your own 'filename' format: allowed fields
-    # 1: {event} name | 2: event {date} | 3: {time}
+    # 1: event {name} | 2: event {date} | 3: {time}
     # separate fields with '_' underscore ; for short time format (no seconds)
-    # use {time[:5]} ; see default value as example
+    # use {time_short} ; see default value as example
     "filename\t": (
-        r"{event}_{date}_{time[:5]}",
+        r"{name}_{date}_{time_short}",
         "construct your own 'filename' format: allowed fields"
-        "\n\t1: {event} name | 2: event {date} | 3: {time}"
+        "\n\t1: event {name} | 2: event {date} | 3: {time}"
         "\nseparate fields with '_' underscore ; for short time format "
-        "(no seconds) use {time[:5]}"
-        "\nexample : {event}_{date}_{time[:5]}",
+        "(no seconds) use {time_short}"
+        "\nexample : {name}_{date}_{time_short}",
     ),
 }

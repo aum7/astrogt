@@ -27,12 +27,17 @@ class AstroChart(Gtk.Box):
         self.houses = {}
         self.ascmc = None
         self.e1_chart_info = {}
+        self.chart_settings = {}
+        # self.house_system = {}
+        # construct extra info
+        self.extra_data = {}
         # subscribe to signals
         signal = self.app.signal_manager
         signal._connect("event_changed", self.event_changed)
         signal._connect("positions_changed", self.positions_changed)
         signal._connect("houses_changed", self.houses_changed)
         signal._connect("e2_cleared", self.e2_cleared)
+        signal._connect("settings_changed", self.settings_changed)
 
     def event_changed(self, event):
         if event == "e1":
@@ -58,6 +63,7 @@ class AstroChart(Gtk.Box):
                 )
             self.houses = cusps
             self.ascmc = ascmc
+        self.extra_data["hsys"] = getattr(self.app, "selected_house_sys_str")
         self.drawing_area.queue_draw()
         # print(f"astrochart : {event} houses changed")
 
@@ -69,6 +75,11 @@ class AstroChart(Gtk.Box):
                 source="astrochart",
                 route=["terminal"],
             )
+        self.drawing_area.queue_draw()
+
+    def settings_changed(self, info):
+        print("astrochart: settings changed")
+        self.chart_settings = getattr(self.app, "chart_settings", {})
         self.drawing_area.queue_draw()
 
     def draw(self, area, cr, width, height):
@@ -86,6 +97,10 @@ class AstroChart(Gtk.Box):
             key=lambda o: o.scale,
             reverse=True,
         )
+        self.extra_data["zod"] = "sid" if self.app.is_sidereal else "tro"
+        self.extra_data["aynm"] = (
+            self.app.selected_ayanamsa if self.app.selected_ayanamsa else "-"
+        )
         # chart circles
         circle_event = CircleEvent(
             radius=base * 0.8,
@@ -97,7 +112,12 @@ class AstroChart(Gtk.Box):
         )
         circle_signs = CircleSigns(radius=base * 0.95, cx=cx, cy=cy)
         circle_info = CircleInfo(
-            radius=base * 0.5, cx=cx, cy=cy, event_data=self.e1_chart_info
+            radius=base * 0.5,
+            cx=cx,
+            cy=cy,
+            event_data=self.e1_chart_info,
+            chart_settings=self.chart_settings,
+            extra_info=self.extra_data,
         )
         # draw layers from bottom (signs) to top (info)
         circle_signs.draw(cr)

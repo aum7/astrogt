@@ -278,6 +278,10 @@ class EventData:
         # needed for datetime as local apparent time
         if lon:
             self.lon = lon
+        # split location for chart info
+        parts = location_formatted.split()
+        lat_str = " ".join(parts[:4])
+        lon_str = " ".join(parts[4:8])
         # save data by event
         if location_name == "location one":
             # grab country & city
@@ -291,6 +295,8 @@ class EventData:
             self.app.e1_chart["city"] = city
             self.app.e1_chart["iso3"] = iso3
             self.app.e1_chart["location"] = location_formatted
+            self.app.e1_chart["lat"] = lat_str
+            self.app.e1_chart["lon"] = lon_str
             self.app.e1_chart["timezone"] = timezone_
             # received data
             self.app.e1_sweph["lat"] = lat
@@ -308,6 +314,8 @@ class EventData:
             self.app.e2_chart["city"] = city
             self.app.e2_chart["iso3"] = iso3
             self.app.e2_chart["location"] = location_formatted
+            self.app.e2_chart["lat"] = lat_str
+            self.app.e2_chart["lon"] = lon_str
             self.app.e2_chart["timezone"] = timezone_
             # received data
             self.app.e2_sweph["lat"] = lat
@@ -586,13 +594,22 @@ class EventData:
         # update datetime entry
         if dt_event_str:
             entry.set_text(dt_event_str)
+        # split datetime for astro chart info
+        date, time = dt_event_str.split(" ")
+        time_short = time[:5]
         # save datetime data by event
         if datetime_name == "datetime one":
             self.app.e1_chart["datetime"] = dt_event_str
+            self.app.e1_chart["date"] = date
+            self.app.e1_chart["time"] = time
+            self.app.e1_chart["time_short"] = time_short
             self.app.e1_chart["wday"] = wday
             self.app.e1_sweph["jd_ut"] = jd_ut
         else:
             self.app.e2_chart["datetime"] = dt_event_str
+            self.app.e2_chart["date"] = date
+            self.app.e2_chart["time"] = time
+            self.app.e2_chart["time_short"] = time_short
             self.app.e2_chart["wday"] = wday
             self.app.e2_sweph["jd_ut"] = jd_ut
         self.notify.debug(

@@ -54,6 +54,7 @@ class SidepaneManager:
     def __init__(self, app=None, *args, **kwargs):
         self.app = app or Gtk.Application.get_default()
         self.notify = self.app.notify_manager
+        self.signal = self.app.signal_manager
         # initialize attributes
         self.margin_end = 7
         # intialize panels
