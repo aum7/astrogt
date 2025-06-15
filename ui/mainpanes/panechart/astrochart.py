@@ -27,9 +27,7 @@ class AstroChart(Gtk.Box):
         self.houses = {}
         self.ascmc = None
         self.e1_chart_info = {}
-        self.chart_settings = {}
-        # self.house_system = {}
-        # construct extra info
+        self.chart_settings = getattr(self.app, "chart_settings", {})
         self.extra_data = {}
         # subscribe to signals
         signal = self.app.signal_manager
@@ -63,6 +61,7 @@ class AstroChart(Gtk.Box):
                 )
             self.houses = cusps
             self.ascmc = ascmc
+        # construct extra info
         self.extra_data["hsys"] = getattr(self.app, "selected_house_sys_str")
         self.drawing_area.queue_draw()
         # print(f"astrochart : {event} houses changed")
@@ -77,8 +76,7 @@ class AstroChart(Gtk.Box):
             )
         self.drawing_area.queue_draw()
 
-    def settings_changed(self, info):
-        print("astrochart: settings changed")
+    def settings_changed(self, arg):
         self.chart_settings = getattr(self.app, "chart_settings", {})
         self.drawing_area.queue_draw()
 
@@ -87,6 +85,13 @@ class AstroChart(Gtk.Box):
         cx = width / 2
         cy = height / 2
         base = min(width, height) * 0.5
+        # code block : if fixed asc > rotate circles > asc at left
+        if self.chart_settings.get("fixed asc", True):
+            asc_angle = radians(self.ascmc[0]) if self.ascmc else 0
+            cr.save()
+            cr.translate(cx, cy)
+            cr.rotate(asc_angle)
+            cr.translate(-cx, -cy)
         # sort by scale : smaller in front of larger circles
         guests = sorted(
             [
@@ -97,9 +102,10 @@ class AstroChart(Gtk.Box):
             key=lambda o: o.scale,
             reverse=True,
         )
+        # construct extra info
         self.extra_data["zod"] = "sid" if self.app.is_sidereal else "tro"
         self.extra_data["aynm"] = (
-            self.app.selected_ayanamsa if self.app.selected_ayanamsa else "-"
+            self.app.selected_ayan_str if self.app.selected_ayan_str else "-"
         )
         # chart circles
         circle_event = CircleEvent(
@@ -109,19 +115,26 @@ class AstroChart(Gtk.Box):
             guests=guests,
             houses=self.houses if self.houses else [],
             ascmc=self.ascmc if self.ascmc else [],
+            chart_settings=self.chart_settings,
         )
         circle_signs = CircleSigns(radius=base * 0.95, cx=cx, cy=cy)
         circle_info = CircleInfo(
+            self.notify,
             radius=base * 0.5,
             cx=cx,
             cy=cy,
-            event_data=self.e1_chart_info,
             chart_settings=self.chart_settings,
+            event_data=self.e1_chart_info,
             extra_info=self.extra_data,
         )
         # draw layers from bottom (signs) to top (info)
         circle_signs.draw(cr)
         circle_event.draw(cr)
+        # restore context if chart rotation was applied
+        if self.chart_settings.get("fixed asc", False):
+            cr.restore()
+        # code block end
+        # draw info circle last > no text rotation
         circle_info.draw(cr)
 
     def create_astro_object(self, obj):

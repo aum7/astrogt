@@ -23,7 +23,6 @@ from user.settings import (
 
 def setup_settings(manager) -> CollapsePanel:
     """setup widget for settings, ie objects, sweph flags, glyphs etc"""
-    # shortich : both used interchangeably
     app = manager.app
     manager.SWEPH_FLAG_MAP = {
         "sidereal zodiac": swe.FLG_SIDEREAL,
@@ -145,9 +144,7 @@ event 1 & 2 can have different objects"""
         indent=14,
         expanded=False,
     )
-    subpnl_chart_settings.set_title_tooltip(
-        """chart rendering & info display settings"""
-    )
+    subpnl_chart_settings.set_title_tooltip("""chart drawing & info display settings""")
     # ------ sub-sub-panel : chart info -----------------
     subsubpnl_chart_info = CollapsePanel(
         title="chart info",
@@ -167,10 +164,11 @@ event 1 & 2 can have different objects"""
     manager.lbx_chart_setts_top = Gtk.ListBox()
     manager.lbx_chart_setts_top.set_selection_mode(Gtk.SelectionMode.NONE)
     app.chart_settings = {}
+    app.checkbox_chart_settings = {}
     # calculations checkboxes
     for setting in [
         "mean node",
-        "true mc & ic",
+        # "true mc & ic",
     ]:
         row = Gtk.ListBoxRow()
         default, tooltip = CHART_SETTINGS[setting]
@@ -210,7 +208,9 @@ event 1 & 2 can have different objects"""
         row.set_tooltip_text(tooltip)
         row.set_child(check)
         lbx_chart_setts_btm.append(row)
+        # store checkbox reference for later update
         app.chart_settings[setting] = default
+        app.checkbox_chart_settings[setting] = check
     # naksatras ring : connect all naksatra settings in 1 function
     row = Gtk.ListBoxRow()
     # naksatras ring checkbox
@@ -324,7 +324,6 @@ event 1 & 2 can have different objects"""
         else:
             box_chart_info.append(lbl_chart_info_common)
         box_chart_info.append(box_row)
-        # manager.lbx_chart_info.append(row)
         app.chart_settings[info] = ent_chart_info.get_text()
 
     subsubpnl_chart_info.add_widget(box_chart_info)
@@ -461,7 +460,6 @@ more info in user/settings.py > SWE_FLAG"""
         indent=14,
         expanded=False,
     )
-    # store reference
     manager.subpnl_ayanamsa.set_title_tooltip(
         "select 'sidereal zodiac' in settings / sweph flags to enable ayanamsa selection"
     )
@@ -491,6 +489,7 @@ more info in user/settings.py > SWE_FLAG"""
     ddn_ayanamsa.add_css_class("dropdown")
     ddn_ayanamsa.set_selected(0)
     app.selected_ayanamsa = list(AYANAMSA.keys())[0]
+    app.selected_ayan_str = list(AYANAMSA.values())[0][1]
 
     def ayanamsa_notify_cb(dropdown, param, manager):
         idx = dropdown.get_selected()
@@ -703,22 +702,30 @@ def house_system_changed(dropdown, _, manager):
 def chart_settings_toggled(button, setting, manager):
     """chart settings panel : update chart settings"""
     manager.app.chart_settings[setting] = button.get_active()
-    if setting in ["mean node", "true mc & ic"]:
-        manager.notify.debug(
-            f"chartsettings : {setting} toggled ({button.get_active()}) : calling calculatepositions ...",
-            source="panelsettings",
-            route=["terminal"],
-        )
+    if setting == "mean node":  # if setting in ["mean node", "true mc & ic"]:
         calculate_positions(event=None)
     # note : naksatras > naksatras_ring ; harmonics > harmonics_ring
-    if setting in ["enable glyphs", "fixed asc", "harmonics ring"]:
-        # todo update astro chart drawing
-        # pass
-        manager.notify.debug(
-            f"chartsettings : {setting} toggled ({button.get_active()}) : calling chart drawing (todo) ...",
-            source="panelsettings",
-            route=["terminal"],
-        )
+    if setting in ["enable glyphs", "fixed asc"]:
+        # update astro chart drawing
+        manager.signal._emit("settings_changed", None)
+        # todo by setting
+    manager.notify.debug(
+        f"chartsettingstoggled : {setting} toggled ({button.get_active()})",
+        source="panelsettings",
+        route=["none"],
+    )
+
+
+def update_chart_setting_checkbox(manager, setting, new_value):
+    """update checkbox for chart setting on hotkey"""
+    app = manager.app
+    if (
+        hasattr(app, "checkbox_chart_settings")
+        and setting in app.checkbox_chart_settings
+    ):
+        check = app.checkbox_chart_settings[setting]
+        if check.get_active() != new_value:
+            check.set_active(new_value)
 
 
 def naksatras_ring(button, key, manager):
@@ -801,7 +808,7 @@ def chart_info_string(entry, info, manager):
             "{hsys}",
             "{zod}",
             "{aynm}",
-            "{ayvl}",
+            # "{ayvl}",
         },
         "chars": "\\n @|-:",
     }
@@ -913,6 +920,7 @@ def ayanamsa_changed(dropdown, _, manager):
     """ayanamsa panel : select ayanamsa for sidereal zodiac"""
     idx = dropdown.get_selected()
     manager.app.selected_ayanamsa = list(AYANAMSA.keys())[idx]
+    manager.app.selected_ayan_str = list(AYANAMSA.values())[idx][1]
     set_ayanamsa(manager)
     # update positions
     calculate_positions(event=None)

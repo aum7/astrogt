@@ -16,7 +16,7 @@ OBJECTS = {  # one-but-last = color ; last = size scale = drawing order
     6: ("sa", "saturn", "sa", "sani", (0.1176, 0.5647, 1.0, 1), 0.91),
     7: ("ur", "uranus", "ur", "uranus", (0.4, 0.4, 0.4, 1), 0.94),
     8: ("ne", "neptune", "ne", "neptune", (0.2157, 0.1686, 1.0, 1), 0.97),
-    9: ("pl", "pluto", "pl", "pluto", (0.1, 0.1, 0.1, 1), 1.0),
+    9: ("pl", "pluto", "pl", "pluto", (0.2784, 0.2784, 0.2784, 1), 1.0),
     11: ("ra", "true node", "ra", "rahu", (0.8667, 0.7529, 0.7059, 1), 0.8),
     # 14: ("ea", "earth", "ea", "earth"),ke color (0.3, 0.3, 0.3, 1)
 }
@@ -80,6 +80,7 @@ if checked also select ayanamsa below""",
 # add or remove houses as you please
 # https://astrorigin.com/pyswisseph/sphinx/programmers_manual/house_cusp_calculation.html?highlight=houses#swisseph.houses
 # below are most popular 7 out of 24+; arrange line up or down as you please
+# top line is default choice
 HOUSE_SYSTEMS = [
     ("O", "prp : porphyry", "prp"),
     ("E", "eqa : equal asc", "eqa"),
@@ -95,10 +96,10 @@ CHART_SETTINGS = {
     "enable glyphs": (True, "toggle glyphs visibility"),
     # --- show true midheaven & imum coeli when equal or whole house system is
     # selected : true mc / ic can differ by upto 2 signs in those cases
-    "true mc & ic": (
-        True,
-        "show true mc & ic when equal or whole house system is selected",
-    ),
+    # "true mc & ic": (
+    #     True,
+    #     "show true mc & ic when equal or whole house system is selected",
+    # ),
     # --- rotate whole chart so ascendant is fixed at left (east)
     # else aries (mesha) 0° is fixed at left
     "fixed asc": (
@@ -152,7 +153,7 @@ CHART_SETTINGS = {
     # 4: {time} | 5: {city} | 6: {country} | 7: {lat}itude |
     # 8: {lon}gitude ; for short time format (no seconds) use {time_short}
     "chart info string": (
-        r"{name}\n{date}\n{wday} {time_short}\n{city} @ {country}\n{lat}\n{lon}",
+        r"{name}\n{date}\n{wday} {time_short}\n{city} @ {iso3}\n{lat}\n{lon}",
         # r"{name}\n{date}\n{wday} {time_short}\n{city} @ {country}\n{lat}\n{lon}",
         r"""construct your own 'chart info' format : allowed fields :
     1: event {name} | 2: {datetime} | 3: {date} | 4: {time}
@@ -170,10 +171,12 @@ example : {name}\n{date}\n{wday} {time_short}\n{city} @ {country}\n{lat}\n{lon}"
         r"{hsys} | {zod}\n{aynm}",
         # r"{hsys} | {zod}\n{aynm} | {ayvl}",
         r"""additional 'chart info' format : allowed fields :
-    1: house system {hsys} | 2: {zod}iac
-    3: ayanamsa name {aynm} | 4: ayanamsa value {ayvl}
-    \n = new line
-    example : {hsys} | {zod}\n{aynm} | {ayvl}""",
+    1: {hsys} house system
+    2: {zod}iac
+    3: {aynm} ayanamsa name
+    chars: @ | - :
+\n = new line
+example : {hsys} | {zod}\n{aynm} | {ayvl}""",
     ),
 }
 # --- time constants ---
@@ -196,6 +199,7 @@ LUNAR_MONTH = {
 # !!! UNCOMMENT ANY AYANAMSA THAT YOU NEED !!!
 # uncomment > delete '# ', indent properly, and save file
 # also arrange order as you please > move line up / down & save file
+# top line is default choice
 AYANAMSA = {
     17: ("Galact. Center 0 Sag", "glc (17)"),  # SIDM_GALCENT_0SAG
     45: ("Krishnamurti-Senthilathiban", "kms (45)"),  # SIDM_KRISHNAMURTI_VP291

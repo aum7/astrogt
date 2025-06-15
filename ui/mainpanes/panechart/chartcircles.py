@@ -11,11 +11,10 @@ from math import pi, cos, sin, radians
 class CircleBase:
     """base class to handle common attributes"""
 
-    def __init__(self, radius, cx, cy, rotation=0):
+    def __init__(self, radius, cx, cy):
         self.radius = radius
         self.cx = cx
         self.cy = cy
-        self.rotation = rotation  # in radians
 
     def draw(self, cr):
         """subclass must override this method"""
@@ -44,14 +43,13 @@ class CircleBase:
 class CircleInfo(CircleBase):
     """show event 1 info in center circle"""
 
-    def __init__(self, radius, cx, cy, event_data, chart_settings, extra_info):
+    def __init__(self, notify, radius, cx, cy, chart_settings, event_data, extra_info):
         super().__init__(radius, cx, cy)
+        self.notify = notify
         self.font_size = 18
         self.event_data = event_data or {}
         self.chart_settings = chart_settings or {}
         self.extra_info = extra_info
-        if not self.event_data:
-            return
         # print(f"chartcircles : circleinfo : e1 data : {self.event_data}")
         # print(f"chartcircles : circleinfo : chartsettings : {self.chart_settings}")
         # print(f"chartcircles : circleinfo : house system : {self.house_system}")
@@ -66,30 +64,42 @@ class CircleInfo(CircleBase):
         cr.set_line_width(1)
         cr.stroke()
         cr.set_source_rgba(1, 1, 1, 1)
+        # avoid terminal error if no data
+        if not self.event_data:
+            return
         self.set_custom_font(cr, self.font_size)
         # event 1 default chart info string (format)
         fmt_basic = self.chart_settings.get(
             "chart info string",
             "{name}\n{date}\n{wday} {time_short}\n{city} @ {country}\n{lat}\n{lon}",
         )
-        # print(f"chartcircles : circleinfo : ... string : {fmt_basic}")
         fmt_extra = self.chart_settings.get(
             "chart info string extra",
             "{hsys} | {zod}\n{aynm}",
             # "chart info string extra", "{hsys} | {zod}\n{aynm} | {ayvl}"
         )
-        # print(f"chartcircles : circleinfo : ... string extra : {fmt_extra}")
+        # convert raw newline into actual newline
+        fmt_basic = fmt_basic.replace(r"\n", "\n")
+        fmt_extra = fmt_extra.replace(r"\n", "\n")
         try:
             info_text = (
                 fmt_basic.format(**self.event_data)
-                + "\n"  # + f"{self.house_system}"
+                + "\n"
                 + fmt_extra.format(**self.extra_info)
             )
-            print(f"chartcircles : circleinfo : infotext : {info_text}")
+            self.notify.debug(
+                f"circleinfo : infotext : {info_text}",
+                source="chartcircles",
+                route=["none"],
+            )
         except Exception as e:
             # fallback to default info string
             info_text = f"{self.event_data.get('name', '')}"
-            print(f"chartcircles : circleinfo : exception reached\n\terror :\n\t{e}")
+            self.notify.error(
+                f"circleinfo : error :\n\t{e}",
+                source="chartcircles",
+                route=["terminal"],
+            )
         lines = info_text.split("\n")
         line_spacing = self.font_size * 1.2
         total_height = (len(lines) - 1) * self.font_size
@@ -107,20 +117,44 @@ class CircleInfo(CircleBase):
 class CircleEvent(CircleBase):
     """objects / planets & house cusps"""
 
-    def __init__(self, radius, cx, cy, guests, houses, ascmc):
+    def __init__(self, radius, cx, cy, guests, houses, ascmc, chart_settings):
         super().__init__(radius, cx, cy)
         self.guests = guests
         self.houses = houses
         self.ascmc = ascmc
+        self.chart_settings = chart_settings
         # radius factor for middle circle (0° latitude )
         self.middle_factor = 0.82
         # inner circle factor (min latitude value)
         self.inner_factor = 2 * self.middle_factor - 1.0
-        if not self.guests or not self.houses or not self.ascmc:
-            return
         # print(f"chartcircles : circleevent : guests : {[g.data for g in guests]}")
         # print(f"chartcircles : circleevent : self.houses : {self.houses}")
         # print(f"chartcircles : circleevent : ascmc : {ascmc}")
+        # unicode glyphs from victormonolightastro.ttf font
+        self.glyphs = {
+            "su": "\u0180",
+            "mo": "\u0181",
+            "me": "\u0182",
+            "ve": "\u0183",
+            "ma": "\u0184",
+            "ju": "\u0185",
+            "sa": "\u0186",
+            "ur": "\u0187",
+            "ne": "\u0188",
+            "pl": "\u0189",
+            "ra": "\u018e"
+            if not self.chart_settings.get("mean node", False)
+            else "\u018c",  # rahu true else mean
+        }
+        self.glyphs_extra = {
+            "fr1": "\u018b",  # fortuna
+            "fr2": "\u01e2",  # fortuna alter
+            "syz": "\u01d8",  # syzygy / prenatal lunation : jin-jang
+            "syn": "\u01ec",  # syzygy : conjunction : new moon
+            "syf": "\u01ed",  # syzygy : opposition : full moon
+        }
+        if not self.guests or not self.houses or not self.ascmc:
+            return
 
     def draw(self, cr):
         # main circle of event 1
@@ -147,74 +181,135 @@ class CircleEvent(CircleBase):
             cr.line_to(x2, y2)
             cr.set_source_rgba(1, 1, 1, 0.3)
             cr.stroke()
+
         # ascendant & midheaven
+        def draw_triangle(cr, size):
+            # triangle shape: ascendant/descendant marker
+            cr.move_to(0, size)
+            cr.line_to(size, -size / 2)
+            cr.line_to(-size, -size / 2)
+            cr.close_path()
+            cr.fill()
+
+        def draw_diamond(cr, size):
+            # diamond shape: midheaven/nadir marker
+            cr.move_to(0, -size)
+            cr.line_to(size, 0)
+            cr.line_to(0, size)
+            cr.line_to(-size, 0)
+            cr.close_path()
+            cr.fill()
+
+        def draw_marker(cr, cx, cy, angle, size, color, shape_func):
+            # generic marker-drawing helper
+            cr.save()
+            cr.set_source_rgba(*color)
+            cr.translate(cx, cy)
+            cr.rotate(angle + pi / 2)
+            shape_func(cr, size)
+            cr.restore()
+
         if self.ascmc:
             radius_factor = 1.0
             ascendant = self.ascmc[0]
             midheaven = self.ascmc[1]
             marker_size = self.radius * 0.03
-            # ascendant
+            # compute positions based on angle transformations
             asc_angle = pi - radians(ascendant)
             asc_x = self.cx + self.radius * radius_factor * cos(asc_angle)
             asc_y = self.cy + self.radius * radius_factor * sin(asc_angle)
-            # marker for ascendant : triangle
-            cr.save()
-            cr.set_source_rgba(1, 1, 1, 1)
-            cr.translate(asc_x, asc_y)
-            cr.rotate(asc_angle + pi / 2)
-            cr.move_to(0, marker_size)
-            cr.line_to(marker_size, -marker_size / 2)
-            cr.line_to(-marker_size, -marker_size / 2)
-            cr.close_path()
-            cr.fill()
-            cr.restore()
-            # descendant
+            # draw ascendant marker (white triangle)
+            draw_marker(
+                cr, asc_x, asc_y, asc_angle, marker_size, (1, 1, 1, 1), draw_triangle
+            )
             dsc_angle = asc_angle + pi
             dsc_x = self.cx + self.radius * radius_factor * cos(dsc_angle)
             dsc_y = self.cy + self.radius * radius_factor * sin(dsc_angle)
-            # marker for descendant : triangle black
-            cr.save()
-            cr.set_source_rgba(0, 0, 0, 1)
-            cr.translate(dsc_x, dsc_y)
-            cr.rotate(dsc_angle + pi / 2)
-            cr.move_to(0, marker_size)
-            cr.line_to(marker_size, -marker_size / 2)
-            cr.line_to(-marker_size, -marker_size / 2)
-            cr.close_path()
-            cr.fill()
-            cr.restore()
-            # midheaven (zenith)
+            # draw descendant marker (black triangle)
+            draw_marker(
+                cr, dsc_x, dsc_y, dsc_angle, marker_size, (0, 0, 0, 1), draw_triangle
+            )
             mc_angle = pi - radians(midheaven)
             mc_x = self.cx + self.radius * radius_factor * cos(mc_angle)
             mc_y = self.cy + self.radius * radius_factor * sin(mc_angle)
-            # marker for midheaven : rotated square (diamond)
-            cr.save()
-            cr.set_source_rgba(1, 1, 1, 1)
-            cr.translate(mc_x, mc_y)
-            cr.rotate(mc_angle + pi / 2)
-            cr.move_to(0, -marker_size)
-            cr.line_to(marker_size, 0)
-            cr.line_to(0, marker_size)
-            cr.line_to(-marker_size, 0)
-            cr.close_path()
-            cr.fill()
-            cr.restore()
-            # nadir
+            # draw midheaven marker (white diamond)
+            draw_marker(
+                cr, mc_x, mc_y, mc_angle, marker_size, (1, 1, 1, 1), draw_diamond
+            )
             ic_angle = mc_angle + pi
             ic_x = self.cx + self.radius * radius_factor * cos(ic_angle)
             ic_y = self.cy + self.radius * radius_factor * sin(ic_angle)
-            # marker for nadir : rotated square black
-            cr.save()
-            cr.set_source_rgba(0, 0, 0, 1)
-            cr.translate(ic_x, ic_y)
-            cr.rotate(ic_angle + pi / 2)
-            cr.move_to(0, -marker_size)
-            cr.line_to(marker_size, 0)
-            cr.line_to(0, marker_size)
-            cr.line_to(-marker_size, 0)
-            cr.close_path()
-            cr.fill()
-            cr.restore()
+            # draw nadir marker (black diamond)
+            draw_marker(
+                cr, ic_x, ic_y, ic_angle, marker_size, (0, 0, 0, 1), draw_diamond
+            )
+        # if self.ascmc:
+        #     radius_factor = 1.0
+        #     ascendant = self.ascmc[0]
+        #     midheaven = self.ascmc[1]
+        #     marker_size = self.radius * 0.03
+        #     # ascendant
+        #     asc_angle = pi - radians(ascendant)
+        #     asc_x = self.cx + self.radius * radius_factor * cos(asc_angle)
+        #     asc_y = self.cy + self.radius * radius_factor * sin(asc_angle)
+        #     # marker for ascendant : triangle
+        #     cr.save()
+        #     cr.set_source_rgba(1, 1, 1, 1)
+        #     cr.translate(asc_x, asc_y)
+        #     cr.rotate(asc_angle + pi / 2)
+        #     cr.move_to(0, marker_size)
+        #     cr.line_to(marker_size, -marker_size / 2)
+        #     cr.line_to(-marker_size, -marker_size / 2)
+        #     cr.close_path()
+        #     cr.fill()
+        #     cr.restore()
+        #     # descendant
+        #     dsc_angle = asc_angle + pi
+        #     dsc_x = self.cx + self.radius * radius_factor * cos(dsc_angle)
+        #     dsc_y = self.cy + self.radius * radius_factor * sin(dsc_angle)
+        #     # marker for descendant : triangle black
+        #     cr.save()
+        #     cr.set_source_rgba(0, 0, 0, 1)
+        #     cr.translate(dsc_x, dsc_y)
+        #     cr.rotate(dsc_angle + pi / 2)
+        #     cr.move_to(0, marker_size)
+        #     cr.line_to(marker_size, -marker_size / 2)
+        #     cr.line_to(-marker_size, -marker_size / 2)
+        #     cr.close_path()
+        #     cr.fill()
+        #     cr.restore()
+        #     # midheaven (zenith)
+        #     mc_angle = pi - radians(midheaven)
+        #     mc_x = self.cx + self.radius * radius_factor * cos(mc_angle)
+        #     mc_y = self.cy + self.radius * radius_factor * sin(mc_angle)
+        #     # marker for midheaven : rotated square (diamond)
+        #     cr.save()
+        #     cr.set_source_rgba(1, 1, 1, 1)
+        #     cr.translate(mc_x, mc_y)
+        #     cr.rotate(mc_angle + pi / 2)
+        #     cr.move_to(0, -marker_size)
+        #     cr.line_to(marker_size, 0)
+        #     cr.line_to(0, marker_size)
+        #     cr.line_to(-marker_size, 0)
+        #     cr.close_path()
+        #     cr.fill()
+        #     cr.restore()
+        #     # nadir
+        #     ic_angle = mc_angle + pi
+        #     ic_x = self.cx + self.radius * radius_factor * cos(ic_angle)
+        #     ic_y = self.cy + self.radius * radius_factor * sin(ic_angle)
+        #     # marker for nadir : rotated square black
+        #     cr.save()
+        #     cr.set_source_rgba(0, 0, 0, 1)
+        #     cr.translate(ic_x, ic_y)
+        #     cr.rotate(ic_angle + pi / 2)
+        #     cr.move_to(0, -marker_size)
+        #     cr.line_to(marker_size, 0)
+        #     cr.line_to(0, marker_size)
+        #     cr.line_to(-marker_size, 0)
+        #     cr.close_path()
+        #     cr.fill()
+        #     cr.restore()
         # guests with adjusted radius based on latitude
         for guest in self.guests:
             lat = guest.data.get("lat", 0)
@@ -247,6 +342,37 @@ class CircleEvent(CircleBase):
             # compute object drawing radius
             obj_radius = self.radius * factor
             guest.draw(cr, self.cx, self.cy, obj_radius)
+            # if 'enable glyphs' > draw glyphs
+            if self.chart_settings.get("enable glyphs", True):
+                glyph = self.glyphs.get(name, "")
+                # glyph_radius = self.radius
+                if glyph:
+                    angle = pi - radians(guest.data.get("lon", 0))
+                    x = self.cx + obj_radius * cos(angle)
+                    y = self.cy + obj_radius * sin(angle)
+                    # x = self.cx + glyph_radius * cos(angle)
+                    # y = self.cy + glyph_radius * sin(angle)
+                    cr.save()
+                    if self.chart_settings.get("fixed asc", False) and self.ascmc:
+                        cr.translate(x, y)
+                        cr.rotate(-radians(self.ascmc[0]))
+                        te = cr.text_extents(glyph)
+                        tx = -(te.width / 2 + te.x_bearing)
+                        ty = -(te.height / 2 + te.y_bearing)
+                        cr.set_source_rgba(0, 0, 0, 1)
+                        cr.move_to(tx, ty)
+                        cr.show_text(glyph)
+                        cr.new_path()
+                    else:
+                        te = cr.text_extents(glyph)
+                        tx = x - (te.width / 2 + te.x_bearing)
+                        ty = y - (te.height / 2 + te.y_bearing)
+                        cr.set_source_rgba(0, 0, 0, 1)
+                        # cr.set_source_rgba(1, 1, 1, 1)
+                        cr.move_to(tx, ty)
+                        cr.show_text(glyph)
+                        cr.new_path()
+                    cr.restore()
 
 
 class CircleSigns(CircleBase):

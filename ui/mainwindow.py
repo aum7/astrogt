@@ -7,6 +7,7 @@ from gi.repository import Gtk  # type: ignore
 from typing import Any, Optional
 from .contextmanager import ContextManager
 from .sidepane.sidepane import SidepaneManager
+from .sidepane.panelsettings import update_chart_setting_checkbox
 from .uisetup import UISetup
 from .hotkeymanager import HotkeyManager
 from ui.helpers import _event_selection
@@ -97,6 +98,26 @@ class MainWindow(
                 y,
                 "event one" if self.app.selected_event == "event two" else "event two",
             ),
+        )
+        self._hotkeys.register_hotkey(
+            "g", lambda: self.toggle_chart_setting("enable glyphs")
+        )
+        self._hotkeys.register_hotkey(
+            "a", lambda: self.toggle_chart_setting("fixed asc")
+        )
+
+    def toggle_chart_setting(self, setting):
+        """hotkey callback to toggle chart setting"""
+        current_val = self.app.chart_settings.get(setting, False)
+        new_val = not current_val
+        self.app.chart_settings[setting] = new_val
+        # update checkbox
+        update_chart_setting_checkbox(self, setting, new_val)
+        self.app.signal_manager._emit("settings_changed", None)
+        self.notify.debug(
+            f"toggled {setting} : {new_val}",
+            source="mainwindow",
+            route=["none"],
         )
 
     # hotkey action functions
