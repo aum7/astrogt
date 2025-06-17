@@ -44,7 +44,10 @@ def setup_settings(manager) -> CollapsePanel:
     app.sweph_flag = sum(manager.SWEPH_FLAG_MAP[k] for k, v in SWE_FLAG.items() if v[0])
     app.is_sidereal = "sidereal zodiac" in app.selected_flags
     # main panel for settings
-    clp_settings = CollapsePanel(title="settings", expanded=False)
+    clp_settings = CollapsePanel(
+        title="settings",
+        expanded=True,  # todo close panel
+    )
     clp_settings.set_margin_end(manager.margin_end)
     clp_settings.set_title_tooltip("""sweph & application & chart etc settings""")
     # main box for settings
@@ -142,7 +145,7 @@ event 1 & 2 can have different objects"""
     subpnl_chart_settings = CollapsePanel(
         title="chart settings",
         indent=14,
-        expanded=False,
+        expanded=True,  # todo close panel
     )
     subpnl_chart_settings.set_title_tooltip("""chart drawing & info display settings""")
     # ------ sub-sub-panel : chart info -----------------
@@ -704,7 +707,6 @@ def chart_settings_toggled(button, setting, manager):
     manager.app.chart_settings[setting] = button.get_active()
     if setting == "mean node":  # if setting in ["mean node", "true mc & ic"]:
         calculate_positions(event=None)
-    # note : naksatras > naksatras_ring ; harmonics > harmonics_ring
     if setting in ["enable glyphs", "fixed asc"]:
         # update astro chart drawing
         manager.signal._emit("settings_changed", None)
@@ -736,7 +738,7 @@ def naksatras_ring(button, key, manager):
         value = int(manager.ent_1st_nak.get_text())
     except ValueError:
         manager.notify.warning(
-            "set naksatra 1 to 27 / 28",
+            "set 1st naksatra to 1",
             source="panelsettings",
             route=["terminal", "user"],
         )
@@ -751,32 +753,37 @@ def naksatras_ring(button, key, manager):
     manager.app.chart_settings["naksatras ring"] = val_ring
     manager.app.chart_settings["28 naksatras"] = val_28
     manager.app.chart_settings["1st naksatra"] = val_1st
-    # todo update astro chart drawings
+    # update astro chart drawings
+    manager.signal._emit("settings_changed", None)
     manager.notify.debug(
-        f"naksatrasring : {key} | ring : {val_ring} | 28 : {val_28} | naks : {manager.naks_range} | 1st : {val_1st}",
+        f"naksatrasring : ring : {val_ring} | 28 : {val_28} | 1st : {val_1st}",
         source="panelsettings",
         route=["terminal"],
     )
 
 
 def harmonics_ring(entry, manager):
-    """chart settings panel : harmonics ring : 0, 1, 7, 9, 11 harmonics : add if needed - also add calculations"""
+    """chart settings panel : harmonics ring : None, 1, 7, 9, 11 harmonics : add if needed - also add calculations"""
     text = entry.get_text().strip()
-    nums = text.split()
-    valid_nums = {0, 1, 7, 9, 11}
-    if (
-        not nums
-        or not all(n.isdigit() and int(n) in valid_nums for n in nums)
-        or not (1 <= len(nums) <= 2)
-    ):
-        # invalid input
-        entry.add_css_class("entry-warning")
-        entry.set_text(
-            " ".join(str(x) for x in manager.app.chart_settings["harmonics ring"])
-        )
-    else:
+    if text == "":
+        manager.app.chart_settings["harmonics ring"] = ""
         entry.remove_css_class("entry-warning")
-        manager.app.chart_settings["harmonics ring"] = text
+    else:
+        nums = text.split()
+        valid_nums = {1, 7, 9, 11}
+        if (
+            not nums
+            or not all(n.isdigit() and int(n) in valid_nums for n in nums)
+            or not (1 <= len(nums) <= 2)
+        ):
+            # invalid input
+            entry.add_css_class("entry-warning")
+            entry.set_text(
+                " ".join(str(x) for x in manager.app.chart_settings["harmonics ring"])
+            )
+        else:
+            entry.remove_css_class("entry-warning")
+            manager.app.chart_settings["harmonics ring"] = text
     manager.notify.debug(
         f"harmonicsring : {manager.app.chart_settings['harmonics ring']}",
         source="panelsettings",

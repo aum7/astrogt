@@ -4,7 +4,13 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
-from ui.mainpanes.panechart.chartcircles import CircleEvent, CircleSigns, CircleInfo
+from ui.mainpanes.panechart.chartcircles import (
+    CircleInfo,
+    CircleEvent,
+    CircleSigns,
+    CircleNaksatras,
+    CircleHarmonics,
+)
 from user.settings import OBJECTS
 from math import pi, cos, sin, radians
 
@@ -28,7 +34,7 @@ class AstroChart(Gtk.Box):
         self.ascmc = None
         self.e1_chart_info = {}
         self.chart_settings = getattr(self.app, "chart_settings", {})
-        self.extra_data = {}
+        self.extra_info = {}
         # subscribe to signals
         signal = self.app.signal_manager
         signal._connect("event_changed", self.event_changed)
@@ -62,7 +68,7 @@ class AstroChart(Gtk.Box):
             self.houses = cusps
             self.ascmc = ascmc
         # construct extra info
-        self.extra_data["hsys"] = getattr(self.app, "selected_house_sys_str")
+        self.extra_info["hsys"] = getattr(self.app, "selected_house_sys_str")
         self.drawing_area.queue_draw()
         # print(f"astrochart : {event} houses changed")
 
@@ -84,14 +90,9 @@ class AstroChart(Gtk.Box):
         # get center and base radius
         cx = width / 2
         cy = height / 2
+        # size of application pane(s)
         base = min(width, height) * 0.5
-        # code block : if fixed asc > rotate circles > asc at left
-        if self.chart_settings.get("fixed asc", True):
-            asc_angle = radians(self.ascmc[0]) if self.ascmc else 0
-            cr.save()
-            cr.translate(cx, cy)
-            cr.rotate(asc_angle)
-            cr.translate(-cx, -cy)
+        font_scale = base / 300.0
         # sort by scale : smaller in front of larger circles
         guests = sorted(
             [
@@ -103,13 +104,60 @@ class AstroChart(Gtk.Box):
             reverse=True,
         )
         # construct extra info
-        self.extra_data["zod"] = "sid" if self.app.is_sidereal else "tro"
-        self.extra_data["aynm"] = (
+        self.extra_info["zod"] = "sid" if self.app.is_sidereal else "tro"
+        self.extra_info["aynm"] = (
             self.app.selected_ayan_str if self.app.selected_ayan_str else "-"
         )
+        max_radius = base * 0.95
+        if (
+            self.chart_settings.get("naksatras ring", False)
+            or self.chart_settings.get("harmonics ring", 0).strip()
+        ):
+            mandatory_factor = 0.8
+        else:
+            mandatory_factor = max_radius
+        # rotate block : if fixed asc > rotate circles > asc at left
+        if self.chart_settings.get("fixed asc", False) and self.ascmc:
+            asc_angle = radians(self.ascmc[0])
+            cr.save()
+            cr.translate(cx, cy)
+            cr.rotate(asc_angle)
+            cr.translate(-cx, -cy)
+        # --- optional rings : harmonics
+        if self.chart_settings.get("harmonics ring", "").strip():
+            try:
+                harmonics = self.chart_settings.get("harmonics ring", "").split()
+                divisions = [int(x) for x in harmonics if int(x) in {None, 1, 7, 9, 11}]
+            except Exception:
+                divisions = []
+            if divisions:
+                circle_harmonics = CircleHarmonics(
+                    self.notify,
+                    radius=max_radius,
+                    cx=cx,
+                    cy=cy,
+                    divisions=divisions,
+                    font_size=int(14 * font_scale),
+                )
+                circle_harmonics.draw(cr)
+        # naksatras ring
+        if self.chart_settings.get("naksatras ring", False):
+            naks_num = 28 if self.chart_settings.get("28 naksatras", False) else 27
+            first_nak = int(self.chart_settings.get("1st naksatra", 1))
+            circle_naksatras = CircleNaksatras(
+                radius=max_radius,
+                cx=cx,
+                cy=cy,
+                naks_num=naks_num,
+                first_nak=first_nak,
+                font_size=int(14 * font_scale),
+            )
+        circle_naksatras.draw(cr)
+        # --- optional ring end ---
+        # --- mandatory circles
         # chart circles
         circle_event = CircleEvent(
-            radius=base * 0.8,
+            radius=mandatory_factor,
             cx=cx,
             cy=cy,
             guests=guests,
@@ -117,23 +165,23 @@ class AstroChart(Gtk.Box):
             ascmc=self.ascmc if self.ascmc else [],
             chart_settings=self.chart_settings,
         )
-        circle_signs = CircleSigns(radius=base * 0.95, cx=cx, cy=cy)
+        circle_signs = CircleSigns(radius=base * mandatory_factor * 0.84, cx=cx, cy=cy)
         circle_info = CircleInfo(
             self.notify,
-            radius=base * 0.5,
+            radius=base * mandatory_factor * 0.62,
             cx=cx,
             cy=cy,
             chart_settings=self.chart_settings,
             event_data=self.e1_chart_info,
-            extra_info=self.extra_data,
+            extra_info=self.extra_info,
         )
         # draw layers from bottom (signs) to top (info)
         circle_signs.draw(cr)
         circle_event.draw(cr)
         # restore context if chart rotation was applied
-        if self.chart_settings.get("fixed asc", False):
+        if self.chart_settings.get("fixed asc", False) and self.ascmc:
             cr.restore()
-        # code block end
+        # rotate block end
         # draw info circle last > no text rotation
         circle_info.draw(cr)
 

@@ -144,8 +144,8 @@ CHART_SETTINGS = {
     # add them if you need them | 2 rings are possible
     # !!! those are simple divisions, similar but NOT all equal to varga
     "harmonics ring": (
-        (0),
-        "harmonics ring\n0 : do NOT show | 1 : egypt. terms (bounds)\n7, 9, 11 : simple harmonics *similar* to varga\n2 rings possible ie [1 9] will show terms & navamsa",
+        "9",
+        "harmonics ring\nempty : do NOT show | 1 : egypt. terms (bounds)\n7, 9, 11 : simple harmonics *similar* to varga\n2 rings possible ie [1 9] will show terms & navamsa",
     ),
     # --- event data to be presented in chart info
     # construct your own 'chart info' format

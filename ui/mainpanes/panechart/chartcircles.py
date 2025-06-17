@@ -40,6 +40,7 @@ class CircleBase:
         cr.restore()
 
 
+# circles in order from central to outer-most
 class CircleInfo(CircleBase):
     """show event 1 info in center circle"""
 
@@ -424,6 +425,81 @@ class CircleSigns(CircleBase):
             x = self.cx + self.radius * 0.92 * cos(angle)
             y = self.cy + self.radius * 0.92 * sin(angle)
             self.draw_rotated_text(cr, glyph, x, y, angle)
+
+
+class CircleNaksatras(CircleBase):
+    """draw 27 or 28 naksatras ring"""
+
+    def __init__(self, radius, cx, cy, naks_num, first_nak, font_size):
+        super().__init__(radius, cx, cy)
+        self.naks_num = naks_num
+        self.first_nak = first_nak
+        self.font_size = font_size
+
+    def draw(self, cr):
+        """draw outer circle"""
+        cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
+        cr.set_source_rgba(0.2, 0.2, 0.2, 0.3)
+        cr.stroke_preserve()
+        cr.set_source_rgba(1, 1, 1, 1)
+        cr.set_line_width(1)
+        cr.stroke()
+        # divide circle into segments
+        seg_angle = 2 * pi / self.naks_num
+        for i in range(self.naks_num):
+            angle = pi - (i * seg_angle)
+            x = self.cx + self.radius * cos(angle)
+            y = self.cy + self.radius * sin(angle)
+            cr.move_to(self.cx, self.cy)
+            cr.line_to(x, y)
+            cr.stroke()
+        # labels
+        self.set_custom_font(cr, self.font_size)
+        for i in range(self.naks_num):
+            angle = pi - ((i + 0.5) * seg_angle)
+            label = str((self.first_nak + i - 1) % self.naks_num + 1)
+            te = cr.text_extents(label)
+            x = self.cx + (self.radius * 0.85) * cos(angle) - te.width / 2
+            y = self.cy + (self.radius * 0.85) * sin(angle) + te.height / 2
+            cr.move_to(x, y)
+            cr.show_text(label)
+            cr.new_path()
+
+
+class CircleHarmonics(CircleBase):
+    """draw harmonics / divisions ring"""
+
+    def __init__(self, notify, radius, cx, cy, divisions, font_size=14):
+        super().__init__(radius, cx, cy)
+        self.notify = notify
+        self.divisions = divisions
+        self.font_size = font_size
+
+    def draw(self, cr):
+        cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
+        cr.set_source_rgba(0.3, 0.3, 0.5, 0.3)
+        cr.stroke_preserve()
+        cr.set_source_rgba(1, 1, 1, 1)
+        cr.stroke()
+        # draw divisions for selected harmonic
+        for d in self.divisions:
+            if d == 0:
+                self.notify.info(
+                    "division 0 : nothing to draw; skipping ...",
+                    source="astrochart",
+                    route=["terminal"],
+                )
+                continue
+            seg_angle = 2 * pi / d
+            # draw lines
+            for i in range(d):
+                angle = pi - (i * seg_angle)
+                x = self.cx + self.radius * cos(angle)
+                y = self.cy + self.radius * sin(angle)
+                cr.move_to(self.cx, self.cy)
+                cr.line_to(x, y)
+                cr.stroke()
+            # labels
 
 
 # additional optional circles : varga, naksatras
