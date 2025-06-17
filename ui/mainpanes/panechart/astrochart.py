@@ -108,14 +108,28 @@ class AstroChart(Gtk.Box):
         self.extra_info["aynm"] = (
             self.app.selected_ayan_str if self.app.selected_ayan_str else "-"
         )
-        max_radius = base * 0.95
-        if (
-            self.chart_settings.get("naksatras ring", False)
-            or self.chart_settings.get("harmonics ring", 0).strip()
-        ):
-            mandatory_factor = 0.8
+        max_radius = base * 0.97
+        if self.chart_settings.get("harmonics ring", "").strip():
+            radius_harm = max_radius
+            if self.chart_settings.get("naksatras ring", False):
+                radius_naks = 0.97
+            else:
+                radius_naks = None
         else:
-            mandatory_factor = max_radius
+            radius_harm = None
+            if self.chart_settings.get("naksatras ring", False):
+                radius_naks = max_radius
+            else:
+                radius_naks = None
+        # se mandatory circle factor
+        if radius_harm:
+            outer = radius_harm
+        elif radius_naks:
+            outer = radius_naks
+        else:
+            outer = max_radius
+        # event 1 & its circles are mandatory
+        radius_mandatory = 0.92 * (outer / max_radius)
         # rotate block : if fixed asc > rotate circles > asc at left
         if self.chart_settings.get("fixed asc", False) and self.ascmc:
             asc_angle = radians(self.ascmc[0])
@@ -124,16 +138,16 @@ class AstroChart(Gtk.Box):
             cr.rotate(asc_angle)
             cr.translate(-cx, -cy)
         # --- optional rings : harmonics
-        if self.chart_settings.get("harmonics ring", "").strip():
+        if self.chart_settings.get("harmonics ring", "").strip() and radius_harm:
             try:
                 harmonics = self.chart_settings.get("harmonics ring", "").split()
-                divisions = [int(x) for x in harmonics if int(x) in {None, 1, 7, 9, 11}]
+                divisions = [int(x) for x in harmonics if int(x) in {1, 7, 9, 11}]
             except Exception:
                 divisions = []
             if divisions:
                 circle_harmonics = CircleHarmonics(
                     self.notify,
-                    radius=max_radius,
+                    radius=radius_harm,
                     cx=cx,
                     cy=cy,
                     divisions=divisions,
@@ -141,48 +155,61 @@ class AstroChart(Gtk.Box):
                 )
                 circle_harmonics.draw(cr)
         # naksatras ring
-        if self.chart_settings.get("naksatras ring", False):
+        if self.chart_settings.get("naksatras ring", False) and radius_naks:
             naks_num = 28 if self.chart_settings.get("28 naksatras", False) else 27
             first_nak = int(self.chart_settings.get("1st naksatra", 1))
             circle_naksatras = CircleNaksatras(
-                radius=max_radius,
+                radius=radius_naks,
                 cx=cx,
                 cy=cy,
+                font_size=int(14 * font_scale),
                 naks_num=naks_num,
                 first_nak=first_nak,
-                font_size=int(14 * font_scale),
             )
-        circle_naksatras.draw(cr)
+            circle_naksatras.draw(cr)
         # --- optional ring end ---
+        # if not (
+        #     self.chart_settings.get("naksatras ring", False)
+        #     or self.chart_settings.get("harmonics ring", "").strip()
+        # ):
+        #     mandatory_factor = 0.97
+        # else:
+        #     mandatory_factor = 0.92
         # --- mandatory circles
         # chart circles
-        circle_event = CircleEvent(
-            radius=mandatory_factor,
+        circle_signs = CircleSigns(
+            radius=base * radius_mandatory,
             cx=cx,
             cy=cy,
+            font_size=int(18 * font_scale),
+        )
+        circle_signs.draw(cr)
+        circle_event = CircleEvent(
+            radius=base * radius_mandatory * 0.92,
+            cx=cx,
+            cy=cy,
+            font_size=int(18 * font_scale),
             guests=guests,
             houses=self.houses if self.houses else [],
             ascmc=self.ascmc if self.ascmc else [],
             chart_settings=self.chart_settings,
         )
-        circle_signs = CircleSigns(radius=base * mandatory_factor * 0.84, cx=cx, cy=cy)
-        circle_info = CircleInfo(
-            self.notify,
-            radius=base * mandatory_factor * 0.62,
-            cx=cx,
-            cy=cy,
-            chart_settings=self.chart_settings,
-            event_data=self.e1_chart_info,
-            extra_info=self.extra_info,
-        )
-        # draw layers from bottom (signs) to top (info)
-        circle_signs.draw(cr)
         circle_event.draw(cr)
         # restore context if chart rotation was applied
         if self.chart_settings.get("fixed asc", False) and self.ascmc:
             cr.restore()
         # rotate block end
         # draw info circle last > no text rotation
+        circle_info = CircleInfo(
+            self.notify,
+            radius=base * radius_mandatory * 0.4,
+            cx=cx,
+            cy=cy,
+            font_size=int(18 * font_scale),
+            chart_settings=self.chart_settings,
+            event_data=self.e1_chart_info,
+            extra_info=self.extra_info,
+        )
         circle_info.draw(cr)
 
     def create_astro_object(self, obj):
@@ -193,7 +220,7 @@ class AstroObject:
     def __init__(self, data):
         self.data = data
         # print(f"astrochart : objects : {data}")
-        self.size = 8
+        self.size = 0.7
         name = self.data.get("name", "su").lower()
         # default color & scale
         self.color = (0.1, 0.1, 0.1, 0.5)
@@ -205,11 +232,12 @@ class AstroObject:
                 self.scale = obj[5]
                 break
 
-    def draw(self, cr, cx, cy, radius):
+    def draw(self, cr, cx, cy, radius, obj_scale=1.0):
         # compute angle & draw in ccw direction, start at left (ari)
         angle = pi - radians(self.data.get("lon", 0))
         # determine radius by scale
-        obj_size = self.size * self.scale
+        # obj_size = self.scale * obj_scale
+        obj_size = self.size * self.scale * obj_scale
         x = cx + radius * cos(angle)
         y = cy + radius * sin(angle)
         # simple circle marker for object / planet

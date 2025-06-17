@@ -784,6 +784,7 @@ def harmonics_ring(entry, manager):
         else:
             entry.remove_css_class("entry-warning")
             manager.app.chart_settings["harmonics ring"] = text
+    manager.signal._emit("settings_changed", None)
     manager.notify.debug(
         f"harmonicsring : {manager.app.chart_settings['harmonics ring']}",
         source="panelsettings",

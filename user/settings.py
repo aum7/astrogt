@@ -107,7 +107,10 @@ CHART_SETTINGS = {
         "rotate chart so ascendant is fixed at left (east)\nelse aries 0° is fixed at left (default)",
     ),
     # --- use mean node else true node
-    "mean node": (False, "calculate mean node (vs default true node)"),
+    "mean node": (
+        False,
+        "calculate mean node (vs default true node)",
+    ),
     # --- naksatras MEGA-ring ! lol
     "naksatras ring": (
         True,
@@ -144,8 +147,9 @@ CHART_SETTINGS = {
     # add them if you need them | 2 rings are possible
     # !!! those are simple divisions, similar but NOT all equal to varga
     "harmonics ring": (
-        "9",
-        "harmonics ring\nempty : do NOT show | 1 : egypt. terms (bounds)\n7, 9, 11 : simple harmonics *similar* to varga\n2 rings possible ie [1 9] will show terms & navamsa",
+        "",
+        "harmonics ring\nempty : do NOT show | 1 : egypt. terms (bounds)\n7, 9, 11 : simple harmonics *similar* to varga",
+        # "harmonics ring\nempty : do NOT show | 1 : egypt. terms (bounds)\n7, 9, 11 : simple harmonics *similar* to varga\n2 rings possible ie [1 9] will show terms & navamsa",
     ),
     # --- event data to be presented in chart info
     # construct your own 'chart info' format

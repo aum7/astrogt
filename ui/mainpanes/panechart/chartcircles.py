@@ -44,10 +44,12 @@ class CircleBase:
 class CircleInfo(CircleBase):
     """show event 1 info in center circle"""
 
-    def __init__(self, notify, radius, cx, cy, chart_settings, event_data, extra_info):
+    def __init__(
+        self, notify, radius, cx, cy, font_size, chart_settings, event_data, extra_info
+    ):
         super().__init__(radius, cx, cy)
         self.notify = notify
-        self.font_size = 18
+        self.font_size = font_size
         self.event_data = event_data or {}
         self.chart_settings = chart_settings or {}
         self.extra_info = extra_info
@@ -118,14 +120,17 @@ class CircleInfo(CircleBase):
 class CircleEvent(CircleBase):
     """objects / planets & house cusps"""
 
-    def __init__(self, radius, cx, cy, guests, houses, ascmc, chart_settings):
+    def __init__(
+        self, radius, cx, cy, font_size, guests, houses, ascmc, chart_settings
+    ):
         super().__init__(radius, cx, cy)
         self.guests = guests
         self.houses = houses
         self.ascmc = ascmc
+        self.font_size = font_size
         self.chart_settings = chart_settings
         # radius factor for middle circle (0° latitude )
-        self.middle_factor = 0.82
+        self.middle_factor = 0.74
         # inner circle factor (min latitude value)
         self.inner_factor = 2 * self.middle_factor - 1.0
         # print(f"chartcircles : circleevent : guests : {[g.data for g in guests]}")
@@ -171,11 +176,12 @@ class CircleEvent(CircleBase):
         cr.set_source_rgba(1, 1, 1, 0.5)
         cr.set_line_width(1)
         cr.stroke()
-        # houses
+        # houses (match inner radius with outer radius of previous circle)
+        # ie 0.4 is from chartcircle.py > circle_info
         for angle in self.houses:
             angle = pi - radians(angle)
-            x1 = self.cx + self.radius * 0.5 * cos(angle)
-            y1 = self.cy + self.radius * 0.5 * sin(angle)
+            x1 = self.cx + self.radius * 0.4 * cos(angle)
+            y1 = self.cy + self.radius * 0.4 * sin(angle)
             x2 = self.cx + self.radius * cos(angle)
             y2 = self.cy + self.radius * sin(angle)
             cr.move_to(x1, y1)
@@ -244,73 +250,6 @@ class CircleEvent(CircleBase):
             draw_marker(
                 cr, ic_x, ic_y, ic_angle, marker_size, (0, 0, 0, 1), draw_diamond
             )
-        # if self.ascmc:
-        #     radius_factor = 1.0
-        #     ascendant = self.ascmc[0]
-        #     midheaven = self.ascmc[1]
-        #     marker_size = self.radius * 0.03
-        #     # ascendant
-        #     asc_angle = pi - radians(ascendant)
-        #     asc_x = self.cx + self.radius * radius_factor * cos(asc_angle)
-        #     asc_y = self.cy + self.radius * radius_factor * sin(asc_angle)
-        #     # marker for ascendant : triangle
-        #     cr.save()
-        #     cr.set_source_rgba(1, 1, 1, 1)
-        #     cr.translate(asc_x, asc_y)
-        #     cr.rotate(asc_angle + pi / 2)
-        #     cr.move_to(0, marker_size)
-        #     cr.line_to(marker_size, -marker_size / 2)
-        #     cr.line_to(-marker_size, -marker_size / 2)
-        #     cr.close_path()
-        #     cr.fill()
-        #     cr.restore()
-        #     # descendant
-        #     dsc_angle = asc_angle + pi
-        #     dsc_x = self.cx + self.radius * radius_factor * cos(dsc_angle)
-        #     dsc_y = self.cy + self.radius * radius_factor * sin(dsc_angle)
-        #     # marker for descendant : triangle black
-        #     cr.save()
-        #     cr.set_source_rgba(0, 0, 0, 1)
-        #     cr.translate(dsc_x, dsc_y)
-        #     cr.rotate(dsc_angle + pi / 2)
-        #     cr.move_to(0, marker_size)
-        #     cr.line_to(marker_size, -marker_size / 2)
-        #     cr.line_to(-marker_size, -marker_size / 2)
-        #     cr.close_path()
-        #     cr.fill()
-        #     cr.restore()
-        #     # midheaven (zenith)
-        #     mc_angle = pi - radians(midheaven)
-        #     mc_x = self.cx + self.radius * radius_factor * cos(mc_angle)
-        #     mc_y = self.cy + self.radius * radius_factor * sin(mc_angle)
-        #     # marker for midheaven : rotated square (diamond)
-        #     cr.save()
-        #     cr.set_source_rgba(1, 1, 1, 1)
-        #     cr.translate(mc_x, mc_y)
-        #     cr.rotate(mc_angle + pi / 2)
-        #     cr.move_to(0, -marker_size)
-        #     cr.line_to(marker_size, 0)
-        #     cr.line_to(0, marker_size)
-        #     cr.line_to(-marker_size, 0)
-        #     cr.close_path()
-        #     cr.fill()
-        #     cr.restore()
-        #     # nadir
-        #     ic_angle = mc_angle + pi
-        #     ic_x = self.cx + self.radius * radius_factor * cos(ic_angle)
-        #     ic_y = self.cy + self.radius * radius_factor * sin(ic_angle)
-        #     # marker for nadir : rotated square black
-        #     cr.save()
-        #     cr.set_source_rgba(0, 0, 0, 1)
-        #     cr.translate(ic_x, ic_y)
-        #     cr.rotate(ic_angle + pi / 2)
-        #     cr.move_to(0, -marker_size)
-        #     cr.line_to(marker_size, 0)
-        #     cr.line_to(0, marker_size)
-        #     cr.line_to(-marker_size, 0)
-        #     cr.close_path()
-        #     cr.fill()
-        #     cr.restore()
         # guests with adjusted radius based on latitude
         for guest in self.guests:
             lat = guest.data.get("lat", 0)
@@ -342,7 +281,7 @@ class CircleEvent(CircleBase):
                     )
             # compute object drawing radius
             obj_radius = self.radius * factor
-            guest.draw(cr, self.cx, self.cy, obj_radius)
+            guest.draw(cr, self.cx, self.cy, obj_radius, self.font_size)
             # if 'enable glyphs' > draw glyphs
             if self.chart_settings.get("enable glyphs", True):
                 glyph = self.glyphs.get(name, "")
@@ -379,9 +318,9 @@ class CircleEvent(CircleBase):
 class CircleSigns(CircleBase):
     """12 astrological signs"""
 
-    def __init__(self, radius, cx, cy):
+    def __init__(self, radius, cx, cy, font_size):
         super().__init__(radius, cx, cy)
-        self.font_size = 18
+        self.font_size = font_size
         self.signs = [
             "\u0192",  # 01 aries
             "\u0193",  # 02
@@ -399,7 +338,7 @@ class CircleSigns(CircleBase):
 
     def draw(self, cr):
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
-        cr.set_source_rgba(0.5, 0.5, 0.5, 0)  # todo set alpha
+        cr.set_source_rgba(0.15, 0.15, 0.15, 1)  # todo set alpha
         cr.fill_preserve()
         cr.set_source_rgba(1, 1, 1, 1)
         cr.set_line_width(1)
@@ -409,8 +348,8 @@ class CircleSigns(CircleBase):
         # sign borders
         for j in range(12):
             angle = pi - j * segment_angle  # start at left
-            x1 = self.cx + self.radius * 0.84 * cos(angle)
-            y1 = self.cy + self.radius * 0.84 * sin(angle)
+            x1 = self.cx + self.radius * 0.92 * cos(angle)
+            y1 = self.cy + self.radius * 0.92 * sin(angle)
             x2 = self.cx + self.radius * cos(angle)
             y2 = self.cy + self.radius * sin(angle)
             cr.move_to(x1, y1)
@@ -422,8 +361,8 @@ class CircleSigns(CircleBase):
         self.set_custom_font(cr, self.font_size)
         for i, glyph in enumerate(self.signs):
             angle = pi - i * segment_angle - offset
-            x = self.cx + self.radius * 0.92 * cos(angle)
-            y = self.cy + self.radius * 0.92 * sin(angle)
+            x = self.cx + self.radius * 0.965 * cos(angle)
+            y = self.cy + self.radius * 0.965 * sin(angle)
             self.draw_rotated_text(cr, glyph, x, y, angle)
 
 
@@ -439,7 +378,7 @@ class CircleNaksatras(CircleBase):
     def draw(self, cr):
         """draw outer circle"""
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
-        cr.set_source_rgba(0.2, 0.2, 0.2, 0.3)
+        cr.set_source_rgba(0.2, 0.2, 0.2, 1)
         cr.stroke_preserve()
         cr.set_source_rgba(1, 1, 1, 1)
         cr.set_line_width(1)
@@ -483,24 +422,27 @@ class CircleHarmonics(CircleBase):
         cr.stroke()
         # draw divisions for selected harmonic
         for d in self.divisions:
-            if d == 0:
-                self.notify.info(
-                    "division 0 : nothing to draw; skipping ...",
-                    source="astrochart",
-                    route=["terminal"],
-                )
-                continue
-            seg_angle = 2 * pi / d
+            # if d == 0:
+            #     self.notify.info(
+            #         "division 0 : nothing to draw; skipping ...",
+            #         source="astrochart",
+            #         route=["terminal"],
+            #     )
+            #     continue
+            # todo division 1 = terms
+            # each sign divided by division
+            total_divisions = d * 12
+            seg_angle = 2 * pi / total_divisions
             # draw lines
-            for i in range(d):
+            for i in range(total_divisions):
                 angle = pi - (i * seg_angle)
-                x = self.cx + self.radius * cos(angle)
-                y = self.cy + self.radius * sin(angle)
+                # todo shorten lines
+                x = self.cx + self.radius * 0.9 * cos(angle)
+                y = self.cy + self.radius * 0.9 * sin(angle)
                 cr.move_to(self.cx, self.cy)
                 cr.line_to(x, y)
                 cr.stroke()
             # labels
 
 
-# additional optional circles : varga, naksatras
 # then event 2 circles
