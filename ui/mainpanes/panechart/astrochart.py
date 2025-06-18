@@ -109,26 +109,27 @@ class AstroChart(Gtk.Box):
             self.app.selected_ayan_str if self.app.selected_ayan_str else "-"
         )
         max_radius = base * 0.97
-        if self.chart_settings.get("harmonics ring", "").strip():
+        # determine radius for optional rings
+        harmonics_value = self.chart_settings.get("harmonics ring", "").strip()
+        if harmonics_value:
             radius_harm = max_radius
-            if self.chart_settings.get("naksatras ring", False):
-                radius_naks = 0.97
-            else:
-                radius_naks = None
         else:
             radius_harm = None
-            if self.chart_settings.get("naksatras ring", False):
-                radius_naks = max_radius
+        if self.chart_settings.get("naksatras ring", False):
+            if radius_harm:
+                radius_naks = radius_harm * 0.97
             else:
-                radius_naks = None
-        # se mandatory circle factor
+                radius_naks = max_radius
+        else:
+            radius_naks = None
+        # choose outer radius for mandatory circles
         if radius_harm:
             outer = radius_harm
         elif radius_naks:
             outer = radius_naks
         else:
             outer = max_radius
-        # event 1 & its circles are mandatory
+        # scale mandatory circles
         radius_mandatory = 0.92 * (outer / max_radius)
         # rotate block : if fixed asc > rotate circles > asc at left
         if self.chart_settings.get("fixed asc", False) and self.ascmc:
@@ -138,19 +139,23 @@ class AstroChart(Gtk.Box):
             cr.rotate(asc_angle)
             cr.translate(-cx, -cy)
         # --- optional rings : harmonics
-        if self.chart_settings.get("harmonics ring", "").strip() and radius_harm:
+        # if self.chart_settings.get("harmonics ring", "").strip():
+        if harmonics_value:
             try:
-                harmonics = self.chart_settings.get("harmonics ring", "").split()
-                divisions = [int(x) for x in harmonics if int(x) in {1, 7, 9, 11}]
+                division_value = int(harmonics_value)
+                if division_value not in {1, 7, 9, 11}:
+                    division = None
+                else:
+                    division = division_value
             except Exception:
-                divisions = []
-            if divisions:
+                division = None
+            if division:
                 circle_harmonics = CircleHarmonics(
                     self.notify,
                     radius=radius_harm,
                     cx=cx,
                     cy=cy,
-                    divisions=divisions,
+                    division=division,
                     font_size=int(14 * font_scale),
                 )
                 circle_harmonics.draw(cr)
@@ -168,13 +173,6 @@ class AstroChart(Gtk.Box):
             )
             circle_naksatras.draw(cr)
         # --- optional ring end ---
-        # if not (
-        #     self.chart_settings.get("naksatras ring", False)
-        #     or self.chart_settings.get("harmonics ring", "").strip()
-        # ):
-        #     mandatory_factor = 0.97
-        # else:
-        #     mandatory_factor = 0.92
         # --- mandatory circles
         # chart circles
         circle_signs = CircleSigns(

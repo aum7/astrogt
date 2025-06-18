@@ -408,41 +408,34 @@ class CircleNaksatras(CircleBase):
 class CircleHarmonics(CircleBase):
     """draw harmonics / divisions ring"""
 
-    def __init__(self, notify, radius, cx, cy, divisions, font_size=14):
+    def __init__(self, notify, radius, cx, cy, division, font_size=14):
         super().__init__(radius, cx, cy)
         self.notify = notify
-        self.divisions = divisions
+        self.division = division
         self.font_size = font_size
 
     def draw(self, cr):
+        """draw circle"""
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
-        cr.set_source_rgba(0.3, 0.3, 0.5, 0.3)
-        cr.stroke_preserve()
+        # cr.set_source_rgba(0.3, 0.3, 0.5, 0.3)
+        # cr.stroke_preserve()
         cr.set_source_rgba(1, 1, 1, 1)
+        cr.set_line_width(1)
         cr.stroke()
         # draw divisions for selected harmonic
-        for d in self.divisions:
-            # if d == 0:
-            #     self.notify.info(
-            #         "division 0 : nothing to draw; skipping ...",
-            #         source="astrochart",
-            #         route=["terminal"],
-            #     )
-            #     continue
-            # todo division 1 = terms
-            # each sign divided by division
-            total_divisions = d * 12
-            seg_angle = 2 * pi / total_divisions
-            # draw lines
-            for i in range(total_divisions):
-                angle = pi - (i * seg_angle)
-                # todo shorten lines
-                x = self.cx + self.radius * 0.9 * cos(angle)
-                y = self.cy + self.radius * 0.9 * sin(angle)
-                cr.move_to(self.cx, self.cy)
-                cr.line_to(x, y)
-                cr.stroke()
-            # labels
+        d = self.division
+        total_divisions = d * 12
+        seg_angle = 2 * pi / total_divisions
+        # draw lines
+        for i in range(total_divisions):
+            angle = pi - (i * seg_angle)
+            # todo shorten lines
+            x = self.cx + self.radius * 0.9 * cos(angle)
+            y = self.cy + self.radius * 0.9 * sin(angle)
+            cr.move_to(self.cx, self.cy)
+            cr.line_to(x, y)
+            cr.stroke()
+        # labels
 
 
 # then event 2 circles

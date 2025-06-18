@@ -1,0 +1,9 @@
+still not scaling properly
+we can see now harmonics circle, but it is without lines for divisions
+astrochart.py :
+...
+        radius_mandatory = 0.92 * (outer / max_radius)
+we are fixing mandatory circles outer radius here to fixed value, not what we want
+again, what we want :
+inner 3 circles are mandatory (related to event 1 = mandatory) - circleinfo (inner-most, with event 1 info), circleevent (next one, with positions of objects as per event 1 data), circlesigns (outer-most of mandatory ones, with astrological glyphs for signs); their outer radius (actually circlesigns) = base * max_radius (= 0.97)
+if additional circles (or rings) are to be drawn, mandatory circles need shrink, & rest of optional circles be drawn as outer circles / rings
