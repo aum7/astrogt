@@ -378,8 +378,8 @@ class CircleNaksatras(CircleBase):
     def draw(self, cr):
         """draw outer circle"""
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
-        # cr.set_source_rgba(0.2, 0.2, 0.2, 1)
-        # cr.stroke_preserve()
+        cr.set_source_rgba(0.2, 0.2, 0.2, 1)
+        cr.fill_preserve()
         cr.set_source_rgba(1, 1, 1, 1)
         cr.set_line_width(1)
         cr.stroke()
@@ -421,8 +421,8 @@ class CircleHarmonic(CircleBase):
     def draw(self, cr):
         """draw circle"""
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
-        cr.set_source_rgba(0.3, 0.3, 0.5, 0.3)
-        cr.stroke_preserve()
+        # cr.set_source_rgba(0.3, 0.3, 0.5, 0.3)
+        # cr.stroke_preserve()
         cr.set_source_rgba(1, 1, 1, 1)
         cr.set_line_width(1)
         cr.stroke()
@@ -434,12 +434,27 @@ class CircleHarmonic(CircleBase):
         for i in range(total_divisions):
             angle = pi - (i * seg_angle)
             # todo shorten lines
-            x = self.cx + self.radius * 0.8 * cos(angle)
-            y = self.cy + self.radius * 0.9 * sin(angle)
+            x = self.cx + self.radius * cos(angle)
+            y = self.cy + self.radius * sin(angle)
             cr.move_to(self.cx, self.cy)
             cr.line_to(x, y)
             cr.stroke()
         # labels
+        self.set_custom_font(cr, self.font_size)
+        for i in range(total_divisions):
+            angle = pi - ((i + 0.5) * seg_angle)
+            sign = (i + 1) % 12
+            label = str(12 if sign == 0 else sign)
+            te = cr.text_extents(label)
+            x = self.cx + self.radius * 0.97 * cos(angle)
+            y = self.cy + self.radius * 0.97 * sin(angle)
+            cr.save()
+            cr.translate(x, y)
+            cr.rotate(angle + pi / 2)
+            cr.move_to(-te.width / 2, te.height / 2)
+            cr.show_text(label)
+            cr.restore()
+            cr.new_path()
 
 
 # then event 2 circles

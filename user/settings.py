@@ -113,7 +113,7 @@ CHART_SETTINGS = {
     ),
     # --- naksatras MEGA-ring ! lol
     "naksatras ring": (
-        True,
+        False,
         """show naksatras ring
 1  asv\t2  bha\t3  krt
 4  roh\t5  mrg\t6  ard
@@ -127,7 +127,7 @@ CHART_SETTINGS = {
     ),
     # --- use 28 (all equal = no mini abhijt) else standard 27 naksatras
     "28 naksatras": (
-        True,
+        False,
         """use 28 (all equal = no mini abhijit) vs standard 27 naksatras
 1  asv\t2  bha\t3  krt\t4  roh
 5  mrg\t6  ard\t7  pun\t8  pus

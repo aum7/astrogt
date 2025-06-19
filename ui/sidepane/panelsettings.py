@@ -545,7 +545,7 @@ more info in user/settings.py > SWE_FLAG"""
     ent_ayan_value.set_text(str(CUSTOM_AYANAMSA["custom ayanamsa"]))
     app.custom_ayan = float(ent_ayan_value.get_text())
     ent_ayan_value.set_tooltip_text("""custom ayanamsa value
-    default is 23.76694445 (23° 46' 01"), as per richard houck's book 'astrology of death', for 2000-01-01""")
+    default is 23.76694445 (23° 46' 01") for 2000-01-01""")
     ent_ayan_value.set_max_width_chars(11)
     ent_ayan_value.set_hexpand(False)
     ent_ayan_value.connect(
