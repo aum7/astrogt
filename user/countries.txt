@@ -5,6 +5,7 @@
 # country name (middle field)] : move line up / down, and save file
 # re-arranging is only relevant for un-commented lines
 
+("GB", "United Kingdom (GB & N Ire.)", "GBR"),
 # ("AF", "Afghanistan", "AFG"),
 # ("AX", "Aland Islands", "ALA"),
 # ("AL", "Albania", "ALB"),
@@ -245,7 +246,7 @@
 # ("UY", "Uruguay", "URY"),
 # ("UZ", "Uzbekistan", "UZB"),
 # ("VU", "Vanuatu", "VUT"),
-("VE", "Venezuela", "VEN"),
+# ("VE", "Venezuela", "VEN"),
 # ("VN", "Viet Nam", "VNM"),
 # ("VG", "Virgin Islands (British)", "VGB"),
 # ("VI", "Virgin Islands (U.S.)", "VIR"),

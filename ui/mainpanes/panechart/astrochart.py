@@ -9,7 +9,7 @@ from ui.mainpanes.panechart.chartcircles import (
     CircleEvent,
     CircleSigns,
     CircleNaksatras,
-    CircleHarmonics,
+    CircleHarmonic,
 )
 from user.settings import OBJECTS
 from math import pi, cos, sin, radians
@@ -109,28 +109,13 @@ class AstroChart(Gtk.Box):
             self.app.selected_ayan_str if self.app.selected_ayan_str else "-"
         )
         max_radius = base * 0.97
-        # determine radius for optional rings
-        harmonics_value = self.chart_settings.get("harmonics ring", "").strip()
-        if harmonics_value:
-            radius_harm = max_radius
+        # optional ring : naksatras
+        show_naks = self.chart_settings.get("naksatras ring", "")
+        if show_naks:
+            # set radius for mandatory circles (event 1)
+            mandatory_factor = 0.94
         else:
-            radius_harm = None
-        if self.chart_settings.get("naksatras ring", False):
-            if radius_harm:
-                radius_naks = radius_harm * 0.97
-            else:
-                radius_naks = max_radius
-        else:
-            radius_naks = None
-        # choose outer radius for mandatory circles
-        if radius_harm:
-            outer = radius_harm
-        elif radius_naks:
-            outer = radius_naks
-        else:
-            outer = max_radius
-        # scale mandatory circles
-        radius_mandatory = 0.92 * (outer / max_radius)
+            mandatory_factor = 1.0
         # rotate block : if fixed asc > rotate circles > asc at left
         if self.chart_settings.get("fixed asc", False) and self.ascmc:
             asc_angle = radians(self.ascmc[0])
@@ -138,33 +123,35 @@ class AstroChart(Gtk.Box):
             cr.translate(cx, cy)
             cr.rotate(asc_angle)
             cr.translate(-cx, -cy)
-        # --- optional rings : harmonics
+        # --- optional rings : harmonic
         # if self.chart_settings.get("harmonics ring", "").strip():
-        if harmonics_value:
-            try:
-                division_value = int(harmonics_value)
-                if division_value not in {1, 7, 9, 11}:
-                    division = None
-                else:
-                    division = division_value
-            except Exception:
-                division = None
-            if division:
-                circle_harmonics = CircleHarmonics(
-                    self.notify,
-                    radius=radius_harm,
-                    cx=cx,
-                    cy=cy,
-                    division=division,
-                    font_size=int(14 * font_scale),
-                )
-                circle_harmonics.draw(cr)
+        # if show_harm:
+        #     try:
+        #         division_value = int(
+        #             self.chart_settings.get("harmonics ring", "").strip()
+        #         )
+        #         if division_value not in {1, 7, 9, 11}:
+        #             division = None
+        #         else:
+        #             division = division_value
+        #     except Exception:
+        #         division = None
+        #     if division:
+        #         circle_harmonic = CircleHarmonic(
+        #             self.notify,
+        #             radius=radius_harm,
+        #             cx=cx,
+        #             cy=cy,
+        #             division=division,
+        #             font_size=int(14 * font_scale),
+        #         )
+        #         circle_harmonic.draw(cr)
         # naksatras ring
-        if self.chart_settings.get("naksatras ring", False) and radius_naks:
+        if show_naks:
             naks_num = 28 if self.chart_settings.get("28 naksatras", False) else 27
             first_nak = int(self.chart_settings.get("1st naksatra", 1))
             circle_naksatras = CircleNaksatras(
-                radius=radius_naks,
+                radius=max_radius,
                 cx=cx,
                 cy=cy,
                 font_size=int(14 * font_scale),
@@ -176,14 +163,14 @@ class AstroChart(Gtk.Box):
         # --- mandatory circles
         # chart circles
         circle_signs = CircleSigns(
-            radius=base * radius_mandatory,
+            radius=max_radius * mandatory_factor,
             cx=cx,
             cy=cy,
             font_size=int(18 * font_scale),
         )
         circle_signs.draw(cr)
         circle_event = CircleEvent(
-            radius=base * radius_mandatory * 0.92,
+            radius=max_radius * mandatory_factor * 0.92,
             cx=cx,
             cy=cy,
             font_size=int(18 * font_scale),
@@ -200,7 +187,7 @@ class AstroChart(Gtk.Box):
         # draw info circle last > no text rotation
         circle_info = CircleInfo(
             self.notify,
-            radius=base * radius_mandatory * 0.4,
+            radius=max_radius * mandatory_factor * 0.4,
             cx=cx,
             cy=cy,
             font_size=int(18 * font_scale),

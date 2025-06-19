@@ -58,7 +58,7 @@ class MainWindow(
         connect_signals_positions(self.get_application().signal_manager)
         connect_signals_houses(self.get_application().signal_manager)
         # show all 4 panes
-        self.panes_all
+        self.panes_single()
         # 4 main stacks as panes
         self.tables = {}  # dict for tables widget per pane
         self.init_stacks()
@@ -127,7 +127,16 @@ class MainWindow(
             "\nhover mouse over buttons & text = show tooltips"
             "\nhover mouse over notification message = do not hide message"
             "\nright-click = context menu : change pane content & access settings etc"
-            "\nesc : discard message\n\nhotkeys (hk)"
+            "\nesc : discard notification message"
+            "\n\nrecommended workflow :"
+            "\nenter event 1 data = calculate event / birth chart"
+            "\nif you want transit / progression (aka event 2) :"
+            "\n\tenter date-time 2 (use event 1 location & name)"
+            "\n\tenter location 2 for relocation event (transit will be for location 2)"
+            "\n\tenter custom name 2 (ie 'marriage') = save event 2 linked to event 1"
+            "\ndelete date-time 2 = erase event 2 data (not interested in transit etc)"
+            "\nnote : event name / title will be used for file saving"
+            "\n\nhotkeys (hk)"
             "\nh : show help (this message)"
             "\ns : toggle side pane"
             "\ne : toggle selected event for change time"
@@ -138,16 +147,10 @@ class MainWindow(
             "\ntab/shift+tab : navigate between widgets in side pane"
             "\nspace/enter : activate button / dropdown when focused"
             "\nshift+1/2/3/4 : show single / double / triple / all panes"
+            "\na : toggle zodiac rotation (ascendant vs ari 0° at left)"
+            "\ng : toggle glyphs visibility"
             "\n\nnote : if entry / text field is focused, hotkeys will not work"
-            "\n\t(text field will 'consume' key press)"
-            "\n\nrecommended workflow :"
-            "\nenter event 1 data = calculate event / birth chart"
-            "\nif you want transit / progression etc (aka event 2) :"
-            "\n\tenter date-time 2 (use event 1 location & name)"
-            "\n\tenter location 2 for relocation event"
-            "\n\tenter custom name 2 (ie 'marriage') = save event 2 linked to event 1"
-            "\ndelete date-time 2 = erase event 2 data (not interested in transit etc)"
-            "\nnote : event name / title will be used for file saving",
+            "\n\t(text field will 'consume' key press)",
             source="help",
             timeout=5,
             route=["user"],
