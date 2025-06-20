@@ -14,9 +14,9 @@ class PanesManager(Gtk.Stack):
     stack: Gtk.Stack
     STACK_BUTTONS: Dict[str, str] = {
         "astro": "astrology chart",
-        "tables": "calculation tables",
-        "editor": "text editor",
-        "graph": "data graph",
+        "tables": "tables & editor etc",
+        # "editor": "text editor",
+        # "graph": "data graph",
     }
 
     def __init__(self, stack_manager=None, position=None, name=None):

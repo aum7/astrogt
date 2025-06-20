@@ -82,8 +82,8 @@ if checked also select ayanamsa below""",
 # below are most popular 7 out of 24+; arrange line up or down as you please
 # top line is default choice
 HOUSE_SYSTEMS = [
-    ("O", "prp : porphyry", "prp"),
     ("E", "eqa : equal asc", "eqa"),
+    ("O", "prp : porphyry", "prp"),
     ("D", "eqm : equal mc", "eqm"),
     ("P", "plc : placidus", "plc"),
     ("R", "rgm : regiomontanus", "rgm"),
@@ -113,7 +113,7 @@ CHART_SETTINGS = {
     ),
     # --- naksatras MEGA-ring ! lol
     "naksatras ring": (
-        False,
+        True,
         """show naksatras ring
 1  asv\t2  bha\t3  krt
 4  roh\t5  mrg\t6  ard
@@ -127,7 +127,7 @@ CHART_SETTINGS = {
     ),
     # --- use 28 (all equal = no mini abhijt) else standard 27 naksatras
     "28 naksatras": (
-        False,
+        True,
         """use 28 (all equal = no mini abhijit) vs standard 27 naksatras
 1  asv\t2  bha\t3  krt\t4  roh
 5  mrg\t6  ard\t7  pun\t8  pus
@@ -147,7 +147,7 @@ CHART_SETTINGS = {
     # add them if you need them | 2 rings are possible
     # !!! those are simple divisions, similar but NOT all equal to varga
     "harmonics ring": (
-        "",
+        "9",
         "harmonics ring\nempty : do NOT show | 1 : egypt. terms (bounds)\n7, 9, 11 : simple harmonics *similar* to varga",
         # "harmonics ring\nempty : do NOT show | 1 : egypt. terms (bounds)\n7, 9, 11 : simple harmonics *similar* to varga\n2 rings possible ie [1 9] will show terms & navamsa",
     ),
@@ -270,23 +270,28 @@ FILES = {
     # a complete ephe folder https://github.com/aloistr/swisseph/tree/master/ephe
     # todo separate path for linux & mswindows : do we need to ?
     "ephe path\t": (
-        "/sweph/ephe/",
+        "sweph/ephe/",
         "path to ephemeride folder, with min semo_18.se1 & sepl_18.se1 files, "
         "or a complete ephe folder https://github.com/aloistr/swisseph/tree/master/ephe ",
     ),
     # --- fonts for glyphs = astro_font & for ie tables = mono_font
     "astro font\t": (
-        "/ui/fonts/osla/open_sans_light_astro.ttf",
+        "ui/fonts/osla/open_sans_light_astro.ttf",
         "font with glyphs for astro chart etc",
     ),
     "mono font\t": (
-        "/ui/fonts/victor/VictorMonoNerdFont-Light.ttf",
+        "ui/fonts/victor/VictorMonoNerdFont-Light.ttf",
         "mono-spaced font for pretty tables etc",
     ),
     # --- path to events / birth charts database folder; inside go saved charts
     "events db\t": (
-        "/user/eventsdb/",
+        "user/eventsdb/",
         "path to event / birth charts database folder ; inside go saved charts",
+    ),
+    # --- path to data folder; inside goes data to be plotted in graph
+    "data\t\t": (
+        "user/data/",
+        "path to data folder ; inside goes data for plotting",
     ),
     # --- construct your own 'filename' format: allowed fields
     # 1: event {name} | 2: event {date} | 3: {time}

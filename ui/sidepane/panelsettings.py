@@ -46,7 +46,7 @@ def setup_settings(manager) -> CollapsePanel:
     # main panel for settings
     clp_settings = CollapsePanel(
         title="settings",
-        expanded=True,  # todo close panel
+        expanded=False,
     )
     clp_settings.set_margin_end(manager.margin_end)
     clp_settings.set_title_tooltip("""sweph & application & chart etc settings""")
@@ -145,7 +145,7 @@ event 1 & 2 can have different objects"""
     subpnl_chart_settings = CollapsePanel(
         title="chart settings",
         indent=14,
-        expanded=True,  # todo close panel
+        expanded=False,  # todo close panel
     )
     subpnl_chart_settings.set_title_tooltip("""chart drawing & info display settings""")
     # ------ sub-sub-panel : chart info -----------------
@@ -467,8 +467,8 @@ more info in user/settings.py > SWE_FLAG"""
         "select 'sidereal zodiac' in settings / sweph flags to enable ayanamsa selection"
     )
     # todo remove ???
-    manager.subpnl_ayanamsa.toggle_expand(manager.app.is_sidereal)
-    manager.subpnl_ayanamsa.toggle_sensitive(manager.app.is_sidereal)
+    # manager.subpnl_ayanamsa.toggle_expand(manager.app.is_sidereal)
+    # manager.subpnl_ayanamsa.toggle_sensitive(manager.app.is_sidereal)
     # ------- sub-sub-panel custom ayanamsa --------------
     subsubpnl_custom_ayanamsa = CollapsePanel(
         title="custom ayanamsa",
@@ -571,7 +571,8 @@ more info in user/settings.py > SWE_FLAG"""
     box_files = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
     box_files.set_margin_start(manager.margin_end)
     box_files.set_margin_end(manager.margin_end)
-    app.files = dict(FILES)
+    app.files = {k.replace("\t", ""): v[0] for k, v in FILES.items()}
+    # print(f"panelsettings : app.files : {app.files}")
     for key, value in FILES.items():
         tooltip = value[1]
         box_key = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)

@@ -57,7 +57,7 @@ class MainWindow(
         # connect signals
         connect_signals_positions(self.get_application().signal_manager)
         connect_signals_houses(self.get_application().signal_manager)
-        # show all 4 panes
+        # show panes
         self.panes_single()
         # 4 main stacks as panes
         self.tables = {}  # dict for tables widget per pane
@@ -80,7 +80,7 @@ class MainWindow(
         self._hotkeys.register_hotkey("shift+exclam", self.panes_single)
         self._hotkeys.register_hotkey("shift+quotedbl", self.panes_double)
         self._hotkeys.register_hotkey("shift+numbersign", self.panes_triple)
-        self._hotkeys.register_hotkey("shift+dollar", self.panes_all)
+        # self._hotkeys.register_hotkey("shift+dollar", self.panes_all)
         self._hotkeys.register_hotkey("Up", self.obc_arrow_up)
         self._hotkeys.register_hotkey("Down", self.obc_arrow_dn)
         self._hotkeys.register_hotkey("Left", self.obc_arrow_l)
@@ -146,7 +146,8 @@ class MainWindow(
             "\n\t(your computer > utc > event location time)"
             "\ntab/shift+tab : navigate between widgets in side pane"
             "\nspace/enter : activate button / dropdown when focused"
-            "\nshift+1/2/3/4 : show single / double / triple / all panes"
+            "\nghift+1/2/3 : show single / double / triple"
+            "\n\nnote : if entry / text field is focused, hotkeys will not work"
             "\na : toggle zodiac rotation (ascendant vs ari 0° at left)"
             "\ng : toggle glyphs visibility"
             "\n\nnote : if entry / text field is focused, hotkeys will not work"
@@ -178,27 +179,20 @@ class MainWindow(
     def init_stacks(self):
         """initialize stacks with content"""
         # 4 main panes
-        panes = ["top-left", "top-right", "bottom-left", "bottom-right"]
+        panes = ["top-left", "bottom-left", "bottom-right"]
+        # panes = ["top-left", "top-right", "bottom-left", "bottom-right"]
         for pane in panes:
             stack = self.get_stack(pane)
             # create stack for each position
             if not stack:
                 continue
-            # test labels todo pages here please thank you
-            label1 = Gtk.Label(label="astrology chart")
-            label1.add_css_class("label-tl")
-            label2 = Gtk.Label(label="text editor")
-            label2.add_css_class("label-tr")
-            label3 = Gtk.Label(label="data graph")
-            label3.add_css_class("label-bl")
-
+            # stack 1
             astro_chart = AstroChart()
             stack.add_titled(astro_chart, "chart", "-chart")
+            # stack 2
             # store custom (table) widget reference for updates
             self.tables[pane] = draw_tables()
             stack.add_titled(self.tables[pane], "tables", f"{pane}-tables")
-            stack.add_titled(label2, "editor", "-editor")
-            stack.add_titled(label3, "graph", "-graph")
             # set stack as child of frame
             frame = getattr(self, f"frm_{pane.replace('-', '_')}", None)
             if frame:
@@ -231,18 +225,26 @@ class MainWindow(
             and hasattr(self, "pnd_btm_h")
         ):
             self.pnd_main_v.set_position(self.pnd_main_v.get_height() // 2)
-            self.pnd_top_h.set_position(self.pnd_top_h.get_width() // 2)
-            self.pnd_btm_h.set_position(0)
+            self.pnd_top_h.set_position(0)
+            self.pnd_btm_h.set_position(self.pnd_btm_h.get_width() // 2)
+            # calculate data graph
+            if not hasattr(self, "datagraph"):
+                from ui.mainpanes.datagraph import DataGraph
+
+                self.datagraph = DataGraph()
+            # add data graph directly into bottom-left pane
+            if hasattr(self, "frm_top_right"):
+                self.frm_top_right.set_child(self.datagraph)
 
     # panes show all 4
-    def panes_all(self) -> None:
-        """show & center all 4 main panes
-        shift+quadruple-click / shift+4"""
-        if (
-            hasattr(self, "pnd_main_v")
-            and hasattr(self, "pnd_top_h")
-            and hasattr(self, "pnd_btm_h")
-        ):
-            self.pnd_main_v.set_position(self.pnd_main_v.get_height() // 2)
-            self.pnd_top_h.set_position(self.pnd_top_h.get_width() // 2)
-            self.pnd_btm_h.set_position(self.pnd_btm_h.get_width() // 2)
+    # def panes_all(self) -> None:
+    #     """show & center all 4 main panes
+    #     shift+quadruple-click / shift+4"""
+    #     if (
+    #         hasattr(self, "pnd_main_v")
+    #         and hasattr(self, "pnd_top_h")
+    #         and hasattr(self, "pnd_btm_h")
+    #     ):
+    #         self.pnd_main_v.set_position(self.pnd_main_v.get_height() // 2)
+    #         self.pnd_top_h.set_position(self.pnd_top_h.get_width() // 2)
+    #         self.pnd_btm_h.set_position(self.pnd_btm_h.get_width() // 2)

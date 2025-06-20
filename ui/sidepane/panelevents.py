@@ -90,6 +90,8 @@ comment (add '# ' & save file) uninterested country"""
     event_location.set_location_callback(update_location)
 
     ent_city.set_placeholder_text("enter city name")
+    # todo test text
+    ent_city.set_text("London")
     ent_city.set_tooltip_text(
         """enter city name
 if more than 1 city (within selected country) is found
@@ -118,8 +120,10 @@ user needs to select the one of interest
         "location one" if event_name == "event one" else "location two"
     )
     ent_location.set_placeholder_text(
-        "deg min (sec) n / s deg  min (sec) e / w (m (alt))",
+        "deg min (sec) n / s deg  min (sec) e / w (alt m)",
     )
+    # todo test string
+    ent_location.set_text("51 30 54 n 000 05 56 w")
     ent_location.set_tooltip_text(
         """latitude & longitude (location)
 
@@ -160,6 +164,8 @@ only use [space] as separator
     ent_event_name.set_placeholder_text(
         "event one name" if event_name == "event one" else "event two name"
     )
+    # todo test string
+    ent_event_name.set_text("lse")
     ent_event_name.set_tooltip_text(
         """will be used for filename when saving
     max 30 characters
