@@ -2,6 +2,7 @@ __pycache__
 pyswisseph/
 swisseph/
 ephe/
-imgs/icons/_archive
+imgs/icons/_archive/
 .projectstructure.lua
 notes.txt
+user/data/
