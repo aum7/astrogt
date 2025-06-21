@@ -33,9 +33,27 @@ class DataGraph(Gtk.Box):
         self.full_df = None
         self.plot_range = [None, None]  # start, end
         self.last_mouse_x = None  # mouse position zoom
+        self.max_bars = 1000
+        self.min_bars = 50
         self.data_load()
         self.plot_last_n(200)
-        # cursor line
+        # mouse events
+        self.canvas.mpl_connect("motion_notify_event", self.on_mouse_move)
+        self.canvas.mpl_connect("scroll_event", self.on_scroll)
+
+    def data_load(self):
+        """load & plot data"""
+        # construct file path
+        data_folder = self.app.files.get("data")
+        filepath = os.path.join(data_folder, "gold/gold_1h_utc.csv")
+        # load csv
+        df = pd.read_csv(
+            filepath, parse_dates=["datetime_utc"], index_col="datetime_utc"
+        )
+        self.full_df = df
+
+    def cursor(self):
+        """info cursor is created after every plot as ax is cleared"""
         self.info_cursor = self.ax.axvline(
             0,
             color="white",
@@ -60,29 +78,12 @@ class DataGraph(Gtk.Box):
                 pad=2,
             ),
         )
-        # mouse events
-        self.canvas.mpl_connect("motion_notify_event", self.on_mouse_move)
-        self.canvas.mpl_connect("scroll_event", self.on_scroll)
-
-    def data_load(self):
-        """load & plot data"""
-        # construct file path
-        data_folder = self.app.files.get("data")
-        filepath = os.path.join(data_folder, "gold/gold_1h_utc.csv")
-        # load csv
-        df = pd.read_csv(
-            filepath, parse_dates=["datetime_utc"], index_col="datetime_utc"
-        )
-        self.full_df = df
 
     def plot_last_n(self, n):
         df = self.full_df
         if df is None or len(df) == 0:
             return
-        if len(df) > n:
-            start = len(df) - n
-        else:
-            start = 0
+        start = max(0, len(df) - n)
         end = len(df)
         self.plot_range = [start, end]
         self.plot_data(start, end)
@@ -91,34 +92,12 @@ class DataGraph(Gtk.Box):
         df_ = self.full_df
         if df_ is None or len(df_) == 0:
             return
-        if start is None or end is None:
+        if start is None or end is None or end <= start:
             return
         df = df_.iloc[start:end]
         self.df = df
         # clear previous axes drawing
         self.ax.clear()
-        # restore cursor line
-        self.info_cursor = self.ax.axvline(
-            self.last_mouse_x if self.last_mouse_x else 0,
-            color="white",
-            lw=0.7,
-            ls="--",
-            alpha=0.8,
-        )
-        self.cursor_text = self.ax.text(
-            0.01,
-            0.99,
-            "",
-            color="white",
-            fontsize=10,
-            transform=self.ax.transAxes,
-            va="top",
-            ha="left",
-            zorder=10,
-            bbox=dict(facecolor="#181818", edgecolor="white", alpha=0.8, pad=2),
-        )
-        self.canvas.draw()
-        # dark background
         self.figure.patch.set_facecolor("#181818")
         self.ax.set_facecolor("#181818")
         # remove spines, ticks, labels
@@ -167,6 +146,7 @@ class DataGraph(Gtk.Box):
                 linewidth=1,
                 zorder=1,
             )
+            self.ax.add_patch(rect)
             self.ax.add_line(wick)
             self.candles.append((rect, wick, op, hi, lo, cl))
         self.ax.set_xlim(-1, len(ohlc))
@@ -174,23 +154,25 @@ class DataGraph(Gtk.Box):
         highs = df["high"].max() if not df.empty else 1
         # fill canvas vertically
         self.ax.set_ylim(lows - (highs - lows) * 0.03, highs + (highs - lows) * 0.03)
+        self.cursor()
         self.canvas.draw()
 
     def on_mouse_move(self, event):
         """show bar info on mouse-over"""
         if not event.inaxes:
-            self.info_cursor.set_visible(False)
+            self.cursor.set_visible(False)
             self.cursor_text.set_visible(False)
+            self.last_mouse_x = None
             self.canvas.draw_idle()
             return
-        self.info_cursor.set_visible(True)
+        self.cursor.set_visible(True)
         self.cursor_text.set_visible(True)
         # store last mouse x for zoom
         self.last_mouse_x = event.xdata
-        self.info_cursor.set_xdata([event.xdata, event.xdata])
+        self.cursor.set_xdata([event.xdata, event.xdata])
         ix = int(round(event.xdata))
         info = ""
-        if 0 <= ix < len(self.candles):
+        if self.df is not None and 0 <= ix < len(self.df):
             dt_str = self.df.index[ix].strftime("%Y-%m-%d %H:%M")
             op, hi, lo, cl = self.candles[ix][2:]
             info = f"{dt_str}\no={op:.2f}\nh={hi:.2f}\nl={lo:.2f}\nc={cl:.2f}"
@@ -207,26 +189,55 @@ class DataGraph(Gtk.Box):
         if self.full_df is not None:
             df_len = len(self.full_df)
         zoom_amount = int(max(10, n * 0.2))
-        if event.button == "up":  # zoom out - more bars
-            new_n = min(df_len, n + zoom_amount)
-            # print("datagraph : button : up")
-        elif event.button == "down":  # zoom in - less bars
-            new_n = max(20, n - zoom_amount)
-            # print("datagraph : button : up")
+        min_bars, max_bars = self.min_bars, self.max_bars
+        # detect shift for pan
+        is_pan = False
+        # event.key can be none or [shift]
+        if hasattr(event, "key") and event.key == "shift":
+            is_pan = True
+        elif hasattr(event, "guiEvent") and hasattr(event.guiEvent, "state"):
+            # gtk4agg : state may indicate modifier key, ie shift = 1
+            if event.guiEvent.state & 1:
+                is_pan = True
+        # pan data plot
+        if is_pan:
+            pan = int(n * 0.2)
+            if event.button == "up":  # zoom out - more bars
+                new_start = min(df_len - n, cur_start + pan)
+                # print("datagraph : button : up")
+            elif event.button == "down":  # zoom in - less bars
+                new_start = max(0, cur_start - pan)
+                # print("datagraph : button : up")
+            else:
+                return
+            new_end = new_start + n
+            # clamp data
+            if new_end > df_len:
+                new_end = df_len
+                new_start = max(0, new_end - n)
         else:
-            return
-        # determine zoom center
-        if self.last_mouse_x is not None:
-            center_x = int(self.last_mouse_x)
-        else:
-            center_x = n // 2
-        # center_x is index in current window, map to global index
-        if cur_start:
-            global_center = cur_start + center_x
-        new_start = max(0, global_center - new_n // 2)
-        new_end = min(df_len, new_start + new_n)
-        # adjust start if at right edge
-        if new_end <= new_start:
+            # zoom logic : keep bar under cursor fixed
+            if self.last_mouse_x is not None and n > 1:
+                frac = self.last_mouse_x / (n - 1)
+            else:
+                frac = 0.5
+            idx_under_cursor = int(cur_start + frac * (n - 1))
+            if event.button == "up":  # zoom out
+                new_n = min(max_bars, n + zoom_amount)
+            elif event.button == "down":  # zoom in
+                new_n = max(min_bars, n - zoom_amount)
+            else:
+                return
+            # anchor bar under cursor to same data index
+            new_start = idx_under_cursor - int(frac * (new_n - 1))
+            new_start = max(0, min(df_len - new_n, new_start))
+            new_end = new_start + new_n
+            # clamp
+            if new_end > df_len:
+                new_end = df_len
+                new_start = max(0, new_end - new_n)
+        # avoid bad ranges
+        if new_end <= new_start or new_end - new_start < min_bars:
             return
         self.plot_range = [new_start, new_end]
         self.plot_data(new_start, new_end)
