@@ -34,7 +34,7 @@ class DataGraph(Gtk.Box):
         self.plot_range = [None, None]  # start, end
         self.last_mouse_x = None  # mouse position zoom
         self.max_bars = 1000
-        self.min_bars = 50
+        self.min_bars = 100
         self.data_load()
         self.plot_last_n(200)
         # mouse events
@@ -52,7 +52,7 @@ class DataGraph(Gtk.Box):
         )
         self.full_df = df
 
-    def cursor(self):
+    def init_cursor(self):
         """info cursor is created after every plot as ax is cleared"""
         self.info_cursor = self.ax.axvline(
             0,
@@ -154,22 +154,22 @@ class DataGraph(Gtk.Box):
         highs = df["high"].max() if not df.empty else 1
         # fill canvas vertically
         self.ax.set_ylim(lows - (highs - lows) * 0.03, highs + (highs - lows) * 0.03)
-        self.cursor()
+        self.init_cursor()
         self.canvas.draw()
 
     def on_mouse_move(self, event):
         """show bar info on mouse-over"""
         if not event.inaxes:
-            self.cursor.set_visible(False)
+            self.info_cursor.set_visible(False)
             self.cursor_text.set_visible(False)
             self.last_mouse_x = None
             self.canvas.draw_idle()
             return
-        self.cursor.set_visible(True)
+        self.info_cursor.set_visible(True)
         self.cursor_text.set_visible(True)
         # store last mouse x for zoom
         self.last_mouse_x = event.xdata
-        self.cursor.set_xdata([event.xdata, event.xdata])
+        self.info_cursor.set_xdata([event.xdata, event.xdata])
         ix = int(round(event.xdata))
         info = ""
         if self.df is not None and 0 <= ix < len(self.df):
