@@ -59,6 +59,11 @@ class EventData:
             focus_controller.connect(  # on focus lost
                 "leave", lambda ctrl, cb=callback: cb(ctrl.get_widget())
             )
+        signal = self.app.signal_manager
+        signal._connect("datetime_captured", self.datetime_captured)
+
+    def datetime_captured(self, data):
+        print(f"eventdata : datetimecaptured : {data}")
 
     def on_location_change(self, entry):
         """process location data (as string)

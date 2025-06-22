@@ -29,17 +29,24 @@ class DataGraph(Gtk.Box):
         self.figure, self.ax = plt.subplots()
         self.canvas = FigureCanvas(self.figure)
         self.append(self.canvas)
+        # global datetime attribute to move astro chart
+        self.app.selected_dt = None
         # load & plot data
         self.full_df = None
         self.plot_range = [None, None]  # start, end
         self.last_mouse_x = None  # mouse position zoom
-        self.max_bars = 1000
+        self.max_bars = 500
         self.min_bars = 100
         self.data_load()
         self.plot_last_n(200)
         # mouse events
         self.canvas.mpl_connect("motion_notify_event", self.on_mouse_move)
         self.canvas.mpl_connect("scroll_event", self.on_scroll)
+        self.canvas.mpl_connect("button_press_event", self.on_click)
+        # keyboard events
+        self.shift_held = False
+        self.canvas.mpl_connect("key_press_event", self.on_key_press)
+        self.canvas.mpl_connect("key_release_event", self.on_key_release)
 
     def data_load(self):
         """load & plot data"""
@@ -80,6 +87,7 @@ class DataGraph(Gtk.Box):
         )
 
     def plot_last_n(self, n):
+        """initial number of bars to plot"""
         df = self.full_df
         if df is None or len(df) == 0:
             return
@@ -89,6 +97,7 @@ class DataGraph(Gtk.Box):
         self.plot_data(start, end)
 
     def plot_data(self, start, end):
+        """data to plot & chart design incl. colors"""
         df_ = self.full_df
         if df_ is None or len(df_) == 0:
             return
@@ -179,8 +188,57 @@ class DataGraph(Gtk.Box):
         self.cursor_text.set_text(info)
         self.canvas.draw_idle()
 
+    def on_key_press(self, event):
+        # print(f"datagraph : key : {event.key}")
+        if event.key == "shift":
+            self.shift_held = True
+
+    def on_key_release(self, event):
+        # print(f"datagraph : key : {event.key}")
+        if event.key == "shift":
+            self.shift_held = False
+
+    def on_click(self, event):
+        if event.button == 1 and event.inaxes:
+            ix = int(round(event.xdata))
+            num = len(self.df)
+            threshold = max(2, int(num * 0.1))  # 10 % of window
+            # check shift-click
+            if getattr(self, "shift_held", False):
+                if ix <= threshold:
+                    print("datagraph : shift-click - jump back")
+                    self.jump_bars(-5800)  # ~ 1 year of hours
+                elif ix >= num - 1 - threshold:
+                    print("datagraph : shift-click - jump forward")
+                    self.jump_bars(5800)
+                else:
+                    print("datagraph : shift-click : not at edge")
+            else:
+                # normal click
+                if self.df is not None and 0 <= ix < len(self.df):
+                    dt = self.df.index[ix]
+                    self.app.selected_dt = dt
+                    self.app.signal_manager._emit("datetime_captured", dt)
+                    print(f"datagraph : datetime : {dt}")
+
+    def jump_bars(self, bars):
+        """fast-jump cca 1 year forward or backward in data range"""
+        cur_start, cur_end = self.plot_range
+        if self.full_df is not None:
+            df_len = len(self.full_df)
+        if cur_start and cur_end:
+            num = cur_end - cur_start
+        if df_len and num:
+            new_start = min(max(0, cur_start + bars), df_len - num)
+            new_end = new_start + num
+            if new_end > df_len:
+                new_end = df_len
+                new_start = max(0, new_end - num)
+        self.plot_range = [new_start, new_end]
+        self.plot_data(new_start, new_end)
+
     def on_scroll(self, event):
-        """zoom on mouse-over & mouse-scroll"""
+        """zoom on mouse-over & mouse-scroll & pan if [shift] is also held"""
         # print(f"datagraph : event : {event}")
         cur_start, cur_end = self.plot_range
         if cur_start is None or cur_end is None or cur_end <= cur_start:
@@ -191,23 +249,25 @@ class DataGraph(Gtk.Box):
         zoom_amount = int(max(10, n * 0.2))
         min_bars, max_bars = self.min_bars, self.max_bars
         # detect shift for pan
-        is_pan = False
+        is_pan = self.shift_held
         # event.key can be none or [shift]
         if hasattr(event, "key") and event.key == "shift":
             is_pan = True
-        elif hasattr(event, "guiEvent") and hasattr(event.guiEvent, "state"):
-            # gtk4agg : state may indicate modifier key, ie shift = 1
-            if event.guiEvent.state & 1:
-                is_pan = True
+            # print("datagraph : is_pan [shift]")
+        # elif hasattr(event, "guiEvent") and hasattr(event.guiEvent, "state"):
+        #     # gtk4agg : state may indicate modifier key, ie shift = 1
+        #     if event.guiEvent.state & 1:
+        #         is_pan = True
+        #         print("datagraph : is_pan guievent [shift]")
         # pan data plot
         if is_pan:
             pan = int(n * 0.2)
-            if event.button == "up":  # zoom out - more bars
-                new_start = min(df_len - n, cur_start + pan)
-                # print("datagraph : button : up")
-            elif event.button == "down":  # zoom in - less bars
+            if event.button == "up":  # pan forward
+                # print("datagraph : pan : button : up")
                 new_start = max(0, cur_start - pan)
-                # print("datagraph : button : up")
+            elif event.button == "down":  # pan backward
+                # print("datagraph : pan : button : down")
+                new_start = min(df_len - n, cur_start + pan)
             else:
                 return
             new_end = new_start + n
@@ -222,9 +282,11 @@ class DataGraph(Gtk.Box):
             else:
                 frac = 0.5
             idx_under_cursor = int(cur_start + frac * (n - 1))
-            if event.button == "up":  # zoom out
+            if event.button == "up":  # zoom in - less bars
+                # print("datagraph : zoom : button : up")
                 new_n = min(max_bars, n + zoom_amount)
-            elif event.button == "down":  # zoom in
+            elif event.button == "down":  # zoom out - more bars
+                # print("datagraph : zoom : button : down")
                 new_n = max(min_bars, n - zoom_amount)
             else:
                 return

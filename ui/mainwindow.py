@@ -234,7 +234,7 @@ class MainWindow(
                 self.datagraph = DataGraph()
             # add data graph directly into bottom-left pane
             if hasattr(self, "frm_top_right"):
-                self.frm_top_left.set_child(self.datagraph)
+                self.frm_top_right.set_child(self.datagraph)
 
     # panes show all 4
     # def panes_all(self) -> None:
