@@ -1,20 +1,108 @@
 # ui/mainpanes/panechart/chartcircles.py
 import cairo
 from math import pi, cos, sin, radians
+
 # background colors
 # redish    1,0.7,0.7
 # greenish  0.8,1,0.83
 # yellowish 0.2,0.2,0
 # blueish   0.7,0.75,1
+# egyptian terms table: starting degree > ruler
+TERMS = {
+    0: "ju",
+    6: "ve",
+    12: "me",
+    20: "ma",
+    25: "sa",
+    30: "ve",
+    38: "me",
+    44: "ju",
+    52: "sa",
+    57: "ma",
+    60: "me",
+    66: "ju",
+    72: "ve",
+    77: "ma",
+    84: "sa",
+    90: "ma",
+    97: "ve",
+    103: "me",
+    109: "ju",
+    116: "sa",
+    120: "ju",
+    126: "ve",
+    131: "sa",
+    138: "me",
+    144: "ma",
+    150: "me",
+    157: "ve",
+    167: "ju",
+    171: "ma",
+    178: "sa",
+    # 180: "sa",  # extends
+    186: "me",
+    194: "ju",
+    201: "ve",
+    208: "ma",
+    # 210: "ma",  # extends
+    217: "ve",
+    221: "me",
+    229: "ju",
+    234: "sa",
+    240: "ju",
+    252: "ve",
+    257: "me",
+    261: "sa",
+    266: "ma",
+    270: "me",
+    277: "ju",
+    284: "ve",
+    292: "sa",
+    296: "ma",
+    300: "me",
+    307: "ve",
+    313: "ju",
+    320: "ma",
+    325: "sa",
+    330: "ve",
+    342: "ju",
+    346: "me",
+    349: "ma",
+    358: "sa",
+}
 
 
 class CircleBase:
     """base class to handle common attributes"""
 
-    def __init__(self, radius, cx, cy):
+    def __init__(self, radius, cx, cy, chart_settings=None):
         self.radius = radius
         self.cx = cx
         self.cy = cy
+        self.chart_settings = chart_settings or {}
+        # unicode glyphs from victormonolightastro.ttf font
+        self.glyphs = {
+            "su": "\u0180",
+            "mo": "\u0181",
+            "me": "\u0182",
+            "ve": "\u0183",
+            "ma": "\u0184",
+            "ju": "\u0185",
+            "sa": "\u0186",
+            "ur": "\u0187",
+            "ne": "\u0188",
+            "pl": "\u0189",
+            "ra": "\u018e"
+            if not self.chart_settings.get("mean node", False)
+            else "\u018c",  # rahu true else mean
+        }
+        self.glyphs_extra = {
+            "fr1": "\u018b",  # fortuna
+            "fr2": "\u01e2",  # fortuna alter
+            "syz": "\u01d8",  # syzygy / prenatal lunation : jin-jang
+            "syn": "\u01ec",  # syzygy : conjunction : new moon
+            "syf": "\u01ed",  # syzygy : opposition : full moon
+        }
 
     def draw(self, cr):
         """subclass must override this method"""
@@ -47,11 +135,10 @@ class CircleInfo(CircleBase):
     def __init__(
         self, notify, radius, cx, cy, font_size, chart_settings, event_data, extra_info
     ):
-        super().__init__(radius, cx, cy)
+        super().__init__(radius, cx, cy, chart_settings)
         self.notify = notify
         self.font_size = font_size
         self.event_data = event_data or {}
-        self.chart_settings = chart_settings or {}
         self.extra_info = extra_info
         # print(f"chartcircles : circleinfo : e1 data : {self.event_data}")
         # print(f"chartcircles : circleinfo : chartsettings : {self.chart_settings}")
@@ -123,12 +210,11 @@ class CircleEvent(CircleBase):
     def __init__(
         self, radius, cx, cy, font_size, guests, houses, ascmc, chart_settings
     ):
-        super().__init__(radius, cx, cy)
+        super().__init__(radius, cx, cy, chart_settings)
         self.guests = guests
         self.houses = houses
         self.ascmc = ascmc
         self.font_size = font_size
-        self.chart_settings = chart_settings
         # radius factor for middle circle (0° latitude )
         self.middle_factor = 0.74
         # inner circle factor (min latitude value)
@@ -136,29 +222,6 @@ class CircleEvent(CircleBase):
         # print(f"chartcircles : circleevent : guests : {[g.data for g in guests]}")
         # print(f"chartcircles : circleevent : self.houses : {self.houses}")
         # print(f"chartcircles : circleevent : ascmc : {ascmc}")
-        # unicode glyphs from victormonolightastro.ttf font
-        self.glyphs = {
-            "su": "\u0180",
-            "mo": "\u0181",
-            "me": "\u0182",
-            "ve": "\u0183",
-            "ma": "\u0184",
-            "ju": "\u0185",
-            "sa": "\u0186",
-            "ur": "\u0187",
-            "ne": "\u0188",
-            "pl": "\u0189",
-            "ra": "\u018e"
-            if not self.chart_settings.get("mean node", False)
-            else "\u018c",  # rahu true else mean
-        }
-        self.glyphs_extra = {
-            "fr1": "\u018b",  # fortuna
-            "fr2": "\u01e2",  # fortuna alter
-            "syz": "\u01d8",  # syzygy / prenatal lunation : jin-jang
-            "syn": "\u01ec",  # syzygy : conjunction : new moon
-            "syf": "\u01ed",  # syzygy : opposition : full moon
-        }
         if not self.guests or not self.houses or not self.ascmc:
             return
 
@@ -426,35 +489,54 @@ class CircleHarmonic(CircleBase):
         cr.set_source_rgba(1, 1, 1, 1)
         cr.set_line_width(1)
         cr.stroke()
-        # draw divisions for selected harmonic
-        d = self.division
-        total_divisions = d * 12
-        seg_angle = 2 * pi / total_divisions
-        # draw lines
-        for i in range(total_divisions):
-            angle = pi - (i * seg_angle)
-            # todo shorten lines
-            x = self.cx + self.radius * cos(angle)
-            y = self.cy + self.radius * sin(angle)
-            cr.move_to(self.cx, self.cy)
-            cr.line_to(x, y)
-            cr.stroke()
-        # labels
-        self.set_custom_font(cr, self.font_size)
-        for i in range(total_divisions):
-            angle = pi - ((i + 0.5) * seg_angle)
-            sign = (i + 1) % 12
-            label = str(12 if sign == 0 else sign)
-            te = cr.text_extents(label)
-            x = self.cx + self.radius * 0.97 * cos(angle)
-            y = self.cy + self.radius * 0.97 * sin(angle)
-            cr.save()
-            cr.translate(x, y)
-            cr.rotate(angle + pi / 2)
-            cr.move_to(-te.width / 2, te.height / 2)
-            cr.show_text(label)
-            cr.restore()
-            cr.new_path()
+        # terms (aka bounds) if division 1
+        if self.division == 1:
+            terms_sorted = sorted(TERMS.items())
+            terms_num = len(terms_sorted)
+            self.set_custom_font(cr, self.font_size)
+            for i, (deg, ruler) in enumerate(terms_sorted):
+                # start angle
+                angle = pi - (deg * pi / 180)
+                x = self.cx + self.radius * cos(angle)
+                y = self.cy + self.radius * sin(angle)
+                cr.move_to(self.cx, self.cy)
+                cr.line_to(x, y)
+                cr.stroke()
+                # glyphs : next border for mid term position
+                if i == terms_num - 1:
+                    next_deg = 360
+                else:
+                    next_deg = terms_sorted[(i + 1) % terms_num][0]
+                angle_next = pi - (next_deg * pi / 180)
+                # handle wrap-around
+                mid_angle = (angle + angle_next) / 2
+                # position glyph
+                xg = self.cx + self.radius * 0.975 * cos(mid_angle)
+                yg = self.cy + self.radius * 0.975 * sin(mid_angle)
+                glyph = self.glyphs.get(ruler, "?")
+                self.draw_rotated_text(cr, glyph, xg, yg, mid_angle)
+        else:
+            # draw divisions for selected harmonic
+            total_divisions = 12 * self.division
+            seg_angle = 2 * pi / total_divisions
+            # draw lines
+            for i in range(total_divisions):
+                angle = pi - (i * seg_angle)
+                x = self.cx + self.radius * cos(angle)
+                y = self.cy + self.radius * sin(angle)
+                cr.move_to(self.cx, self.cy)
+                cr.line_to(x, y)
+                cr.stroke()
+            # labels
+            self.set_custom_font(cr, self.font_size)
+            for i in range(total_divisions):
+                angle = pi - ((i + 0.5) * seg_angle)
+                sign = (i + 1) % 12
+                label = str(12 if sign == 0 else sign)
+                # te = cr.text_extents(label)
+                x = self.cx + self.radius * 0.97 * cos(angle)
+                y = self.cy + self.radius * 0.97 * sin(angle)
+                self.draw_rotated_text(cr, label, x, y, angle)
 
 
 # then event 2 circles

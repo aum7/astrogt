@@ -117,3 +117,4 @@ def object_name_to_code(name: str, use_mean_node: bool) -> Tuple[Optional[int], 
 
 def connect_signals_positions(signal_manager):
     signal_manager._connect("event_changed", calculate_positions)
+    signal_manager._connect("settings_changed", calculate_positions)

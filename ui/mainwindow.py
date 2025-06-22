@@ -217,7 +217,7 @@ class MainWindow(
 
     # panes show 3
     def panes_triple(self) -> None:
-        """show & center top 2 panes & bottom single
+        """show & center top single & bottom 2 panes
         shift+triple-click / shift+3"""
         if (
             hasattr(self, "pnd_main_v")
@@ -234,7 +234,7 @@ class MainWindow(
                 self.datagraph = DataGraph()
             # add data graph directly into bottom-left pane
             if hasattr(self, "frm_top_right"):
-                self.frm_top_right.set_child(self.datagraph)
+                self.frm_top_left.set_child(self.datagraph)
 
     # panes show all 4
     # def panes_all(self) -> None:

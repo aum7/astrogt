@@ -200,7 +200,7 @@ class AstroChart(Gtk.Box):
             radius=max_radius * mandatory_factor * 0.4,
             cx=cx,
             cy=cy,
-            font_size=int(18 * font_scale),
+            font_size=int(16 * font_scale),
             chart_settings=self.chart_settings,
             event_data=self.e1_chart_info,
             extra_info=self.extra_info,

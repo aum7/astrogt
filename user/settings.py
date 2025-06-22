@@ -147,7 +147,7 @@ CHART_SETTINGS = {
     # add them if you need them | 2 rings are possible
     # !!! those are simple divisions, similar but NOT all equal to varga
     "harmonics ring": (
-        "9",
+        "1",
         "harmonics ring\nempty : do NOT show | 1 : egypt. terms (bounds)\n7, 9, 11 : simple harmonics *similar* to varga",
         # "harmonics ring\nempty : do NOT show | 1 : egypt. terms (bounds)\n7, 9, 11 : simple harmonics *similar* to varga\n2 rings possible ie [1 9] will show terms & navamsa",
     ),

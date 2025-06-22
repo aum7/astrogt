@@ -6,8 +6,9 @@ import gi
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from ui.collapsepanel import CollapsePanel
-from sweph.calculations.positions import calculate_positions
-from sweph.calculations.houses import calculate_houses
+
+# from sweph.calculations.positions import calculate_positions
+# from sweph.calculations.houses import calculate_houses
 from user.settings import (
     OBJECTS,
     HOUSE_SYSTEMS,
@@ -671,14 +672,15 @@ def objects_toggled(checkbutton, name, manager):
     else:
         sweph = manager.app.e2_sweph
         sel_objs = manager.app.selected_objects_e2
-
     if checkbutton.get_active():
         sel_objs.add(name)
     else:
         sel_objs.discard(name)
     # recalculate positions on objecs change
     if sweph:
-        calculate_positions(f"e{manager.selected_objects_event}")
+        # calculate_positions(f"e{manager.selected_objects_event}")
+        # todo switched from direct call to calculate_positions()
+        manager.signal._emit("settings_changed", f"e{manager.selected_objects_event}")
     manager.notify.debug(
         f"\n\tselected objects : e{manager.selected_objects_event} : {sel_objs}",
         source="panelsettings",
@@ -694,7 +696,9 @@ def house_system_changed(dropdown, _, manager):
     manager.app.selected_house_system = hsys
     manager.app.selected_house_sys_str = short_name
     # calculate_positions(event=None)
-    calculate_houses(event=None)
+    # calculate_houses(event=None)
+    # todo switched from direct call to calculate_positions()
+    manager.signal._emit("settings_changed", None)
     manager.notify.debug(
         f"selectedhousesystem : {manager.app.selected_house_system}"
         f"\t{manager.app.selected_house_sys_str}",
@@ -706,12 +710,13 @@ def house_system_changed(dropdown, _, manager):
 def chart_settings_toggled(button, setting, manager):
     """chart settings panel : update chart settings"""
     manager.app.chart_settings[setting] = button.get_active()
-    if setting == "mean node":  # if setting in ["mean node", "true mc & ic"]:
-        calculate_positions(event=None)
-    if setting in ["enable glyphs", "fixed asc"]:
-        # update astro chart drawing
-        manager.signal._emit("settings_changed", None)
-        # todo by setting
+    # if setting == "mean node":  # if setting in ["mean node", "true mc & ic"]:
+    #     calculate_positions(event=None)
+    # if setting in ["enable glyphs", "fixed asc"]:
+    #     # update astro chart drawing
+    #     manager.signal._emit("settings_changed", None)
+    # todo switched from direct call to calculate_positions()
+    manager.signal._emit("settings_changed", None)
     manager.notify.debug(
         f"chartsettingstoggled : {setting} toggled ({button.get_active()})",
         source="panelsettings",
@@ -890,7 +895,9 @@ def flags_toggled(button, flag, manager):
     if manager.app.is_sidereal:
         set_ayanamsa(manager)
     # update positions on flag change
-    calculate_positions(event=None)
+    # calculate_positions(event=None)
+    # todo switched from direct call to calculate_positions()
+    manager.signal._emit("settings_changed", None)
     manager.notify.debug(
         f"flagstoggled :"
         f"\n\tselected flags : {manager.app.selected_flags}"
@@ -932,7 +939,9 @@ def ayanamsa_changed(dropdown, _, manager):
     manager.app.selected_ayan_str = list(AYANAMSA.values())[idx][1]
     set_ayanamsa(manager)
     # update positions
-    calculate_positions(event=None)
+    # calculate_positions(event=None)
+    # todo switched from direct call to calculate_positions()
+    manager.signal._emit("settings_changed", None)
     manager.notify.debug(
         f"ayanamsa panel : selected : {manager.app.selected_ayanamsa}"
         "\n\tcalled calculatepositions ...",
@@ -968,7 +977,7 @@ def custom_ayanamsa_changed(entry, key, manager):
             return
         manager.app.custom_julian_day = custom_jd
         set_ayanamsa(manager)
-        calculate_positions(event=None)
+        # calculate_positions(event=None)
         manager.notify.debug(
             f"customjulday : {manager.app.custom_julian_day}",
             source="panelsettings",
@@ -999,12 +1008,14 @@ def custom_ayanamsa_changed(entry, key, manager):
             return
         manager.app.custom_ayan = custom_ayan
         set_ayanamsa(manager)
-        calculate_positions(event=None)
+        # calculate_positions(event=None)
         manager.notify.debug(
             f"customayanamsa : {manager.app.custom_ayan}",
             source="panelsettings",
             route=["terminal"],
         )
+    # todo switched from direct call to calculate_positions()
+    manager.signal._emit("settings_changed", None)
 
 
 def set_ayanamsa(manager):
@@ -1039,6 +1050,8 @@ def files_changed(entry, key, manager):
     if manager.app.files[key] == value:
         return
     manager.app.files[key] = value
+    # todo
+    manager.signal._emit("settings_changed", None)
     manager.notify.debug(
         f"files panel : {key} = {value}",
         source="panelsettings",

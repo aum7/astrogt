@@ -62,3 +62,4 @@ def calculate_houses(event: Optional[str] = None) -> None:
 
 def connect_signals_houses(signal_manager):
     signal_manager._connect("event_changed", calculate_houses)
+    signal_manager._connect("settings_changed", calculate_houses)
