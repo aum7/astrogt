@@ -164,7 +164,7 @@ CHART_SETTINGS = {
     5: {time_short} (no seconds) | 6: {wday} weekday
     7: {country} | 8: {iso3} country code | 9: {city}
     10: {location} | 11: {lat}itude | 12: {lon}gitude
-    13: {timezone} | chars: @ | - :
+    13: {timezone} | 14: timezone {offset} | chars: @ | - :
 \n = new line
 example : {name}\n{date}\n{wday} {time_short}\n{city} @ {country}\n{lat}\n{lon}""",
     ),

@@ -1,5 +1,6 @@
 # sweph/eventdata.py
 # ruff: noqa: E402
+# import re
 import gi
 
 gi.require_version("Gtk", "4.0")
@@ -60,15 +61,19 @@ class EventData:
                 "leave", lambda ctrl, cb=callback: cb(ctrl.get_widget())
             )
         signal = self.app.signal_manager
+        print("connecting datetime_captured", id(self))
         signal._connect("datetime_captured", self.datetime_captured)
 
     def datetime_captured(self, data):
+        print(f"datetime_captured called, id(self)={id(self)}")
+        print(f"eventdata : datetimecaptured : {data}")
+        dt = str(data)
         # insert into event 1 datetime entry
         if self.app.EVENT_ONE and hasattr(self.app.EVENT_ONE, "date_time"):
             entry = self.app.EVENT_ONE.date_time
-            entry.set_text(str(data))
+            # print(f"eventdata : dtcaptured : {dt}")
+            entry.set_text(dt)
             self.on_datetime_change(entry)
-        # print(f"eventdata : datetimecaptured : {data}")
 
     def on_location_change(self, entry):
         """process location data (as string)
@@ -102,12 +107,13 @@ class EventData:
                     route=["terminal"],
                 )
                 return
-        if location == self.old_location:
-            self.notify.debug(
-                f"{location_name} not changed",
-                source="eventdata",
-                route=["terminal"],
-            )
+            # todo remove this ?
+            if location == self.old_location:
+                self.notify.debug(
+                    f"{location_name} not changed",
+                    source="eventdata",
+                    route=["terminal"],
+                )
             return
         try:
             # parse location data
@@ -184,6 +190,10 @@ class EventData:
                         lat = lat_deg + lat_min / 60 + lat_sec / 3600
                         lon = lon_deg + lon_min / 60 + lon_sec / 3600
 
+                    if lat_dir == "s":
+                        lat = -abs(lat)
+                    if lon_dir == "w":
+                        lon = -abs(lon)
                 except (ValueError, IndexError) as e:
                     # re-raise to previous level
                     raise ValueError(e)
@@ -288,6 +298,14 @@ class EventData:
         # needed for datetime as local apparent time
         if lon:
             self.lon = lon
+            # msg = f"self.lon : {self.lon} | lon : {lon}"
+        # else:
+        # msg = f"error : self.lon : {self.lon} | lon : {lon}"
+        # self.notify.error(
+        #     msg,
+        #     source="eventdata",
+        #     route=["terminal"],
+        # )
         # split location for chart info
         parts = location_formatted.split()
         lat_str = " ".join(parts[:4])
@@ -383,7 +401,7 @@ class EventData:
         """process date & time"""
         # check for mandatory fields first
         if entry.get_name() == "datetime one":
-            if self.lon is None:
+            if not self.app.e1_sweph.get("lon"):
                 self.notify.warning(
                     "event one : set location first",
                     source="eventdata",
@@ -571,7 +589,7 @@ class EventData:
                 dt_utc = naive_to_utc(Y, M, D, h, m, s, self.tz_offset)
                 _, jd_ut = utc_to_jd(*dt_utc, calendar)
                 # print(f"utcfromnaive : {dt_utc}")
-                # print(f"manualdt tz : jdut : {jd_ut} | tzoffset : {self.tz_offset}")
+                print(f"manualdt tz : jdut : {jd_ut} | tzoffset : {self.tz_offset}")
                 if not self.timezone:
                     self.notify.info(
                         f"\n\t{datetime_name} no timezone : using event one ({tz})",
@@ -614,6 +632,7 @@ class EventData:
             self.app.e1_chart["time"] = time
             self.app.e1_chart["time_short"] = time_short
             self.app.e1_chart["wday"] = wday
+            self.app.e1_chart["offset"] = str(self.tz_offset)
             self.app.e1_sweph["jd_ut"] = jd_ut
         else:
             self.app.e2_chart["datetime"] = dt_event_str
@@ -621,6 +640,7 @@ class EventData:
             self.app.e2_chart["time"] = time
             self.app.e2_chart["time_short"] = time_short
             self.app.e2_chart["wday"] = wday
+            self.app.e2_chart["offset"] = str(self.tz_offset)
             self.app.e2_sweph["jd_ut"] = jd_ut
         self.notify.debug(
             f"{datetime_name} updated\n\t{dt_event_str} | {wday} | jdut : {jd_ut}",
@@ -652,7 +672,14 @@ class EventData:
                 route=["terminal"],
             )
             if self.app.e2_chart.get("location", "") == "":
-                for key in ["country", "city", "location", "timezone", "iso3"]:
+                for key in [
+                    "country",
+                    "city",
+                    "location",
+                    "timezone",
+                    "iso3",
+                    "offset",
+                ]:
                     self.app.e2_chart[key] = self.app.e1_chart.get(key)
                 for key in ["lat", "lon", "alt"]:
                     self.app.e2_sweph[key] = self.app.e1_sweph.get(key)
@@ -673,7 +700,7 @@ class EventData:
             f"\n\tsweph 2\t{json.dumps(self.app.e2_sweph, sort_keys=True, indent=6, ensure_ascii=False)}"
             "\n--------------------------",
             source="eventdata",
-            route=["none"],
+            route=["terminal"],
         )
         # detect event & emit signal
         if datetime_name == "datetime one":
@@ -686,5 +713,11 @@ class EventData:
             source="eventdata",
             route=["none"],
         )
-        self.app.props.active_window.update_main_title()
+        # todo copy this code to rest of update_main_title() files
+        mainwindow = next(
+            (w for w in self.app.get_windows() if isinstance(w, Gtk.ApplicationWindow)),
+            None,
+        )
+        if mainwindow is not None:
+            mainwindow.update_main_title()
         return
