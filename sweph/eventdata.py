@@ -63,7 +63,12 @@ class EventData:
         signal._connect("datetime_captured", self.datetime_captured)
 
     def datetime_captured(self, data):
-        print(f"eventdata : datetimecaptured : {data}")
+        # insert into event 1 datetime entry
+        if self.app.EVENT_ONE and hasattr(self.app.EVENT_ONE, "date_time"):
+            entry = self.app.EVENT_ONE.date_time
+            entry.set_text(str(data))
+            self.on_datetime_change(entry)
+        # print(f"eventdata : datetimecaptured : {data}")
 
     def on_location_change(self, entry):
         """process location data (as string)
@@ -503,14 +508,14 @@ class EventData:
                         )
                         self.app.signal_manager._emit("e2_cleared", "e2")
                         return
-            # data not changed
-            if date_time == self.old_date_time:
-                self.notify.debug(
-                    f"{datetime_name} not changed",
-                    source="eventdata",
-                    route=["terminal"],
-                )
-                return
+            # data not changed todo remove check ???
+            # if date_time == self.old_date_time:
+            #     self.notify.debug(
+            #         f"{datetime_name} not changed",
+            #         source="eventdata",
+            #         route=["terminal"],
+            #     )
+            #     return
             # data changed
             try:
                 # get datetime string, assuming naive date-time

@@ -24,6 +24,7 @@ class DataGraph(Gtk.Box):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.app = Gtk.Application.get_default()
+        self.notify = self.app.notify_manager
         self.set_orientation(Gtk.Orientation.VERTICAL)
         # create figure & axes
         self.figure, self.ax = plt.subplots()
@@ -206,40 +207,58 @@ class DataGraph(Gtk.Box):
             # check shift-click
             if getattr(self, "shift_held", False):
                 if ix <= threshold:
-                    print("datagraph : shift-click - jump back")
+                    # print("datagraph : shift-click - jump back")
                     self.jump_bars(-5800)  # ~ 1 year of hours
                 elif ix >= num - 1 - threshold:
-                    print("datagraph : shift-click - jump forward")
+                    # print("datagraph : shift-click - jump forward")
                     self.jump_bars(5800)
                 else:
-                    print("datagraph : shift-click : not at edge")
+                    self.notify.info(
+                        "shift-click : not at edge",
+                        source="datagraph",
+                        route=["terminal", "user"],
+                    )
             else:
                 # normal click
                 if self.df is not None and 0 <= ix < len(self.df):
                     dt = self.df.index[ix]
-                    self.app.selected_dt = dt
                     self.app.signal_manager._emit("datetime_captured", dt)
-                    print(f"datagraph : datetime : {dt}")
+                    # print(f"datagraph : datetime : {dt}")
 
     def jump_bars(self, bars):
         """fast-jump cca 1 year forward or backward in data range"""
         cur_start, cur_end = self.plot_range
         if self.full_df is not None:
             df_len = len(self.full_df)
-        if cur_start and cur_end:
-            num = cur_end - cur_start
-        if df_len and num:
-            new_start = min(max(0, cur_start + bars), df_len - num)
-            new_end = new_start + num
-            if new_end > df_len:
-                new_end = df_len
-                new_start = max(0, new_end - num)
+        else:
+            return
+        if cur_start is None or cur_end is None:
+            return
+        num = cur_end - cur_start
+        if bars < 0 and cur_start == 0:
+            self.notify.warning(
+                "reached data start",
+                source="datagraph",
+                route=["terminal", "user"],
+            )
+            return
+        if bars > 0 and cur_end == df_len:
+            self.notify.warning(
+                "reached data end",
+                source="datagraph",
+                route=["terminal", "user"],
+            )
+            return
+        new_start = min(max(0, cur_start + bars), df_len - num)
+        new_end = new_start + num
+        if new_end > df_len:
+            new_end = df_len
+            new_start = max(0, new_end - num)
         self.plot_range = [new_start, new_end]
         self.plot_data(new_start, new_end)
 
     def on_scroll(self, event):
         """zoom on mouse-over & mouse-scroll & pan if [shift] is also held"""
-        # print(f"datagraph : event : {event}")
         cur_start, cur_end = self.plot_range
         if cur_start is None or cur_end is None or cur_end <= cur_start:
             return
@@ -250,15 +269,8 @@ class DataGraph(Gtk.Box):
         min_bars, max_bars = self.min_bars, self.max_bars
         # detect shift for pan
         is_pan = self.shift_held
-        # event.key can be none or [shift]
         if hasattr(event, "key") and event.key == "shift":
             is_pan = True
-            # print("datagraph : is_pan [shift]")
-        # elif hasattr(event, "guiEvent") and hasattr(event.guiEvent, "state"):
-        #     # gtk4agg : state may indicate modifier key, ie shift = 1
-        #     if event.guiEvent.state & 1:
-        #         is_pan = True
-        #         print("datagraph : is_pan guievent [shift]")
         # pan data plot
         if is_pan:
             pan = int(n * 0.2)

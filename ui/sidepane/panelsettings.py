@@ -146,7 +146,7 @@ event 1 & 2 can have different objects"""
     subpnl_chart_settings = CollapsePanel(
         title="chart settings",
         indent=14,
-        expanded=False,  # todo close panel
+        expanded=False,
     )
     subpnl_chart_settings.set_title_tooltip("""chart drawing & info display settings""")
     # ------ sub-sub-panel : chart info -----------------
@@ -691,7 +691,6 @@ def objects_toggled(checkbutton, name, manager):
 def house_system_changed(dropdown, _, manager):
     """house system panel : dropdown selection"""
     idx = dropdown.get_selected()
-    # todo modify to include short name for chart info
     hsys, _, short_name = HOUSE_SYSTEMS[idx]
     manager.app.selected_house_system = hsys
     manager.app.selected_house_sys_str = short_name

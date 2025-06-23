@@ -6,9 +6,9 @@
 # if renamed > best make copy of whole line & move up
 
 #--- copies of original lines > renamed -----
-("GB", "UK", "GBR"),
+#("GB", "UK", "GBR"),
 #("SI", "Slo", "SVN"),
-#("US", "USA", "USA"),
+("US", "USA", "USA"),
 #--------------------------------------------
 #("AF", "Afghanistan", "AFG"),
 #("AX", "Aland Islands", "ALA"),

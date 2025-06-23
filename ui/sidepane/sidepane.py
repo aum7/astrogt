@@ -68,7 +68,7 @@ class SidepaneManager:
         box_sidepane = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         # create & put collapse panels into box
         self.clp_change_time = self.setup_change_time()
-        # 2 events todo expand event one
+        # 2 events
         self.clp_event_one = setup_event(self, "event one", True)
         self.clp_event_two = setup_event(self, "event two", False)
         if self.app.selected_event == "event one":
