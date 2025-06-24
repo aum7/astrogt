@@ -22,10 +22,6 @@ def calculate_stars(event: Optional[str] = None) -> None:
     chart_settings = getattr(app, "chart_settings", {})
     stars_category = chart_settings.get("fixed stars", CHART_SETTINGS["fixed stars"][0])
     stars = fixedstars.get(stars_category, [])
-    print(f"stars : {stars}")
-    if stars_category == "":
-        # user not interested in drawing stars > exit
-        return
     # event 1 data is mandatory
     if not app.e1_sweph.get("jd_ut"):
         notify.warning(
@@ -55,8 +51,8 @@ def calculate_stars(event: Optional[str] = None) -> None:
             nomenclature, name, _ = star
             try:
                 pos, _, _ = swe.fixstar2_ut(name, jd_ut, app.sweph_flag)
-                # print(f"star {name} : {names}")
                 lon = pos[0]
+                # pack what we need only
                 star_positions[name] = (lon, nomenclature)
             except Exception as e:
                 notify.error(

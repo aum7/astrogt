@@ -160,7 +160,7 @@ CHART_SETTINGS = {
     # for additional info see user/fixedstars.txt
     "fixed stars": (
         "custom",
-        "draw fixed stars inside signs circle\navailable categories :\n\tcustom | naksatras28 | behenian15\n\trobson118 | alphabetical521",
+        "draw fixed stars inside signs circle\navailable categories :\n\tcustom | naksatras [28] | behenian [15]\n\trobson [117] | alphabetical [521]",
     ),
     # --- event data to be presented in chart info
     # construct your own 'chart info' format

@@ -70,6 +70,164 @@ TERMS = {
     349: "ma",
     358: "sa",
 }
+SIGNS = {
+    "ar": ("\u0192", "\u01d9"),  # 01 f
+    "ta": ("\u0193", "\u01da"),  # 02 e
+    "ge": ("\u0194", "\u01db"),  # 03 a
+    "cn": ("\u0195", "\u01dc"),  # 04 w
+    "le": ("\u0196", "\u01d9"),  # 05 f
+    "vi": ("\u0197", "\u01da"),  # 06 e
+    "li": ("\u0198", "\u01db"),  # 07 a
+    "sc": ("\u0199", "\u01dc"),  # 08 w
+    "sg": ("\u019a", "\u01d9"),  # 09 f
+    "cp": ("\u019b", "\u01da"),  # 10 e
+    "aq": ("\u019c", "\u01db"),  # 11 a
+    "pi": ("\u019d", "\u01dc"),  # 12 w
+}
+ASPECTS = {
+    0: ("conjunction", "\u019e"),
+    180: ("opposition", "\u019f"),
+    120: ("trine", "\u01a0"),
+    90: ("square", "\u01a1"),
+    60: ("sextile", "\u01a2"),
+}
+ECLIPSES = {
+    "sol": "\u01ae",
+    "lun": "\u01af",
+}
+MODES = {
+    "movable": "\u01ea",
+    "fixed": "\u01e9",
+    "dual": "\u01eb",
+}
+SYZYGY = {
+    "syn": ("conjunction", "\u01ec"),  # syzygy : conjunction : new moon
+    "syf": ("opposition", "\u01ed"),  # syzygy : opposition : full moon
+}
+LOTS = {
+    "fortuna2": "\u018b",  # fortuna
+    "fortuna": (  # mo
+        "\u01e2",
+        "body",
+        "day : asc + (mo - su) | night : asc + (su - mo)",
+    ),
+    "spirit": (  # su
+        "\u01e3",
+        "soul & intelect",
+        "day : asc + (su - mo) | night : asc + (mo - su)",
+    ),
+    "eros": (  # ve
+        "\u01e4",
+        "apetite, desire",
+        "day : ve - spirit | night : spirit - ve",
+    ),
+    "necessity": (  # me
+        "\u01e5",
+        "constraints, war, enmity",
+        "day : fortuna - me | night : me - fortuna",
+    ),
+    "courage": (  # ma
+        "\u01e6",
+        "boldness, treachery, strangth, all evildoings",
+        "day : fortuna - ma | night : ma - fortuna",
+    ),
+    "victory": (  # ju
+        "\u01e7",
+        "faith, contests, generosity, success",
+        "day : ju - spirit | night : spirit - ju",
+    ),
+    "nemesis": (  # sa
+        "\u01e8",
+        "underworld, concealed, exposure, destruction",
+        "day : fortuna - sa | night : sa - fortuna",
+    ),
+}
+
+MOON_PHASES = {
+    "new": "\u01c7",
+    "wax cresc": "\u01c8",  # up
+    "first quart": "\u01c9",
+    "wax gib": "\u01ca",
+    "full": "\u01cb",  # down
+    "wan gib": "\u01cc",
+    "last quart": "\u01cd",
+    "wan cresc": "\u01ce",
+}
+EXTRA = {
+    "jinjang": "\u01d8",
+    "house": "\u01e1",
+    "retro": "\u01b8",
+    "direct": "\u01b9",
+    "stationary": "\u01ba",
+    "natal": "\u01bb",
+    "radix": "\u01bc",
+    "transit": "\u01bd",
+    "progressed": "\u01be",
+    "asc": "\u01bf",
+    "dsc": "\u01c0",
+    "mc": "\u01c1",
+    "ic": "\u01c2",
+}
+
+NAKSATRAS27 = {
+    1: ("ke", "asv"),
+    2: ("ve", "bha"),
+    3: ("su", "krt"),
+    4: ("mo", "roh"),
+    5: ("ma", "mrg"),
+    6: ("ra", "ard"),
+    7: ("ju", "pun"),
+    8: ("sa", "pus"),
+    9: ("me", "asl"),
+    10: ("ke", "mag"),
+    11: ("ve", "ppa"),
+    12: ("su", "upa"),
+    13: ("mo", "has"),
+    14: ("ma", "cit"),
+    15: ("ra", "sva"),
+    16: ("ju", "vis"),
+    17: ("sa", "anu"),
+    18: ("me", "jye"),
+    19: ("ke", "mul"),
+    20: ("ve", "pas"),
+    21: ("su", "uas"),
+    22: ("mo", "sra"),
+    23: ("ma", "dha"),
+    24: ("ra", "sat"),
+    25: ("ju", "pba"),
+    26: ("sa", "uba"),
+    27: ("me", "rev"),
+}
+MANSIONS28 = {
+    1: ("ve", "leu"),
+    2: ("sa", "oei"),
+    3: ("su", "mao"),  # krt
+    4: ("mo", "pi"),
+    5: ("ma", "tsee"),
+    6: ("me", "shen"),
+    7: ("ju", "tsing"),
+    8: ("ve", "kwei"),
+    9: ("sa", "lieu"),
+    10: ("su", "sing"),
+    11: ("mo", "chang"),
+    12: ("ma", "yen"),
+    13: ("me", "tchin"),
+    14: ("ju", "kio"),
+    15: ("ve", "kang"),
+    16: ("sa", "ti"),
+    17: ("su", "fang"),
+    18: ("mo", "sin"),
+    19: ("ma", "wei"),
+    20: ("me", "ki"),
+    21: ("ju", "tow"),
+    22: ("ve", "nieu"),
+    23: ("sa", "mo"),
+    24: ("su", "heu"),
+    25: ("mo", "gui"),
+    26: ("ma", "shih"),
+    27: ("me", "peih"),
+    28: ("ju", "goei"),
+}
 
 
 class CircleBase:
@@ -96,27 +254,6 @@ class CircleBase:
             if not self.chart_settings.get("mean node", False)
             else "\u018c",  # rahu true else mean
         }
-        self.glyphs_extra = {
-            "fr1": "\u018b",  # fortuna
-            "fr2": "\u01e2",  # fortuna alter
-            "syz": "\u01d8",  # syzygy / prenatal lunation : jin-jang
-            "syn": "\u01ec",  # syzygy : conjunction : new moon
-            "syf": "\u01ed",  # syzygy : opposition : full moon
-        }
-        self.signs = [
-            "\u0192",  # 01 aries
-            "\u0193",  # 02
-            "\u0194",  # 03
-            "\u0195",  # 04
-            "\u0196",  # 05
-            "\u0197",  # 06
-            "\u0198",  # 07
-            "\u0199",  # 08
-            "\u019a",  # 09
-            "\u019b",  # 10
-            "\u019c",  # 11
-            "\u019d",  # 12 pisces
-        ]
 
     def draw(self, cr):
         """subclass must override this method"""
@@ -424,7 +561,7 @@ class CircleSigns(CircleBase):
             cr.stroke()
         # glyphs
         self.set_custom_font(cr, self.font_size)
-        for i, glyph in enumerate(self.signs):
+        for i, (sign, (glyph, element)) in enumerate(SIGNS.items()):
             angle = pi - i * segment_angle - offset
             x = self.cx + self.radius * 0.965 * cos(angle)
             y = self.cy + self.radius * 0.965 * sin(angle)

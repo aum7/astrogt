@@ -2,9 +2,9 @@
 # ruff: noqa: E402
 # launch inspector (Ctrl+Shift+I or Ctrl+Shift+D) when app is running
 # os.environ["GTK_DEBUG"] = "keybindings geometry size-request actions constraints"
-import gi
 import os
 import swisseph as swe
+import gi
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")

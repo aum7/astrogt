@@ -824,10 +824,10 @@ def fixed_stars(entry, manager):
     else:
         valid_categories = {
             "custom",
-            "naksatras28",
-            "behenian15",
-            "robson118",
-            "alphabetical521",
+            "naksatras",
+            "behenian",
+            "robson",
+            "alphabetical",
         }
         if text is None or text not in valid_categories:
             # invalid input
@@ -840,7 +840,7 @@ def fixed_stars(entry, manager):
     manager.notify.debug(
         f"fixedstars : {manager.app.chart_settings['fixed stars']}",
         source="panelsettings",
-        route=["terminal"],
+        route=["none"],
     )
 
 
