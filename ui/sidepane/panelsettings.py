@@ -288,9 +288,27 @@ event 1 & 2 can have different objects"""
     ent_harmonics.set_max_width_chars(5)
     ent_harmonics.connect("activate", harmonics_ring, manager)
     box_harmonics.append(ent_harmonics)
+    app.chart_settings["harmonics ring"] = ent_harmonics.get_text()
     row.set_child(box_harmonics)
     lbx_chart_setts_btm.append(row)
-    app.chart_settings["harmonics ring"] = ent_harmonics.get_text()
+    # fixed stars --------------------------------------
+    row = Gtk.ListBoxRow()
+    box_fixed_stars = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=7)
+    # label
+    lbl_fixed_stars = Gtk.Label(label="fixed stars")
+    box_fixed_stars.append(lbl_fixed_stars)
+    # entry for fixed stars
+    ent_fixed_stars = Gtk.Entry()
+    ent_fixed_stars.set_text(CHART_SETTINGS["fixed stars"][0])
+    ent_fixed_stars.set_tooltip_text(CHART_SETTINGS["fixed stars"][1])
+    ent_fixed_stars.set_alignment(0.5)
+    ent_fixed_stars.set_max_length(15)
+    ent_fixed_stars.set_max_width_chars(15)
+    ent_fixed_stars.connect("activate", fixed_stars, manager)
+    box_fixed_stars.append(ent_fixed_stars)
+    app.chart_settings["fixed stars"] = ent_fixed_stars.get_text()
+    row.set_child(box_fixed_stars)
+    lbx_chart_setts_btm.append(row)
     box_chart_settings.append(lbx_chart_setts_btm)
     # --- chart info string : basic & extra ------------------
     # main box for chart info string
@@ -792,6 +810,35 @@ def harmonics_ring(entry, manager):
     manager.signal._emit("settings_changed", None)
     manager.notify.debug(
         f"harmonicsring : {manager.app.chart_settings['harmonics ring']}",
+        source="panelsettings",
+        route=["terminal"],
+    )
+
+
+def fixed_stars(entry, manager):
+    """chart settings panel : draw fixed stars in signs circle"""
+    text = entry.get_text().strip()
+    if text == "":
+        manager.app.chart_settings["fixed stars"] = ""
+        entry.remove_css_class("entry-warning")
+    else:
+        valid_categories = {
+            "custom",
+            "naksatras28",
+            "behenian15",
+            "robson118",
+            "alphabetical521",
+        }
+        if text is None or text not in valid_categories:
+            # invalid input
+            entry.add_css_class("entry-warning")
+            entry.set_text(manager.app.chart_settings["fixed stars"])
+        else:
+            entry.remove_css_class("entry-warning")
+            manager.app.chart_settings["fixed stars"] = text
+    manager.signal._emit("settings_changed", None)
+    manager.notify.debug(
+        f"fixedstars : {manager.app.chart_settings['fixed stars']}",
         source="panelsettings",
         route=["terminal"],
     )

@@ -35,6 +35,7 @@ class AstroChart(Gtk.Box):
         self.e1_chart_info = {}
         self.chart_settings = getattr(self.app, "chart_settings", {})
         self.extra_info = {}
+        self.stars = {}
         # subscribe to signals
         signal = self.app.signal_manager
         signal._connect("event_changed", self.event_changed)
@@ -42,6 +43,7 @@ class AstroChart(Gtk.Box):
         signal._connect("houses_changed", self.houses_changed)
         signal._connect("e2_cleared", self.e2_cleared)
         signal._connect("settings_changed", self.settings_changed)
+        signal._connect("stars_changed", self.stars_changed)
 
     def event_changed(self, event):
         if event == "e1":
@@ -84,6 +86,15 @@ class AstroChart(Gtk.Box):
 
     def settings_changed(self, arg):
         self.chart_settings = getattr(self.app, "chart_settings", {})
+        self.drawing_area.queue_draw()
+
+    def stars_changed(self, event, stars):
+        self.stars = stars
+        for name, (lon, nomenclature) in stars.items():
+            name = name
+            lon = lon
+            nomenclature = nomenclature
+            # print(f"name : {name} | lon : {lon} | designation : {nomenclature}")
         self.drawing_area.queue_draw()
 
     def draw(self, area, cr, width, height):
@@ -177,6 +188,7 @@ class AstroChart(Gtk.Box):
             cx=cx,
             cy=cy,
             font_size=int(18 * font_scale),
+            stars=self.stars,
         )
         circle_signs.draw(cr)
         circle_event = CircleEvent(

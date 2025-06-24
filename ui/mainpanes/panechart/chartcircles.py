@@ -103,6 +103,20 @@ class CircleBase:
             "syn": "\u01ec",  # syzygy : conjunction : new moon
             "syf": "\u01ed",  # syzygy : opposition : full moon
         }
+        self.signs = [
+            "\u0192",  # 01 aries
+            "\u0193",  # 02
+            "\u0194",  # 03
+            "\u0195",  # 04
+            "\u0196",  # 05
+            "\u0197",  # 06
+            "\u0198",  # 07
+            "\u0199",  # 08
+            "\u019a",  # 09
+            "\u019b",  # 10
+            "\u019c",  # 11
+            "\u019d",  # 12 pisces
+        ]
 
     def draw(self, cr):
         """subclass must override this method"""
@@ -116,13 +130,13 @@ class CircleBase:
         )
         cr.set_font_size(font_size)
 
-    def draw_rotated_text(self, cr, text, x, y, angle):
+    def draw_rotated_text(self, cr, text, x, y, angle, color=(1, 1, 1, 1)):
         _, _, tw, th, _, _ = cr.text_extents(text)
         cr.save()
         cr.translate(x, y)
         cr.rotate(angle + pi / 2)
         cr.move_to(-tw / 2, th / 2)
-        cr.set_source_rgba(1, 1, 1, 1)
+        cr.set_source_rgba(*color)
         cr.show_text(text)
         cr.new_path()
         cr.restore()
@@ -381,23 +395,11 @@ class CircleEvent(CircleBase):
 class CircleSigns(CircleBase):
     """12 astrological signs"""
 
-    def __init__(self, radius, cx, cy, font_size):
+    def __init__(self, radius, cx, cy, font_size, stars):
         super().__init__(radius, cx, cy)
         self.font_size = font_size
-        self.signs = [
-            "\u0192",  # 01 aries
-            "\u0193",  # 02
-            "\u0194",  # 03
-            "\u0195",  # 04
-            "\u0196",  # 05
-            "\u0197",  # 06
-            "\u0198",  # 07
-            "\u0199",  # 08
-            "\u019a",  # 09
-            "\u019b",  # 10
-            "\u019c",  # 11
-            "\u019d",  # 12 pisces
-        ]
+        self.stars = stars
+        # print(f"signs : stars : {self.stars}")
 
     def draw(self, cr):
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
@@ -427,6 +429,12 @@ class CircleSigns(CircleBase):
             x = self.cx + self.radius * 0.965 * cos(angle)
             y = self.cy + self.radius * 0.965 * sin(angle)
             self.draw_rotated_text(cr, glyph, x, y, angle)
+        self.set_custom_font(cr, self.font_size * 1.2)
+        for name, (lon, _) in self.stars.items():
+            angle = pi - radians(lon)
+            x = self.cx + self.radius * 0.97 * cos(angle)
+            y = self.cy + self.radius * 0.97 * sin(angle)
+            self.draw_rotated_text(cr, "*", x, y, angle, color=(1, 0.9, 0.2, 1))
 
 
 class CircleNaksatras(CircleBase):

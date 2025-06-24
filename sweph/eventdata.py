@@ -23,10 +23,13 @@ class EventData:
         location=None,
         date_time=None,
         app=None,
+        id=None,
     ):
         """get user input and prepare for swe"""
         self.app = app or Gtk.Application.get_default()
         self.notify = self.app.notify_manager
+        # identity attribute
+        self.id = id
         # attributes as widgets
         self.country = country
         self.city = city
@@ -61,19 +64,21 @@ class EventData:
                 "leave", lambda ctrl, cb=callback: cb(ctrl.get_widget())
             )
         signal = self.app.signal_manager
-        print("connecting datetime_captured", id(self))
         signal._connect("datetime_captured", self.datetime_captured)
 
     def datetime_captured(self, data):
-        print(f"datetime_captured called, id(self)={id(self)}")
-        print(f"eventdata : datetimecaptured : {data}")
-        dt = str(data)
-        # insert into event 1 datetime entry
-        if self.app.EVENT_ONE and hasattr(self.app.EVENT_ONE, "date_time"):
-            entry = self.app.EVENT_ONE.date_time
-            # print(f"eventdata : dtcaptured : {dt}")
-            entry.set_text(dt)
-            self.on_datetime_change(entry)
+        id = data[0]
+        dt = str(data[1])
+        if self.id != id:
+            self.notify.debug(
+                f"dtcaptured : selfid {self.id} differs from data id {id} : exiting",
+                source="eventdata",
+                route=["none"],
+            )
+            return
+        if self.date_time is not None:
+            self.date_time.set_text(dt)
+            self.on_datetime_change(self.date_time)
 
     def on_location_change(self, entry):
         """process location data (as string)
@@ -589,7 +594,7 @@ class EventData:
                 dt_utc = naive_to_utc(Y, M, D, h, m, s, self.tz_offset)
                 _, jd_ut = utc_to_jd(*dt_utc, calendar)
                 # print(f"utcfromnaive : {dt_utc}")
-                print(f"manualdt tz : jdut : {jd_ut} | tzoffset : {self.tz_offset}")
+                # print(f"manualdt tz : jdut : {jd_ut} | tzoffset : {self.tz_offset}")
                 if not self.timezone:
                     self.notify.info(
                         f"\n\t{datetime_name} no timezone : using event one ({tz})",
@@ -684,7 +689,7 @@ class EventData:
                 for key in ["lat", "lon", "alt"]:
                     self.app.e2_sweph[key] = self.app.e1_sweph.get(key)
             self.notify.debug(
-                "cou & cit & loc & tz + lat & lon & alt : data 1 => 2",
+                "cou & cit & loc & tz & iso & offset + lat & lon & alt : data 1 => 2",
                 source="eventdata",
                 route=["terminal"],
             )
@@ -700,7 +705,7 @@ class EventData:
             f"\n\tsweph 2\t{json.dumps(self.app.e2_sweph, sort_keys=True, indent=6, ensure_ascii=False)}"
             "\n--------------------------",
             source="eventdata",
-            route=["terminal"],
+            route=["none"],
         )
         # detect event & emit signal
         if datetime_name == "datetime one":

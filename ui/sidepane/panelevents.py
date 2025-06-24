@@ -208,6 +208,7 @@ only use [space] as separator
             location=ent_location,
             date_time=ent_datetime,
             app=manager.app,
+            id="e1",
         )
     else:
         manager.app.EVENT_TWO = EventData(
@@ -217,6 +218,7 @@ only use [space] as separator
             location=ent_location,
             date_time=ent_datetime,
             app=manager.app,
+            id="e2",
         )
     # main box for event panels
     box_event = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)

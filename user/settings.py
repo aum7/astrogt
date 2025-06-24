@@ -151,6 +151,17 @@ CHART_SETTINGS = {
         "harmonics ring\nempty : do NOT show | 1 : egypt. terms (bounds)\n7, 9, 11 : simple harmonics *similar* to varga",
         # "harmonics ring\nempty : do NOT show | 1 : egypt. terms (bounds)\n7, 9, 11 : simple harmonics *similar* to varga\n2 rings possible ie [1 9] will show terms & navamsa",
     ),
+    # --- draw fixed stars
+    # in user/fixedstars.py are categories of stars :
+    # custom ; naksatras28 ; behenian15 ; robson118 ; alphabetical521
+    # if you want stars different as they are in predefined categories,
+    # add stars of interest into custom category
+    # empty value = do not draw stars
+    # for additional info see user/fixedstars.txt
+    "fixed stars": (
+        "custom",
+        "draw fixed stars inside signs circle\navailable categories :\n\tcustom | naksatras28 | behenian15\n\trobson118 | alphabetical521",
+    ),
     # --- event data to be presented in chart info
     # construct your own 'chart info' format
     # allowed fields: 1: event {name} | 2: weekday {wday} | 3: event {date} |

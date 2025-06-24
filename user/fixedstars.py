@@ -1,10 +1,14 @@
 # user/fixedstars.py
 # uncomment lines / stars you need; included are some common categories
 # (stars repeat inside different categories ); save file after modifying
+# alphabetical521 should not be directly used : includes all 521 named stars
+# and is there so user can find & select stars of interest, then put them
+# into 'custom' category
 
 # fixedstars.py: modified fixed stars data file; last modified on 2025-06-23 by aum
 # xx, name, flag_result = swe.fixstar2_ut(star, julian_day_ut, flags) -> returns :
 # xx = longitude, latitude, distance, long. speed, lat. speed, dist. speed
+# name = traditional, nomenclature name; flag_result = flag(s) used
 
 # northern constellations: andromeda | cygnus | pegasus | aquila | delphinus |
 # perseus | auriga | draco | sagitta | bootes | equuleus | serpens | cassiopeia |
@@ -20,32 +24,32 @@ fixedstars = {
         ("GCLiu", "gcliu", "galactic center (new) (liu/zhu/zhang 2010)"),
     ],
     "naksatras28": [
-        ("beAri", "asvini", "01 asv asvini"),
+        ("beAri", "ashvini", "01 asv asvini"),
         ("41Ari", "bharani", "02 bha bharani"),
         ("etTau", "krttika", "03 krt krttika"),
         ("alTau", "rohini", "04 roh rohini"),
-        ("laOri", "mrgasira", "05 mrg mrgasira"),
+        ("laOri", "mrgashirsha", "05 mrg mrgasira"),
         ("alOri", "ardra", "06 ard ardra"),
         ("beGem", "punarvasu", "07 pun punarvasu"),
-        ("deCnc", "pusya", "08 pus pusya"),
-        ("epHya", "aslesa", "09 asl aslesa"),
+        ("deCnc", "pushya", "08 pus pusya"),
+        ("epHya", "ashlesha", "09 asl aslesa"),
         # ("alCnc", "aslesa (colebrook)", "09 aslesa (colebrook)"),
         ("alLeo", "magha", "10 mag magha"),
         ("deLeo", "purvaphalguni", "11 ppa purvaphalguni"),
         ("beLeo", "uttaraphalguni", "12 upa uttaraphalguni"),
         ("deCrv", "hasta", "13 has hasta"),
-        ("alVir", "chitra", "14 cit chitra"),
+        ("alVir", "citra", "14 cit chitra"),
         ("alBoo", "svati", "15 sva svati"),
-        ("io-1Lib", "visakha", "16 vis visakha"),
+        ("io-1Lib", "vishakha", "16 vis visakha"),
         ("deSco", "anuradha", "17 anu anuradha"),
-        ("alSco", "jyestha", "18 jye jyestha"),
+        ("alSco", "jyeshtha", "18 jye jyestha"),
         ("laSco", "mula", "19 mul mula"),
-        ("deSgr", "purvasadha", "20 pas purvasadha"),
-        ("siSgr", "uttarasadha", "21 uas uttarasadha"),
+        ("deSgr", "purvashadha", "20 pas purvasadha"),
+        ("siSgr", "uttarashadha", "21 uas uttarasadha"),
         ("alLyr", "abhijit", "22 abh abhijit"),
-        ("alAql", "sravana", "23 sra sravana"),
-        ("beDel", "dhanistha", "24 dha dhanistha"),
-        ("laAqr", "satabhisa", "25 sat satabhisa"),
+        ("alAql", "shravana", "23 sra sravana"),
+        ("beDel", "dhanishtha", "24 dha dhanistha"),
+        ("laAqr", "shatabhishak", "25 sat satabhisa"),
         ("alPeg", "purvabhadra", "26 pbh purvabhadra"),
         ("gaPeg", "uttarabhadra", "27 ubh uttarabhadra"),
         ("zePsc", "revati", "28 rev revati"),
@@ -79,14 +83,14 @@ fixedstars = {
         ("etTau", "alcyone", "009. alcyone"),
         ("alTau", "aldebaran", "010. aldebaran"),
         ("gaPeg", "algenib", "011. algenib"),
-        ("etLeo", "algenubi (al jabhah)", "012. al jabhah"),
+        ("etLeo", "algenubi", "012. al jabhah"),
         ("bePer", "algol", "013. algol"),
         ("deCrv", "algorab", "014. algorab"),
         ("zeTau", "al hecka", "015. al hecka"),
         ("gaGem", "alhena", "016. alhena"),
         ("etLeo", "al jabhah", "017. al jabhah"),
         ("ga-1And", "almach", "018. almach"),
-        ("epOri", "alnilam (cingula orionis 1/2)", "019. alnilam"),
+        ("epOri", "alnilam", "019. alnilam, cingula orionis 1/2"),
         ("alHya", "alphard", "020. alphard"),
         ("alCrB", "alphecca", "021. alphecca"),
         ("alAnd", "alpheratz", "022. alpheratz"),
@@ -96,8 +100,8 @@ fixedstars = {
         ("alBoo", "arcturus", "026. arcturus"),
         ("etCap", "armus", "027. armus"),
         ("zeSgr", "ascella", "028. ascella"),
-        ("gaCnc", "aselli (asellus borealis 2/2)", "029. asellus borealis"),
-        ("deCnc", "aselli (asellus australis 1/2)", "029. asellus australis"),
+        ("gaCnc", "aselli", "029. asellus borealis, asellus borealis 2/2"),
+        ("deCnc", "aselli", "029. asellus australis, asellus australis 1/2"),
         ("zeCet", "baten kaitos", "030. baten kaitos"),
         ("gaOri", "bellatrix", "031. bellatrix"),
         ("alOri", "betelgeuse", "032. betelgeuse"),

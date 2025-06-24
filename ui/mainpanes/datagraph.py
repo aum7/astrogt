@@ -54,6 +54,7 @@ class DataGraph(Gtk.Box):
         # construct file path
         data_folder = self.app.files.get("data")
         filepath = os.path.join(data_folder, "gold/gold_1h_utc.csv")
+        # filepath = os.path.join(data_folder, "gold/gold_1h_est.csv")
         # load csv
         df = pd.read_csv(
             filepath, parse_dates=["datetime_utc"], index_col="datetime_utc"
@@ -185,7 +186,7 @@ class DataGraph(Gtk.Box):
         if self.df is not None and 0 <= ix < len(self.df):
             dt_str = self.df.index[ix].strftime("%Y-%m-%d %H:%M")
             op, hi, lo, cl = self.candles[ix][2:]
-            info = f"{dt_str}\no={op:.2f}\nh={hi:.2f}\nl={lo:.2f}\nc={cl:.2f}"
+            info = f"{dt_str}\nh={hi:.2f}\no={op:.2f}\nc={cl:.2f}\nl={lo:.2f}"
         self.cursor_text.set_text(info)
         self.canvas.draw_idle()
 
@@ -222,7 +223,7 @@ class DataGraph(Gtk.Box):
                 # normal click
                 if self.df is not None and 0 <= ix < len(self.df):
                     dt = self.df.index[ix]
-                    self.app.signal_manager._emit("datetime_captured", dt)
+                    self.app.signal_manager._emit("datetime_captured", ("e1", dt))
                     # print(f"datagraph : datetime : {dt}")
 
     def jump_bars(self, bars):

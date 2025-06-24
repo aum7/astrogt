@@ -16,6 +16,7 @@ from ui.mainpanes.panetables import draw_tables
 from ui.mainpanes.panechart.astrochart import AstroChart
 from sweph.calculations.positions import connect_signals_positions
 from sweph.calculations.houses import connect_signals_houses
+from sweph.calculations.stars import connect_signals_stars
 
 
 class MainWindow(
@@ -57,6 +58,7 @@ class MainWindow(
         # connect signals
         connect_signals_positions(self.get_application().signal_manager)
         connect_signals_houses(self.get_application().signal_manager)
+        connect_signals_stars(self.get_application().signal_manager)
         # show panes
         self.panes_single()
         # 4 main stacks as panes
