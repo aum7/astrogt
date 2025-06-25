@@ -1,14 +1,15 @@
 # ui/mainpanes/panechart/chartcircles.py
+# ui/fonts/victor/victormonolightastro.ttf
 import cairo
 from math import pi, cos, sin, radians
+from ui.fonts.glyphs import get_glyph, SIGNS
 
 # background colors
 # redish    1,0.7,0.7
 # greenish  0.8,1,0.83
 # yellowish 0.2,0.2,0
 # blueish   0.7,0.75,1
-# egyptian terms table: starting degree > ruler
-TERMS = {
+TERMS = {  # egyptian terms table: starting degree : ruler
     0: "ju",
     6: "ve",
     12: "me",
@@ -69,104 +70,6 @@ TERMS = {
     346: "me",
     349: "ma",
     358: "sa",
-}
-SIGNS = {
-    "ar": ("\u0192", "\u01d9"),  # 01 f
-    "ta": ("\u0193", "\u01da"),  # 02 e
-    "ge": ("\u0194", "\u01db"),  # 03 a
-    "cn": ("\u0195", "\u01dc"),  # 04 w
-    "le": ("\u0196", "\u01d9"),  # 05 f
-    "vi": ("\u0197", "\u01da"),  # 06 e
-    "li": ("\u0198", "\u01db"),  # 07 a
-    "sc": ("\u0199", "\u01dc"),  # 08 w
-    "sg": ("\u019a", "\u01d9"),  # 09 f
-    "cp": ("\u019b", "\u01da"),  # 10 e
-    "aq": ("\u019c", "\u01db"),  # 11 a
-    "pi": ("\u019d", "\u01dc"),  # 12 w
-}
-ASPECTS = {
-    0: ("conjunction", "\u019e"),
-    180: ("opposition", "\u019f"),
-    120: ("trine", "\u01a0"),
-    90: ("square", "\u01a1"),
-    60: ("sextile", "\u01a2"),
-}
-ECLIPSES = {
-    "sol": "\u01ae",
-    "lun": "\u01af",
-}
-MODES = {
-    "movable": "\u01ea",
-    "fixed": "\u01e9",
-    "dual": "\u01eb",
-}
-SYZYGY = {
-    "syn": ("conjunction", "\u01ec"),  # syzygy : conjunction : new moon
-    "syf": ("opposition", "\u01ed"),  # syzygy : opposition : full moon
-}
-LOTS = {
-    "fortuna2": "\u018b",  # fortuna
-    "fortuna": (  # mo
-        "\u01e2",
-        "body",
-        "day : asc + (mo - su) | night : asc + (su - mo)",
-    ),
-    "spirit": (  # su
-        "\u01e3",
-        "soul & intelect",
-        "day : asc + (su - mo) | night : asc + (mo - su)",
-    ),
-    "eros": (  # ve
-        "\u01e4",
-        "apetite, desire",
-        "day : ve - spirit | night : spirit - ve",
-    ),
-    "necessity": (  # me
-        "\u01e5",
-        "constraints, war, enmity",
-        "day : fortuna - me | night : me - fortuna",
-    ),
-    "courage": (  # ma
-        "\u01e6",
-        "boldness, treachery, strangth, all evildoings",
-        "day : fortuna - ma | night : ma - fortuna",
-    ),
-    "victory": (  # ju
-        "\u01e7",
-        "faith, contests, generosity, success",
-        "day : ju - spirit | night : spirit - ju",
-    ),
-    "nemesis": (  # sa
-        "\u01e8",
-        "underworld, concealed, exposure, destruction",
-        "day : fortuna - sa | night : sa - fortuna",
-    ),
-}
-
-MOON_PHASES = {
-    "new": "\u01c7",
-    "wax cresc": "\u01c8",  # up
-    "first quart": "\u01c9",
-    "wax gib": "\u01ca",
-    "full": "\u01cb",  # down
-    "wan gib": "\u01cc",
-    "last quart": "\u01cd",
-    "wan cresc": "\u01ce",
-}
-EXTRA = {
-    "jinjang": "\u01d8",
-    "house": "\u01e1",
-    "retro": "\u01b8",
-    "direct": "\u01b9",
-    "stationary": "\u01ba",
-    "natal": "\u01bb",
-    "radix": "\u01bc",
-    "transit": "\u01bd",
-    "progressed": "\u01be",
-    "asc": "\u01bf",
-    "dsc": "\u01c0",
-    "mc": "\u01c1",
-    "ic": "\u01c2",
 }
 
 NAKSATRAS27 = {
@@ -238,22 +141,6 @@ class CircleBase:
         self.cx = cx
         self.cy = cy
         self.chart_settings = chart_settings or {}
-        # unicode glyphs from victormonolightastro.ttf font
-        self.glyphs = {
-            "su": "\u0180",
-            "mo": "\u0181",
-            "me": "\u0182",
-            "ve": "\u0183",
-            "ma": "\u0184",
-            "ju": "\u0185",
-            "sa": "\u0186",
-            "ur": "\u0187",
-            "ne": "\u0188",
-            "pl": "\u0189",
-            "ra": "\u018e"
-            if not self.chart_settings.get("mean node", False)
-            else "\u018c",  # rahu true else mean
-        }
 
     def draw(self, cr):
         """subclass must override this method"""
@@ -497,15 +384,13 @@ class CircleEvent(CircleBase):
             obj_radius = self.radius * factor
             guest.draw(cr, self.cx, self.cy, obj_radius, self.font_size)
             # if 'enable glyphs' > draw glyphs
+            use_mean_node = self.chart_settings.get("mean node", False)
             if self.chart_settings.get("enable glyphs", True):
-                glyph = self.glyphs.get(name, "")
-                # glyph_radius = self.radius
+                glyph = get_glyph(name, use_mean_node)
                 if glyph:
                     angle = pi - radians(guest.data.get("lon", 0))
                     x = self.cx + obj_radius * cos(angle)
                     y = self.cy + obj_radius * sin(angle)
-                    # x = self.cx + glyph_radius * cos(angle)
-                    # y = self.cy + glyph_radius * sin(angle)
                     cr.save()
                     if self.chart_settings.get("fixed asc", False) and self.ascmc:
                         cr.translate(x, y)
@@ -561,7 +446,7 @@ class CircleSigns(CircleBase):
             cr.stroke()
         # glyphs
         self.set_custom_font(cr, self.font_size)
-        for i, (sign, (glyph, element)) in enumerate(SIGNS.items()):
+        for i, (sign, (glyph, element, mode)) in enumerate(SIGNS.items()):
             angle = pi - i * segment_angle - offset
             x = self.cx + self.radius * 0.965 * cos(angle)
             y = self.cy + self.radius * 0.965 * sin(angle)
@@ -629,8 +514,6 @@ class CircleHarmonic(CircleBase):
     def draw(self, cr):
         """draw circle"""
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
-        # cr.set_source_rgba(0.3, 0.3, 0.5, 0.3)
-        # cr.stroke_preserve()
         cr.set_source_rgba(1, 1, 1, 1)
         cr.set_line_width(1)
         cr.stroke()
@@ -658,7 +541,7 @@ class CircleHarmonic(CircleBase):
                 # position glyph
                 xg = self.cx + self.radius * 0.975 * cos(mid_angle)
                 yg = self.cy + self.radius * 0.975 * sin(mid_angle)
-                glyph = self.glyphs.get(ruler, "?")
+                glyph = get_glyph(ruler, False)
                 self.draw_rotated_text(cr, glyph, xg, yg, mid_angle)
         else:
             # draw divisions for selected harmonic

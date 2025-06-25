@@ -7,7 +7,7 @@
 
 #--- copies of original lines > renamed -----
 #("GB", "UK", "GBR"),
-#("SI", "Slo", "SVN"),
+("SI", "Slo", "SVN"),
 ("US", "USA", "USA"),
 #--------------------------------------------
 #("AF", "Afghanistan", "AFG"),

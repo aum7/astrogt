@@ -4,8 +4,20 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
-from swisseph import contrib as swh
 from typing import Tuple
+from swisseph import contrib as swh
+from ui.fonts.glyphs import SIGNS
+from ui.fonts.glyphs import (
+    PLANETS,
+    ELEMENTS,
+    MODES,
+    ASPECTS,
+    ECLIPSES,
+    SYZYGY,
+    LOTS,
+    MOON_PHASES,
+    EXTRA,
+)
 
 
 class TablesWidget(Gtk.Notebook):
@@ -138,6 +150,7 @@ class TablesWidget(Gtk.Notebook):
         vic_spc = "\u01ac"  # custom [space] to match glyphs (582 font width)
         asc = "\u01bf"
         mc = "\u01c1"
+        # retro_glyph = "\u01b8"
         line = f"{h_ * n_chars}\n"
         # text to display in tables
         text = f" positions {h_ * 29}\n"
@@ -167,6 +180,25 @@ class TablesWidget(Gtk.Notebook):
         text += f" {asc} :  {self.format_dms(ascendant)}\n"
         text += f" {mc} :  {self.format_dms(midheaven)}\n"
         text += line
+        # test-print of glyphs.py
+        test_print = False
+        if test_print:
+            text += "\n--- GLYPHS.PY ---\n"
+            for title, d in [
+                ("PLANETS", PLANETS),
+                ("SIGNS", SIGNS),
+                ("ELEMENTS", ELEMENTS),
+                ("MODES", MODES),
+                ("ASPECTS", ASPECTS),
+                ("ECLIPSES", ECLIPSES),
+                ("SYZYGY", SYZYGY),
+                ("LOTS", LOTS),
+                ("MOON_PHASES", MOON_PHASES),
+                ("EXTRA", EXTRA),
+            ]:
+                text += f"\n{title}\n"
+                for k, v in d.items():
+                    text += f" {k!r}: {v!r}\n"
         return text
 
     def make_table(self, pos_dict, cusps, ascmc):
@@ -195,31 +227,29 @@ class TablesWidget(Gtk.Notebook):
         v_ = "\u01ef"  # victormonolightastro
         if not cusps:
             return ""
-        for i in range(len(cusps) - 1):
-            if cusps[i] <= lon < cusps[i + 1]:
-                return f" {v_} {i + 1:2d}"
-        # check for wrap around house 12 to 1
-        if lon >= cusps[-1] or lon < cusps[0]:
-            return f" {v_} 12"
+        # build list of cusps & house numbers
+        cusp_list = [(c, i + 1) for i, c in enumerate(cusps)]
+        # sort & wrap around 360
+        n = len(cusp_list)
+        for i in range(n):
+            c0, h0 = cusp_list[i]
+            c1, _ = cusp_list[(i + 1) % n]
+            if c0 <= c1:
+                # normal interval
+                if c0 <= lon < c1:
+                    return f" {v_} {h0:2d}"
+            else:
+                # wrap interval
+                if lon >= c0 or lon < c1:
+                    return f" {v_} {h0:2d}"
         return ""
 
     def format_dms(self, lon: float) -> str:
         deg, sign, min, sec = swh.degsplit(lon)
-        signs = [
-            "\u0192",  # 01 aries
-            "\u0193",
-            "\u0194",
-            "\u0195",
-            "\u0196",
-            "\u0197",
-            "\u0198",
-            "\u0199",
-            "\u019a",
-            "\u019b",
-            "\u019c",
-            "\u019d",  # 12 pisces
-        ]
-        return f"{deg:2d}°{min:02d}'{sec:02d}\" {signs[sign]}"
+        sign_keys = list(SIGNS.keys())
+        sign_key = sign_keys[sign]
+        glyph = SIGNS[sign_key][0]
+        return f"{deg:2d}°{min:02d}'{sec:02d}\" {glyph}"
 
 
 def draw_tables():

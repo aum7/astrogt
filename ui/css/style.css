@@ -41,7 +41,6 @@ label {
   font-size: 16px;
   padding-top: 0px;
   padding-bottom: 0px;
-  /* 1e90ff */
   color: dodgerblue;
 }
 
@@ -50,7 +49,6 @@ label {
   font-size: 18px;
   padding-top: 0px;
   padding-bottom: 0px;
-  /* 00ff00 */
   color: lime;
 }
 
@@ -58,23 +56,6 @@ label {
 .dropdown label {
   font-size: 16px;
   padding: 0px;
-}
-
-/* test label todo delete */
-.label-tl {
-  background-color: darkslateblue;
-}
-
-.label-tr {
-  background-color: darkblue;
-}
-
-.label-bl {
-  background-color: darkgreen;
-}
-
-.label-br {
-  background-color: darkorange;
 }
 
 /* sidepane buttons with custom icon */
@@ -110,21 +91,14 @@ notebook.no-border {
   margin: 0px;
 }
 
-/* table / grid styling */
-.table-grid label {
-  font-family: "VictorMonoLightAstro", "ui/fonts/victor", monospace;
-  padding: 5px 13px;
-  border-bottom: 1px solid alpha(white, 0.1);
-}
-
-/* header row styling */
-.table-grid .table-grid-header {
-  font-weight: bold;
-  border-bottom: 2px solid white;
-}
-
 /* table / text styling */
 .table-text {
   font-family: "VictorMonoLightAstro", "ui/font/victor", monospace;
   font-size: 18px;
+}
+
+.table-text-dark {
+  font-family: "VictorMonoLightAstro", "ui/font/victor", monospace;
+  font-size: 18px;
+  color: black;
 }
