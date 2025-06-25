@@ -7,17 +7,6 @@ from gi.repository import Gtk  # type: ignore
 from typing import Tuple
 from swisseph import contrib as swh
 from ui.fonts.glyphs import SIGNS
-from ui.fonts.glyphs import (
-    PLANETS,
-    ELEMENTS,
-    MODES,
-    ASPECTS,
-    ECLIPSES,
-    SYZYGY,
-    LOTS,
-    MOON_PHASES,
-    EXTRA,
-)
 
 
 class TablesWidget(Gtk.Notebook):
@@ -35,11 +24,14 @@ class TablesWidget(Gtk.Notebook):
         self.mrg = 9
         # event data storage
         self.events_data = {}
+        # event aspects storage
+        self.aspects_data = {}
         # connect to signals
         signal = self.app.signal_manager
         signal._connect("positions_changed", self.positions_changed)
         signal._connect("houses_changed", self.houses_changed)
         signal._connect("e2_cleared", self.e2_cleared)
+        signal._connect("aspects_changed", self.aspects_changed)
 
     def positions_changed(self, event, positions_data):
         # callback for signal
@@ -84,6 +76,13 @@ class TablesWidget(Gtk.Notebook):
                     route=["terminal", "user"],
                 )
 
+    def aspects_changed(self, event, data):
+        """update aspects list on positions change"""
+        # print(f"panetables : received aspects : {aspects}")
+        self.aspects_data[event] = data
+        if event in self.events_data:
+            self.update_data(self.events_data[event])
+
     def update_data(self, data):
         """update positions on event data change"""
         if "event" not in data:
@@ -96,9 +95,10 @@ class TablesWidget(Gtk.Notebook):
             if page_label.strip() == f"{event}":
                 existing_page = self.get_nth_page(i)
                 break
-        # get positions & houses
+        # get available data
         pos_dict = data.get("positions", {})
         houses_data = data.get("houses", None)
+        aspects = self.aspects_data.get(event, [])
         # debug
         if houses_data is None:
             self.notify.debug(
@@ -122,86 +122,114 @@ class TablesWidget(Gtk.Notebook):
                 text_view = scroll.get_child()
                 if isinstance(text_view, Gtk.TextView):
                     buffer = text_view.get_buffer()
-                    text = self.make_table_content(pos_dict, cusps, ascmc)
+                    text = self.make_table_content(pos_dict, cusps, ascmc, aspects)
                     buffer.set_text(text)
             else:
                 # create new page if missing
                 label = Gtk.Label(label=f"  {event}")
                 label.set_tooltip_text("right-click tab to access context menu")
-                text = self.make_table(pos_dict, cusps, ascmc)
+                text = self.make_table(pos_dict, cusps, ascmc, aspects)
                 self.append_page(text, label)
                 self.set_current_page(-1)
 
-    def make_table_content(self, pos_dict, cusps, ascmc):
-        """create text content for positions & houses"""
+    def make_aspectarian(self, aspects_data):
+        """draw aspectarian table"""
+        if not aspects_data or not aspects_data.get("obj names"):
+            return ""
+        obj_names = aspects_data["obj names"]
+        name2idx = {n: i for i, n in enumerate(aspects_data["obj names"])}
+        matrix = aspects_data["matrix"]
+        # layout
+        v_ = "\u01ef"
+        h_ = "\u01ee"
+        vic_spc = "\u01ac"
+        # title line
+        text = f"aspects {h_ * 55}\n"
+        # col header
+        text += f"> {v_}"
+        for name in obj_names:
+            text += f"{vic_spc}{name}   {v_}"
+        text += "\n"
+        # horizontal line
+        h_line = f"{h_ * 60}\n"
+        # text += h_line
+        # grid
+        for row_name in obj_names:
+            i = name2idx[row_name]
+            # 1st column
+            text += f"{row_name:>2}{v_}"
+            for col_name in obj_names:
+                j = name2idx[col_name]
+                cell = matrix[i][j]
+                if i == j:
+                    text += f"{vic_spc} -   {v_}"
+                elif i < j:
+                    # above diagonal: major aspect if present, else blank
+                    if cell["major"]:
+                        glyph = cell.get("glyph", "")
+                        orb = cell.get("orb")
+                        orb_s = f"{orb:.1f}" if orb is not None else "   "
+                        a_s = "a" if cell.get("applying") else "s"
+                        text += f"{glyph}{orb_s} {a_s}{v_}"
+                    else:
+                        text += f"{vic_spc}  /  {v_}"
+                else:
+                    # below diagonal: always show angle
+                    angle = cell.get("angle")
+                    angle_s = f"{angle:5.1f}" if angle is not None else "  -   "
+                    text += f"{vic_spc}{angle_s}{v_}"
+            text += "\n"
+        # horizontal line at end
+        text += h_line
+        return text
+
+    def make_table_content(self, pos_dict, cusps, ascmc, aspects=None):
+        # unchanged except:
         if ascmc:
             ascendant = ascmc[0]
             midheaven = ascmc[1]
-        self.notify.debug(
-            f"maketablecontent :\n\tcusps : {cusps} | type : {type(cusps)}\n\tascmc : {ascmc} | type : {type(ascmc)}",
-            source="panetables",
-            route=["none"],
-        )
-        # dashes : u2014 full width ; u2012 monospace-specific ; u2015 longer
-        # u2017 double bottom u2502 vertical full
         n_chars = 37
-        v_ = "\u01ef"  # victormonolightastro
-        h_ = "\u01ee"  # victormonolightastro
-        vic_spc = "\u01ac"  # custom [space] to match glyphs (582 font width)
+        v_ = "\u01ef"
+        h_ = "\u01ee"
+        vic_spc = "\u01ac"
         asc = "\u01bf"
         mc = "\u01c1"
-        # retro_glyph = "\u01b8"
         line = f"{h_ * n_chars}\n"
-        # text to display in tables
-        text = f" positions {h_ * 29}\n"
-        # header row
+        # aspectarian at top
+        text = self.make_aspectarian(aspects)
+        text += f" positions {h_ * 29}\n"
         text += f" name {v_}      sign {vic_spc} {v_}       lat {v_}        lon {v_} house\n"
         for key, obj in pos_dict.items():
             if key == "event":
                 continue
-            # print(f"{obj['name']} : {obj.get('lon speed')}")
             retro = "R" if obj.get("lon speed") < 0 else " "
-            # objects
             text += f" {obj['name']}{retro}  {v_}"
             text += f" {self.format_dms(obj.get('lon')):10} {v_}"
             text += f"{obj.get('lat', 0):10.6f} {v_}"
             text += f"{obj.get('lon', 0):11.6f}"
-            # text += f"{obj.get('lon speed', 0):11.6f}"
             text += f"{self.which_house(obj.get('lon'), cusps)}\n"
         text += line
-        # add houses below objects positions
+        # houses
         text += f" houses {h_ * 7}\n"
-        # header row
         text += f"    {v_}      cusp\n"
         for i, cusp in enumerate(cusps, 1):
-            # add cusp degree : lon > sign
             text += f" {i:2d} {v_} {self.format_dms(cusp):20}\n"
         text += f" cross points {h_ * 3}\n"
         text += f" {asc} :  {self.format_dms(ascendant)}\n"
         text += f" {mc} :  {self.format_dms(midheaven)}\n"
         text += line
-        # test-print of glyphs.py
-        test_print = False
-        if test_print:
-            text += "\n--- GLYPHS.PY ---\n"
-            for title, d in [
-                ("PLANETS", PLANETS),
-                ("SIGNS", SIGNS),
-                ("ELEMENTS", ELEMENTS),
-                ("MODES", MODES),
-                ("ASPECTS", ASPECTS),
-                ("ECLIPSES", ECLIPSES),
-                ("SYZYGY", SYZYGY),
-                ("LOTS", LOTS),
-                ("MOON_PHASES", MOON_PHASES),
-                ("EXTRA", EXTRA),
-            ]:
-                text += f"\n{title}\n"
-                for k, v in d.items():
-                    text += f" {k!r}: {v!r}\n"
         return text
 
-    def make_table(self, pos_dict, cusps, ascmc):
+    def find_degree_diff(self, aspects, obj1, obj2):
+        """find angle difference between obj1 / obj2"""
+        for aspect in aspects:
+            if (aspect["obj1"] == obj1 and aspect["obj2"] == obj2) or (
+                aspect["obj1"] == obj2 and aspect["obj2"] == obj1
+            ):
+                return abs(aspect.get("orb", 0.0) + aspect.get("aspect angle", 0.0))
+        return 0.0
+
+    def make_table(self, pos_dict, cusps, ascmc, aspects=None):
         """create text with positions & houses data"""
         scroll = Gtk.ScrolledWindow()
         scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
@@ -217,7 +245,7 @@ class TablesWidget(Gtk.Notebook):
         text_view.set_cursor_visible(False)
         text_view.add_css_class("table-text")
         buffer = text_view.get_buffer()
-        text = self.make_table_content(pos_dict, cusps, ascmc)
+        text = self.make_table_content(pos_dict, cusps, ascmc, aspects)
         buffer.set_text(text)
         scroll.set_child(text_view)
         return scroll

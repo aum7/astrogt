@@ -25,7 +25,7 @@ def calculate_stars(event: Optional[str] = None) -> None:
     # event 1 data is mandatory
     if not app.e1_sweph.get("jd_ut"):
         notify.warning(
-            "missing event one data needed for positions\n\texiting ...",
+            "missing event one data needed for stars\n\texiting ...",
             source="stars",
             route=["terminal", "user"],
         )

@@ -138,7 +138,7 @@ class AstroChart(Gtk.Box):
                 # mandatory_factor = 0.94
         else:
             mandatory_factor = 1.0
-        # rotate block : if fixed asc > rotate circles > asc at left
+        # --- rotate block : if fixed asc > rotate circles
         if self.chart_settings.get("fixed asc", False) and self.ascmc:
             asc_angle = radians(self.ascmc[0])
             cr.save()
@@ -180,7 +180,7 @@ class AstroChart(Gtk.Box):
                 first_nak=first_nak,
             )
             circle_naksatras.draw(cr)
-        # --- optional ring end ---
+        # --- optional ring end
         # --- mandatory circles
         # chart circles
         circle_signs = CircleSigns(
@@ -205,7 +205,7 @@ class AstroChart(Gtk.Box):
         # restore context if chart rotation was applied
         if self.chart_settings.get("fixed asc", False) and self.ascmc:
             cr.restore()
-        # rotate block end
+        # --- rotate block end
         # draw info circle last > no text rotation
         circle_info = CircleInfo(
             self.notify,
