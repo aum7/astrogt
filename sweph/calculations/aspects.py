@@ -45,20 +45,17 @@ def calculate_aspects(event: Optional[str] = None, positions: Dict[str, Any] = {
 
 
 def angle_diff(a: float, b: float) -> float:
-    return (b - a) % 360
-
-
-def deg_to_dm(deg: float) -> str:
-    d = int(abs(deg))
-    m = int(round((abs(deg) - d) * 60))
-    return f"{d}-{m:02d}"
+    d = (a - b) % 360
+    if d > 180:
+        d -= 360
+    return d
 
 
 def is_applying(lon1, speed1, lon2, speed2, angle):
-    cur_diff = (lon2 - lon1) % 360
-    aspect_diff = (cur_diff - angle) % 360
-    rel_speed = speed2 - speed1
-    return rel_speed * aspect_diff < 0
+    diff = angle_diff(lon1, lon2)
+    orb = diff - angle
+    delta_speed = speed2 - speed1
+    return orb * delta_speed < 0
 
 
 def nearest_major_aspect(angle: float, orb: float):
@@ -83,17 +80,16 @@ def pairwise_aspects(positions: Dict[str, Any], orb: float):
         for j in range(num):
             obj2 = positions[keys[j]]
             if i == j:
+                # both obj are same planet : needed for matrix consistency only
                 row.append({
                     "obj1": obj1["name"],
                     "obj2": obj2["name"],
                     "angle": None,
-                    "angle dm": None,
                     "major": False,
                     "aspect": None,
                     "aspect angle": None,
                     "glyph": "",
                     "orb": None,
-                    "exact": None,
                     "applying": None,
                 })
                 continue
@@ -112,19 +108,29 @@ def pairwise_aspects(positions: Dict[str, Any], orb: float):
                 "obj1": obj1["name"],
                 "obj2": obj2["name"],
                 "angle": round(angle, 2),
-                "angle_dm": deg_to_dm(angle),
                 "major": major,
                 "aspect": asp_name if major else None,
-                "aspect_angle": asp_angle if major else None,
+                "aspect angle": asp_angle if major else None,
                 "glyph": glyph if major else "",
                 "orb": round(orb_actual, 1)
                 if orb_actual is not None and major
                 else None,
-                "exact": orb_actual is not None and orb_actual < 0.01
-                if major
-                else None,
                 "applying": applying if major else None,
             })
+            # if (obj1["name"] == "ve" and obj2["name"] == "mo") or (
+            #     obj1["name"] == "mo" and obj2["name"] == "ve"
+            # ):
+            #     print(
+            #         f"row {i} {obj1['name']}->{obj2['name']}: "
+            #         f"angle={round(angle, 2) if i != j else None} "
+            #         f"major={major} "
+            #         f"aspect={asp_name if major else None} "
+            #         f"aspect angle={asp_angle if major else None} "
+            #         f"orb={round(orb_actual, 1) if orb_actual is not None and major else None} "
+            #         f"applying={applying if major else None} "
+            #         f"lon1={lon1:.2f} speed1={speed1:.4f} "
+            #         f"lon2={lon2:.2f} speed2={speed2:.4f}"
+            #     )
         matrix.append(row)
     return obj_names, matrix
 

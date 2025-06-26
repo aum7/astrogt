@@ -98,6 +98,7 @@ class TablesWidget(Gtk.Notebook):
         # get available data
         pos_dict = data.get("positions", {})
         houses_data = data.get("houses", None)
+        # aspects = data.get(event, [])
         aspects = self.aspects_data.get(event, [])
         # debug
         if houses_data is None:
@@ -150,9 +151,8 @@ class TablesWidget(Gtk.Notebook):
         for name in obj_names:
             text += f"{vic_spc}{name}   {v_}"
         text += "\n"
-        # horizontal line
+        # horizontal line : match above text = f"aspects ..."
         h_line = f"{h_ * 60}\n"
-        # text += h_line
         # grid
         for row_name in obj_names:
             i = name2idx[row_name]
@@ -162,7 +162,7 @@ class TablesWidget(Gtk.Notebook):
                 j = name2idx[col_name]
                 cell = matrix[i][j]
                 if i == j:
-                    text += f"{vic_spc} -   {v_}"
+                    text += f"{vic_spc}**** {v_}"
                 elif i < j:
                     # above diagonal: major aspect if present, else blank
                     if cell["major"]:
@@ -172,11 +172,11 @@ class TablesWidget(Gtk.Notebook):
                         a_s = "a" if cell.get("applying") else "s"
                         text += f"{glyph}{orb_s} {a_s}{v_}"
                     else:
-                        text += f"{vic_spc}  /  {v_}"
+                        text += f"{vic_spc}  -  {v_}"
                 else:
                     # below diagonal: always show angle
                     angle = cell.get("angle")
-                    angle_s = f"{angle:5.1f}" if angle is not None else "  -   "
+                    angle_s = f"{abs(angle):5.1f}" if angle is not None else "  -   "
                     text += f"{vic_spc}{angle_s}{v_}"
             text += "\n"
         # horizontal line at end
