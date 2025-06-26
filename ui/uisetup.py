@@ -161,6 +161,8 @@ class UISetup:
 
     def setup_grid(self):
         self.grid = Gtk.Grid()
+        # todo
+        self.grid.add_css_class("panes")
         self.grid.attach(self.rvl_side_pane, 0, 0, 1, 1)
         self.grid.attach(self.ovl_menu, 1, 0, 1, 1)
         self.set_child(self.grid)

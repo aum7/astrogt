@@ -90,8 +90,9 @@ comment (add '# ' & save file) uninterested country"""
     event_location.set_location_callback(update_location)
 
     ent_city.set_placeholder_text("enter city name")
-    # todo test text
-    ent_city.set_text("New York")
+    # todo test string
+    ent_city.set_text("Ljubljana")
+    # ent_city.set_text("New York")
     ent_city.set_tooltip_text(
         """enter city name
 if more than 1 city (within selected country) is found
@@ -123,8 +124,9 @@ user needs to select the one of interest
         "deg min (sec) n / s deg  min (sec) e / w (alt m)",
     )
     # todo test string
+    ent_location.set_text("46 03 03 n 014 30 18 e 0294 m")  # ljubljana
     # ent_location.set_text("51 30 54 n 000 05 56 w") # lse
-    ent_location.set_text("40 42 25 n 74 0 41 w 10 m")  # nyse
+    # ent_location.set_text("40 42 25 n 74 0 41 w 10 m")  # nyse
     ent_location.set_tooltip_text(
         """latitude & longitude (location)
 
@@ -166,7 +168,8 @@ only use [space] as separator
         "event one name" if event_name == "event one" else "event two name"
     )
     # todo test string
-    ent_event_name.set_text("nyse")
+    ent_event_name.set_text("simon")
+    # ent_event_name.set_text("nyse")
     ent_event_name.set_tooltip_text(
         """will be used for filename when saving
     max 30 characters
@@ -186,7 +189,9 @@ only use [space] as separator
     ent_datetime.set_name(
         "datetime one" if event_name == "event one" else "datetime two"
     )
-    ent_datetime.set_placeholder_text("yyyy mm dd HH MM (SS)")
+    # todo test string
+    ent_datetime.set_text("1975 2 8 14 10")  # simon
+    # ent_datetime.set_placeholder_text("yyyy mm dd HH MM (SS)")
     ent_datetime.set_tooltip_text(
         """year month day hour minute (second)
     2010 9 11 22 55

@@ -19,6 +19,11 @@ label {
   padding: 3px;
 }
 
+/* main panes dark background : uisetup.py : setup_grid() */
+.panes {
+  background-color: rgba(27, 27, 27, 1);
+}
+
 /* frame is used for visual border of pane = stack = custom widget */
 .frame {
   border-style: solid;
@@ -92,6 +97,10 @@ notebook.no-border {
 }
 
 /* table / text styling */
+textview text {
+  background-color: rgba(27, 27, 27, 1);
+}
+
 .table-text {
   font-family: "VictorMonoLightAstro", "ui/font/victor", monospace;
   font-size: 18px;

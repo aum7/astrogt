@@ -28,6 +28,13 @@ SIGNS = {  # sign, element, mode
     "aq": ("\u019c", "\u01db", "\u01e9"),  # 11 a f
     "pi": ("\u019d", "\u01dc", "\u01eb"),  # 12 w d
 }
+ASPECTS = {
+    0: ("\u019e", "conjunction"),
+    60: ("\u01a2", "sextile"),
+    90: ("\u01a1", "square"),
+    120: ("\u01a0", "trine"),
+    180: ("\u019f", "opposition"),
+}
 ELEMENTS = {
     "fire": "\u01d9",
     "earth": "\u01da",
@@ -38,13 +45,6 @@ MODES = {
     "movable": "\u01ea",
     "fixed": "\u01e9",
     "dual": "\u01eb",
-}
-ASPECTS = {
-    0: ("\u019e", "conjunction"),
-    180: ("\u019f", "opposition"),
-    120: ("\u01a0", "trine"),
-    90: ("\u01a1", "square"),
-    60: ("\u01a2", "sextile"),
 }
 ECLIPSES = {
     "sol": "\u01ae",

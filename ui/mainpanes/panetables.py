@@ -18,6 +18,7 @@ class TablesWidget(Gtk.Notebook):
         self.notify = self.app.notify_manager
         # add styling
         self.add_css_class("no-border")
+        # self.add_css_class("notebook")
         self.set_tab_pos(Gtk.PositionType.TOP)
         self.set_scrollable(True)
         self.table_pages = {}
