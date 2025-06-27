@@ -139,6 +139,7 @@ class TablesWidget(Gtk.Notebook):
         if not aspects_data or not aspects_data.get("obj names"):
             return ""
         obj_names = aspects_data["obj names"]
+        speeds = aspects_data["speeds"]
         name2idx = {n: i for i, n in enumerate(aspects_data["obj names"])}
         matrix = aspects_data["matrix"]
         # layout
@@ -146,19 +147,22 @@ class TablesWidget(Gtk.Notebook):
         h_ = "\u01ee"
         vic_spc = "\u01ac"
         # title line
-        text = f"aspects {h_ * 55}\n"
-        # col header
-        text += f"> {v_}"
+        text = f" aspects {h_ * 56}\n"
+        # header row
+        text += f"  > {v_}"
         for name in obj_names:
             text += f"{vic_spc}{name}   {v_}"
         text += "\n"
-        # horizontal line : match above text = f"aspects ..."
-        h_line = f"{h_ * 60}\n"
+        # horizontal bottom line : match above text = f"aspects ..."
+        h_line = f"{h_ * 62}\n"
         # grid
         for row_name in obj_names:
             i = name2idx[row_name]
+            speed = speeds.get(row_name, 0.0)
+            retro = "R" if speed < 0 else " "
             # 1st column
-            text += f"{row_name:>2}{v_}"
+            text += f" {row_name}{retro}{v_}"
+            # text += f" {row_name:>2} {v_}"
             for col_name in obj_names:
                 j = name2idx[col_name]
                 cell = matrix[i][j]
