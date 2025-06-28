@@ -5,9 +5,8 @@ import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Gdk", "4.0")
 from gi.repository import Gtk, Gdk  # type: ignore
-from typing import Dict, Callable, cast
+from typing import Dict, Callable
 from ui.collapsepanel import CollapsePanel
-from ui.mainpanes.panesmanager import PanesManager
 from ui.helpers import _buttons_from_dict
 
 
@@ -17,7 +16,6 @@ class ContextManager:
     # type hints for inherited attributes
     rvl_side_pane: Gtk.Revealer
     notify: Callable
-    get_stack: Callable
     frm_top_left: Gtk.Frame
     frm_top_right: Gtk.Frame
     frm_bottom_left: Gtk.Frame
@@ -57,7 +55,7 @@ class ContextManager:
         picked = widget.pick(x, y, Gtk.PickFlags.DEFAULT)
         if not picked:
             return
-        # traverse up till gtk.frame = main widget for gtk.stack / custom widgets
+        # traverse up till gtk.frame = main widget for custom widgets
         current = picked
         while current:
             parent = current.get_parent()
@@ -65,13 +63,9 @@ class ContextManager:
                 break
             if parent in self.frames:
                 # frame found : get position of clicked overlay
-                pos = self.frames[parent]
+                # pos = self.frames[parent]
                 # crate popover todo redesign create_popover_menu()
                 pop_ctx, _ = self.create_popover_menu()
-                # add stack switcher for current pane
-                PanesManager.add_switcher(
-                    cast(PanesManager, self), pos, self.ctxbox_stack
-                )
                 # create pane buttons
                 for button in _buttons_from_dict(
                     self,
@@ -138,13 +132,6 @@ class ContextManager:
         pop_ctx.set_child(box_ctx)
         # todo resize popover dynamically
         return pop_ctx, box_ctx
-
-    def get_stack_for_position(self, position: str) -> Dict[str, Gtk.Stack]:
-        """get stacks for specific position"""
-        stacks = {}
-        if hasattr(self, f"stacks_{position}"):
-            stacks = getattr(self, f"stacks_{position}")
-        return stacks
 
     def handle_context_action(
         self, button: Gtk.Button, action: str, position: str

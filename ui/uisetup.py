@@ -11,7 +11,6 @@ class UISetup:
     """class for setting up ui components"""
 
     # type hints for inherited attributes
-    setup_stacks: Callable
     set_title: Callable
     set_default_size: Callable
     set_child: Callable
@@ -103,17 +102,11 @@ class UISetup:
         self.ovl_menu = Gtk.Overlay()
 
     def setup_frames(self) -> None:
-        """frames hold stack with pages of widgets"""
-        # create stack for each pane
-        self.stack_tl = self.setup_stacks("top-left")
-        self.stack_tr = self.setup_stacks("top-right")
-        self.stack_bl = self.setup_stacks("bottom-left")
-        self.stack_br = self.setup_stacks("bottom-right")
-        # create frames as main container for stack / custom widgets
-        self.frm_top_left = self.create_frame(self.stack_tl)
-        self.frm_top_right = self.create_frame(self.stack_tr)
-        self.frm_bottom_left = self.create_frame(self.stack_bl)
-        self.frm_bottom_right = self.create_frame(self.stack_br)
+        """create frames as main container for custom widgets"""
+        self.frm_top_left = self.create_frame(None)
+        self.frm_top_right = self.create_frame(None)
+        self.frm_bottom_left = self.create_frame(None)
+        self.frm_bottom_right = self.create_frame(None)
 
     def create_frame(self, child: Gtk.Widget) -> Gtk.Frame:
         """create a frame with the given child widget"""
