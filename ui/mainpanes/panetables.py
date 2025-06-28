@@ -43,6 +43,34 @@ class TablesWidget(Gtk.Notebook):
                 "houses": None,
             }
         self.events_data[event]["positions"] = positions_data
+        
+        # Update UI immediately if houses data is already available
+        if "houses" in self.events_data[event] and self.events_data[event]["houses"] is not None:
+            houses_data = self.events_data[event]["houses"]
+            aspects = self.aspects_data.get(event, [])
+            try:
+                cusps, ascmc = houses_data
+                # generate the updated text
+                new_text = self.make_table_content(positions_data, cusps, ascmc, aspects)
+                # update the text view in the event table page
+                for i in range(self.get_n_pages()):
+                    page = self.get_nth_page(i)
+                    if page:
+                        page_label = self.get_tab_label_text(page)
+                        if page_label.strip() == event:
+                            text_view = page.get_child()
+                            if isinstance(text_view, Gtk.TextView):
+                                buffer = text_view.get_buffer()
+                                buffer.set_text(new_text)
+                            break
+            except Exception as e:
+                self.notify.error(
+                    f"positions_changed: housesdata for {event} failed\n\terror : {e}",
+                    source="panetables",
+                    route=["terminal"],
+                )
+        
+        # Also call update_data for completeness (will handle case where both data arrive together)
         self.update_data(self.events_data[event])
 
     def houses_changed(self, event, houses_data):
@@ -54,6 +82,34 @@ class TablesWidget(Gtk.Notebook):
                 "houses": None,
             }
         self.events_data[event]["houses"] = houses_data
+        
+        # Update UI immediately if positions data is already available
+        if "positions" in self.events_data[event] and self.events_data[event]["positions"] is not None:
+            positions_data = self.events_data[event]["positions"]
+            aspects = self.aspects_data.get(event, [])
+            try:
+                cusps, ascmc = houses_data
+                # generate the updated text
+                new_text = self.make_table_content(positions_data, cusps, ascmc, aspects)
+                # update the text view in the event table page
+                for i in range(self.get_n_pages()):
+                    page = self.get_nth_page(i)
+                    if page:
+                        page_label = self.get_tab_label_text(page)
+                        if page_label.strip() == event:
+                            text_view = page.get_child()
+                            if isinstance(text_view, Gtk.TextView):
+                                buffer = text_view.get_buffer()
+                                buffer.set_text(new_text)
+                            break
+            except Exception as e:
+                self.notify.error(
+                    f"houses_changed: housesdata for {event} failed\n\terror : {e}",
+                    source="panetables",
+                    route=["terminal"],
+                )
+        
+        # Also call update_data for completeness (will handle case where both data arrive together)
         self.update_data(self.events_data[event])
 
     def e2_cleared(self, event):
