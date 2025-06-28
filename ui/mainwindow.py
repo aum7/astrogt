@@ -63,8 +63,8 @@ class MainWindow(
         connect_signals_aspects(self.get_application().signal_manager)
         # show panes
         self.panes_single()
-        # 4 main stacks as panes
-        self.tables = {}  # dict for tables widget per pane
+        # single tables widget for all panes
+        self.tables = draw_tables()
         self.init_stacks()
 
     def on_toggle_pane(self, button: Optional[Gtk.Button] = None) -> None:
@@ -194,9 +194,8 @@ class MainWindow(
             astro_chart = AstroChart()
             stack.add_titled(astro_chart, "chart", "-chart")
             # stack 2
-            # store custom (table) widget reference for updates
-            self.tables[pane] = draw_tables()
-            stack.add_titled(self.tables[pane], "tables", f"{pane}-tables")
+            # use the same tables widget for all panes
+            stack.add_titled(self.tables, "tables", f"{pane}-tables")
             # set stack as child of frame
             frame = getattr(self, f"frm_{pane.replace('-', '_')}", None)
             if frame:

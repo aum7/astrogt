@@ -43,7 +43,7 @@ class TablesWidget(Gtk.Notebook):
                 "houses": None,
             }
         self.events_data[event]["positions"] = positions_data
-        self.update_data(self.events_data[event])
+        self.update_data(event, self.events_data[event])
 
     def houses_changed(self, event, houses_data):
         # callback for signal
@@ -54,7 +54,7 @@ class TablesWidget(Gtk.Notebook):
                 "houses": None,
             }
         self.events_data[event]["houses"] = houses_data
-        self.update_data(self.events_data[event])
+        self.update_data(event, self.events_data[event])
 
     def e2_cleared(self, event):
         # callback
@@ -82,13 +82,12 @@ class TablesWidget(Gtk.Notebook):
         # print(f"panetables : received aspects : {aspects}")
         self.aspects_data[event] = data
         if event in self.events_data:
-            self.update_data(self.events_data[event])
+            self.update_data(event, self.events_data[event])
 
-    def update_data(self, data):
+    def update_data(self, event, data):
         """update positions on event data change"""
         if "event" not in data:
             return
-        event = data["event"]
         self.table_pages[event] = data
         existing_page = None
         for i in range(self.get_n_pages()):
@@ -290,7 +289,7 @@ def draw_tables():
     return TablesWidget()
 
 
-def update_tables(data=None):
+def update_tables(event=None, data=None):
     """update object positions & houses"""
     # get main window reference
     app = Gtk.Application.get_default()
@@ -305,6 +304,5 @@ def update_tables(data=None):
     if app and app.props.active_window:
         win = app.props.active_window
         if hasattr(win, "tables"):
-            # update all pane widgets with new data
-            for table in win.tables.values():
-                table.update_data(data)
+            # update tables widget with new data
+            win.tables.update_data(event, data)
