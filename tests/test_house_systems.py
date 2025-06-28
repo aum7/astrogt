@@ -2,7 +2,6 @@
 """Test house systems handling for Equal and Whole-sign systems"""
 
 import unittest
-from unittest.mock import MagicMock, patch
 
 
 class TestHouseSystemsLogic(unittest.TestCase):
