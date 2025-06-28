@@ -11,7 +11,7 @@ from .sidepane.panelsettings import update_chart_setting_checkbox
 from .uisetup import UISetup
 from .hotkeymanager import HotkeyManager
 from ui.helpers import _event_selection
-from ui.mainpanes.panetables import draw_tables
+from ui.mainpanes.panetables import Tables
 from ui.mainpanes.panechart.astrochart import AstroChart
 from ui.mainpanes.datagraph import DataGraph
 from sweph.calculations.positions import connect_signals_positions
@@ -176,8 +176,8 @@ class MainWindow(
         """initialize panes with content"""
         # 4 main panes
         self.astro_chart = AstroChart()
-        self.tables = draw_tables()
-        self.tables2 = draw_tables()
+        self.tables = Tables()
+        self.tables2 = Tables()
         self.datagraph = DataGraph()
         widgets = {
             "bottom_right": self.astro_chart,
