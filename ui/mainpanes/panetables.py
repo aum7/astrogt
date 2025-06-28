@@ -43,7 +43,9 @@ class TablesWidget(Gtk.Notebook):
                 "houses": None,
             }
         self.events_data[event]["positions"] = positions_data
-        self.update_data(self.events_data[event])
+        # Only update if we have both positions and houses data
+        if self.events_data[event].get("houses") is not None:
+            self.update_data(self.events_data[event])
 
     def houses_changed(self, event, houses_data):
         # callback for signal
@@ -54,7 +56,9 @@ class TablesWidget(Gtk.Notebook):
                 "houses": None,
             }
         self.events_data[event]["houses"] = houses_data
-        self.update_data(self.events_data[event])
+        # Only update if we have both positions and houses data
+        if self.events_data[event].get("positions") is not None:
+            self.update_data(self.events_data[event])
 
     def e2_cleared(self, event):
         # callback
@@ -81,7 +85,10 @@ class TablesWidget(Gtk.Notebook):
         """update aspects list on positions change"""
         # print(f"panetables : received aspects : {aspects}")
         self.aspects_data[event] = data
-        if event in self.events_data:
+        # Only update if we have both positions and houses data
+        if (event in self.events_data and 
+            self.events_data[event].get("positions") is not None and
+            self.events_data[event].get("houses") is not None):
             self.update_data(self.events_data[event])
 
     def update_data(self, data):
@@ -101,6 +108,16 @@ class TablesWidget(Gtk.Notebook):
         houses_data = data.get("houses", None)
         # aspects = data.get(event, [])
         aspects = self.aspects_data.get(event, [])
+        
+        # Early return if no positions data is available
+        if not pos_dict:
+            self.notify.debug(
+                f"updatedata : no positions data for {event}",
+                source="panetables",
+                route=["none"],
+            )
+            return
+            
         # debug
         if houses_data is None:
             self.notify.debug(
