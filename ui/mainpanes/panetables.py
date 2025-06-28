@@ -35,7 +35,7 @@ class TablesWidget(Gtk.Notebook):
         signal._connect("aspects_changed", self.aspects_changed)
 
     def positions_changed(self, event, positions_data):
-        # callback for signal
+        # callback for signal - always update table if positions data is received
         if event not in self.events_data:
             self.events_data[event] = {
                 "event": event,
@@ -43,7 +43,85 @@ class TablesWidget(Gtk.Notebook):
                 "houses": None,
             }
         self.events_data[event]["positions"] = positions_data
-        self.update_data(self.events_data[event])
+        # always update positions table regardless of houses data
+        self.make_positions(event, positions_data)
+
+    def make_positions(self, event, positions_data):
+        """create positions-only table without houses data"""
+        if not positions_data:
+            return
+        
+        # find existing page or create new one
+        existing_page = None
+        for i in range(self.get_n_pages()):
+            page_label = self.get_tab_label_text(self.get_nth_page(i))
+            if page_label.strip() == f"{event}":
+                existing_page = self.get_nth_page(i)
+                break
+        
+        # get aspects data if available
+        aspects = self.aspects_data.get(event, [])
+        
+        if existing_page:
+            scroll = existing_page
+            text_view = scroll.get_child()
+            if isinstance(text_view, Gtk.TextView):
+                buffer = text_view.get_buffer()
+                text = self.make_positions_content(positions_data, aspects)
+                buffer.set_text(text)
+        else:
+            # create new page
+            label = Gtk.Label(label=f"  {event}")
+            label.set_tooltip_text("right-click tab to access context menu")
+            scroll = self.make_positions_table(positions_data, aspects)
+            self.append_page(scroll, label)
+            self.set_current_page(-1)
+
+    def make_positions_content(self, pos_dict, aspects=None):
+        """create positions table content without houses data"""
+        n_chars = 37
+        v_ = "\u01ef"
+        h_ = "\u01ee"
+        vic_spc = "\u01ac"
+        line = f"{h_ * n_chars}\n"
+        
+        # aspectarian at top if available
+        text = self.make_aspectarian(aspects) if aspects else ""
+        text += f" positions {h_ * 29}\n"
+        text += f" name {v_}      sign {vic_spc} {v_}       lat {v_}        lon\n"
+        
+        for key, obj in pos_dict.items():
+            if key == "event":
+                continue
+            retro = "R" if obj.get("lon speed", 0) < 0 else " "
+            text += f" {obj['name']}{retro}  {v_}"
+            text += f" {self.format_dms(obj.get('lon', 0)):10} {v_}"
+            text += f"{obj.get('lat', 0):10.6f} {v_}"
+            text += f"{obj.get('lon', 0):11.6f}\n"
+        
+        text += line
+        return text
+
+    def make_positions_table(self, positions_data, aspects=None):
+        """create scrollable widget with positions-only data"""
+        scroll = Gtk.ScrolledWindow()
+        scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        scroll.set_hexpand(False)
+        scroll.set_vexpand(True)
+
+        text_view = Gtk.TextView()
+        text_view.set_margin_top(self.mrg)
+        text_view.set_margin_bottom(self.mrg)
+        text_view.set_margin_start(self.mrg)
+        text_view.set_margin_end(self.mrg)
+        text_view.set_editable(False)
+        text_view.set_cursor_visible(False)
+        text_view.add_css_class("table-text")
+        buffer = text_view.get_buffer()
+        text = self.make_positions_content(positions_data, aspects)
+        buffer.set_text(text)
+        scroll.set_child(text_view)
+        return scroll
 
     def houses_changed(self, event, houses_data):
         # callback for signal
@@ -101,24 +179,29 @@ class TablesWidget(Gtk.Notebook):
         houses_data = data.get("houses", None)
         # aspects = data.get(event, [])
         aspects = self.aspects_data.get(event, [])
-        # debug
-        if houses_data is None:
+        
+        # if no positions data, nothing to display
+        if not pos_dict:
+            return
+            
+        # check if we have houses data for full table or positions-only
+        if houses_data is not None:
+            # debug
             self.notify.debug(
-                f"updatedata : housesdata : {houses_data}",
+                f"updatedata : using houses data for {event}",
                 source="panetables",
                 route=["none"],
             )
-            return
-        try:
-            cusps, ascmc = houses_data
-        except Exception as e:
-            self.notify.error(
-                f"housesdata for {event} failed\n\terror : {e}",
-                source="panetables",
-                route=["terminal"],
-            )
-            return
-        if pos_dict:
+            try:
+                cusps, ascmc = houses_data
+            except Exception as e:
+                self.notify.error(
+                    f"housesdata for {event} failed\n\terror : {e}",
+                    source="panetables",
+                    route=["terminal"],
+                )
+                return
+            # create full table with houses data
             if existing_page:
                 scroll = existing_page
                 text_view = scroll.get_child()
@@ -132,6 +215,27 @@ class TablesWidget(Gtk.Notebook):
                 label.set_tooltip_text("right-click tab to access context menu")
                 text = self.make_table(pos_dict, cusps, ascmc, aspects)
                 self.append_page(text, label)
+                self.set_current_page(-1)
+        else:
+            # positions-only table without houses data
+            self.notify.debug(
+                f"updatedata : positions-only table for {event}",
+                source="panetables",
+                route=["none"],
+            )
+            if existing_page:
+                scroll = existing_page
+                text_view = scroll.get_child()
+                if isinstance(text_view, Gtk.TextView):
+                    buffer = text_view.get_buffer()
+                    text = self.make_positions_content(pos_dict, aspects)
+                    buffer.set_text(text)
+            else:
+                # create new page
+                label = Gtk.Label(label=f"  {event}")
+                label.set_tooltip_text("right-click tab to access context menu")
+                scroll = self.make_positions_table(pos_dict, aspects)
+                self.append_page(scroll, label)
                 self.set_current_page(-1)
 
     def make_aspectarian(self, aspects_data):
