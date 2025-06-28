@@ -189,10 +189,17 @@ class TablesWidget(Gtk.Notebook):
         return text
 
     def make_table_content(self, pos_dict, cusps, ascmc, aspects=None):
-        # unchanged except:
-        if ascmc:
+        # handle equal and whole-sign house systems
+        house_system = getattr(self.app, "selected_house_system", "P")
+        if house_system in ["E", "W"] and cusps:
+            # for equal and whole-sign systems, set both ascendant and 
+            # midheaven to first cusp
+            ascendant = midheaven = cusps[0]
+        elif ascmc:
             ascendant = ascmc[0]
             midheaven = ascmc[1]
+        else:
+            ascendant = midheaven = 0.0
         n_chars = 37
         v_ = "\u01ef"
         h_ = "\u01ee"
@@ -214,11 +221,12 @@ class TablesWidget(Gtk.Notebook):
             text += f"{obj.get('lon', 0):11.6f}"
             text += f"{self.which_house(obj.get('lon'), cusps)}\n"
         text += line
-        # houses
-        text += f" houses {h_ * 7}\n"
-        text += f"    {v_}      cusp\n"
-        for i, cusp in enumerate(cusps, 1):
-            text += f" {i:2d} {v_} {self.format_dms(cusp):20}\n"
+        # houses - omit detailed cusps table for equal and whole-sign systems
+        if house_system not in ["E", "W"]:
+            text += f" houses {h_ * 7}\n"
+            text += f"    {v_}      cusp\n"
+            for i, cusp in enumerate(cusps, 1):
+                text += f" {i:2d} {v_} {self.format_dms(cusp):20}\n"
         text += f" cross points {h_ * 3}\n"
         text += f" {asc} :  {self.format_dms(ascendant)}\n"
         text += f" {mc} :  {self.format_dms(midheaven)}\n"

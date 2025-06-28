@@ -200,6 +200,7 @@ class AstroChart(Gtk.Box):
             houses=self.houses if self.houses else [],
             ascmc=self.ascmc if self.ascmc else [],
             chart_settings=self.chart_settings,
+            house_system=getattr(self.app, "selected_house_system", "P"),
         )
         circle_event.draw(cr)
         # restore context if chart rotation was applied

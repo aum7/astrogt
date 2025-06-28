@@ -246,13 +246,14 @@ class CircleEvent(CircleBase):
     """objects / planets & house cusps"""
 
     def __init__(
-        self, radius, cx, cy, font_size, guests, houses, ascmc, chart_settings
+        self, radius, cx, cy, font_size, guests, houses, ascmc, chart_settings, house_system="P"
     ):
         super().__init__(radius, cx, cy, chart_settings)
         self.guests = guests
         self.houses = houses
         self.ascmc = ascmc
         self.font_size = font_size
+        self.house_system = house_system
         # radius factor for middle circle (0° latitude )
         self.middle_factor = 0.74
         # inner circle factor (min latitude value)
@@ -319,8 +320,14 @@ class CircleEvent(CircleBase):
 
         if self.ascmc:
             radius_factor = 1.0
-            ascendant = self.ascmc[0]
-            midheaven = self.ascmc[1]
+            # handle equal and whole-sign house systems
+            if self.house_system in ["E", "W"] and self.houses:
+                # for equal and whole-sign systems, set both ascendant and
+                # midheaven to first cusp
+                ascendant = midheaven = self.houses[0]
+            else:
+                ascendant = self.ascmc[0]
+                midheaven = self.ascmc[1]
             marker_size = self.radius * 0.03
             # compute positions based on angle transformations
             asc_angle = pi - radians(ascendant)
