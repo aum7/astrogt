@@ -295,8 +295,10 @@ class Tables(Gtk.Notebook):
         # add page with event label as tab title
         # self.append_page(scroll, Gtk.Label.new(event))
         self.insert_page(scroll, Gtk.Label.new(event), -1)
-        pg_idx = self.get_n_pages() - 1
-        self.set_current_page(pg_idx)
+        gesture = Gtk.GestureClick.new()
+        gesture.connect("pressed", self.toggle_vimso)
+        text_view.add_controller(gesture)
+        self.set_current_page(self.get_n_pages() - 1)
         self.page_widgets[event] = scroll
 
     def update_vimsottari(self, event: str, content: str):  # Optional[str] = None):
@@ -310,7 +312,7 @@ class Tables(Gtk.Notebook):
         else:
             self.vimsottari_widget(event, content)
 
-    def toggle_lvl(self, event):
+    def toggle_vimso(self, gesture, n_press, x, y):
         # cycle toggle level: 1->2->3->4->1
         if self.current_lvl == 1:
             self.current_lvl = 2
@@ -320,11 +322,15 @@ class Tables(Gtk.Notebook):
             self.current_lvl = 4
         else:
             self.current_lvl = 1
-        new_content = self.make_vimsottari(event, self.current_lvl)
+        new_content = self.make_vimsottari("vimsottari", self.current_lvl)
         # assume event 'vimsottari' is the target page
         self.update_vimsottari("vimsottari", new_content)
 
     def make_vimsottari(self, event, lvl):
+        if event not in self.events_data or not self.events_data[event].get(
+            "vimsottari"
+        ):
+            return ""
         # generate content string based on level
         vmst = self.events_data[event].get("vimsottari")
         out = ""
@@ -332,36 +338,36 @@ class Tables(Gtk.Notebook):
             if lvl == 1:
                 # lvl 1: show major periods only
                 for entry in vmst:
-                    out += f"{entry['lord'].upper()} ({entry['years']} yrs)\n"
+                    out += f"{entry['lord']} ({entry['years']} yrs)\n"
                     out += f"from: {entry['from']} to: {entry['to']}\n\n"
             elif lvl == 2:
                 # lvl 2: add current antar (simulate first sub if exists)
                 for entry in vmst:
-                    out += f"{entry['lord'].upper()} ({entry['years']} yrs)\n"
+                    out += f"{entry['lord']()} ({entry['years']} yrs)\n"
                     if "sub" in entry and len(entry["sub"]) > 0:
                         anta = entry["sub"][0]
                         out += (
                             "   antar: "
-                            + f"{anta['lord'].upper()} "
+                            + f"{anta['lord']()} "
                             + f"({anta['years']} yrs)\n"
                         )
                     out += f"from: {entry['from']} to: {entry['to']}\n\n"
             elif lvl == 3:
                 # lvl 3: add current pratyantar (simulate first sub of antar)
                 for entry in vmst:
-                    out += f"{entry['lord'].upper()} ({entry['years']} yrs)\n"
+                    out += f"{entry['lord']()} ({entry['years']} yrs)\n"
                     if "sub" in entry and len(entry["sub"]) > 0:
                         anta = entry["sub"][0]
                         out += (
                             "   antar: "
-                            + f"{anta['lord'].upper()} "
+                            + f"{anta['lord']()} "
                             + f"({anta['years']} yrs)\n"
                         )
                         if "sub" in anta and len(anta["sub"]) > 0:
                             praty = anta["sub"][0]
                             out += (
                                 "      pratyantar: "
-                                + f"{praty['lord'].upper()} "
+                                + f"{praty['lord']()} "
                                 + f"({praty['years']} yrs)\n"
                             )
                     out += f"from: {entry['from']} to: {entry['to']}\n\n"
@@ -371,7 +377,7 @@ class Tables(Gtk.Notebook):
                     res = ""
                     pad = "    " * indent
                     for e in entries:
-                        res += pad + f"{e['lord'].upper()} " + f"({e['years']} yrs)\n"
+                        res += pad + f"{e['lord']()} " + f"({e['years']} yrs)\n"
                         res += pad + f"from: {e['from']} to: {e['to']}\n"
                         if "sub" in e and e["sub"]:
                             res += recurse(e["sub"], indent + 1)
@@ -381,18 +387,22 @@ class Tables(Gtk.Notebook):
                 out = recurse(vmst)
         return out
 
-    def make_vimsottari_raw(self, data) -> str:
+    def make_vimsottari_raw(self, vimsottari):
+        # def make_vimsottari_raw(self, data) -> str:
         # prepare string from raw vimsottari data (list/dict) using default level 1
         out = ""
-        if data and isinstance(data, list):
-            for entry in data:
-                out += f"{entry['lord'].upper()} " + f"({entry['years']} yrs)\n"
-                out += f"from: {entry['from']} to: {entry['to']}\n\n"
-        elif data and isinstance(data, dict):
-            out += (
-                f"{data.get('lord', '').upper()} " + f"({data.get('years', 0)} yrs)\n"
-            )
-            out += f"from: {data.get('from')} to: {data.get('to')}\n\n"
+        for entry in vimsottari:
+            if isinstance(entry, dict) and "lord" in entry and "years" in entry:
+                out += f"{entry['lord']} ({entry['years']} y)\n"
+            else:
+                raise TypeError("invalid entry format in vimsottari dasa")
+        # if data and isinstance(data, list):
+        #     for entry in data:
+        #         out += f"{entry['lord']} " + f"({entry['years']} yrs)\n"
+        #         out += f"from: {entry['from']} to: {entry['to']}\n\n"
+        # elif data and isinstance(data, dict):
+        #     out += f"{data.get('lord', '')} " + f"({data.get('years', 0)} yrs)\n"
+        #     out += f"from: {data.get('from')} to: {data.get('to')}\n\n"
         return out
 
     def which_house(self, lon: float, cusps: Tuple[float, ...]) -> str:

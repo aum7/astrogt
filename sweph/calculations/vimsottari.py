@@ -50,7 +50,13 @@ def calculate_vimsottari(event: Optional[str] = None, luminaries: Dict[str, Any]
     nak_idx = int(mo_lon // nak_length) + 1
     nak_frac = (mo_lon % nak_length) / nak_length
     start_lord, _ = NAKSATRAS27[nak_idx]
-    event_dasas = get_vimsottari_periods(notify, start_jd_ut, start_lord, nak_frac)
+    event_dasas = get_vimsottari_periods(
+        notify,
+        start_jd_ut,
+        nak_idx,
+        start_lord,
+        nak_frac,
+    )
     app.signal_manager._emit("vimsottari_changed", event, event_dasas)
     notify.debug(
         f"start_jd_ut : {start_jd_ut}\n\tdasas : {event_dasas}",
@@ -59,7 +65,15 @@ def calculate_vimsottari(event: Optional[str] = None, luminaries: Dict[str, Any]
     )
 
 
-def get_vimsottari_periods(notify, start_jd_ut, start_lord, start_frac=0.0, levels=3):
+def get_vimsottari_periods(
+    notify,
+    start_jd_ut,
+    start_idx,
+    start_lord,
+    start_frac=0.0,
+    years=0.0,
+    level=0,
+):
     dasa_years = {
         "ke": 7,
         "ve": 20,
@@ -71,36 +85,52 @@ def get_vimsottari_periods(notify, start_jd_ut, start_lord, start_frac=0.0, leve
         "sa": 19,
         "me": 17,
     }
-    lord_seq = list(dasa_years.keys())
-    start_idx = lord_seq.index(start_lord)
+    lord_seq = [
+        "ke",
+        "ve",
+        "su",
+        "mo",
+        "ma",
+        "ra",
+        "ju",
+        "sa",
+        "me",
+    ]
+    # start_idx = lord_seq.index(start_lord)
 
-    def recurse(start_jd_ut, level, years, lord_seq):
-        dasas = []
-        for i in range(9):
-            lord = lord_seq[(start_idx + i) % 9] if level == 0 else lord_seq[i]
-            duration = years * dasa_years[lord] / 120
-            if level == 0 and i == 0:
-                duration *= 1 - start_frac
-            days = duration * 365.2425
-            jd_end = start_jd_ut + days
-            entry = {
-                "lord": lord,
-                "years": round(duration, 4),
-                "from": swe.revjul(start_jd_ut, cal=swe.GREG_CAL),
-                "to": swe.revjul(jd_end),
-            }
-            if level + 1 < levels:
-                entry["sub"] = recurse(start_jd_ut, level + 1, duration, lord_seq)
-            dasas.append(entry)
-            start_jd_ut = jd_end
-        notify.info(
-            f"duration :{duration:5.2f} years",
-            source="vimsottari",
-            route=["none"],
-        )
-        return dasas
-
-    return recurse(start_jd_ut, 0, dasa_years[start_lord], lord_seq)
+    # def recurse(start_jd_ut, level, years, lord_seq):
+    dasas = []
+    for i, lord in enumerate(lord_seq):
+        if level == 0:
+            if i == 0:
+                # 1st period reminder
+                duration = (1 - start_frac) * dasa_years[start_lord]
+            else:
+                # rest are full lenght
+                duration = dasa_years[lord]
+        else:
+            # recursive levels scaled
+            duration = years * dasa_years[lord]
+        # lord = lord_seq[(start_idx + i) % 9] if level == 0 else lord_seq[i]
+        # duration = years * dasa_years[lord] / 120
+        # if level == 0 and i == 0:
+        #     duration *= 1 - start_frac
+        days = duration * 365.2425
+        jd_end = start_jd_ut + days
+        entry = {
+            "lord": lord,
+            "years": round(duration, 4),
+            "from": swe.revjul(start_jd_ut, cal=swe.GREG_CAL),
+            "to": swe.revjul(jd_end),
+        }
+        dasas.append(duration)
+        start_jd_ut = jd_end
+    notify.info(
+        f"duration :{duration:5.2f} years",
+        source="vimsottari",
+        route=["none"],
+    )
+    return dasas
 
 
 def connect_signals_vimsottari(signal_manager):
