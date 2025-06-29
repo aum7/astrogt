@@ -17,15 +17,20 @@ class Tables(Gtk.Notebook):
         self.notify = self.app.notify_manager
         # connect signals
         signal = self.app.signal_manager
+        # event data widget
         signal._connect("positions_changed", self.positions_changed)
         signal._connect("houses_changed", self.houses_changed)
         signal._connect("aspects_changed", self.aspects_changed)
+        # vimsottari dasa widget
         signal._connect("vimsottari_changed", self.vimsottari_changed)
+        # if user not interested in event 2
         signal._connect("e2_cleared", self.e2_cleared)
         # data for events' positions and houses
         self.events_data = {}
         # mapping event to page widget
         self.page_widgets = {}
+        # vimsottari fold level
+        self.current_lvl = 1
         # styling and scroll options
         self.add_css_class("no-border")
         self.set_tab_pos(Gtk.PositionType.TOP)
@@ -38,7 +43,7 @@ class Tables(Gtk.Notebook):
         self.asc = "\u01bf"
         self.mc = "\u01c1"
 
-    def create_page(self, event: str, content: str):
+    def event_data_widget(self, event: str, content: str):
         # create a scrollable text view for an event
         scroll = Gtk.ScrolledWindow()
         scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
@@ -64,26 +69,29 @@ class Tables(Gtk.Notebook):
         if event not in self.events_data:
             self.events_data[event] = {}
         self.events_data[event]["positions"] = positions
-        self.update_page(event)
+        self.update_event_data(event)
 
     def houses_changed(self, event: str, houses: tuple):
         # store houses data and update if positions already exist
         if event not in self.events_data:
             self.events_data[event] = {}
         self.events_data[event]["houses"] = houses
-        self.update_page(event)
+        self.update_event_data(event)
 
     def aspects_changed(self, event, aspects):
         if event not in self.events_data:
             self.events_data[event] = {"aspects": None}
         self.events_data[event]["aspects"] = aspects
-        self.update_page(event)
+        self.update_event_data(event)
 
     def vimsottari_changed(self, event, vimsottari):
         if event not in self.events_data:
             self.events_data[event] = {"vimsottari": None}
         self.events_data[event]["vimsottari"] = vimsottari
-        self.update_page(event)
+        # print(f"vmst : {str(self.events_data[event].get('vimsottari'))[:800]}")
+        content = self.make_vimsottari_raw(vimsottari)
+        # print(f"vmch : {str(content)[:300]}")
+        self.update_vimsottari("vimsottari", content)
 
     def e2_cleared(self, event):
         pass
@@ -106,7 +114,7 @@ class Tables(Gtk.Notebook):
         #             route=["terminal", "user"],
         #         )
 
-    def update_page(self, event: str):
+    def update_event_data(self, event: str):
         # assure data exists
         if (
             event not in self.events_data
@@ -125,7 +133,7 @@ class Tables(Gtk.Notebook):
         pos = self.events_data[event].get("positions")
         # get houses data if available
         houses = self.events_data[event].get("houses")
-        aspects = self.aspects_matrix(event)
+        aspects = self.make_aspects(event)
         content = str(aspects)
         if houses:
             cusps, ascmc = houses
@@ -200,13 +208,12 @@ class Tables(Gtk.Notebook):
         if event in self.page_widgets:
             scroll = self.page_widgets[event]
             text_view = scroll.get_child()
-            if text_view:
-                buffer = text_view.get_buffer()
-                buffer.set_text(content)
+            buffer = text_view.get_buffer()
+            buffer.set_text(content)
         else:
-            self.create_page(event, content)
+            self.event_data_widget(event, content)
 
-    def aspects_matrix(self, event):
+    def make_aspects(self, event):
         aspects = self.events_data[event].get("aspects")
         if (
             event not in self.events_data
@@ -265,6 +272,128 @@ class Tables(Gtk.Notebook):
         # horizontal line at end
         text += self.h_line
         return text
+
+    def vimsottari_widget(self, event: str, content: str):
+        # create a scrollable text view for an event
+
+        scroll = Gtk.ScrolledWindow()
+        scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        scroll.set_hexpand(False)
+        scroll.set_vexpand(True)
+        text_view = Gtk.TextView()
+        text_view.set_margin_top(self.margin)
+        text_view.set_margin_bottom(self.margin)
+        text_view.set_margin_start(self.margin)
+        text_view.set_margin_end(self.margin)
+        # text_view.set_wrap_mode(Gtk.WrapMode.CHAR)
+        text_view.set_editable(False)
+        text_view.set_cursor_visible(False)
+        text_view.add_css_class("table-text")
+        buffer = text_view.get_buffer()
+        buffer.set_text(content)
+        scroll.set_child(text_view)
+        # add page with event label as tab title
+        # self.append_page(scroll, Gtk.Label.new(event))
+        self.insert_page(scroll, Gtk.Label.new(event), -1)
+        pg_idx = self.get_n_pages() - 1
+        self.set_current_page(pg_idx)
+        self.page_widgets[event] = scroll
+
+    def update_vimsottari(self, event: str, content: str):  # Optional[str] = None):
+        # print(f"upvms : {content[:600]}")
+        # update page widget if exists, else create one
+        if event in self.page_widgets:
+            scroll = self.page_widgets[event]
+            text_view = scroll.get_child()
+            buffer = text_view.get_buffer()
+            buffer.set_text(content)
+        else:
+            self.vimsottari_widget(event, content)
+
+    def toggle_lvl(self, event):
+        # cycle toggle level: 1->2->3->4->1
+        if self.current_lvl == 1:
+            self.current_lvl = 2
+        elif self.current_lvl == 2:
+            self.current_lvl = 3
+        elif self.current_lvl == 3:
+            self.current_lvl = 4
+        else:
+            self.current_lvl = 1
+        new_content = self.make_vimsottari(event, self.current_lvl)
+        # assume event 'vimsottari' is the target page
+        self.update_vimsottari("vimsottari", new_content)
+
+    def make_vimsottari(self, event, lvl):
+        # generate content string based on level
+        vmst = self.events_data[event].get("vimsottari")
+        out = ""
+        if vmst:
+            if lvl == 1:
+                # lvl 1: show major periods only
+                for entry in vmst:
+                    out += f"{entry['lord'].upper()} ({entry['years']} yrs)\n"
+                    out += f"from: {entry['from']} to: {entry['to']}\n\n"
+            elif lvl == 2:
+                # lvl 2: add current antar (simulate first sub if exists)
+                for entry in vmst:
+                    out += f"{entry['lord'].upper()} ({entry['years']} yrs)\n"
+                    if "sub" in entry and len(entry["sub"]) > 0:
+                        anta = entry["sub"][0]
+                        out += (
+                            "   antar: "
+                            + f"{anta['lord'].upper()} "
+                            + f"({anta['years']} yrs)\n"
+                        )
+                    out += f"from: {entry['from']} to: {entry['to']}\n\n"
+            elif lvl == 3:
+                # lvl 3: add current pratyantar (simulate first sub of antar)
+                for entry in vmst:
+                    out += f"{entry['lord'].upper()} ({entry['years']} yrs)\n"
+                    if "sub" in entry and len(entry["sub"]) > 0:
+                        anta = entry["sub"][0]
+                        out += (
+                            "   antar: "
+                            + f"{anta['lord'].upper()} "
+                            + f"({anta['years']} yrs)\n"
+                        )
+                        if "sub" in anta and len(anta["sub"]) > 0:
+                            praty = anta["sub"][0]
+                            out += (
+                                "      pratyantar: "
+                                + f"{praty['lord'].upper()} "
+                                + f"({praty['years']} yrs)\n"
+                            )
+                    out += f"from: {entry['from']} to: {entry['to']}\n\n"
+            elif lvl == 4:
+                # lvl 4: fully unfold all details recursively
+                def recurse(entries, indent=0):
+                    res = ""
+                    pad = "    " * indent
+                    for e in entries:
+                        res += pad + f"{e['lord'].upper()} " + f"({e['years']} yrs)\n"
+                        res += pad + f"from: {e['from']} to: {e['to']}\n"
+                        if "sub" in e and e["sub"]:
+                            res += recurse(e["sub"], indent + 1)
+                        res += "\n"
+                    return res
+
+                out = recurse(vmst)
+        return out
+
+    def make_vimsottari_raw(self, data) -> str:
+        # prepare string from raw vimsottari data (list/dict) using default level 1
+        out = ""
+        if data and isinstance(data, list):
+            for entry in data:
+                out += f"{entry['lord'].upper()} " + f"({entry['years']} yrs)\n"
+                out += f"from: {entry['from']} to: {entry['to']}\n\n"
+        elif data and isinstance(data, dict):
+            out += (
+                f"{data.get('lord', '').upper()} " + f"({data.get('years', 0)} yrs)\n"
+            )
+            out += f"from: {data.get('from')} to: {data.get('to')}\n\n"
+        return out
 
     def which_house(self, lon: float, cusps: Tuple[float, ...]) -> str:
         # determine which house a celestial longitude falls in
