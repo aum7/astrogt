@@ -959,6 +959,8 @@ def solar_year_changed(dropdown, _, manager):
     """solar & lunar period panel : select solar year period"""
     idx = dropdown.get_selected()
     manager.app.selected_year_period = list(SOLAR_YEAR.values())[idx][0]
+    # notify vimsottari (will grab from app) etc
+    manager.signal._emit("solar_year_changed", None)
     manager.notify.debug(
         f"sol & lun period panel :\n\tsolar year :\t{manager.app.selected_year_period} | "
         f"{list(SOLAR_YEAR.keys())[idx]}",

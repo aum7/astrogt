@@ -4,10 +4,10 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
+from typing import Tuple
 from swisseph import contrib as swh
 from ui.fonts.glyphs import SIGNS
 from user.settings import HOUSE_SYSTEMS
-from typing import Tuple
 
 
 class Tables(Gtk.Notebook):
@@ -31,6 +31,7 @@ class Tables(Gtk.Notebook):
         self.page_widgets = {}
         # vimsottari fold level
         self.current_lvl = 1
+        self.current_event = None
         # styling and scroll options
         self.add_css_class("no-border")
         self.set_tab_pos(Gtk.PositionType.TOP)
@@ -46,6 +47,7 @@ class Tables(Gtk.Notebook):
     def event_data_widget(self, event: str, content: str):
         # create a scrollable text view for an event
         scroll = Gtk.ScrolledWindow()
+        scroll.set_name(f"data_scroll_{event}")
         scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         scroll.set_hexpand(False)
         scroll.set_vexpand(True)
@@ -67,14 +69,14 @@ class Tables(Gtk.Notebook):
     def positions_changed(self, event: str, positions: dict):
         # update event with positions data
         if event not in self.events_data:
-            self.events_data[event] = {}
+            self.events_data[event] = {"positions": None}
         self.events_data[event]["positions"] = positions
         self.update_event_data(event)
 
     def houses_changed(self, event: str, houses: tuple):
         # store houses data and update if positions already exist
         if event not in self.events_data:
-            self.events_data[event] = {}
+            self.events_data[event] = {"houses": None}
         self.events_data[event]["houses"] = houses
         self.update_event_data(event)
 
@@ -88,8 +90,9 @@ class Tables(Gtk.Notebook):
         if event not in self.events_data:
             self.events_data[event] = {"vimsottari": None}
         self.events_data[event]["vimsottari"] = vimsottari
-        # print(f"vmst : {str(self.events_data[event].get('vimsottari'))[:800]}")
-        content = self.make_vimsottari_raw(vimsottari)
+        self.current_event = event
+        # print(f"vmst chg : {str(self.events_data[event].get('vimsottari'))[:800]}")
+        content = self.make_vimsottari(event, lvl=self.current_lvl)
         # print(f"vmch : {str(content)[:300]}")
         self.update_vimsottari("vimsottari", content)
 
@@ -273,13 +276,23 @@ class Tables(Gtk.Notebook):
         text += self.h_line
         return text
 
+    # def on_switch_page(self, nb, page, page_num, user_data=None):
+    #     event = nb.get_tab_label_text(page)
+    #     if event == "vimsottari":
+    #         self.toggle_vimso(event)
+
     def vimsottari_widget(self, event: str, content: str):
         # create a scrollable text view for an event
-
+        # self.connect("switch-page", self.on_switch_page)
+        # self.current_event = event
+        # box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        # overlay = Gtk.Overlay()
         scroll = Gtk.ScrolledWindow()
+        scroll.set_name(f"vimso_scroll_{event}")
         scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         scroll.set_hexpand(False)
         scroll.set_vexpand(True)
+        # text overlay for level button
         text_view = Gtk.TextView()
         text_view.set_margin_top(self.margin)
         text_view.set_margin_bottom(self.margin)
@@ -292,27 +305,67 @@ class Tables(Gtk.Notebook):
         buffer = text_view.get_buffer()
         buffer.set_text(content)
         scroll.set_child(text_view)
+        # overlay.set_child(scroll)
+        # toggle button
+        # btn = Gtk.Button(label=">>")
+        # btn.set_halign(Gtk.Align.END)
+        # btn.set_valign(Gtk.Align.START)
+        # btn.set_margin_top(20)
+        # btn.set_margin_end(20)
+        # btn.set_size_request(32, 24)
+
+        # def on_click(button):
+        #     self.toggle_vimso(event)
+
+        # btn.connect("clicked", on_click)
+        # overlay.add_overlay(btn)
+        # box.append(overlay)
         # add page with event label as tab title
-        # self.append_page(scroll, Gtk.Label.new(event))
-        self.insert_page(scroll, Gtk.Label.new(event), -1)
-        gesture = Gtk.GestureClick.new()
-        gesture.connect("pressed", self.toggle_vimso)
-        text_view.add_controller(gesture)
+
+        # def on_click(gesture, n_press, x, y, user_data=None):
+        #     event = gesture.get_current_event()
+        #     state = event.get_modifier_state()
+        #     if state & Gdk.ModifierType.SHIFT_MASK:
+        #         # block selection & switch level
+        #         self.toggle_vimso(gesture, n_press, x, y)
+        #         # return True  # block selection
+        #     return False
+
+        # gesture = Gtk.GestureClick.new()
+        # gesture.connect("pressed", on_click)
+        # scroll.add_controller(gesture)
+        # text_view.add_controller(gesture)
         self.set_current_page(self.get_n_pages() - 1)
+        self.insert_page(scroll, Gtk.Label.new(event), -1)
         self.page_widgets[event] = scroll
+        # for key, scroll in self.page_widgets.items():
+        #     print(f"vimsottari_widget : key : {key} - name : {scroll.get_name()}")
+        # return overlay
 
     def update_vimsottari(self, event: str, content: str):  # Optional[str] = None):
-        # print(f"upvms : {content[:600]}")
+        # print(f"upd vmst : {content[:600]}")
         # update page widget if exists, else create one
+        # for key, scroll in self.page_widgets.items():
+        #     # if scroll.get_name()[:5] == "vimso":
+        #     print(
+        #         f"upd_vimso pg_wgts event : {event} | key : {key} scroll : {scroll.get_name()}"
+        #     )
         if event in self.page_widgets:
+            # if key == "vimsottari":
+            # if scroll.get_name()[:5] == "vimso" and key == "vimsottari":
             scroll = self.page_widgets[event]
+            # print(f"upd_vimso scroll : {scroll.get_name()}")
             text_view = scroll.get_child()
             buffer = text_view.get_buffer()
             buffer.set_text(content)
+            # print(f"upd_vimso buffer : {buffer}")
         else:
+            print("vimsottari_widget : creating new page")
             self.vimsottari_widget(event, content)
 
-    def toggle_vimso(self, gesture, n_press, x, y):
+    def toggle_vimso(self, gesture=None, n_press=0, x=0, y=0):
+        event = self.current_event
+        # print(f"toggle_vimso  {event} called")
         # cycle toggle level: 1->2->3->4->1
         if self.current_lvl == 1:
             self.current_lvl = 2
@@ -322,9 +375,12 @@ class Tables(Gtk.Notebook):
             self.current_lvl = 4
         else:
             self.current_lvl = 1
-        new_content = self.make_vimsottari("vimsottari", self.current_lvl)
-        # assume event 'vimsottari' is the target page
-        self.update_vimsottari("vimsottari", new_content)
+        # print(f"current_lvl : {self.current_lvl}")
+        new_content = self.make_vimsottari(event, self.current_lvl)
+        # print(f"toggle_vimso.new_content : {new_content}")
+        if event is not None:
+            # print("calling update_vimsottari")
+            self.update_vimsottari("vimsottari", new_content)
 
     def make_vimsottari(self, event, lvl):
         if event not in self.events_data or not self.events_data[event].get(
@@ -343,31 +399,31 @@ class Tables(Gtk.Notebook):
             elif lvl == 2:
                 # lvl 2: add current antar (simulate first sub if exists)
                 for entry in vmst:
-                    out += f"{entry['lord']()} ({entry['years']} yrs)\n"
+                    out += f"{entry['lord']} ({entry['years']} yrs)\n"
                     if "sub" in entry and len(entry["sub"]) > 0:
                         anta = entry["sub"][0]
                         out += (
                             "   antar: "
-                            + f"{anta['lord']()} "
+                            + f"{anta['lord']} "
                             + f"({anta['years']} yrs)\n"
                         )
                     out += f"from: {entry['from']} to: {entry['to']}\n\n"
             elif lvl == 3:
                 # lvl 3: add current pratyantar (simulate first sub of antar)
                 for entry in vmst:
-                    out += f"{entry['lord']()} ({entry['years']} yrs)\n"
+                    out += f"{entry['lord']} ({entry['years']} yrs)\n"
                     if "sub" in entry and len(entry["sub"]) > 0:
                         anta = entry["sub"][0]
                         out += (
                             "   antar: "
-                            + f"{anta['lord']()} "
+                            + f"{anta['lord']} "
                             + f"({anta['years']} yrs)\n"
                         )
                         if "sub" in anta and len(anta["sub"]) > 0:
                             praty = anta["sub"][0]
                             out += (
                                 "      pratyantar: "
-                                + f"{praty['lord']()} "
+                                + f"{praty['lord']} "
                                 + f"({praty['years']} yrs)\n"
                             )
                     out += f"from: {entry['from']} to: {entry['to']}\n\n"
@@ -377,7 +433,7 @@ class Tables(Gtk.Notebook):
                     res = ""
                     pad = "    " * indent
                     for e in entries:
-                        res += pad + f"{e['lord']()} " + f"({e['years']} yrs)\n"
+                        res += pad + f"{e['lord']} " + f"({e['years']} yrs)\n"
                         res += pad + f"from: {e['from']} to: {e['to']}\n"
                         if "sub" in e and e["sub"]:
                             res += recurse(e["sub"], indent + 1)
@@ -385,24 +441,6 @@ class Tables(Gtk.Notebook):
                     return res
 
                 out = recurse(vmst)
-        return out
-
-    def make_vimsottari_raw(self, vimsottari):
-        # def make_vimsottari_raw(self, data) -> str:
-        # prepare string from raw vimsottari data (list/dict) using default level 1
-        out = ""
-        for entry in vimsottari:
-            if isinstance(entry, dict) and "lord" in entry and "years" in entry:
-                out += f"{entry['lord']} ({entry['years']} y)\n"
-            else:
-                raise TypeError("invalid entry format in vimsottari dasa")
-        # if data and isinstance(data, list):
-        #     for entry in data:
-        #         out += f"{entry['lord']} " + f"({entry['years']} yrs)\n"
-        #         out += f"from: {entry['from']} to: {entry['to']}\n\n"
-        # elif data and isinstance(data, dict):
-        #     out += f"{data.get('lord', '')} " + f"({data.get('years', 0)} yrs)\n"
-        #     out += f"from: {data.get('from')} to: {data.get('to')}\n\n"
         return out
 
     def which_house(self, lon: float, cusps: Tuple[float, ...]) -> str:

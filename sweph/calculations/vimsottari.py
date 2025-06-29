@@ -7,14 +7,26 @@ gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from typing import Optional, Dict, Any, List
 
-# from datetime import timedelta
 from ui.mainpanes.panechart.chartcircles import NAKSATRAS27
 
 
+def dasa_years():
+    return {
+        "ke": 7,
+        "ve": 20,
+        "su": 6,
+        "mo": 10,
+        "ma": 7,
+        "ra": 18,
+        "ju": 16,
+        "sa": 19,
+        "me": 17,
+    }
+
+
 def calculate_vimsottari(event: Optional[str] = None, luminaries: Dict[str, Any] = {}):
-    """calculate aspectarian for one or both events"""
+    """calculate vimsottari for event"""
     app = Gtk.Application.get_default()
-    # start_jd_ut = luminaries.get("jd_ut")
     notify = app.notify_manager
     # event 1 data is mandatory
     if not app.e1_sweph.get("jd_ut"):
@@ -33,11 +45,13 @@ def calculate_vimsottari(event: Optional[str] = None, luminaries: Dict[str, Any]
         source="vimsottari",
         route=["none"],
     )
+    sol_year_sel = get_sol_year_sel()
+    print(f"selyear : {sol_year_sel}")
     jd_pos = {k: v for k, v in luminaries.items() if isinstance(k, int)}
     # grab moon position
     moon = next((p for p in jd_pos.values() if p["name"] == "mo"), None)
-    start_jd_ut = luminaries.get("start_jd_ut")
-    if not moon or not start_jd_ut:
+    jd_ut = luminaries.get("start_jd_ut")
+    if not moon or not jd_ut:
         notify.error(
             "missing luminaries data\n\texiting ...",
             source="vimsottari",
@@ -50,89 +64,85 @@ def calculate_vimsottari(event: Optional[str] = None, luminaries: Dict[str, Any]
     nak_idx = int(mo_lon // nak_length) + 1
     nak_frac = (mo_lon % nak_length) / nak_length
     start_lord, _ = NAKSATRAS27[nak_idx]
+    dasa_yrs = dasa_years()
+    years = dasa_yrs[start_lord]
     event_dasas = get_vimsottari_periods(
-        notify,
-        start_jd_ut,
-        nak_idx,
-        start_lord,
-        nak_frac,
+        sol_year_sel, jd_ut, start_lord, nak_frac, years, 0, 3
     )
     app.signal_manager._emit("vimsottari_changed", event, event_dasas)
     notify.debug(
-        f"start_jd_ut : {start_jd_ut}\n\tdasas : {event_dasas}",
+        f"start_jd_ut : {jd_ut}\n\tdasas : {event_dasas}",
         source="vimsottari",
         route=["none"],
     )
 
 
 def get_vimsottari_periods(
-    notify,
-    start_jd_ut,
-    start_idx,
+    sel_year,
+    jd_ut,
     start_lord,
-    start_frac=0.0,
+    frac=0.0,
     years=0.0,
     level=0,
+    max_level=3,
 ):
-    dasa_years = {
-        "ke": 7,
-        "ve": 20,
-        "su": 6,
-        "mo": 10,
-        "ma": 7,
-        "ra": 18,
-        "ju": 16,
-        "sa": 19,
-        "me": 17,
-    }
-    lord_seq = [
-        "ke",
-        "ve",
-        "su",
-        "mo",
-        "ma",
-        "ra",
-        "ju",
-        "sa",
-        "me",
-    ]
-    # start_idx = lord_seq.index(start_lord)
-
-    # def recurse(start_jd_ut, level, years, lord_seq):
+    app = Gtk.Application.get_default()
+    notify = app.notify_manager
+    dasa_yrs = dasa_years()
+    lord_seq = list(dasa_yrs)
+    start_idx = lord_seq.index(start_lord)
+    # print(f"vims.py.lord_seq : {lord_seq}")
+    # def recurse(jd_ut, lord, frac, years, level, max_level):
     dasas = []
-    for i, lord in enumerate(lord_seq):
-        if level == 0:
-            if i == 0:
-                # 1st period reminder
-                duration = (1 - start_frac) * dasa_years[start_lord]
-            else:
-                # rest are full lenght
-                duration = dasa_years[lord]
+    for i in range(9):
+        lord = lord_seq[(start_idx + i) % 9] if level == 0 else lord_seq[i]
+        if level == 0 and i == 0:
+            # 1st period reminder
+            dur = (1 - frac) * dasa_yrs[start_lord]
         else:
             # recursive levels scaled
-            duration = years * dasa_years[lord]
-        # lord = lord_seq[(start_idx + i) % 9] if level == 0 else lord_seq[i]
-        # duration = years * dasa_years[lord] / 120
-        # if level == 0 and i == 0:
-        #     duration *= 1 - start_frac
-        days = duration * 365.2425
-        jd_end = start_jd_ut + days
+            dur = years * dasa_yrs[lord] / 120
+        # todo set period from user selection
+        days = dur * sel_year
+        jd_end = jd_ut + days
         entry = {
             "lord": lord,
-            "years": round(duration, 4),
-            "from": swe.revjul(start_jd_ut, cal=swe.GREG_CAL),
-            "to": swe.revjul(jd_end),
+            "years": round(dur, 4),
+            "from": swe.revjul(jd_ut, cal=swe.GREG_CAL),
+            "to": swe.revjul(jd_end, cal=swe.GREG_CAL),
         }
-        dasas.append(duration)
-        start_jd_ut = jd_end
+        if level + 1 < max_level:
+            entry["sub"] = get_vimsottari_periods(
+                sel_year,
+                jd_ut,
+                lord,
+                0,
+                dur,
+                level + 1,
+                max_level,
+            )
+        dasas.append(entry)
+        jd_ut = jd_end
     notify.info(
-        f"duration :{duration:5.2f} years",
+        f"entry : {str(entry)[:900]}",
         source="vimsottari",
         route=["none"],
     )
     return dasas
 
+    # return recurse(start_jd_ut, start_lord, start_frac, years, 0, 3)
+
+
+def get_sol_year_sel():
+    app = Gtk.Application.get_default()
+    year_sel = getattr(app, "selected_year_period")
+    year_sel = year_sel[0]
+    if year_sel:
+        return year_sel
+    return 365.2425  # gregorian default
+
 
 def connect_signals_vimsottari(signal_manager):
     """update vimsottari when positions of luminaries change"""
     signal_manager._connect("luminaries_changed", calculate_vimsottari)
+    signal_manager._connect("solar_year_changed", calculate_vimsottari)
