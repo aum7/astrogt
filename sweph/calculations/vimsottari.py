@@ -78,9 +78,17 @@ def get_vimsottari_periods(notify, start_jd_ut, start_lord, start_frac=0.0, leve
         dasas = []
         for i in range(9):
             lord = lord_seq[(start_idx + i) % 9] if level == 0 else lord_seq[i]
-            duration = years * dasa_years[lord] / 120
-            if level == 0 and i == 0:
-                duration *= 1 - start_frac
+            if level == 0:
+                # For level 0 (main sequence), use full period lengths
+                if i == 0:
+                    # First period: truncated by start_frac
+                    duration = dasa_years[lord] * (1 - start_frac)
+                else:
+                    # Subsequent periods: full lengths
+                    duration = dasa_years[lord]
+            else:
+                # For inner levels, use proportional scaling as before
+                duration = years * dasa_years[lord] / 120
             days = duration * 365.2425
             jd_end = start_jd_ut + days
             entry = {
