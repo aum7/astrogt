@@ -98,6 +98,38 @@ def calculate_positions(event: Optional[str] = None) -> None:
             source="positions",
             route=["none"],
         )
+        # ensure luminaries are always calculated
+        luminaries = {}
+        luminaries["start_jd_ut"] = jd_ut
+        for lumine in ("sun", "moon"):
+            code, name = object_name_to_code(lumine, False)
+            notify.debug(
+                f"iterating luminaries : {code} | {lumine}",
+                source="positions",
+                route=["none"],
+            )
+            if code is None:
+                continue
+            try:
+                result = swe.calc_ut(jd_ut, code, app.sweph_flag)
+                # print(f"positions with speeds & flag used : {result}")
+                data = result[0] if isinstance(result, tuple) else result
+                luminaries[code] = {
+                    "name": name,
+                    "lon": data[0],
+                }
+            except swe.Error as e:
+                notify.warning(
+                    f"swe.calc_ut() failed for : {event}\n\tlumine data {luminaries[code]}\n\tswe error :\n\t{e}",
+                    source="positions",
+                    route=["terminal"],
+                )
+        app.signal_manager._emit("luminaries_changed", event, luminaries)
+        notify.debug(
+            f"{event} lumine positions changed",
+            source="positions",
+            route=["none"],
+        )
     return
 
 

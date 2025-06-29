@@ -18,6 +18,7 @@ from sweph.calculations.positions import connect_signals_positions
 from sweph.calculations.houses import connect_signals_houses
 from sweph.calculations.stars import connect_signals_stars
 from sweph.calculations.aspects import connect_signals_aspects
+from sweph.calculations.vimsottari import connect_signals_vimsottari
 
 
 class MainWindow(
@@ -52,10 +53,11 @@ class MainWindow(
         # intercept toggle pane button
         self._hotkeys.intercept_button_controller(self.btn_toggle_pane, "toggle_pane")
         # connect signals
-        connect_signals_positions(self.get_application().signal_manager)
-        connect_signals_houses(self.get_application().signal_manager)
-        connect_signals_stars(self.get_application().signal_manager)
-        connect_signals_aspects(self.get_application().signal_manager)
+        connect_signals_positions(self.app.signal_manager)
+        connect_signals_houses(self.app.signal_manager)
+        connect_signals_stars(self.app.signal_manager)
+        connect_signals_aspects(self.app.signal_manager)
+        connect_signals_vimsottari(self.app.signal_manager)
         # 4 main panes
         self.init_panes()
 

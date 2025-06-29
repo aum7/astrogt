@@ -126,7 +126,7 @@ class TablesWidget(Gtk.Notebook):
                     buffer = text_view.get_buffer()
                     text = self.make_table_content(pos_dict, cusps, ascmc, aspects)
                     buffer.set_text(text)
-            else:gg
+            else:
                 # create new page if missing
                 label = Gtk.Label(label=f"  {event}")
                 label.set_tooltip_text("right-click tab to access context menu")
@@ -190,9 +190,6 @@ class TablesWidget(Gtk.Notebook):
 
     def make_table_content(self, pos_dict, cusps, ascmc, aspects=None):
         # unchanged except:
-        if ascmc:
-            ascendant = ascmc[0]
-            midheaven = ascmc[1]
         n_chars = 37
         v_ = "\u01ef"
         h_ = "\u01ee"
