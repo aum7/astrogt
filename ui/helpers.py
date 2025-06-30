@@ -73,3 +73,11 @@ def _decimal_to_dms(decimal):
     sec = int(sec_ * 60)
 
     return deg, min, sec
+
+
+def _decimal_to_hms(decimal):
+    """convert decimal hour to hour"""
+    h = int(decimal)
+    m = int((decimal - h) * 60)
+    s = int((decimal - h - m / 60) * 3600)
+    return h, m, s

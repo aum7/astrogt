@@ -124,6 +124,7 @@ def calculate_positions(event: Optional[str] = None) -> None:
                     source="positions",
                     route=["terminal"],
                 )
+        app.last_luminaries = luminaries
         app.signal_manager._emit("luminaries_changed", event, luminaries)
         notify.debug(
             f"{event} lumine positions changed",

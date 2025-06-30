@@ -59,6 +59,10 @@ class MainWindow(
         connect_signals_aspects(self.app.signal_manager)
         connect_signals_vimsottari(self.app.signal_manager)
         # 4 main panes
+        self.astro_chart = AstroChart()
+        self.tables = Tables()
+        self.tables2 = Tables()
+        self.datagraph = DataGraph()
         self.init_panes()
 
     def on_toggle_pane(self, button: Optional[Gtk.Button] = None) -> None:
@@ -73,6 +77,7 @@ class MainWindow(
 
     def setup_hotkeys(self):
         """register additional hotkeys"""
+        self._hotkeys.register_hotkey("v", lambda: self.tables.toggle_vimso())
         self._hotkeys.register_hotkey("h", self.show_help)
         self._hotkeys.register_hotkey("s", self.on_toggle_pane)
         self._hotkeys.register_hotkey("shift+exclam", self.panes_single)
@@ -86,15 +91,16 @@ class MainWindow(
         # call helper function for time now
         self._hotkeys.register_hotkey("n", lambda: self.on_time_now())
         # toggle selected event
+        sel_ev = self.app.selected_event
         self._hotkeys.register_hotkey(
             "e",
-            lambda gesture, n_press, x, y: _event_selection(
+            lambda g, n, x, y: _event_selection(
                 self,
-                gesture,
-                n_press,
+                g,
+                n,
                 x,
                 y,
-                "event one" if self.app.selected_event == "event two" else "event two",
+                "event one" if sel_ev == "event two" else "event two",
             ),
         )
         self._hotkeys.register_hotkey(
@@ -177,10 +183,6 @@ class MainWindow(
     def init_panes(self):
         """initialize panes with content"""
         # 4 main panes
-        self.astro_chart = AstroChart()
-        self.tables = Tables()
-        self.tables2 = Tables()
-        self.datagraph = DataGraph()
         widgets = {
             "bottom_right": self.astro_chart,
             "bottom_left": self.tables,
