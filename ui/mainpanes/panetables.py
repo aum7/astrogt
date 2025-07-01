@@ -7,7 +7,6 @@ from gi.repository import Gtk  # type: ignore
 from typing import Tuple
 from swisseph import contrib as swh
 from ui.fonts.glyphs import SIGNS
-from ui.helpers import _decimal_to_hms as _hms
 from user.settings import HOUSE_SYSTEMS
 
 
@@ -28,7 +27,7 @@ class Tables(Gtk.Notebook):
         # mapping event to page widget
         self.page_widgets = {}
         # vimsottari fold level
-        self.current_lvl = 1
+        self.app.current_lvl = 1
         self.current_event = None
         # formatting symbols : victormonolightastro.ttf
         self.v_sym = "\u01ef"
@@ -93,9 +92,8 @@ class Tables(Gtk.Notebook):
         self.events_data[event]["vimsottari"] = vimsottari
         self.current_event = event
         # print(f"vmst chg : {str(self.events_data[event].get('vimsottari'))[:800]}")
-        content = self.make_vimsottari(event, lvl=self.current_lvl)
-        # print(f"vmch : {str(content)[:300]}")
-        self.update_vimsottari("vimsottari", content)
+        self.update_vimsottari("vimsottari", vimsottari)
+        # self.update_vimsottari(event, vimsottari)
 
     def e2_cleared(self, event):
         """
@@ -150,7 +148,7 @@ class Tables(Gtk.Notebook):
             self.midheaven = ascmc[1]
         # build header string with house column added
         header = (
-            f"positions {self.h_sym * 29}\n"
+            f" positions {self.h_sym * 29}\n"
             f" name {self.v_sym}      sign {self.vic_spc} "
             f"{self.v_sym}        lat {self.v_sym}         lon "
             f"{self.v_sym} hs\n"
@@ -164,7 +162,7 @@ class Tables(Gtk.Notebook):
             lon = obj.get("lon", 0)
             # calculate house if cusps are available
             house = self.which_house(lon, tuple(cusps)) if cusps else ""
-            separ = f"{self.h_sym * 37}\n"
+            separ = f"{self.h_sym * 36}\n"
             ln_pos = (
                 f" {obj.get('name', '')}{retro}  {self.v_sym} "
                 f"{self.format_dms(lon):10} {self.v_sym} "
@@ -299,141 +297,41 @@ class Tables(Gtk.Notebook):
         buffer.set_text(content)
         scroll.set_child(text_view)
         self.insert_page(scroll, Gtk.Label.new(event), -1)
-        self.set_current_page(self.get_n_pages() + 1)
         self.page_widgets[event] = scroll
+        self.set_current_page(self.get_n_pages() - 1)
 
-    def update_vimsottari(self, event: str, content: str):  # Optional[str] = None):
+    def update_vimsottari(self, event: str, content: str):
         # print(f"upd vmst : {content[:600]}")
         if event in self.page_widgets:
-            # if key == "vimsottari":
-            # if scroll.get_name()[:5] == "vimso" and key == "vimsottari":
+            # print("vimsottari_widget : updating table")
             scroll = self.page_widgets[event]
-            # print(f"upd_vimso scroll : {scroll.get_name()}")
             text_view = scroll.get_child()
             buffer = text_view.get_buffer()
             buffer.set_text(content)
-            # print(f"upd_vimso buffer : {buffer}")
         else:
-            print("vimsottari_widget : creating new page")
+            # print("vimsottari_widget : creating new page")
             self.vimsottari_widget(event, content)
 
-    def make_vimsottari(self, event, lvl):
-        if event not in self.events_data or not self.events_data[event].get(
-            "vimsottari"
-        ):
-            return ""
-        # generate content string based on level
-        vmst = self.events_data[event].get("vimsottari")
-        lvl_dist = 3
-        note = "time is utc\n'v' : toggle dasas level"
-        out = note
-        sep = f"\n{(33 * '-')}\n"
-        out += sep
-        if vmst and isinstance(vmst, dict) and "dasas" in vmst:
-            header = f"{vmst['header']}"
-            out += header
-            sep = f"\n{(33 * '-')}\n"
-            out += sep
-            dasas = vmst["dasas"]
-            if lvl == 1:
-                for entry in dasas.get(1, []):
-                    out += entry + "\n"
-            elif lvl == 2:
-                for i, entry in enumerate(dasas.get(1, [])):
-                    out += entry + "\n"
-                    if i < len(dasas.get(2, [])):
-                        out += f"{' ' * lvl_dist}" + dasas[2][i] + "\n"
-            elif lvl == 3:
-                for i, entry in enumerate(dasas.get(1, [])):
-                    out += entry + "\n"
-                    if i < len(dasas.get(2, [])):
-                        out += f"{' ' * lvl_dist}" + dasas[2][i] + "\n"
-                        if i < len(dasas.get(3, [])):
-                            out += f"{' ' * lvl_dist * 2}" + dasas[3][i] + "\n"
-            elif lvl == 4:
-                # fully expanded, distances match sample, each sub spans full period
-                n1 = len(dasas.get(1, []))
-                n2 = len(dasas.get(2, [])) // n1 if n1 else 0
-                n3 = len(dasas.get(3, [])) // (n1 * n2) if n1 and n2 else 0
-                idx2 = 0
-                idx3 = 0
-                for i, entry in enumerate(dasas.get(1, [])):
-                    out += entry + "\n"
-                    for j in range(n2):
-                        antar = dasas[2][idx2]
-                        out += f"{' ' * lvl_dist}" + antar + "\n"
-                        for k in range(n3):
-                            praty = dasas[3][idx3]
-                            out += f"{' ' * lvl_dist * 2}" + praty + "\n"
-                            idx3 += 1
-                        idx2 += 1
-        return out
-
-        # def format_entry(entry):
-        #     year = 365.2425
-        #     years = entry["years"]
-        #     y = int(years)
-        #     rem_year = years - y
-        #     d = int(rem_year * year)
-        #     fy, fm, fd, fh = entry["from"]
-        #     ty, tm, td, th = entry["to"]
-        #     fhms = _hms(fh)
-        #     thms = _hms(th)
-        #     from_str = f"{fy}-{fm:02}-{fd:02} {fhms[0]:02}:{fhms[1]:02}:{fhms[2]:02}"
-        #     to_str = f"{ty}-{tm:02}-{td:02} {thms[0]:02}:{thms[1]:02}:{thms[2]:02}"
-        #     return f"{entry['lord']} | {y:04} y {d:04} d | {from_str} > {to_str}"
-
-        # if vmst:
-        #     if lvl == 1:
-        #         for entry in vmst:
-        #             out += format_entry(entry) + "\n"
-        #     elif lvl == 2:
-        #         for entry in vmst:
-        #             out += format_entry(entry) + "\n"
-        #             if "sub" in entry and entry["sub"]:
-        #                 anta = entry["sub"][0]
-        #                 out += "   antar: " + format_entry(anta) + "\n"
-        #     elif lvl == 3:
-        #         for entry in vmst:
-        #             out += format_entry(entry) + "\n"
-        #             if "sub" in entry and entry["sub"]:
-        #                 anta = entry["sub"][0]
-        #                 out += "   antar: " + format_entry(anta) + "\n"
-        #                 if "sub" in anta and anta["sub"]:
-        #                     praty = anta["sub"][0]
-        #                     out += "      pratyantar: " + format_entry(praty) + "\n"
-        #     elif lvl == 4:
-
-        #         def recurse(entries, indent=0):
-        #             res = ""
-        #             pad = "    " * indent
-        #             for e in entries:
-        #                 res += pad + format_entry(e) + "\n"
-        #                 if "sub" in e and e["sub"]:
-        #                     res += recurse(e["sub"], indent + 1)
-        #             return res
-
-        #         out = recurse(vmst)  # for entry in vmst:
-        # return out
-
+    # def toggle_vimso(self):
     def toggle_vimso(self, gesture=None, n_press=0, x=0, y=0):
         # cycle toggle level: 1->2->3->4->1
         event = self.current_event
         # print(f"toggle_vimso  {event} called")
-        if self.current_lvl == 1:
-            self.current_lvl = 2
-        elif self.current_lvl == 2:
-            self.current_lvl = 3
-        elif self.current_lvl == 3:
-            self.current_lvl = 4
+        if self.app.current_lvl == 1:
+            self.app.current_lvl = 2
+        elif self.app.current_lvl == 2:
+            self.app.current_lvl = 3
+        elif self.app.current_lvl == 3:
+            self.app.current_lvl = 4
         else:
-            self.current_lvl = 1
-        # print(f"current_lvl : {self.current_lvl}")
-        new_content = self.make_vimsottari(event, self.current_lvl)
-        # print(f"toggle_vimso.new_content : {new_content}")
-        if event is not None:
-            # print("calling update_vimsottari")
-            self.update_vimsottari("vimsottari", new_content)
+            self.app.current_lvl = 1
+        # print(f"current_lvl : {self.app.current_lvl}")
+        # update vimsottari for new level
+        if event and event in self.events_data:
+            # emit signal to force recalculation
+            self.app.signal_manager._emit(
+                "luminaries_changed", "vimsottari", self.app.last_luminaries
+            )
 
     def which_house(self, lon: float, cusps: Tuple[float, ...]) -> str:
         # determine which house a celestial longitude falls in

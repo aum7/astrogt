@@ -124,12 +124,14 @@ def calculate_positions(event: Optional[str] = None) -> None:
                     source="positions",
                     route=["terminal"],
                 )
+        if not hasattr(app, "last_luminaries"):
+            app.last_luminaries = {}
         app.last_luminaries = luminaries
         app.signal_manager._emit("luminaries_changed", event, luminaries)
-        notify.debug(
-            f"{event} lumine positions changed",
+        notify.debug(  # ok
+            f"{event} lumine positions changed : {app.last_luminaries}",
             source="positions",
-            route=["none"],
+            route=[""],
         )
     return
 

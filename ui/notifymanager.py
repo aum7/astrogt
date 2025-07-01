@@ -26,6 +26,7 @@ class NotifyRoute(Enum):
     """switch for notification routing"""
 
     NONE = "none"
+    EMPTY = ""
     ALL = "all"
     USER = "user"
     TERMINAL = "terminal"
@@ -83,7 +84,7 @@ class NotifyLogger:
     def log(self, msg: NotifyMessage):
         """log notification message"""
 
-        if NotifyRoute.NONE.value in msg.route:
+        if NotifyRoute.NONE.value or NotifyRoute.EMPTY.value in msg.route:
             return
         if (
             NotifyRoute.LOG.value not in msg.route
@@ -149,7 +150,7 @@ class NotifyManager:
         if not all(val in valid_routes for val in route):
             print(f"notifymanager : invalid route values in {route} : using default")
             route = self.default_route
-        if route == [NotifyRoute.NONE.value]:
+        if route == [NotifyRoute.NONE.value] or route == [NotifyRoute.EMPTY.value]:
             return False
         if isinstance(level, str):
             level = NotifyLevel(level.lower())

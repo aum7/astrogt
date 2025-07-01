@@ -24,50 +24,6 @@ def dasa_years():
     }
 
 
-def calculate_vimsottari(event: Optional[str] = None, luminaries: Dict[str, Any] = {}):
-    """calculate vimsottari for event"""
-    app = Gtk.Application.get_default()
-    notify = app.notify_manager
-    # event 1 data is mandatory
-    if not app.e1_sweph.get("jd_ut"):
-        notify.warning(
-            "missing event one data needed for vimsottari\n\texiting ...",
-            source="vimsottari",
-            route=["terminal", "user"],
-        )
-        return
-    events: List[str] = [event] if event else ["e1", "e2"]
-    if "e2" in events and not app.e2_sweph.get("jd_ut"):
-        # skip e2 if no datetime / julian day utc set = user not interested in e2
-        events.remove("e2")
-    notify.debug(
-        f"event(s) : {events} | luminaries : {luminaries}",
-        source="vimsottari",
-        route=["none"],
-    )
-    jd_pos = {k: v for k, v in luminaries.items() if isinstance(k, int)}
-    # grab moon position
-    moon = next((p for p in jd_pos.values() if p["name"] == "mo"), None)
-    jd_ut = luminaries.get("start_jd_ut")
-    if not moon or not jd_ut:
-        notify.error(
-            "missing luminaries data\n\texiting ...",
-            source="vimsottari",
-            route=["terminal"],
-        )
-        return
-    mo_lon = moon["lon"]
-    # print(f"vmst : moon : {mo_lon} | jd : {jd_ut}")
-    event_dasas = output(mo_lon, jd_ut)
-    # print(f"dasas : {event_dasas}")
-    app.signal_manager._emit("vimsottari_changed", event, event_dasas)
-    notify.debug(
-        f"start_jd_ut : {jd_ut}\n\tdasas : {event_dasas}",
-        source="vimsottari",
-        route=["none"],
-    )
-
-
 def find_nakshatra(mo_deg):
     part = 360 / 27
     idx = int(mo_deg // part) + 1
@@ -132,77 +88,105 @@ def jd_to_date(jd):
     return f"{y:04d}-{m:02d}-{d:02d} {hh:02d}:{mi:02d}:{s:02d}"
 
 
-def output(mo_deg, jd):
-    # as before, but return dict with header and dasas by level
-    lines = []
-    idx, frac = find_nakshatra(mo_deg)
-    nak_lord, nak_name = NAKSATRAS27[idx]
-    # header line
-    lines.append(f"nak {idx:02} {nak_name} {nak_lord} | traversed {frac * 100:.2f} %")
-    year_length = 365.2425
+def vimsottari_table(mo_deg, jd, current_lvl=1, lvl_dist=3):
+    # single func: calculates and formats vimsottari table as plain text
     dy = dasa_years()
     res = which_period_years(mo_deg)
     maha_lord = res["maha"]["lord"]
     maha_seq = get_lord_seq(maha_lord)
     maha_idx = maha_seq.index(maha_lord)
-    current_jd = jd
-    for mi in range(0, 9):
+    year_length = 365.2425
+    cur_jd = jd
+    out = ""
+    for mi in range(9):
         lord = maha_seq[(maha_idx + mi) % 9]
         years = dy[lord]
-        start = jd_to_date(current_jd)
-        if mi == 0:
-            rem_years = res["maha"]["rem"]
-        else:
-            rem_years = years
-        lines.append(f"{lord} {rem_years:.4f} y | start {start}")
-        antara_seq = get_lord_seq(lord)
-        antara_idx = 0
-        antara_jd = current_jd
-        antara_portion_passed = 0.0
-        if mi == 0:
-            antara_idx = int(res["maha"]["portion"] * 9)
-            antara_portion_passed = res["antara"]["portion"]
-        for ai in range(antara_idx, 9):
-            antara_lord = antara_seq[ai % 9]
-            antara_years = years * dy[antara_lord] / 120
-            antara_start = jd_to_date(antara_jd)
-            if mi == 0 and ai == antara_idx:
-                rem_antara = res["antara"]["rem"]
-            else:
-                rem_antara = antara_years
-            lines.append(f"   {antara_lord} {rem_antara:.4f} y | start {antara_start}")
-            praty_seq = get_lord_seq(antara_lord)
-            praty_idx = 0
-            praty_jd = antara_jd
-            if mi == 0 and ai == antara_idx:
-                praty_idx = int(antara_portion_passed * 9)
-            for pi in range(praty_idx, 9):
-                praty_lord = praty_seq[pi % 9]
-                praty_years = antara_years * dy[praty_lord] / 120
-                praty_start = jd_to_date(praty_jd)
-                if mi == 0 and ai == antara_idx and pi == praty_idx:
-                    rem_praty = res["praty"]["rem"]
-                else:
-                    rem_praty = praty_years
-                lines.append(
-                    f"      {praty_lord} {rem_praty:.4f} y | start {praty_start}"
+        rem_years = res["maha"]["rem"] if mi == 0 else years
+        start = jd_to_date(cur_jd)
+        maha_str = f"{lord:<2} {rem_years:.4f} y | {start}"
+        out += maha_str + "\n"
+        if current_lvl >= 2:
+            antara_seq = get_lord_seq(lord)
+            antara_idx = int(res["maha"]["portion"] * 9) if mi == 0 else 0
+            antara_portion = res["antara"]["portion"] if mi == 0 else 0.0
+            antara_jd = cur_jd
+            for ai in range(antara_idx, 9):
+                antara_lord = antara_seq[ai % 9]
+                antara_years = years * dy[antara_lord] / 120
+                rem_antara = (
+                    res["antara"]["rem"]
+                    if mi == 0 and ai == antara_idx
+                    else antara_years
                 )
-                praty_jd += rem_praty * year_length
-            antara_jd += rem_antara * year_length
-        current_jd += rem_years * year_length
-        if mi == 0:
-            antara_idx = 0
-            antara_portion_passed = 0.0
-    # create dict by level
-    out = {"header": lines[0], "dasas": {1: [], 2: [], 3: []}}
-    for ln in lines[1:]:
-        if ln.startswith("      "):
-            out["dasas"][3].append(ln.strip())
-        elif ln.startswith("   "):
-            out["dasas"][2].append(ln.strip())
-        else:
-            out["dasas"][1].append(ln.strip())
-    return out
+                antara_start = jd_to_date(antara_jd)
+                antara_str = f"{antara_lord:<2} {rem_antara:.4f} y | {antara_start}"
+                out += " " * lvl_dist + antara_str + "\n"
+                if current_lvl == 3:
+                    praty_seq = get_lord_seq(antara_lord)
+                    praty_idx = (
+                        int(antara_portion * 9) if mi == 0 and ai == antara_idx else 0
+                    )
+                    praty_jd = antara_jd
+                    for pi in range(praty_idx, 9):
+                        praty_lord = praty_seq[pi % 9]
+                        praty_years = rem_antara * dy[praty_lord] / 120
+                        rem_praty = (
+                            res["praty"]["rem"]
+                            if mi == 0 and ai == antara_idx and pi == praty_idx
+                            else praty_years
+                        )
+                        praty_start = jd_to_date(praty_jd)
+                        praty_str = f"{praty_lord:<2} {rem_praty:.4f} y | {praty_start}"
+                        out += " " * (2 * lvl_dist) + praty_str + "\n"
+                        praty_jd += rem_praty * year_length
+                antara_jd += rem_antara * year_length
+        cur_jd += rem_years * year_length
+    return out.rstrip()
+
+
+def calculate_vimsottari(event: Optional[str] = None, luminaries: Dict[str, Any] = {}):
+    """calculate vimsottari for event"""
+    # print(f"calc_vmst data received : {luminaries}")
+    app = Gtk.Application.get_default()
+    notify = app.notify_manager
+    # event 1 data is mandatory
+    if not app.e1_sweph.get("jd_ut"):
+        notify.warning(
+            "missing event one data needed for vimsottari\n\texiting ...",
+            source="vimsottari",
+            route=["terminal", "user"],
+        )
+        return
+    events: List[str] = [event] if event else ["e1", "e2"]
+    if "e2" in events and not app.e2_sweph.get("jd_ut"):
+        # skip e2 if no datetime / julian day utc set = user not interested in e2
+        events.remove("e2")
+    notify.debug(
+        f"event(s) : {events} | luminaries received : {luminaries}",
+        source="vimsottari",
+        route=[""],
+    )
+    jd_pos = {k: v for k, v in luminaries.items() if isinstance(k, int)}
+    # grab moon position
+    moon = next((p for p in jd_pos.values() if p["name"] == "mo"), None)
+    jd_ut = luminaries.get("start_jd_ut")
+    if not moon or not jd_ut:
+        notify.error(
+            "missing luminaries data\n\texiting ...",
+            source="vimsottari",
+            route=["terminal"],
+        )
+        return
+    mo_lon = moon["lon"]
+    # print(f"vmst : moon : {mo_lon} | jd : {jd_ut}")
+    current_lvl = getattr(app, "current_lvl", 1)
+    event_dasas = vimsottari_table(mo_lon, jd_ut, current_lvl=current_lvl, lvl_dist=3)
+    app.signal_manager._emit("vimsottari_changed", event, event_dasas)
+    notify.debug(
+        f"start_jd_ut : {jd_ut}\n\tdasas : {event_dasas}",
+        source="vimsottari",
+        route=[""],
+    )
 
 
 def connect_signals_vimsottari(signal_manager):
