@@ -69,9 +69,9 @@ class SidepaneManager:
         # create & put collapse panels into box
         self.clp_change_time = self.setup_change_time()
         # 2 events
-        self.clp_event_one = setup_event(self, "event one", True)
-        self.clp_event_two = setup_event(self, "event two", False)
-        if self.app.selected_event == "event one":
+        self.clp_event_one = setup_event(self, "e1", True)
+        self.clp_event_two = setup_event(self, "e2", False)
+        if self.app.selected_event == "e1":
             self.clp_event_one.add_title_css_class("label-event-selected")
         else:
             self.clp_event_two.add_title_css_class("label-event-selected")
@@ -182,9 +182,9 @@ or ie panes have been manually resized (click any text to focus sidepane)"""
     def change_event_time(self, change_delta):
         """adjust selected event time by julian day delta"""
         # get active entry based on selected event
-        if self.app.selected_event == "event one" and self.app.EVENT_ONE:
+        if self.app.selected_event == "e1" and self.app.EVENT_ONE:
             entry = self.app.EVENT_ONE.date_time
-        elif self.app.selected_event == "event two" and self.app.EVENT_TWO:
+        elif self.app.selected_event == "e2" and self.app.EVENT_TWO:
             entry = self.app.EVENT_TWO.date_time
         # get datetime string ! datetime is naive here !
         datetime_name = entry.get_name()
@@ -255,11 +255,11 @@ or ie panes have been manually resized (click any text to focus sidepane)"""
 
     def on_time_now(self):
         """get time now (utc) for computer / app location"""
-        if self.app.selected_event == "event one" and self.app.EVENT_ONE:
+        if self.app.selected_event == "e1" and self.app.EVENT_ONE:
             entry = self.app.EVENT_ONE.date_time
             self.app.EVENT_ONE.is_hotkey_now = True
             self.app.EVENT_ONE.on_datetime_change(entry)
-        elif self.app.selected_event == "event two" and self.app.EVENT_TWO:
+        elif self.app.selected_event == "e2" and self.app.EVENT_TWO:
             entry = self.app.EVENT_TWO.date_time
             self.app.EVENT_TWO.is_hotkey_now = True
             self.app.EVENT_TWO.on_datetime_change(entry)

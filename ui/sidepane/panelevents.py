@@ -13,7 +13,7 @@ from ui.helpers import _event_selection
 def setup_event(manager, event_name: str, expand: bool) -> CollapsePanel:
     """setup event one & two collapsible panels, incl location sub-panel"""
     panel = CollapsePanel(
-        title="event one" if event_name == "event one" else "event two",
+        title="event one" if event_name == "e1" else "event two",
         expanded=expand,
     )
     panel.set_margin_end(manager.margin_end)
@@ -29,7 +29,7 @@ location (latitude & longitude) 1 +
 name / title 1 +
 date-time 1
 are mandatory"""
-        if event_name == "event one"
+        if event_name == "e1"
         else """secondary event ie transit / progression etc
 click to set focus to event 2 
 so change time will apply to it
@@ -48,8 +48,8 @@ delete datetime 2 = clear event 2 data"""
     panel.add_title_controller(gesture)
     # location nested panel
     subpnl_location = CollapsePanel(
-        title="location one" if event_name == "event one" else "location two",
-        expanded=True if event_name == "event one" else False,
+        title="location one" if event_name == "e1" else "location two",
+        expanded=True if event_name == "e1" else False,
         indent=14,
     )
     lbl_country = Gtk.Label(label="country")
@@ -62,7 +62,7 @@ delete datetime 2 = clear event 2 data"""
     countries = event_location.get_countries()
 
     ddn_country = Gtk.DropDown.new_from_strings(countries)
-    ddn_country.set_name("country one" if event_name == "event one" else "country two")
+    ddn_country.set_name("country one" if event_name == "e1" else "country two")
     ddn_country.set_tooltip_text(
         """select country for location
 in astrogt/user/ folder there is file named
@@ -72,7 +72,7 @@ comment (add '# ' & save file) uninterested country"""
     )
     ddn_country.add_css_class("dropdown")
     # store as widget so we access fresh data later
-    if event_name == "event one":
+    if event_name == "e1":
         manager.country_one = ddn_country
     else:
         manager.country_two = ddn_country
@@ -82,7 +82,7 @@ comment (add '# ' & save file) uninterested country"""
     lbl_city.set_halign(Gtk.Align.START)
 
     ent_city = Gtk.Entry()
-    ent_city.set_name("city one" if event_name == "event one" else "city two")
+    ent_city.set_name("city one" if event_name == "e1" else "city two")
 
     def update_location(lat, lon, alt):
         ent_location.set_text(f"{lat} {lon} {alt}")
@@ -91,7 +91,8 @@ comment (add '# ' & save file) uninterested country"""
 
     ent_city.set_placeholder_text("enter city name")
     # todo test string
-    ent_city.set_text("Ljubljana")
+    if event_name == "e1":
+        ent_city.set_text("Ljubljana")
     # ent_city.set_text("New York")
     ent_city.set_tooltip_text(
         """enter city name
@@ -107,7 +108,7 @@ user needs to select the one of interest
         ddn_country,
     )
     # store as widget so we access fresh data later
-    if event_name == "event one":
+    if event_name == "e1":
         manager.city_one = ent_city
     else:
         manager.city_two = ent_city
@@ -117,14 +118,13 @@ user needs to select the one of interest
     lbl_location.set_halign(Gtk.Align.START)
 
     ent_location = Gtk.Entry()
-    ent_location.set_name(
-        "location one" if event_name == "event one" else "location two"
-    )
+    ent_location.set_name("location one" if event_name == "e1" else "location two")
     ent_location.set_placeholder_text(
         "deg min (sec) n / s deg  min (sec) e / w (alt m)",
     )
     # todo test string
-    ent_location.set_text("46 03 03 n 014 30 18 e 0294 m")  # ljubljana
+    if event_name == "e1":
+        ent_location.set_text("46 03 03 n 014 30 18 e 0294 m")  # ljubljana
     # ent_location.set_text("51 30 54 n 000 05 56 w") # lse
     # ent_location.set_text("40 42 25 n 74 0 41 w 10 m")  # nyse
     ent_location.set_tooltip_text(
@@ -158,17 +158,18 @@ only use [space] as separator
     subpnl_location.add_widget(ent_location)
 
     subpnl_event_name = CollapsePanel(
-        title="name / title one" if event_name == "event one" else "name / title two",
-        expanded=True if event_name == "event one" else False,
+        title="name / title one" if event_name == "e1" else "name / title two",
+        expanded=True if event_name == "e1" else False,
         indent=14,
     )
     ent_event_name = Gtk.Entry()
-    ent_event_name.set_name("name one" if event_name == "event one" else "name two")
+    ent_event_name.set_name("name one" if event_name == "e1" else "name two")
     ent_event_name.set_placeholder_text(
-        "event one name" if event_name == "event one" else "event two name"
+        "event one name" if event_name == "e1" else "event two name"
     )
     # todo test string
-    ent_event_name.set_text("simon")
+    if event_name == "e1":
+        ent_event_name.set_text("simon")
     # ent_event_name.set_text("nyse")
     ent_event_name.set_tooltip_text(
         """will be used for filename when saving
@@ -181,16 +182,15 @@ only use [space] as separator
     subpnl_event_name.add_widget(ent_event_name)
 
     subpnl_datetime = CollapsePanel(
-        title="date & time one" if event_name == "event one" else "date & time two",
+        title="date & time one" if event_name == "e1" else "date & time two",
         indent=14,
     )
 
     ent_datetime = Gtk.Entry()
-    ent_datetime.set_name(
-        "datetime one" if event_name == "event one" else "datetime two"
-    )
+    ent_datetime.set_name("datetime one" if event_name == "e1" else "datetime two")
     # todo test string
-    ent_datetime.set_text("1975 2 8 14 10")  # simon
+    if event_name == "e1":
+        ent_datetime.set_text("1975 2 8 14 10")  # simon
     # ent_datetime.set_placeholder_text("yyyy mm dd HH MM (SS)")
     ent_datetime.set_tooltip_text(
         """year month day hour minute (second)
@@ -205,7 +205,7 @@ only use [space] as separator
     # put widgets into sub-panel
     subpnl_datetime.add_widget(ent_datetime)
     # create eventdata instance & store widgets
-    if event_name == "event one":
+    if event_name == "e1":
         manager.app.EVENT_ONE = EventData(
             name=ent_event_name,
             country=ddn_country,

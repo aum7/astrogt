@@ -21,7 +21,7 @@ class Tables(Gtk.Notebook):
         self.add_css_class("no-border")
         self.set_tab_pos(Gtk.PositionType.TOP)
         self.set_scrollable(True)
-        self.margin = 9
+        self.margin = 3
         # data for events' positions and houses
         self.events_data = {}
         # mapping event to page widget
@@ -93,7 +93,6 @@ class Tables(Gtk.Notebook):
         self.current_event = event
         # print(f"vmst chg : {str(self.events_data[event].get('vimsottari'))[:800]}")
         self.update_vimsottari("vimsottari", vimsottari)
-        # self.update_vimsottari(event, vimsottari)
 
     def e2_cleared(self, event):
         """
@@ -130,7 +129,7 @@ class Tables(Gtk.Notebook):
             self.notify.error(
                 f"positions or houses missing for {event}",
                 source="panetables",
-                route=["terminal"],
+                route=[""],
             )
             return
 
@@ -142,7 +141,7 @@ class Tables(Gtk.Notebook):
         if houses:
             cusps, ascmc = houses
         else:
-            cusps = ()  # [], []
+            cusps = ()
         if ascmc:
             self.ascendant = ascmc[0]
             self.midheaven = ascmc[1]
@@ -312,8 +311,8 @@ class Tables(Gtk.Notebook):
             # print("vimsottari_widget : creating new page")
             self.vimsottari_widget(event, content)
 
-    # def toggle_vimso(self):
-    def toggle_vimso(self, gesture=None, n_press=0, x=0, y=0):
+    # def toggle_vimso(self, gesture=None, n_press=0, x=0, y=0):
+    def toggle_vimso(self):
         # cycle toggle level: 1->2->3->4->1
         event = self.current_event
         # print(f"toggle_vimso  {event} called")
@@ -321,11 +320,19 @@ class Tables(Gtk.Notebook):
             self.app.current_lvl = 2
         elif self.app.current_lvl == 2:
             self.app.current_lvl = 3
-        elif self.app.current_lvl == 3:
+        elif self.app.current_lvl == 3 and self.app.e2_sweph.get("jd_ut"):
             self.app.current_lvl = 4
-        else:
+        elif self.app.current_lvl == 3:
+            self.notify.info(
+                "missing event 2 datetime / julian day ; exiting ...",
+                source="panetables",
+                route=["terminal"],
+                timeout=1.0,
+            )
             self.app.current_lvl = 1
-        # print(f"current_lvl : {self.app.current_lvl}")
+        # else:
+        #     self.app.current_lvl = 1
+        print(f"current_lvl : {self.app.current_lvl}")
         # update vimsottari for new level
         if event and event in self.events_data:
             # emit signal to force recalculation

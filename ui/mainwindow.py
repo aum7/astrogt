@@ -64,6 +64,8 @@ class MainWindow(
         self.tables2 = Tables()
         self.datagraph = DataGraph()
         self.init_panes()
+        # show panes
+        self.panes_double()
 
     def on_toggle_pane(self, button: Optional[Gtk.Button] = None) -> None:
         """toggle sidepane visibility"""
@@ -100,7 +102,7 @@ class MainWindow(
                 n,
                 x,
                 y,
-                "event one" if sel_ev == "event two" else "event two",
+                "e1" if sel_ev == "e2" else "e2",
             ),
         )
         self._hotkeys.register_hotkey(
@@ -164,10 +166,11 @@ class MainWindow(
     def update_main_title(self, change_time=None):
         """show selected event & its datetime in main titlebar"""
         event = self.app.selected_event
+        print(f"mainwindow : event : {event}")
         dt = None
-        if event == "event one":
+        if event == "e1":
             dt = self.app.e1_chart.get("datetime")
-        elif event == "event two":
+        elif event == "e2":
             dt = self.app.e2_chart.get("datetime")
         title = "astrogt"
         if event and dt:
@@ -193,8 +196,6 @@ class MainWindow(
             frame = getattr(self, f"frm_{k}", None)
             if frame:
                 frame.set_child(v)
-        # show panes
-        self.panes_single()
 
     # panes show single
     def panes_single(self) -> None:

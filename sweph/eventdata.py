@@ -664,7 +664,7 @@ class EventData:
                 "datetime 2 is none : user not interested in event 2 : skipping ..."
                 f"\n\te2 active : {self.app.e2_active}",
                 source="eventdata",
-                route=["none"],
+                route=["terminal"],
             )
         elif self.app.e2_chart.get("datetime"):
             # declare e2 active

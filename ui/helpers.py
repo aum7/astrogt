@@ -51,17 +51,22 @@ def _buttons_from_dict(
 
 def _event_selection(manager, gesture, n_press, x, y, event_name):
     """handle event selection"""
+    print(f"helpers : eventname : {event_name}")
     if manager.app.selected_event != event_name:
         manager.app.selected_event = event_name
-        if manager.app.selected_event == "event one":
+        if manager.app.selected_event == "e1":
             clp = manager.clp_event_one
             other_clp = manager.clp_event_two
-        if manager.app.selected_event == "event two":
+        if manager.app.selected_event == "e2":
             clp = manager.clp_event_two
             other_clp = manager.clp_event_one
         other_clp.remove_title_css_class("label-event-selected")
         clp.add_title_css_class("label-event-selected")
-        manager.notify.debug(f"{manager.app.selected_event} selected")
+        manager.notify.debug(
+            f"{manager.app.selected_event} selected",
+            source="helpers",
+            route=["terminal"],
+        )
 
 
 def _decimal_to_dms(decimal):

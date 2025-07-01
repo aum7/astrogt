@@ -21,7 +21,7 @@ class AstrogtApp(Gtk.Application):
             application_id="aum.astrogt.app",
         )
         # initialize attributes first
-        self.selected_event = "event one"
+        self.selected_event = "e1"
         self.EVENT_ONE = None
         self.EVENT_TWO = None
         # managers
