@@ -91,11 +91,10 @@ def calculate_positions(event: Optional[str] = None) -> None:
             app.e1_positions = positions_ordered
             msg += f"{event} [e1] :\n\t{positions_ordered}"
             app.signal_manager._emit("positions_changed", event)
-            # app.signal_manager._emit("positions_changed", event, positions_ordered)
         elif event == "e2":
             app.e2_positions = positions_ordered
             msg += f"{event} [e2] :\n\t{positions_ordered}"
-            app.signal_manager._emit("positions_changed", event, positions_ordered)
+            app.signal_manager._emit("positions_changed", event)
         # msg += f"{str(positions_ordered)[:200]}\n"
         # ensure luminaries are always calculated
         luminaries = {}

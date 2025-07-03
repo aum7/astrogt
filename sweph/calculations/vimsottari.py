@@ -107,7 +107,6 @@ def initial_dasa(mo_deg, cur_lvl=1, max_lvl=3):
         lvl3_frac = 0.0
         lvl3_seq = []
         lvl3_lord = None
-
     # Level 4
     if 4 <= cur_lvl <= max_lvl:
         lvl4_idx_f = lvl3_frac * 9
@@ -155,7 +154,7 @@ def initial_dasa(mo_deg, cur_lvl=1, max_lvl=3):
     return result
 
 
-def vimsottari_table(mo_deg, e1_jd, e2_jd, current_lvl=1, max_lvl=3, lvl_indent=3):
+def vimsottari_table(mo_deg, e1_jd, e2_jd=None, current_lvl=1, max_lvl=3, lvl_indent=3):
     # calculates periods after initial period & formats as plain text
     dy = dasa_years()
     # Pass current_lvl and max_lvl to initial_dasa()
@@ -173,7 +172,7 @@ def vimsottari_table(mo_deg, e1_jd, e2_jd, current_lvl=1, max_lvl=3, lvl_indent=
         f" nak {idx:02} {nak_name} {nak_lord} | traversed "
         f"{frac * 100:.2f} %\n{separ}"
     )
-
+    # initial period lord
     lvl1_lord = res["lvl1"]["lord"]
     lvl1_seq = get_lord_seq(lvl1_lord)
     lvl1_idx = lvl1_seq.index(lvl1_lord)
@@ -182,116 +181,113 @@ def vimsottari_table(mo_deg, e1_jd, e2_jd, current_lvl=1, max_lvl=3, lvl_indent=
     cur_jd = e1_jd
     out = ""
 
-    for mi in range(9):
-        lord_lvl1 = lvl1_seq[(lvl1_idx + mi) % 9]
+    for l1 in range(9):
+        lord_lvl1 = lvl1_seq[(lvl1_idx + l1) % 9]
         years_lvl1 = dy[lord_lvl1]
-        rem_years_lvl1 = res["lvl1"]["rem"] if mi == 0 else years_lvl1
+        rem_years_lvl1 = res["lvl1"]["rem"] if l1 == 0 else years_lvl1
 
         start_lvl1 = jd_to_date(cur_jd)
-        lvl1_str = f"{lord_lvl1:<2} {rem_years_lvl1:.4f} y | {start_lvl1}"
+        lvl1_str = f" {lord_lvl1:<2} {rem_years_lvl1:.4f} y | {start_lvl1}"
         out += lvl1_str + "\n"
 
         if current_lvl >= 2:
             lvl2_seq = get_lord_seq(lord_lvl1)
-            lvl2_idx_start = int(res["lvl1"]["portion"] * 9) if mi == 0 else 0
-            lvl2_portion_current = res["lvl2"]["portion"] if mi == 0 else 0.0
+            lvl2_idx_start = int(res["lvl1"]["portion"] * 9) if l1 == 0 else 0
+            lvl2_portion_current = res["lvl2"]["portion"] if l1 == 0 else 0.0
             lvl2_jd = cur_jd
 
-            for ai in range(lvl2_idx_start, 9):
-                lord_lvl2 = lvl2_seq[ai % 9]
+            for l2 in range(lvl2_idx_start, 9):
+                lord_lvl2 = lvl2_seq[l2 % 9]
                 years_lvl2 = years_lvl1 * dy[lord_lvl2] / 120
                 rem_years_lvl2 = (
                     res["lvl2"]["rem"]
-                    if mi == 0 and ai == lvl2_idx_start
+                    if l1 == 0 and l2 == lvl2_idx_start
                     else years_lvl2
                 )
                 start_lvl2 = jd_to_date(lvl2_jd)
-                lvl2_str = f"{lord_lvl2:<2} {rem_years_lvl2:.4f} y | {start_lvl2}"
-                out += " " * lvl_indent + lvl2_str + "\n"
+                lvl2_str = f" {lord_lvl2:<2} {rem_years_lvl2:.4f} y | {start_lvl2}"
+                out += " 2 " + lvl2_str + "\n"
 
                 if current_lvl >= 3:
                     lvl3_seq = get_lord_seq(lord_lvl2)
                     lvl3_idx_start = (
                         int(lvl2_portion_current * 9)
-                        if mi == 0 and ai == lvl2_idx_start
+                        if l1 == 0 and l2 == lvl2_idx_start
                         else 0
                     )
                     lvl3_jd = lvl2_jd
 
-                    for pi in range(lvl3_idx_start, 9):
-                        lord_lvl3 = lvl3_seq[pi % 9]
+                    for l3 in range(lvl3_idx_start, 9):
+                        lord_lvl3 = lvl3_seq[l3 % 9]
                         years_lvl3 = rem_years_lvl2 * dy[lord_lvl3] / 120
                         rem_years_lvl3 = (
                             res["lvl3"]["rem"]
-                            if mi == 0 and ai == lvl2_idx_start and pi == lvl3_idx_start
+                            if l1 == 0 and l2 == lvl2_idx_start and l3 == lvl3_idx_start
                             else years_lvl3
                         )
                         start_lvl3 = jd_to_date(lvl3_jd)
                         lvl3_str = (
-                            f"{lord_lvl3:<2} {rem_years_lvl3:.4f} y | {start_lvl3}"
+                            f" {lord_lvl3:<2} {rem_years_lvl3:.4f} y | {start_lvl3}"
                         )
-                        out += " " * (2 * lvl_indent) + lvl3_str + "\n"
+                        out += " 3     " + lvl3_str + "\n"
+                        # out += "=" * (2 * lvl_indent) + lvl3_str + "\n"
 
                         if current_lvl >= 4:
                             lvl4_seq = get_lord_seq(lord_lvl3)
-                            # To get the correct portion for calculating start index of lvl4
-                            # We need the portion of the current lvl3 lord *within its own sub-period*.
-                            # This portion is found in `res["lvl3"]["portion"]` ONLY IF
-                            # the current lvl3 lord is the one that's active at the birth moment.
-                            # Otherwise, for subsequent lords, the portion is 0.
                             lvl4_idx_start = (
                                 int(res["lvl3"]["portion"] * 9)
-                                if mi == 0
-                                and ai == lvl2_idx_start
-                                and pi == lvl3_idx_start
+                                if l1 == 0
+                                and l2 == lvl2_idx_start
+                                and l3 == lvl3_idx_start
                                 else 0
                             )
                             lvl4_jd = lvl3_jd
 
-                            for xi in range(lvl4_idx_start, 9):
-                                lord_lvl4 = lvl4_seq[xi % 9]
+                            for l4 in range(lvl4_idx_start, 9):
+                                lord_lvl4 = lvl4_seq[l4 % 9]
                                 years_lvl4 = rem_years_lvl3 * dy[lord_lvl4] / 120
                                 rem_years_lvl4 = (
                                     res["lvl4"]["rem"]
-                                    if mi == 0
-                                    and ai == lvl2_idx_start
-                                    and pi == lvl3_idx_start
-                                    and xi == lvl4_idx_start
+                                    if l1 == 0
+                                    and l2 == lvl2_idx_start
+                                    and l3 == lvl3_idx_start
+                                    and l4 == lvl4_idx_start
                                     else years_lvl4
                                 )
                                 start_lvl4 = jd_to_date(lvl4_jd)
-                                lvl4_str = f"{lord_lvl4:<2} {rem_years_lvl4:.4f} y | {start_lvl4}"
-                                out += " " * (3 * lvl_indent) + lvl4_str + "\n"
+                                lvl4_str = f" {lord_lvl4:<2} {rem_years_lvl4:.4f} y | {start_lvl4}"
+                                out += " 4        " + lvl4_str + "\n"
+                                # out += "*" * (3 * lvl_indent) + lvl4_str + "\n"
 
                                 if current_lvl >= 5:
                                     lvl5_seq = get_lord_seq(lord_lvl4)
-                                    # Similar logic for lvl5 start index
+                                    # Sil1lar logic for lvl5 start index
                                     lvl5_idx_start = (
                                         int(res["lvl4"]["portion"] * 9)
-                                        if mi == 0
-                                        and ai == lvl2_idx_start
-                                        and pi == lvl3_idx_start
-                                        and xi == lvl4_idx_start
+                                        if l1 == 0
+                                        and l2 == lvl2_idx_start
+                                        and l3 == lvl3_idx_start
+                                        and l4 == lvl4_idx_start
                                         else 0
                                     )
                                     lvl5_jd = lvl4_jd
 
-                                    for yi in range(lvl5_idx_start, 9):
-                                        lord_lvl5 = lvl5_seq[yi % 9]
+                                    for l5 in range(lvl5_idx_start, 9):
+                                        lord_lvl5 = lvl5_seq[l5 % 9]
                                         years_lvl5 = (
                                             rem_years_lvl4 * dy[lord_lvl5] / 120
                                         )
                                         rem_years_lvl5 = (
                                             res["lvl5"]["rem"]
-                                            if mi == 0
-                                            and ai == lvl2_idx_start
-                                            and pi == lvl3_idx_start
-                                            and xi == lvl4_idx_start
-                                            and yi == lvl5_idx_start
+                                            if l1 == 0
+                                            and l2 == lvl2_idx_start
+                                            and l3 == lvl3_idx_start
+                                            and l4 == lvl4_idx_start
+                                            and l5 == lvl5_idx_start
                                             else years_lvl5
                                         )
                                         start_lvl5 = jd_to_date(lvl5_jd)
-                                        lvl5_str = f"{lord_lvl5:<2} {rem_years_lvl5:.4f} y | {start_lvl5}"
+                                        lvl5_str = f" {lord_lvl5:<2} {rem_years_lvl5:.4f} y | {start_lvl5}"
                                         out += " " * (4 * lvl_indent) + lvl5_str + "\n"
                                         lvl5_jd += rem_years_lvl5 * year_length
                                 lvl4_jd += rem_years_lvl4 * year_length
@@ -349,12 +345,21 @@ def calculate_vimsottari(event: str):
         )
         return
     current_lvl = getattr(app, "current_lvl", 1)
+    # on missing e2_jd notify user & cap current_lvl
+    # if e2_jd is None and current_lvl >= 3:
+    #     notify.warning(
+    #         "event 2 datetime required for levels 3-5 : reseting to level 1",
+    #         source="vimsottari",
+    #         route=["terminal", "user"],
+    #         timeout=2,
+    #     )
+    #     app.current_lvl = current_lvl = 1
     max_lvl = 5
     msg += f"cur lvl : {current_lvl}\n"
     event_dasas = vimsottari_table(
         mo_lon,
         e1_jd,
-        e2_jd,
+        e2_jd=e2_jd,
         current_lvl=current_lvl,
         max_lvl=max_lvl,
         lvl_indent=3,
