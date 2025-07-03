@@ -137,13 +137,18 @@ def which_period_years(start_lord, start_frac):
     """Get remainder and portion for periods - reuse existing calculations"""
     years = dasa_years()
     main_years = years[start_lord]
-    remainder = main_years * (1 - start_frac)
+    maha_remainder = main_years * (1 - start_frac)
     portion = start_frac
     
+    # For antara level (level 2), the remainder is calculated differently
+    # This is a simplified approximation - actual calculation would be more complex
+    antara_remainder = maha_remainder * 0.1  # Approximation
+    praty_remainder = antara_remainder * 0.1  # Approximation
+    
     return {
-        "maha": {"remainder": remainder, "portion": portion},
-        "antara": {"remainder": remainder, "portion": portion},
-        "praty": {"remainder": remainder, "portion": portion}
+        "maha": {"remainder": maha_remainder, "portion": portion},
+        "antara": {"remainder": antara_remainder, "portion": portion},
+        "praty": {"remainder": praty_remainder, "portion": portion}
     }
 
 
@@ -194,11 +199,13 @@ def vimsottari_table(mo_lon, start_jd_ut, current_lvl=3):
             duration = period_years * years[lord] / 120
             
             # For levels 1-3, if it is the first period (i==0), use remainder and portion
+            # For levels beyond 3, use default period lengths
             if level <= 3 and i == 0:
                 level_keys = ["maha", "antara", "praty"]
                 level_key = level_keys[level - 1]
                 if level_key in res:
                     duration = res[level_key]["remainder"]
+            # For levels beyond 3, default period lengths are already calculated above
             
             # Time calculations using gregorian year length of 365.2425 days
             days = duration * 365.2425
