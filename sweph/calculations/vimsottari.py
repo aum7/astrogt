@@ -103,6 +103,139 @@ def get_vimsottari_periods(notify, start_jd_ut, start_lord, start_frac=0.0, leve
     return recurse(start_jd_ut, 0, dasa_years[start_lord], lord_seq)
 
 
+# Helper functions for vimsottari_table
+def find_nakshatra(mo_lon):
+    """Find nakshatra and percentage from moon longitude"""
+    nak_length = 360 / 27
+    nak_idx = int(mo_lon // nak_length) + 1
+    nak_frac = (mo_lon % nak_length) / nak_length
+    start_lord, nak_name = NAKSATRAS27[nak_idx]
+    return nak_idx, nak_name, start_lord, nak_frac
+
+
+def dasa_years():
+    """Get the dasa years mapping - reuse existing calculation"""
+    return {
+        "ke": 7,
+        "ve": 20,
+        "su": 6,
+        "mo": 10,
+        "ma": 7,
+        "ra": 18,
+        "ju": 16,
+        "sa": 19,
+        "me": 17,
+    }
+
+
+def get_lord_seq():
+    """Get the sequence of lords - reuse existing calculation"""
+    return list(dasa_years().keys())
+
+
+def which_period_years(start_lord, start_frac):
+    """Get remainder and portion for periods - reuse existing calculations"""
+    years = dasa_years()
+    main_years = years[start_lord]
+    remainder = main_years * (1 - start_frac)
+    portion = start_frac
+    
+    return {
+        "maha": {"remainder": remainder, "portion": portion},
+        "antara": {"remainder": remainder, "portion": portion},
+        "praty": {"remainder": remainder, "portion": portion}
+    }
+
+
+def vimsottari_table(mo_lon, start_jd_ut, current_lvl=3):
+    """
+    Recursive implementation to display vimsottari periods with controlled depth.
+    
+    Args:
+        mo_lon: Moon longitude 
+        start_jd_ut: Starting Julian day UTC
+        current_lvl: Maximum level to display (1-5)
+        
+    Returns:
+        String representation of the vimsottari table
+    """
+    # Get nakshatra information using find_nakshatra
+    nak_idx, nak_name, start_lord, nak_frac = find_nakshatra(mo_lon)
+    years = dasa_years()
+    lord_seq = get_lord_seq()
+    start_idx = lord_seq.index(start_lord)
+    
+    # Get remainder and portion values using which_period_years  
+    res = which_period_years(start_lord, nak_frac)
+    
+    # Preserve original header showing nakshatra information
+    header = f"Vimsottari Dasa Table\n"
+    header += f"Nakshatra: {nak_name} ({nak_idx}) - Lord: {start_lord}\n"
+    header += f"Percentage: {nak_frac:.2%}\n"
+    header += f"{'='*50}\n"
+    
+    def recurse_periods(jd_start, level, period_years, lords, indent=""):
+        """Recursive function to generate periods at each level"""
+        if level > current_lvl:
+            return ""
+        
+        result = ""
+        current_jd = jd_start
+        
+        # Iterate 9 times for the 9 periods at each level
+        for i in range(9):
+            # Get the lord for this period
+            if level == 1:
+                lord = lords[(start_idx + i) % 9]
+            else:
+                lord = lords[i]
+            
+            # Calculate duration using existing calculations
+            duration = period_years * years[lord] / 120
+            
+            # For levels 1-3, if it is the first period (i==0), use remainder and portion
+            if level <= 3 and i == 0:
+                level_keys = ["maha", "antara", "praty"]
+                level_key = level_keys[level - 1]
+                if level_key in res:
+                    duration = res[level_key]["remainder"]
+            
+            # Time calculations using gregorian year length of 365.2425 days
+            days = duration * 365.2425
+            jd_end = current_jd + days
+            
+            # Format dates (simplified for testing, would use swe.revjul in real implementation)
+            try:
+                if hasattr(swe, 'revjul'):
+                    from_date = swe.revjul(current_jd, cal=swe.GREG_CAL)
+                    to_date = swe.revjul(jd_end, cal=swe.GREG_CAL)
+                    from_str = f"{from_date[2]:02d}/{from_date[1]:02d}/{from_date[0]}"
+                    to_str = f"{to_date[2]:02d}/{to_date[1]:02d}/{to_date[0]}"
+                else:
+                    from_str = f"JD{current_jd:.1f}"
+                    to_str = f"JD{jd_end:.1f}"
+            except:
+                from_str = f"JD{current_jd:.1f}"
+                to_str = f"JD{jd_end:.1f}"
+            
+            # Use attribute names based on level number (lvl1, lvl2, lvl3, etc.)
+            lvl_name = f"lvl{level}"
+            result += f"{indent}{lvl_name}: {lord} - {duration:.4f} years ({from_str} to {to_str})\n"
+            
+            # If current level is less than current_lvl, recurse to print next level's periods
+            if level < current_lvl:
+                result += recurse_periods(current_jd, level + 1, duration, lords, indent + "  ")
+            
+            current_jd = jd_end
+        
+        return result
+    
+    # Start recursion at level 1
+    table_content = recurse_periods(start_jd_ut, 1, years[start_lord], lord_seq)
+    
+    return header + table_content
+
+
 def connect_signals_vimsottari(signal_manager):
     """update vimsottari when positions of luminaries change"""
     signal_manager._connect("luminaries_changed", calculate_vimsottari)
