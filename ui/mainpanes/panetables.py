@@ -320,8 +320,8 @@ class Tables(Gtk.Notebook):
 
     # def toggle_vimso(self, gesture=None, n_press=0, x=0, y=0):
     def toggle_vimso(self):
-        # cycle toggle level: 1->2->3->4->1
-        event = self.current_event
+        # cycle toggle level: 1->2->3->4->5->1
+        event = "e1"  # self.current_event
         # print(f"toggle_vimso  {event} called")
         if self.app.current_lvl == 1:
             self.app.current_lvl = 2
@@ -331,16 +331,6 @@ class Tables(Gtk.Notebook):
             self.app.current_lvl = 4
         elif self.app.current_lvl == 4:
             self.app.current_lvl = 5
-        # elif self.app.current_lvl == 3 and self.app.e2_sweph.get("jd_ut"):
-        #     self.app.current_lvl = 4
-        # elif self.app.current_lvl == 3:
-        #     self.notify.info(
-        #         "missing event 2 datetime / julian day ; exiting ...",
-        #         source="panetables",
-        #         route=["terminal"],
-        #         timeout=1.0,
-        #     )
-        #     self.app.current_lvl = 1
         else:
             self.app.current_lvl = 1
         # print(f"current_lvl : {self.app.current_lvl}")
@@ -349,7 +339,7 @@ class Tables(Gtk.Notebook):
             # emit signal to force recalculation
             self.app.signal_manager._emit(
                 "luminaries_changed",
-                None,
+                event,
                 # "luminaries_changed", "vimsottari", self.app.last_luminaries
             )
 
