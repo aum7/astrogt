@@ -45,10 +45,10 @@ def jd_to_date(jd):
     return f"{y:04d}-{m:02d}-{d:02d} {hh:02d}:{mi:02d}:{s:02d}"
 
 
-def which_period_years(mo_deg, cur_lvl=1, max_lvl=3):
+def initial_dasa(mo_deg, cur_lvl=1, max_lvl=3):
+    # calculates only initial period by moon fraction already traversed
     dy = dasa_years()
     idx, frac = find_nakshatra(mo_deg)
-
     result = {}
     # Level 1 (always calculated)
     lvl1_lord = NAKSATRAS27[idx][0]
@@ -155,11 +155,12 @@ def which_period_years(mo_deg, cur_lvl=1, max_lvl=3):
     return result
 
 
-def vimsottari_table(mo_deg, e1_jd, e2_jd=None, current_lvl=1, max_lvl=3, lvl_indent=3):
-    # single func: calculates and formats vimsottari table as plain text
+def vimsottari_table(mo_deg, e1_jd, e2_jd, current_lvl=1, max_lvl=3, lvl_indent=3):
+    # calculates periods after initial period & formats as plain text
     dy = dasa_years()
-    # Pass current_lvl and max_lvl to which_period_years
-    res = which_period_years(mo_deg, cur_lvl=current_lvl, max_lvl=max_lvl)
+    # Pass current_lvl and max_lvl to initial_dasa()
+    res = initial_dasa(mo_deg, cur_lvl=current_lvl, max_lvl=max_lvl)
+    print(f"res :\n{res}")
     # prepare header text
     idx, frac = find_nakshatra(mo_deg)
     nak_lord, nak_name = NAKSATRAS27[idx]
@@ -330,8 +331,8 @@ def calculate_vimsottari(event: str):
                 # msg += f"mo : {mo_lon:7.3f}\n"
                 break
     e2_jd = app.e2_lumies.get("jd_ut") if hasattr(app, "e2_lumies") else None
-    if not e2_jd:
-        msg += "no e2jd"
+    # if not e2_jd:
+    #     msg += "no e2jd"
     # msg += (
     #     f"vimso data :\n"
     #     f"lums : {e1_lumies}\n"
@@ -358,8 +359,7 @@ def calculate_vimsottari(event: str):
         max_lvl=max_lvl,
         lvl_indent=3,
     )
-    msg += f"dasas :\n{str(event_dasas)[:800]}"
-    # msg += f"dasas : {event_dasas[:3000]}"
+    # msg += f"dasas :\n{str(event_dasas)[:800]}"
     app.signal_manager._emit("vimsottari_changed", event, event_dasas)
     notify.debug(
         msg,
