@@ -66,11 +66,18 @@ class Tables(Gtk.Notebook):
         self.append_page(scroll, Gtk.Label.new(event))
         self.page_widgets[event] = scroll
 
-    def positions_changed(self, event: str, positions: dict):
+    def positions_changed(self, event):
         # update event with positions data
         if event not in self.events_data:
             self.events_data[event] = {"positions": None}
-        self.events_data[event]["positions"] = positions
+        if event == "e1":
+            self.events_data[event]["positions"] = (
+                self.app.e1_positions if hasattr(self.app, "e1_positions") else None
+            )
+        elif event == "e2":
+            self.events_data[event]["positions"] = (
+                self.app.e2_positions if hasattr(self.app, "e2_positions") else None
+            )
         self.update_event_data(event)
 
     def houses_changed(self, event: str, houses: tuple):
@@ -127,13 +134,15 @@ class Tables(Gtk.Notebook):
             or not self.events_data[event]["houses"]
         ):
             self.notify.error(
-                f"positions or houses missing for {event}",
+                f"positions or houses missing for {event} : exiting ...",
                 source="panetables",
-                route=[""],
+                route=["terminal"],
             )
             return
-
         pos = self.events_data[event].get("positions")
+        # print(f"panetables pos : {pos}")
+        pos_map = {k: v for k, v in pos.items() if isinstance(k, int)}
+        # print(f"panetables posmap : {pos_map}")
         # get houses data if available
         houses = self.events_data[event].get("houses")
         aspects = self.make_aspects(event)
@@ -153,15 +162,13 @@ class Tables(Gtk.Notebook):
             f"{self.v_sym} hs\n"
         )
         content += header
+        separ = f"{self.h_sym * 36}\n"
         # loop through positions and calculate houses if possible
-        for key, obj in pos.items():
-            if key == "event":
-                continue
+        for _, obj in pos_map.items():
             retro = "R" if obj.get("lon speed", 0) < 0 else " "
             lon = obj.get("lon", 0)
             # calculate house if cusps are available
             house = self.which_house(lon, tuple(cusps)) if cusps else ""
-            separ = f"{self.h_sym * 36}\n"
             ln_pos = (
                 f" {obj.get('name', '')}{retro}  {self.v_sym} "
                 f"{self.format_dms(lon):10} {self.v_sym} "
@@ -320,24 +327,30 @@ class Tables(Gtk.Notebook):
             self.app.current_lvl = 2
         elif self.app.current_lvl == 2:
             self.app.current_lvl = 3
-        elif self.app.current_lvl == 3 and self.app.e2_sweph.get("jd_ut"):
-            self.app.current_lvl = 4
         elif self.app.current_lvl == 3:
-            self.notify.info(
-                "missing event 2 datetime / julian day ; exiting ...",
-                source="panetables",
-                route=["terminal"],
-                timeout=1.0,
-            )
-            self.app.current_lvl = 1
-        # else:
+            self.app.current_lvl = 4
+        elif self.app.current_lvl == 4:
+            self.app.current_lvl = 5
+        # elif self.app.current_lvl == 3 and self.app.e2_sweph.get("jd_ut"):
+        #     self.app.current_lvl = 4
+        # elif self.app.current_lvl == 3:
+        #     self.notify.info(
+        #         "missing event 2 datetime / julian day ; exiting ...",
+        #         source="panetables",
+        #         route=["terminal"],
+        #         timeout=1.0,
+        #     )
         #     self.app.current_lvl = 1
-        print(f"current_lvl : {self.app.current_lvl}")
+        else:
+            self.app.current_lvl = 1
+        # print(f"current_lvl : {self.app.current_lvl}")
         # update vimsottari for new level
         if event and event in self.events_data:
             # emit signal to force recalculation
             self.app.signal_manager._emit(
-                "luminaries_changed", "vimsottari", self.app.last_luminaries
+                "luminaries_changed",
+                None,
+                # "luminaries_changed", "vimsottari", self.app.last_luminaries
             )
 
     def which_house(self, lon: float, cusps: Tuple[float, ...]) -> str:

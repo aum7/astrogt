@@ -5,7 +5,7 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
-from typing import List, Optional, Dict, Any
+from typing import List
 from ui.fonts.glyphs import ASPECTS
 
 
@@ -41,23 +41,23 @@ def nearest_major_aspect(angle: float, orb: float):
     return None
 
 
-def aspects_matrix(positions: Dict[str, Any], orb: float):
-    draw_order = ["mo", "me", "ve", "su", "ma", "ju", "sa", "ur", "ne", "pl", "ra"]
-    objs_map = {v["name"]: v for k, v in positions.items()}
-    obj_names = [name for name in draw_order if name in objs_map]
-    keys = [k for name in obj_names for k, v in positions.items() if v["name"] == name]
-    num = len(obj_names)
+def aspects_matrix(objs_map: list[str], pos_map: dict, orb: float):
+    # obj_names = [name for name in draw_order if name in pos_map]
+    # keys = [k for name in obj_names for k, v in pos_map.items() if v["name"] == name]
+    num = len(objs_map)
     matrix = []
     for i in range(num):
         row = []
-        obj1 = positions[keys[i]]
+        obj1_name = objs_map[i]
+        obj1 = pos_map[obj1_name]
         for j in range(num):
-            obj2 = positions[keys[j]]
+            obj2_name = objs_map[j]
+            obj2 = pos_map[obj2_name]
             if i == j:
                 # both obj are same planet : needed for matrix consistency only
                 row.append({
-                    "obj1": obj1["name"],
-                    "obj2": obj2["name"],
+                    "obj1": obj1_name,
+                    "obj2": obj2_name,
                     "speed1": None,
                     "angle": None,
                     "major": False,
@@ -95,37 +95,41 @@ def aspects_matrix(positions: Dict[str, Any], orb: float):
             })
         matrix.append(row)
     # collect speed for retro character in panetables.py
-    speeds = {obj1["name"]: obj1["lon speed"] for obj1 in objs_map.values()}
-    return obj_names, matrix, speeds
+    speeds = {name: pos_map[name]["lon speed"] for name in objs_map}
+    # speeds = {obj1["name"]: obj1["lon speed"] for obj1 in pos_map.values()}
+    return objs_map, matrix, speeds
 
 
-def calculate_aspects(event: Optional[str] = None, positions: Dict[str, Any] = {}):
+def calculate_aspects(event: str):
     """calculate aspectarian for one or both events"""
     app = Gtk.Application.get_default()
     notify = app.notify_manager
+    msg = "event {event}\n"
     # print flags
     print_am = False
     do_filter = False
     # event 1 data is mandatory
     if not app.e1_sweph.get("jd_ut"):
-        notify.warning(
-            "missing event one data needed for aspectarian\n\texiting ...",
+        notify.error(
+            "missing event one data needed for aspectarian : exiting ...",
             source="aspects",
             route=["terminal", "user"],
         )
         return
     events: List[str] = [event] if event else ["e1", "e2"]
     if "e2" in events and not app.e2_sweph.get("jd_ut"):
-        # skip e2 if no datetime / julian day utc set = user not interested in e2
+        # skip e2 if no julian day 2 utc set = user not interested in e2
         events.remove("e2")
-    notify.debug(
-        f"event(s) : {events} | positions : {positions}",
-        source="aspects",
-        route=["none"],
-    )
-    positions = {k: v for k, v in positions.items() if k.isdigit()}
+        msg += "e2 removed\n"
+    pos = getattr(app, "e1_positions", None)
+    draw_order = ["mo", "me", "ve", "su", "ma", "ju", "sa", "ur", "ne", "pl", "ra"]
+    if pos:
+        # get objects positions by name
+        pos_map = {v["name"]: v for k, v in pos.items() if isinstance(k, int)}
+        objs_map = [name for name in draw_order if name in pos_map]
+    msg += f"posmap : {pos_map}"
     orb = 1.5
-    obj_names, aspect_matrix, speeds = aspects_matrix(positions, orb)
+    obj_names, aspect_matrix, speeds = aspects_matrix(objs_map, pos_map, orb)
     data = {
         "obj names": obj_names,
         "matrix": aspect_matrix,
@@ -150,9 +154,9 @@ def calculate_aspects(event: Optional[str] = None, positions: Dict[str, Any] = {
     # --- new code end
     app.signal_manager._emit("aspects_changed", event, data)
     notify.debug(
-        f"aspects calculated for {event}",
+        msg,
         source="aspects",
-        route=["none"],
+        route=[""],
     )
 
 

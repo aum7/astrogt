@@ -51,7 +51,6 @@ def _buttons_from_dict(
 
 def _event_selection(manager, gesture, n_press, x, y, event_name):
     """handle event selection"""
-    print(f"helpers : eventname : {event_name}")
     if manager.app.selected_event != event_name:
         manager.app.selected_event = event_name
         if manager.app.selected_event == "e1":

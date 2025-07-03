@@ -93,7 +93,6 @@ class MainWindow(
         # call helper function for time now
         self._hotkeys.register_hotkey("n", lambda: self.on_time_now())
         # toggle selected event
-        sel_ev = self.app.selected_event
         self._hotkeys.register_hotkey(
             "e",
             lambda g, n, x, y: _event_selection(
@@ -102,7 +101,7 @@ class MainWindow(
                 n,
                 x,
                 y,
-                "e1" if sel_ev == "e2" else "e2",
+                "e1" if self.app.selected_event == "e2" else "e2",
             ),
         )
         self._hotkeys.register_hotkey(
@@ -166,7 +165,7 @@ class MainWindow(
     def update_main_title(self, change_time=None):
         """show selected event & its datetime in main titlebar"""
         event = self.app.selected_event
-        print(f"mainwindow : event : {event}")
+        # print(f"mainwindow.update_main_title : event : {event}")
         dt = None
         if event == "e1":
             dt = self.app.e1_chart.get("datetime")

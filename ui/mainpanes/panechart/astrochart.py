@@ -51,9 +51,12 @@ class AstroChart(Gtk.Box):
             # print("astrochart : e1 changed")
         self.drawing_area.queue_draw()
 
-    def positions_changed(self, event, positions):
+    def positions_changed(self, event):
         if event == "e1":
-            self.positions = positions
+            self.positions = (
+                self.app.e1_positions if hasattr(self.app, "e1_positions") else None
+            )
+            # self.positions = positions
         self.drawing_area.queue_draw()
         # print(f"astrochart : {event} positions changed")
 
@@ -105,15 +108,17 @@ class AstroChart(Gtk.Box):
         base = min(width, height) * 0.5
         font_scale = base / 300.0
         # sort by scale : smaller in front of larger circles
-        guests = sorted(
-            [
-                self.create_astro_object(obj)
-                for obj in self.positions.values()
-                if isinstance(obj, dict) and "lon" in obj
-            ],
-            key=lambda o: o.scale,
-            reverse=True,
-        )
+        guests = {}
+        if self.positions and isinstance(self.positions, dict):
+            guests = sorted(
+                [
+                    self.create_astro_object(obj)
+                    for obj in self.positions.values()
+                    if isinstance(obj, dict) and "lon" in obj
+                ],
+                key=lambda o: o.scale,
+                reverse=True,
+            )
         # construct extra info
         self.extra_info["zod"] = "sid" if self.app.is_sidereal else "tro"
         self.extra_info["aynm"] = (

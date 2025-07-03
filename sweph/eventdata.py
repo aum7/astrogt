@@ -49,8 +49,12 @@ class EventData:
         # separate data by event
         self.app.e1_sweph = {}
         self.app.e1_chart = {}
+        self.app.e1_positions = {}
+        self.app.e1_lum_positions = {}
         self.app.e2_sweph = {}
         self.app.e2_chart = {}
+        self.app.e2_positions = {}
+        self.app.e2_lum_positions = {}
         # connect signals for entry completion
         for widget, callback in [
             (self.name, self.on_name_change),

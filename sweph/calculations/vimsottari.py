@@ -5,7 +5,7 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
-from typing import Optional, Dict, Any, List
+# from typing import Optional, Dict, Any, List
 
 from ui.mainpanes.panechart.chartcircles import NAKSATRAS27
 
@@ -37,47 +37,42 @@ def get_lord_seq(start_lord):
     return seq[idx:] + seq[:idx]
 
 
-def which_period_years(mo_deg):
+def which_period_years(mo_deg, lvl_depth=5):
     dy = dasa_years()
     idx, frac = find_nakshatra(mo_deg)
-    maha_lord = NAKSATRAS27[idx][0]
-    maha_seq = get_lord_seq(maha_lord)
-    maha_portion = frac
-    antara_idx_f = frac * 9
-    antara_idx = int(antara_idx_f)
-    antara_frac = antara_idx_f - antara_idx
-    antara_lord = maha_seq[antara_idx]
-    antara_seq = get_lord_seq(antara_lord)
-    praty_idx_f = antara_frac * 9
-    praty_idx = int(praty_idx_f)
-    praty_frac = praty_idx_f - praty_idx
-    praty_lord = antara_seq[praty_idx]
-    maha_yrs = dy[maha_lord]
-    maha_rem = (1 - maha_portion) * maha_yrs
-    antara_yrs = maha_yrs * dy[antara_lord] / 120
-    antara_rem = (1 - antara_frac) * antara_yrs
-    praty_yrs = antara_yrs * dy[praty_lord] / 120
-    praty_rem = (1 - praty_frac) * praty_yrs
-    return {
-        "maha": {
-            "lord": maha_lord,
-            "portion": maha_portion,
-            "years": maha_yrs,
-            "rem": maha_rem,
-        },
-        "antara": {
-            "lord": antara_lord,
-            "portion": antara_frac,
-            "years": antara_yrs,
-            "rem": antara_rem,
-        },
-        "praty": {
-            "lord": praty_lord,
-            "portion": praty_frac,
-            "years": praty_yrs,
-            "rem": praty_rem,
-        },
-    }
+    init_lord = NAKSATRAS27[idx][0]
+    init_dur = dy[init_lord]
+
+    def rec(level, curr_lord, curr_dur, curr_portion):
+        periods = []
+        lst = get_lord_seq(curr_lord)
+        for i in range(9):
+            if i == 0:
+                # use calculated remainder and portion
+                portion = curr_portion
+                rem = (1 - portion) * curr_dur
+                next_idx = int(curr_portion * 9)
+                new_portion = (curr_portion * 9) - next_idx
+                period_dur = rem
+                new_lord = lst[next_idx]
+                new_dur = curr_dur * dy[new_lord] / 120
+            else:
+                portion = 0
+                period_dur = dy[lst[i]]
+                new_portion = 0
+                new_dur = dy[lst[i]]
+            period = {
+                "lord": lst[i],
+                "portion": portion,
+                "duration": curr_dur if i == 0 else dy[lst[i]],
+                "rem": period_dur,
+            }
+            if level < lvl_depth:
+                period["subperiods"] = rec(level + 1, lst[i], new_dur, new_portion)
+            periods.append(period)
+        return periods
+
+    return rec(1, init_lord, init_dur, frac)
 
 
 def jd_to_date(jd):
@@ -88,120 +83,105 @@ def jd_to_date(jd):
     return f"{y:04d}-{m:02d}-{d:02d} {hh:02d}:{mi:02d}:{s:02d}"
 
 
-def vimsottari_table(mo_deg, jd, current_lvl=1, lvl_dist=3, jd_e2=None):
+def vimsottari_table(mo_deg, jd, current_lvl=1, lvl_depth=5, lvl_indent=3, e2_jd=None):
     # single func: calculates and formats vimsottari table as plain text
     idx, frac = find_nakshatra(mo_deg)
     nak_lord, nak_name = NAKSATRAS27[idx]
     dy = dasa_years()
-    res = which_period_years(mo_deg)
-    maha_lord = res["maha"]["lord"]
-    maha_seq = get_lord_seq(maha_lord)
-    maha_idx = maha_seq.index(maha_lord)
-    year_length = 365.2425  # gregorian
-    cur_jd = jd
+    year_length = 365.2425  # gregorian year length in days
+
+    # get period data for desired depth
+    p_data = which_period_years(mo_deg, lvl_depth=current_lvl)
+    print(f"vimso pdata : {p_data}")
     # prepare table as plain text
     separ = f"{'-' * 34}\n"
     header = f"\n 'v' : toggle dasas level\n{separ}"
     header += f" nak {idx:02} {nak_name} {nak_lord} | traversed {frac * 100:.2f} %"
     header += f"\n{separ}"
-    out = header
-    for mi in range(9):
-        lord = maha_seq[(maha_idx + mi) % 9]
-        years = dy[lord]
-        rem_years = res["maha"]["rem"] if mi == 0 else years
-        start = jd_to_date(cur_jd)
-        maha_str = f"{lord:<2} {rem_years:.4f} y | {start}"
-        out += f" {maha_str}\n"
-        if current_lvl >= 2:
-            antara_seq = get_lord_seq(lord)
-            antara_idx = int(res["maha"]["portion"] * 9) if mi == 0 else 0
-            antara_portion = res["antara"]["portion"] if mi == 0 else 0.0
-            antara_jd = cur_jd
-            for ai in range(antara_idx, 9):
-                antara_lord = antara_seq[ai % 9]
-                antara_years = years * dy[antara_lord] / 120
-                rem_antara = (
-                    res["antara"]["rem"]
-                    if mi == 0 and ai == antara_idx
-                    else antara_years
+
+    def format_periods(periods, level, cur_jd):
+        lines = ""
+        # iterate over 9 periods at this level
+        for period in periods:
+            indent = " " * ((level - 1) * lvl_indent)
+            line = (
+                f"{indent}{period['lord']:<2} "
+                f"{period['rem']:.4f} y | {jd_to_date(cur_jd)}"
+            )
+            lines += line + "\n"
+            if ("subperiods" in period) and (level < current_lvl):
+                sub_lines, cur_jd = format_periods(
+                    period["subperiods"], level + 1, cur_jd
                 )
-                antara_start = jd_to_date(antara_jd)
-                antara_str = f"{antara_lord:<2} {rem_antara:.4f} y | {antara_start}"
-                out += f" {' ' * lvl_dist}{antara_str}\n"
-                if current_lvl == 3:
-                    praty_seq = get_lord_seq(antara_lord)
-                    praty_idx = (
-                        int(antara_portion * 9) if mi == 0 and ai == antara_idx else 0
-                    )
-                    praty_jd = antara_jd
-                    for pi in range(praty_idx, 9):
-                        praty_lord = praty_seq[pi % 9]
-                        praty_years = rem_antara * dy[praty_lord] / 120
-                        rem_praty = (
-                            res["praty"]["rem"]
-                            if mi == 0 and ai == antara_idx and pi == praty_idx
-                            else praty_years
-                        )
-                        praty_start = jd_to_date(praty_jd)
-                        praty_str = f"{praty_lord:<2} {rem_praty:.4f} y | {praty_start}"
-                        out += f" {' ' * (2 * lvl_dist)}{praty_str}\n"
-                        praty_jd += rem_praty * year_length
-                antara_jd += rem_antara * year_length
-        cur_jd += rem_years * year_length
-    return out.rstrip()
+                lines += sub_lines
+            cur_jd += period["rem"] * year_length
+        return lines, cur_jd
+
+    table_str, _ = format_periods(p_data, 1, jd)
+    return header + table_str.rstrip()
 
 
-def calculate_vimsottari(event: Optional[str] = None, luminaries: Dict[str, Any] = {}):
-    """calculate vimsottari for event"""
-    # print(f"calc_vmst data received : {luminaries}")
+def calculate_vimsottari(event: str):
+    # grab application data & calculate vimsottari for event 1
     app = Gtk.Application.get_default()
     notify = app.notify_manager
-    notify.debug(
-        f"received :\n\t{event}\n\t{luminaries}",
-        source="vimsottari",
-        route=["terminal"],
-    )
+    msg = f"event {event}\n"
     # event 1 data is mandatory and main source
     if not app.e1_sweph.get("jd_ut"):
-        notify.warning(
+        notify.error(
             "missing event one data needed for vimsottari\n\texiting ...",
             source="vimsottari",
             route=["terminal", "user"],
         )
         return
-    events: List[str] = [event] if event else ["e1"]
     # skip e2 calculations for vimsottari dasas
-    if "e2" in events:
-        events.remove("e2")
-        return  # todo
-    notify.debug(
-        f"event(s) : {events} | luminaries received : {luminaries}",
-        source="vimsottari",
-        route=["terminal"],
-    )
-    jd_ut_e2 = app.e2_sweph.get("jd_ut") if hasattr(app, "e2_sweph") else None
-    # grab datetime as julian day
-    print(f"vimso jdute2 : {jd_ut_e2}")
-    jd_pos = {k: v for k, v in luminaries.items() if isinstance(k, int)}
-    # grab moon position
-    moon = next((p for p in jd_pos.values() if p["name"] == "mo"), None)
-    jd_ut = luminaries.get("start_jd_ut")
-    if not moon or not jd_ut:
+    if event == "e2":
+        # event = "e1"
+        msg += "e2 detected : todo maybe\n"
+    # get data
+    e1_lumies = getattr(app, "e1_lumies", None)
+    mo_lon = 0.0
+    if e1_lumies:
+        e1_jd = e1_lumies.get("jd_ut")
+        # build name-keyed dict from int keys
+        for v in e1_lumies.values():
+            if isinstance(v, dict) and v.get("name") == "mo":
+                # grab moon position
+                mo_lon = v.get("lon")
+                # msg += f"mo : {mo_lon:7.3f}\n"
+                break
+    e2_jd = app.e2_lumies.get("jd_ut") if hasattr(app, "e2_lumies") else "-"
+    # msg += (
+    #     f"vimso data :\n"
+    #     f"lums : {e1_lumies}\n"
+    #     f"e1jd : {e1_jd}\n"
+    #     # f"e1lumpos : {e1_lum_pos}\n"
+    #     f"e1pos : {str(e1_pos)[:800]}\n"
+    #     f"e2jd : {e2_jd}\n"
+    # )
+    if not mo_lon or not e1_jd:
         notify.error(
-            "missing luminaries data ; exiting ...",
+            "missing luminaries data : exiting ...",
             source="vimsottari",
             route=["terminal"],
         )
         return
-    mo_lon = moon["lon"]
-    # print(f"vmst : moon : {mo_lon} | jd : {jd_ut}")
     current_lvl = getattr(app, "current_lvl", 1)
+    lvl_depth = 5
+    msg += f"cur lvl : {current_lvl}\n"
     event_dasas = vimsottari_table(
-        mo_lon, jd_ut, current_lvl=current_lvl, lvl_dist=3, jd_e2=jd_ut_e2
+        mo_lon,
+        e1_jd,
+        current_lvl=current_lvl,
+        lvl_depth=lvl_depth,
+        lvl_indent=3,
+        e2_jd=e2_jd,
     )
+    # msg += f"dasas : {event_dasas}"
+    msg += f"dasas : {event_dasas[:3000]}"
     app.signal_manager._emit("vimsottari_changed", event, event_dasas)
     notify.debug(
-        f"start_jd_ut : {jd_ut}\n\tdasas : {event_dasas[:300]}",
+        msg,
         source="vimsottari",
         route=["terminal"],
     )
