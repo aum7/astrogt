@@ -48,10 +48,10 @@ class MainWindow(
         # 4 resizable panes for charts & tables etc
         self.setup_main_panes()
         # hotkey manager
-        self._hotkeys = HotkeyManager(self)
+        self.hotkeys = HotkeyManager(self)
         self.setup_hotkeys()
         # intercept toggle pane button
-        self._hotkeys.intercept_button_controller(self.btn_toggle_pane, "toggle_pane")
+        self.hotkeys.intercept_button_controller(self.btn_toggle_pane, "toggle_pane")
         # connect signals
         connect_signals_positions(self.app.signal_manager)
         connect_signals_houses(self.app.signal_manager)
@@ -64,8 +64,13 @@ class MainWindow(
         self.tables2 = Tables()
         self.datagraph = DataGraph()
         self.init_panes()
-        # show panes
-        self.panes_double()
+        # initialize panes layout
+        # self.connect("realize", lambda w: self.panes_double())
+
+    def close_request(self, window) -> bool:
+        # print("mainwindow : close_request called : quiting app ...")
+        self.app.quit()
+        return False
 
     def on_toggle_pane(self, button: Optional[Gtk.Button] = None) -> None:
         """toggle sidepane visibility"""
@@ -79,21 +84,21 @@ class MainWindow(
 
     def setup_hotkeys(self):
         """register additional hotkeys"""
-        self._hotkeys.register_hotkey("v", lambda: self.tables.toggle_vimso())
-        self._hotkeys.register_hotkey("h", self.show_help)
-        self._hotkeys.register_hotkey("s", self.on_toggle_pane)
-        self._hotkeys.register_hotkey("shift+exclam", self.panes_single)
-        self._hotkeys.register_hotkey("shift+quotedbl", self.panes_double)
-        self._hotkeys.register_hotkey("shift+numbersign", self.panes_triple)
-        self._hotkeys.register_hotkey("shift+dollar", self.panes_all)
-        self._hotkeys.register_hotkey("Up", self.obc_arrow_up)
-        self._hotkeys.register_hotkey("Down", self.obc_arrow_dn)
-        self._hotkeys.register_hotkey("Left", self.obc_arrow_l)
-        self._hotkeys.register_hotkey("Right", self.obc_arrow_r)
+        self.hotkeys.register_hotkey("v", lambda: self.tables.toggle_vimso())
+        self.hotkeys.register_hotkey("h", self.show_help)
+        self.hotkeys.register_hotkey("s", self.on_toggle_pane)
+        self.hotkeys.register_hotkey("shift+exclam", self.panes_single)
+        self.hotkeys.register_hotkey("shift+quotedbl", self.panes_double)
+        self.hotkeys.register_hotkey("shift+numbersign", self.panes_triple)
+        self.hotkeys.register_hotkey("shift+dollar", self.panes_all)
+        self.hotkeys.register_hotkey("Up", self.obc_arrow_up)
+        self.hotkeys.register_hotkey("Down", self.obc_arrow_dn)
+        self.hotkeys.register_hotkey("Left", self.obc_arrow_l)
+        self.hotkeys.register_hotkey("Right", self.obc_arrow_r)
         # call helper function for time now
-        self._hotkeys.register_hotkey("n", lambda: self.on_time_now())
+        self.hotkeys.register_hotkey("n", lambda: self.on_time_now())
         # toggle selected event
-        self._hotkeys.register_hotkey(
+        self.hotkeys.register_hotkey(
             "e",
             lambda g, n, x, y: _event_selection(
                 self,
@@ -104,10 +109,10 @@ class MainWindow(
                 "e1" if self.app.selected_event == "e2" else "e2",
             ),
         )
-        self._hotkeys.register_hotkey(
+        self.hotkeys.register_hotkey(
             "g", lambda: self.toggle_chart_setting("enable glyphs")
         )
-        self._hotkeys.register_hotkey(
+        self.hotkeys.register_hotkey(
             "a", lambda: self.toggle_chart_setting("fixed asc")
         )
 

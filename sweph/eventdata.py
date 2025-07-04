@@ -50,11 +50,11 @@ class EventData:
         self.app.e1_sweph = {}
         self.app.e1_chart = {}
         self.app.e1_positions = {}
-        self.app.e1_lum_positions = {}
+        self.app.e1_lumies = {}
         self.app.e2_sweph = {}
         self.app.e2_chart = {}
         self.app.e2_positions = {}
-        self.app.e2_lum_positions = {}
+        self.app.e2_lumies = {}
         # connect signals for entry completion
         for widget, callback in [
             (self.name, self.on_name_change),
@@ -408,6 +408,7 @@ class EventData:
 
     def on_datetime_change(self, entry):
         """process date & time"""
+        msg = ""
         # check for mandatory fields first
         if entry.get_name() == "datetime one":
             if not self.app.e1_sweph.get("lon"):
@@ -417,12 +418,6 @@ class EventData:
                     route=["terminal", "user"],
                 )
                 return
-            # if self.name is None: # ko, self.name is gtk.entry
-            #     self.notify.warning(
-            #         "event one : set name first",
-            #         source="eventdata",
-            #         route=["terminal", "user"],
-            #     )
         elif entry.get_name() == "datetime two":
             # e1 data might be merged
             if self.app.e1_chart.get("location") is None:
@@ -442,14 +437,6 @@ class EventData:
         weekdays = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]  # monday = 0
         wday = "-"
         if self.is_hotkey_now:
-            # if datetime_name == "datetime one" and self.lon is None:
-            #     self.notify.warning(
-            #         f"{datetime_name}: set location first",
-            #         source="eventdata",
-            #         route=["terminal", "user"],
-            #     )
-            #     self.is_hotkey_now = False
-            #     return
             # datetime set by hotkey time now utc : validation not needed
             """get utc from computer time"""
             try:
@@ -478,17 +465,17 @@ class EventData:
                     h, m, s = map(int, parts[-1].strip().split(":"))
                     # convert to decimal hour
                     self.tz_offset = days * 24 + h + m / 60 + s / 3600
-                    # print(f"timenow : tz_offset : {self.tz_offset}")
-                    msg = (
+                    # msg += f"timenow : tz_offset : {self.tz_offset}"
+                    msg += (
                         f"{datetime_name} timezone : using time now for {tz}"
                         if self.timezone
                         else f"{datetime_name} no timezone : using event one ({tz})"
                     )
-                    self.notify.info(
-                        msg,
-                        source="eventdata",
-                        route=["terminal"],
-                    )
+                    # self.notify.info(
+                    #     msg,
+                    #     source="eventdata",
+                    #     route=["terminal"],
+                    # )
                 # calculate julian day utc
                 _, jd_ut = utc_to_jd(
                     dt_utc.year,
@@ -524,6 +511,9 @@ class EventData:
                     if self.app.e2_chart or self.app.e2_sweph:
                         self.app.e2_chart = {}
                         self.app.e2_sweph = {}
+                        # todo should we clear luminaries & positions too ???
+                        self.app.e2_lumies = {}
+                        self.app.e2_positions = {}
                         # flip e2 active flag
                         self.app.e2_active = False
                         self.old_date_time = ""
@@ -535,14 +525,6 @@ class EventData:
                         )
                         self.app.signal_manager._emit("e2_cleared", "e2")
                         return
-            # data not changed todo remove check ???
-            # if date_time == self.old_date_time:
-            #     self.notify.debug(
-            #         f"{datetime_name} not changed",
-            #         source="eventdata",
-            #         route=["terminal"],
-            #     )
-            #     return
             # data changed
             try:
                 # get datetime string, assuming naive date-time
@@ -668,7 +650,7 @@ class EventData:
                 "datetime 2 is none : user not interested in event 2 : skipping ..."
                 f"\n\te2 active : {self.app.e2_active}",
                 source="eventdata",
-                route=["terminal"],
+                route=[""],
             )
         elif self.app.e2_chart.get("datetime"):
             # declare e2 active

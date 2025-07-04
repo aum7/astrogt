@@ -2,6 +2,7 @@
 # ruff: noqa: E402
 # launch inspector (Ctrl+Shift+I or Ctrl+Shift+D) when app is running
 # os.environ["GTK_DEBUG"] = "keybindings geometry size-request actions constraints"
+# import atexit
 import os
 import swisseph as swe
 import gi
@@ -30,10 +31,15 @@ class AstrogtApp(Gtk.Application):
         # initialize sweph
         ephemeris_path = os.path.join(os.path.dirname(__file__), "sweph/ephe")
         swe.set_ephe_path(ephemeris_path)
+        # early initialize chart_settings if used before being set by panelsettings
+        self.chart_settings = {}
 
     def do_activate(self):
+        # activate main window & notifications manager
         win = MainWindow(application=self)
-        win.connect("destroy", lambda x: self.quit())
+        # self.add_window(win)
+        # handle app quit from mainwindow
+        win.connect("close-request", win.close_request)
         # get existing content
         content = win.get_child()
         # create toast overlay
@@ -53,12 +59,17 @@ class AstrogtApp(Gtk.Application):
         win.present()
 
     def do_shutdown(self):
-        """close sweph at application exit"""
+        # close sweph at application exit
         swe.close()
         # call parent shutdown
         Gio.Application.do_shutdown(self)
 
 
+# def final_cleanup():
+#     print("main : python interpreter exiting : final cleanup check")
+
+
 if __name__ == "__main__":
+    # atexit.register(final_cleanup)
     app = AstrogtApp()
     app.run(None)
