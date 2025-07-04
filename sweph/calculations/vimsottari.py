@@ -1,4 +1,5 @@
 # sweph/calculations/vimsottari.py
+# output line num : lvl1-18 lvl2-91 lvl3-763 lvl4-6764 lvl5-61198
 # ruff: noqa: E402, E701
 import swisseph as swe
 import gi
@@ -9,8 +10,11 @@ from gi.repository import Gtk  # type: ignore
 
 from ui.mainpanes.panechart.chartcircles import NAKSATRAS27
 
+YEARLENGTH = 365.2425
+
 
 def dasa_years():
+    # 9 maha dasa year lengths
     return {
         "ke": 7,
         "ve": 20,
@@ -25,6 +29,7 @@ def dasa_years():
 
 
 def find_nakshatra(mo_deg):
+    # naksatra index & fraction from moon longitude
     part = 360 / 27
     idx = int(mo_deg // part) + 1
     frac = (mo_deg % part) / part
@@ -32,25 +37,50 @@ def find_nakshatra(mo_deg):
 
 
 def get_lord_seq(start_lord):
+    # get naksatra lord data
     seq = [NAKSATRAS27[i][0] for i in range(1, 10)]
     idx = seq.index(start_lord)
     return seq[idx:] + seq[:idx]
 
 
 def jd_to_date(jd):
+    # julian day to year, month, day, hour, min, sec
     y, m, d, h = swe.revjul(jd, swe.GREG_CAL)
-    hh = int(h)
-    mi = int((h - hh) * 60)
-    s = int((((h - hh) * 60) - mi) * 60)
-    return f"{y:04d}-{m:02d}-{d:02d} {hh:02d}:{mi:02d}:{s:02d}"
+    H = int(h)
+    M = int((h - H) * 60)
+    S = int((((h - H) * 60) - M) * 60)
+    return f"{y:04d}-{m:02d}-{d:02d} {H:02d}:{M:02d}:{S:02d}"
 
 
+def period_to_ymd(period):
+    # decimal period to years, months, days
+    y = int(period)
+    rem_y = period - y
+    dec_m = rem_y * 12
+    m = int(dec_m)
+    rem_m = dec_m - m
+    rem_d = rem_m * (YEARLENGTH / 12)
+    d = int(rem_d)
+    rem_h = rem_d * 24
+    H = int(rem_h)
+    if y != 0 and m == 0 and d == 0:
+        return f"{y:02} y"
+    elif y == 0 and m == 0 and d == 0:
+        return f"{H:02} h"
+    elif y == 0 and m == 0:
+        return f"{d:02d} d"
+    elif y == 0:
+        return f"{m:02d} m {d:02d} d"
+    return f"{y:02d} y {m:02d} m {d:02d} d"
+
+
+# gemini code
 def initial_dasa(mo_deg, cur_lvl=1, max_lvl=3):
-    # calculates only initial period by moon fraction already traversed
+    # 1st dasa length is fractional by moon longitude
     dy = dasa_years()
     idx, frac = find_nakshatra(mo_deg)
     result = {}
-    # Level 1 (always calculated)
+    # level 1 (always calculated)
     lvl1_lord = NAKSATRAS27[idx][0]
     lvl1_seq = get_lord_seq(lvl1_lord)
     lvl1_portion = frac
@@ -62,8 +92,7 @@ def initial_dasa(mo_deg, cur_lvl=1, max_lvl=3):
         "years": lvl1_years,
         "rem": lvl1_rem,
     }
-
-    # Level 2
+    # level 2
     if 2 <= cur_lvl <= max_lvl:
         lvl2_idx_f = frac * 9
         lvl2_idx = int(lvl2_idx_f)
@@ -79,17 +108,15 @@ def initial_dasa(mo_deg, cur_lvl=1, max_lvl=3):
             "rem": lvl2_rem,
         }
     else:
-        # Initialize default values if not calculated
         lvl2_frac = 0.0
         lvl2_seq = []
-        lvl2_lord = None  # Or a suitable default/error handling
-
-    # Level 3
+        lvl2_lord = None
+    # level 3
     if 3 <= cur_lvl <= max_lvl:
         lvl3_idx_f = lvl2_frac * 9
         lvl3_idx = int(lvl3_idx_f)
         lvl3_frac = lvl3_idx_f - lvl3_idx
-        lvl3_lord = lvl2_seq[lvl3_idx] if lvl2_seq else None  # Ensure lvl2_seq exists
+        lvl3_lord = lvl2_seq[lvl3_idx] if lvl2_seq else None
         lvl3_seq = get_lord_seq(lvl3_lord) if lvl3_lord else []
         lvl3_years = (
             result["lvl2"]["years"] * dy[lvl3_lord] / 120
@@ -107,12 +134,12 @@ def initial_dasa(mo_deg, cur_lvl=1, max_lvl=3):
         lvl3_frac = 0.0
         lvl3_seq = []
         lvl3_lord = None
-    # Level 4
+    # level 4
     if 4 <= cur_lvl <= max_lvl:
         lvl4_idx_f = lvl3_frac * 9
         lvl4_idx = int(lvl4_idx_f)
         lvl4_frac = lvl4_idx_f - lvl4_idx
-        lvl4_lord = lvl3_seq[lvl4_idx] if lvl3_seq else None  # Ensure lvl3_seq exists
+        lvl4_lord = lvl3_seq[lvl4_idx] if lvl3_seq else None
         lvl4_seq = get_lord_seq(lvl4_lord) if lvl4_lord else []
         lvl4_years = (
             result["lvl3"]["years"] * dy[lvl4_lord] / 120
@@ -130,14 +157,12 @@ def initial_dasa(mo_deg, cur_lvl=1, max_lvl=3):
         lvl4_frac = 0.0
         lvl4_seq = []
         lvl4_lord = None
-
-    # Level 5
+    # level 5
     if 5 <= cur_lvl <= max_lvl:
         lvl5_idx_f = lvl4_frac * 9
         lvl5_idx = int(lvl5_idx_f)
         lvl5_frac = lvl5_idx_f - lvl5_idx
-        lvl5_lord = lvl4_seq[lvl5_idx] if lvl4_seq else None  # Ensure lvl4_seq exists
-        # lvl5_seq = get_lord_seq(lvl5_lord) if lvl5_lord else []
+        lvl5_lord = lvl4_seq[lvl5_idx] if lvl4_seq else None
         lvl5_years = (
             result["lvl4"]["years"] * dy[lvl5_lord] / 120
             if "lvl4" in result and lvl5_lord
@@ -150,16 +175,13 @@ def initial_dasa(mo_deg, cur_lvl=1, max_lvl=3):
             "years": lvl5_years,
             "rem": lvl5_rem,
         }
-
     return result
 
 
-def vimsottari_table(mo_deg, e1_jd, e2_jd=None, current_lvl=1, max_lvl=3, lvl_indent=3):
-    # calculates periods after initial period & formats as plain text
+def vimsottari_table(mo_deg, e1_jd, e2_jd=None, current_lvl=1, max_lvl=3):
     dy = dasa_years()
-    # Pass current_lvl and max_lvl to initial_dasa()
+    # get data for initial dasa by level
     res = initial_dasa(mo_deg, cur_lvl=current_lvl, max_lvl=max_lvl)
-    print(f"res :\n{res}")
     # prepare header text
     idx, frac = find_nakshatra(mo_deg)
     nak_lord, nak_name = NAKSATRAS27[idx]
@@ -167,35 +189,42 @@ def vimsottari_table(mo_deg, e1_jd, e2_jd=None, current_lvl=1, max_lvl=3, lvl_in
     header = (
         f"\n 'v' : toggle dasas level\n"
         " level 1 & 2 : complete dasas\n"
-        " levels 3-5 : event 2 (ie current) maha dasa only\n"
+        " levels 3-5 : (current) maha dasa only > needs event 2 datetime\n"
         f"{separ}"
         f" nak {idx:02} {nak_name} {nak_lord} | traversed "
         f"{frac * 100:.2f} %\n{separ}"
+        # " lvl / lord - period in years-months-days | period start\n"
     )
-    # initial period lord
-    lvl1_lord = res["lvl1"]["lord"]
-    lvl1_seq = get_lord_seq(lvl1_lord)
-    lvl1_idx = lvl1_seq.index(lvl1_lord)
-
-    year_length = 365.2425
-    cur_jd = e1_jd
+    lvl1_lord_initial = res["lvl1"]["lord"]
+    lvl1_seq = get_lord_seq(lvl1_lord_initial)
+    lvl1_idx_initial = lvl1_seq.index(lvl1_lord_initial)
+    # year_length = 365.2425
+    cur_jd_lvl1 = e1_jd
     out = ""
-
     for l1 in range(9):
-        lord_lvl1 = lvl1_seq[(lvl1_idx + l1) % 9]
+        lord_lvl1 = lvl1_seq[(lvl1_idx_initial + l1) % 9]
         years_lvl1 = dy[lord_lvl1]
+        # Determine remaining years for the *initial* Maha Dasa, otherwise full years
         rem_years_lvl1 = res["lvl1"]["rem"] if l1 == 0 else years_lvl1
-
-        start_lvl1 = jd_to_date(cur_jd)
-        lvl1_str = f" {lord_lvl1:<2} {rem_years_lvl1:.4f} y | {start_lvl1}"
+        start_lvl1 = cur_jd_lvl1
+        end_lvl1 = cur_jd_lvl1 + rem_years_lvl1 * YEARLENGTH
+        # Flag to indicate if e2_jd falls within the current lvl1 period
+        e2_jd_inside_lvl1 = (e2_jd is not None) and (start_lvl1 <= e2_jd < end_lvl1)
+        lvl1_str = (
+            f" {lord_lvl1:<2} {jd_to_date(start_lvl1)} {period_to_ymd(rem_years_lvl1)}"
+        )
         out += lvl1_str + "\n"
-
+        # filter out level 2 if not level 1 'current' (e2jd) period
+        # if e2_jd is not None and current_lvl >= 3 and not e2_jd_inside_lvl1:
+        #     continue
+        cur_jd_lvl2 = cur_jd_lvl1  # Initialize JD for lvl2 loop
         if current_lvl >= 2:
             lvl2_seq = get_lord_seq(lord_lvl1)
+            # Determine starting index for Antardasa (lvl2)
             lvl2_idx_start = int(res["lvl1"]["portion"] * 9) if l1 == 0 else 0
-            lvl2_portion_current = res["lvl2"]["portion"] if l1 == 0 else 0.0
-            lvl2_jd = cur_jd
-
+            lvl2_portion_current = (
+                res["lvl2"]["portion"] if l1 == 0 else 0.0
+            )  # for use in lvl3 start index
             for l2 in range(lvl2_idx_start, 9):
                 lord_lvl2 = lvl2_seq[l2 % 9]
                 years_lvl2 = years_lvl1 * dy[lord_lvl2] / 120
@@ -204,19 +233,25 @@ def vimsottari_table(mo_deg, e1_jd, e2_jd=None, current_lvl=1, max_lvl=3, lvl_in
                     if l1 == 0 and l2 == lvl2_idx_start
                     else years_lvl2
                 )
-                start_lvl2 = jd_to_date(lvl2_jd)
-                lvl2_str = f" {lord_lvl2:<2} {rem_years_lvl2:.4f} y | {start_lvl2}"
+                start_lvl2 = cur_jd_lvl2
+                lvl2_str = (
+                    f" {lord_lvl2:<2} "
+                    f"{jd_to_date(start_lvl2)} "
+                    f"{period_to_ymd(rem_years_lvl2)}"
+                )
                 out += " 2 " + lvl2_str + "\n"
-
+                cur_jd_lvl3 = cur_jd_lvl2  # Initialize JD for lvl3 loop
                 if current_lvl >= 3:
+                    # skip level 3+ if e2_jd is none
+                    # if e2_jd is not None and not e2_jd_inside_lvl1:
+                    #     cur_jd_lvl3 += rem_years_lvl2 * year_length
+                    #     continue
                     lvl3_seq = get_lord_seq(lord_lvl2)
                     lvl3_idx_start = (
                         int(lvl2_portion_current * 9)
                         if l1 == 0 and l2 == lvl2_idx_start
                         else 0
                     )
-                    lvl3_jd = lvl2_jd
-
                     for l3 in range(lvl3_idx_start, 9):
                         lord_lvl3 = lvl3_seq[l3 % 9]
                         years_lvl3 = rem_years_lvl2 * dy[lord_lvl3] / 120
@@ -225,13 +260,16 @@ def vimsottari_table(mo_deg, e1_jd, e2_jd=None, current_lvl=1, max_lvl=3, lvl_in
                             if l1 == 0 and l2 == lvl2_idx_start and l3 == lvl3_idx_start
                             else years_lvl3
                         )
-                        start_lvl3 = jd_to_date(lvl3_jd)
+                        start_lvl3 = cur_jd_lvl3
                         lvl3_str = (
-                            f" {lord_lvl3:<2} {rem_years_lvl3:.4f} y | {start_lvl3}"
+                            f" {lord_lvl3:<2} "
+                            f"{jd_to_date(start_lvl3)} "
+                            f"{period_to_ymd(rem_years_lvl3)}"
                         )
-                        out += " 3     " + lvl3_str + "\n"
-                        # out += "=" * (2 * lvl_indent) + lvl3_str + "\n"
-
+                        out += " 3    " + lvl3_str + "\n"
+                        # advance jd for next lvl period
+                        # cur_jd_lvl3 += rem_years_lvl3 * year_length
+                        cur_jd_lvl4 = cur_jd_lvl3  # Initialize JD for lvl4 loop
                         if current_lvl >= 4:
                             lvl4_seq = get_lord_seq(lord_lvl3)
                             lvl4_idx_start = (
@@ -241,8 +279,6 @@ def vimsottari_table(mo_deg, e1_jd, e2_jd=None, current_lvl=1, max_lvl=3, lvl_in
                                 and l3 == lvl3_idx_start
                                 else 0
                             )
-                            lvl4_jd = lvl3_jd
-
                             for l4 in range(lvl4_idx_start, 9):
                                 lord_lvl4 = lvl4_seq[l4 % 9]
                                 years_lvl4 = rem_years_lvl3 * dy[lord_lvl4] / 120
@@ -254,14 +290,17 @@ def vimsottari_table(mo_deg, e1_jd, e2_jd=None, current_lvl=1, max_lvl=3, lvl_in
                                     and l4 == lvl4_idx_start
                                     else years_lvl4
                                 )
-                                start_lvl4 = jd_to_date(lvl4_jd)
-                                lvl4_str = f" {lord_lvl4:<2} {rem_years_lvl4:.4f} y | {start_lvl4}"
-                                out += " 4        " + lvl4_str + "\n"
-                                # out += "*" * (3 * lvl_indent) + lvl4_str + "\n"
-
+                                start_lvl4 = cur_jd_lvl4
+                                lvl4_str = (
+                                    f" {lord_lvl4:<2} "
+                                    f"{jd_to_date(start_lvl4)} "
+                                    f"{period_to_ymd(rem_years_lvl4)}"
+                                )
+                                out += " 4       " + lvl4_str + "\n"
+                                # advance jd
+                                cur_jd_lvl5 = cur_jd_lvl4  # Initialize JD for lvl5 loop
                                 if current_lvl >= 5:
                                     lvl5_seq = get_lord_seq(lord_lvl4)
-                                    # Sil1lar logic for lvl5 start index
                                     lvl5_idx_start = (
                                         int(res["lvl4"]["portion"] * 9)
                                         if l1 == 0
@@ -270,8 +309,6 @@ def vimsottari_table(mo_deg, e1_jd, e2_jd=None, current_lvl=1, max_lvl=3, lvl_in
                                         and l4 == lvl4_idx_start
                                         else 0
                                     )
-                                    lvl5_jd = lvl4_jd
-
                                     for l5 in range(lvl5_idx_start, 9):
                                         lord_lvl5 = lvl5_seq[l5 % 9]
                                         years_lvl5 = (
@@ -286,14 +323,18 @@ def vimsottari_table(mo_deg, e1_jd, e2_jd=None, current_lvl=1, max_lvl=3, lvl_in
                                             and l5 == lvl5_idx_start
                                             else years_lvl5
                                         )
-                                        start_lvl5 = jd_to_date(lvl5_jd)
-                                        lvl5_str = f" {lord_lvl5:<2} {rem_years_lvl5:.4f} y | {start_lvl5}"
-                                        out += " " * (4 * lvl_indent) + lvl5_str + "\n"
-                                        lvl5_jd += rem_years_lvl5 * year_length
-                                lvl4_jd += rem_years_lvl4 * year_length
-                        lvl3_jd += rem_years_lvl3 * year_length
-                lvl2_jd += rem_years_lvl2 * year_length
-        cur_jd += rem_years_lvl1 * year_length
+                                        start_lvl5 = cur_jd_lvl5
+                                        lvl5_str = (
+                                            f" {lord_lvl5:<2} "
+                                            f"{jd_to_date(start_lvl5)} "
+                                            f"{period_to_ymd(rem_years_lvl5)}"
+                                        )
+                                        out += "            " + lvl5_str + "\n"
+                                        cur_jd_lvl5 += rem_years_lvl5 * YEARLENGTH
+                                cur_jd_lvl4 += rem_years_lvl4 * YEARLENGTH
+                        cur_jd_lvl3 += rem_years_lvl3 * YEARLENGTH
+                cur_jd_lvl2 += rem_years_lvl2 * YEARLENGTH
+        cur_jd_lvl1 += rem_years_lvl1 * YEARLENGTH
     return header + out.rstrip()
 
 
@@ -316,6 +357,7 @@ def calculate_vimsottari(event: str):
         msg += "e2 detected : todo what ???\n"
     # get data
     e1_lumies = getattr(app, "e1_lumies", None)
+    e1_jd = None
     mo_lon = 0.0
     if e1_lumies:
         e1_jd = e1_lumies.get("jd_ut")
@@ -327,8 +369,8 @@ def calculate_vimsottari(event: str):
                 # msg += f"mo : {mo_lon:7.3f}\n"
                 break
     e2_jd = app.e2_lumies.get("jd_ut") if hasattr(app, "e2_lumies") else None
-    # if not e2_jd:
-    #     msg += "no e2jd"
+    if not e2_jd:
+        msg += "no e2jd\n"
     # msg += (
     #     f"vimso data :\n"
     #     f"lums : {e1_lumies}\n"
@@ -351,7 +393,7 @@ def calculate_vimsottari(event: str):
     #         "event 2 datetime required for levels 3-5 : reseting to level 1",
     #         source="vimsottari",
     #         route=["terminal", "user"],
-    #         timeout=2,
+    #         timeout=4,
     #     )
     #     app.current_lvl = current_lvl = 1
     max_lvl = 5
@@ -362,7 +404,6 @@ def calculate_vimsottari(event: str):
         e2_jd=e2_jd,
         current_lvl=current_lvl,
         max_lvl=max_lvl,
-        lvl_indent=3,
     )
     # msg += f"dasas :\n{str(event_dasas)[:800]}"
     app.signal_manager._emit("vimsottari_changed", event, event_dasas)
