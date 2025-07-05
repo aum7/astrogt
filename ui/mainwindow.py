@@ -64,8 +64,8 @@ class MainWindow(
         self.tables2 = Tables()
         self.datagraph = DataGraph()
         self.init_panes()
-        # initialize panes layout
-        # self.connect("realize", lambda w: self.panes_double())
+        # initialize panes layout todo ko
+        self.connect("realize", lambda w: self.panes_double())
 
     def close_request(self, window) -> bool:
         # print("mainwindow : close_request called : quiting app ...")
@@ -210,14 +210,6 @@ class MainWindow(
             self.pnd_main_v.set_position(0)
             self.pnd_btm_h.set_position(0)
 
-    # panes show 2
-    def panes_double(self) -> None:
-        """show & center bottom 2 panes (hide top 2)
-        shift+double-click / shift+2"""
-        if hasattr(self, "pnd_main_v") and hasattr(self, "pnd_btm_h"):
-            self.pnd_main_v.set_position(0)
-            self.pnd_btm_h.set_position(self.pnd_btm_h.get_width() // 2)
-
     # panes show 3
     def panes_triple(self) -> None:
         """show & center top single & bottom 2 panes
@@ -242,4 +234,12 @@ class MainWindow(
         ):
             self.pnd_main_v.set_position(self.pnd_main_v.get_height() // 2)
             self.pnd_top_h.set_position(self.pnd_top_h.get_width() // 2)
+            self.pnd_btm_h.set_position(self.pnd_btm_h.get_width() // 2)
+
+    # panes show 2
+    def panes_double(self) -> None:
+        """show & center bottom 2 panes (hide top 2)
+        shift+double-click / shift+2"""
+        if hasattr(self, "pnd_main_v") and hasattr(self, "pnd_btm_h"):
+            self.pnd_main_v.set_position(0)
             self.pnd_btm_h.set_position(self.pnd_btm_h.get_width() // 2)
