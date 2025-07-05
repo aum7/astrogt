@@ -74,7 +74,7 @@ def period_to_ymd(period):
 
 
 def initial_dasa(mo_deg, cur_lvl=1, max_lvl=3):
-    # 1st dasa length is fractional by moon longitude
+    # calculate 1st dasa length : fractional by moon longitude
     dy = dasa_years()
     idx, frac = find_nakshatra(mo_deg)
     result = {}
@@ -251,6 +251,7 @@ def find_current_dasa_lords(mo_deg, e1_jd, e2_jd, current_lvl):
 
 
 def vimsottari_table(mo_deg, e1_jd, e2_jd=None, current_lvl=1, max_lvl=3):
+    # calculate rest of periods, prepare table as plain text
     dy = dasa_years()
     # get data for initial dasa by level
     res = initial_dasa(mo_deg, cur_lvl=current_lvl, max_lvl=max_lvl)
@@ -445,13 +446,10 @@ def calculate_vimsottari(event: str):
         return
     # global e2_jd
     e2_jd = app.e2_lumies.get("jd_ut") if hasattr(app, "e2_lumies") else None
-
     # skip e2 calculations for vimsottari dasas
-
     if event == "e2":
-        msg += f"{e2_cleared(event)}"
         msg += "e2 detected\n"
-
+        msg += f"{e2_cleared(event)}"
     # get data
     e1_lumies = getattr(app, "e1_lumies", None)
     e1_jd = None

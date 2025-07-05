@@ -60,10 +60,12 @@ class AstroChart(Gtk.Box):
         self.drawing_area.queue_draw()
         # print(f"astrochart : {event} positions changed")
 
-    def houses_changed(self, event, houses):
+    def houses_changed(self, event):
         if event == "e1":
             try:
-                cusps, ascmc = houses
+                houses = getattr(self.app, "e1_houses", None)
+                if houses:
+                    cusps, ascmc = houses
             except Exception as e:
                 self.notify(
                     f"invalid houses data\n\terror :\n\t{e}",

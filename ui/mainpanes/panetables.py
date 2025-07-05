@@ -7,6 +7,7 @@ from gi.repository import Gtk  # type: ignore
 from typing import Tuple
 from swisseph import contrib as swh
 from ui.fonts.glyphs import SIGNS
+from ui.helpers import _decimal_to_ra as decra
 from user.settings import HOUSE_SYSTEMS
 
 
@@ -66,7 +67,7 @@ class Tables(Gtk.Notebook):
         self.append_page(scroll, Gtk.Label.new(event))
         self.page_widgets[event] = scroll
 
-    def positions_changed(self, event):
+    def positions_changed(self, event: str):
         # update event with positions data
         if event not in self.events_data:
             self.events_data[event] = {"positions": None}
@@ -80,20 +81,29 @@ class Tables(Gtk.Notebook):
             )
         self.update_event_data(event)
 
-    def houses_changed(self, event: str, houses: tuple):
+    def houses_changed(self, event: str):
         # store houses data and update if positions already exist
         if event not in self.events_data:
             self.events_data[event] = {"houses": None}
-        self.events_data[event]["houses"] = houses
+        if event == "e1":
+            self.events_data[event]["houses"] = (
+                self.app.e1_houses if hasattr(self.app, "e1_houses") else None
+            )
+        elif event == "e2":
+            self.events_data[event]["houses"] = (
+                self.app.e2_houses if hasattr(self.app, "e2_houses") else None
+            )
         self.update_event_data(event)
 
     def aspects_changed(self, event, aspects):
+        # todo only 1 set of aspects : event 1
         if event not in self.events_data:
             self.events_data[event] = {"aspects": None}
         self.events_data[event]["aspects"] = aspects
         self.update_event_data(event)
 
     def vimsottari_changed(self, event, vimsottari):
+        # receives table as plain text
         if event not in self.events_data:
             self.events_data[event] = {"vimsottari": None}
         self.events_data[event]["vimsottari"] = vimsottari
@@ -154,6 +164,7 @@ class Tables(Gtk.Notebook):
         if ascmc:
             self.ascendant = ascmc[0]
             self.midheaven = ascmc[1]
+            self.armc = ascmc[2]
         # build header string with house column added
         header = (
             f" positions {self.h_sym * 29}\n"
@@ -185,22 +196,24 @@ class Tables(Gtk.Notebook):
                     selected = self.app.selected_house_sys_str
             else:
                 selected = ""
-            conversion = None
+            hsys_char = None
             for sys in HOUSE_SYSTEMS:
                 if sys[2] == selected.lower():
-                    conversion = sys[0]
+                    hsys_char = sys[0]
                     break
             else:
                 selected = ""
-                conversion = None
+                hsys_char = None
             ln_csps = ""
-            if conversion in ["E", "D", "W"]:
+            raH, raM, raS = decra(self.armc)
+            if hsys_char in ["E", "D", "W"]:
                 # print(f"selected_hsys : {self.app.selected_house_sys_str}")
                 # if selected in ["eqa", "eqm", "whs"]:
                 ln_csps += (
                     f" cross points {self.h_sym * 3}\n"
                     f" {self.asc} :  {self.format_dms(self.ascendant)}\n"
                     f" {self.mc} :  {self.format_dms(self.midheaven)}\n"
+                    f" ra : {int(raH):02d}h{int(raM):02d}m{int(raS):02d}s\n"
                 )
             else:
                 ln_csps += f" houses {self.h_sym * 7}\n"
@@ -211,6 +224,7 @@ class Tables(Gtk.Notebook):
                     f" cross points {self.h_sym * 3}\n"
                     f" {self.asc} :  {self.format_dms(self.ascendant)}\n"
                     f" {self.mc} :  {self.format_dms(self.midheaven)}\n"
+                    f" armc :  {decra(self.armc)}\n"
                 )
             ln_csps += separ
             content += ln_csps

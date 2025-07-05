@@ -19,6 +19,7 @@ from sweph.calculations.houses import connect_signals_houses
 from sweph.calculations.stars import connect_signals_stars
 from sweph.calculations.aspects import connect_signals_aspects
 from sweph.calculations.vimsottari import connect_signals_vimsottari
+from sweph.calculations.progressions import connect_signals_progressions
 
 
 class MainWindow(
@@ -58,6 +59,7 @@ class MainWindow(
         connect_signals_stars(self.app.signal_manager)
         connect_signals_aspects(self.app.signal_manager)
         connect_signals_vimsottari(self.app.signal_manager)
+        connect_signals_progressions(self.app.signal_manager)
         # 4 main panes
         self.astro_chart = AstroChart()
         self.tables = Tables()

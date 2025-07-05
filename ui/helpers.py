@@ -81,7 +81,17 @@ def _decimal_to_dms(decimal):
 
 def _decimal_to_hms(decimal):
     """convert decimal hour to hour"""
-    h = int(decimal)
-    m = int((decimal - h) * 60)
-    s = int((decimal - h - m / 60) * 3600)
-    return h, m, s
+    H = int(decimal)
+    M = int((decimal - H) * 60)
+    S = int((decimal - H - M / 60) * 3600)
+    return H, M, S
+
+
+def _decimal_to_ra(decimal):
+    # convert circle degrees into right ascension h-m-s
+    hour = decimal / 15.0
+    H = int(hour)
+    minute = (hour - H) * 60
+    M = int(minute)
+    S = int(round((minute - M) * 60))
+    return H, M, S

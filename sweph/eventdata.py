@@ -46,14 +46,17 @@ class EventData:
         self.old_name = ""
         self.old_date_time = ""
         self.old_location = ""
-        # separate data by event
+        # separate data : event 1
         self.app.e1_sweph = {}
         self.app.e1_chart = {}
         self.app.e1_positions = {}
+        self.app.e1_houses = {}
         self.app.e1_lumies = {}
+        # event 2
         self.app.e2_sweph = {}
         self.app.e2_chart = {}
         self.app.e2_positions = {}
+        self.app.e2_houses = {}
         self.app.e2_lumies = {}
         # connect signals for entry completion
         for widget, callback in [
