@@ -24,7 +24,7 @@ def calculate_houses(event: str):
         events.remove("e2")
     for event in events:
         sweph = app.e1_sweph if event == "e1" else app.e2_sweph
-        hsys = app.selected_house_system
+        hsys = app.selected_house_sys
         # sweph_flag = app.sweph_flag
         jd_ut = sweph.get("jd_ut")
         msg += (

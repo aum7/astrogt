@@ -44,6 +44,7 @@ def setup_settings(manager) -> CollapsePanel:
     # convert flags to integer
     app.sweph_flag = sum(manager.SWEPH_FLAG_MAP[k] for k, v in SWE_FLAG.items() if v[0])
     app.is_sidereal = "sidereal zodiac" in app.selected_flags
+    app.is_topocentric = "topocentric" in app.selected_flags
     # main panel for settings
     clp_settings = CollapsePanel(
         title="settings",
@@ -138,7 +139,7 @@ event 1 & 2 can have different objects"""
     default_housesys = 0
     ddn_housesys.set_selected(default_housesys)
     hsys, _, short_name = HOUSE_SYSTEMS[default_housesys]
-    manager.app.selected_house_system = hsys
+    manager.app.selected_house_sys = hsys  # str
     manager.app.selected_house_sys_str = short_name
     ddn_housesys.connect("notify::selected", house_system_changed, manager)
     subpnl_housesys.add_widget(ddn_housesys)
@@ -710,14 +711,12 @@ def house_system_changed(dropdown, _, manager):
     """house system panel : dropdown selection"""
     idx = dropdown.get_selected()
     hsys, _, short_name = HOUSE_SYSTEMS[idx]
-    manager.app.selected_house_system = hsys
+    manager.app.selected_house_sys = hsys
     manager.app.selected_house_sys_str = short_name
-    # calculate_positions(event=None)
-    # calculate_houses(event=None)
     # todo switched from direct call to calculate_positions()
     manager.signal._emit("settings_changed", None)
     manager.notify.debug(
-        f"selectedhousesystem : {manager.app.selected_house_system}"
+        f"selectedhousesystem : {manager.app.selected_house_sys}"
         f"\t{manager.app.selected_house_sys_str}",
         source="panelsettings",
         route=["terminal"],

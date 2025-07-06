@@ -3,8 +3,9 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
-from typing import Optional
+from typing import Optional, Tuple
 from math import modf
+from user.settings import OBJECTS
 
 
 def _buttons_from_dict(
@@ -68,7 +69,7 @@ def _event_selection(manager, gesture, n_press, x, y, event_name):
         )
 
 
-def _decimal_to_dms(decimal):
+def _decimal_to_dms(decimal: float):
     """convert decimal number to degree-minute-second"""
     min_, deg_ = modf(decimal)
     sec_, _ = modf(min_ * 60)
@@ -79,7 +80,7 @@ def _decimal_to_dms(decimal):
     return deg, min, sec
 
 
-def _decimal_to_hms(decimal):
+def _decimal_to_hms(decimal: float):
     """convert decimal hour to hour"""
     H = int(decimal)
     M = int((decimal - H) * 60)
@@ -87,7 +88,7 @@ def _decimal_to_hms(decimal):
     return H, M, S
 
 
-def _decimal_to_ra(decimal):
+def _decimal_to_ra(decimal: float):
     # convert circle degrees into right ascension h-m-s
     hour = decimal / 15.0
     H = int(hour)
@@ -95,3 +96,17 @@ def _decimal_to_ra(decimal):
     M = int(minute)
     S = int(round((minute - M) * 60))
     return H, M, S
+
+
+def _object_name_to_code(name: str, use_mean_node: bool) -> Tuple[Optional[int], str]:
+    """get object name as int"""
+    if name == "true node" and use_mean_node:
+        name = "mean node"
+    for code, obj in OBJECTS.items():
+        if obj[1] == name:
+            # return int & short name
+            return code, obj[0]
+    if name == "mean node":
+        # return mean node int & same short name as true node
+        return 10, "ra"
+    return None, ""

@@ -5,8 +5,9 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
-from typing import List, Optional, Tuple
-from user.settings import OBJECTS
+from typing import List, Optional
+from ui.helpers import _object_name_to_code as objcode
+# from user.settings import OBJECTS
 
 
 def calculate_positions(event: Optional[str] = None) -> None:
@@ -40,7 +41,9 @@ def calculate_positions(event: Optional[str] = None) -> None:
         # swe.calc_ut() with topocentric flag needs topographic location
         if (
             app.selected_flags
-            and "topocentric" in app.selected_flags
+            and app.is_topocentric
+            # todo changed to stored value
+            # and "topocentric" in app.selected_flags
             and all(k in sweph for k in ("lon", "lat", "alt"))
         ):
             # coordinates are reversed here : lon lat alt
@@ -54,7 +57,7 @@ def calculate_positions(event: Optional[str] = None) -> None:
         # clear previous positions
         positions = {}
         for obj in objs:
-            code, name = object_name_to_code(obj, use_mean_node)
+            code, name = objcode(obj, use_mean_node)
             if code is None:
                 continue
             # calc_ut() returns array of 6 floats [0] + error string [1]:
@@ -74,7 +77,7 @@ def calculate_positions(event: Optional[str] = None) -> None:
                 }
             except swe.Error as e:
                 notify.error(
-                    f"swe.calc_ut() failed for : {event}\n\tdata {positions[code]}\n\tswe error :\n\t{e}",
+                    f"positions calculation failed for : {event}\n\tdata {positions[code]}\n\tswe error :\n\t{e}",
                     source="positions",
                     route=["terminal"],
                 )
@@ -101,7 +104,7 @@ def calculate_positions(event: Optional[str] = None) -> None:
         luminaries["event"] = event
         luminaries["jd_ut"] = jd_ut
         for lumine in ("sun", "moon"):
-            code, name = object_name_to_code(lumine, False)
+            code, name = objcode(lumine, False)
             if code is None:
                 continue
             try:
@@ -135,18 +138,18 @@ def calculate_positions(event: Optional[str] = None) -> None:
     return
 
 
-def object_name_to_code(name: str, use_mean_node: bool) -> Tuple[Optional[int], str]:
-    """get object name as int"""
-    if name == "true node" and use_mean_node:
-        name = "mean node"
-    for code, obj in OBJECTS.items():
-        if obj[1] == name:
-            # return int & short name
-            return code, obj[0]
-    if name == "mean node":
-        # return mean node int & same short name as true node
-        return 10, "ra"
-    return None, ""
+# def object_name_to_code(name: str, use_mean_node: bool) -> Tuple[Optional[int], str]:
+#     """get object name as int"""
+#     if name == "true node" and use_mean_node:
+#         name = "mean node"
+#     for code, obj in OBJECTS.items():
+#         if obj[1] == name:
+#             # return int & short name
+#             return code, obj[0]
+#     if name == "mean node":
+#         # return mean node int & same short name as true node
+#         return 10, "ra"
+#     return None, ""
 
 
 def connect_signals_positions(signal_manager):
