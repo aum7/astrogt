@@ -83,8 +83,8 @@ if checked also select ayanamsa below""",
 # below are most popular 7 out of 24+; arrange line up or down as you please
 # top line is default choice
 HOUSE_SYSTEMS = [
-    ("E", "eqa : equal asc", "eqa"),
     ("B", "alc : alcabitus", "alc"),  # gansten : close to porphyry
+    ("E", "eqa : equal asc", "eqa"),
     ("O", "prp : porphyry", "prp"),
     ("D", "eqm : equal mc", "eqm"),
     ("P", "plc : placidus", "plc"),
@@ -115,7 +115,7 @@ CHART_SETTINGS = {
     ),
     # --- naksatras MEGA-ring ! lol
     "naksatras ring": (
-        True,
+        False,
         """show naksatras ring
 1  asv\t2  bha\t3  krt
 4  roh\t5  mrg\t6  ard
@@ -149,7 +149,7 @@ CHART_SETTINGS = {
     # add them if you need them | 2 rings are possible
     # !!! those are simple divisions, similar but NOT all equal to varga
     "harmonics ring": (
-        "9",
+        "1",
         "harmonics ring\nempty : do NOT show | 1 : egypt. terms (bounds)\n7, 9, 11 : simple harmonics *similar* to varga",
         # "harmonics ring\nempty : do NOT show | 1 : egypt. terms (bounds)\n7, 9, 11 : simple harmonics *similar* to varga\n2 rings possible ie [1 9] will show terms & navamsa",
     ),
@@ -218,8 +218,8 @@ LUNAR_MONTH = {
 # also arrange order as you please > move line up / down & save file
 # top line is default choice
 AYANAMSA = {
-    17: ("Galact. Center 0 Sag", "glc (17)"),  # SIDM_GALCENT_0SAG
     45: ("Krishnamurti-Senthilathiban", "kms (45)"),  # SIDM_KRISHNAMURTI_VP291
+    17: ("Galact. Center 0 Sag", "glc (17)"),  # SIDM_GALCENT_0SAG
     # 0: ("Fagan/Bradley", "fbr (00)"),  # SIDM_FAGAN_BRADLEY
     # 1: ("Lahiri 1", "lhr (01)"),  # SIDM_LAHIRI
     # 2: ("De Luce", "dlc (02)"),  # SIDM_DELUCE

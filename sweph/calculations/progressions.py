@@ -1,5 +1,6 @@
 # sweph/calculations/progressions.py
 # ruff: noqa: E402, E701
+import math
 import swisseph as swe
 import gi
 
@@ -13,69 +14,115 @@ def calculate_p1(event: str):
     app = Gtk.Application.get_default()
     notify = app.notify_manager
     msg = f"event {event}\n"
-    # event 1 data is mandatory : natal / event chart
+    # event 1 & 2 data is mandatory : natal / event & progression chart
     # check against lumies since e1_sweph can have 0 objects (user-selectable)
     if not app.e1_lumies.get("jd_ut") or not app.e2_lumies.get("jd_ut"):
         notify.error(
             "missing event 1 or 2 data needed for progressions : exiting ...",
             source="progressions",
             route=["terminal", "user"],
+            timeout=1,
         )
         return
-    # sidereal flag is detected on settings change & stored application-wide
-    # FLG_SIDEREAL vs FLG_TROPICAL (default)
-    is_sidereal = getattr(app, "is_sidereal", False)
-    is_topocentric = getattr(app, "is_topocentric", False)
-    use_mean_node = (
-        app.chart_settings["mean node"] if hasattr(app, "chart_settings") else False
-    )
-    # need tropical equatorial houses for p1
     h_sys = (
         app.selected_house_sys.encode("ascii")
         if hasattr(app, "selected_house_sys")
-        else None  # "B".encode("ascii")  # alcabitus
+        else "B".encode("ascii")  # alcabitus : gansten todo correct ???
     )
-    # initialize needed data
-    e1_armc = 0.0
-    # gather e1 data : luminaries are mandatory - e1/2_positions can be empty
-    if event == "e1":
-        msg += "e1 detected\n"
-        e1_sweph = app.e1_sweph if hasattr(app, "e1_sweph") else None
-        if e1_sweph:
-            e1_jd = e1_sweph.get("jd_ut")
-            e1_lat = e1_sweph.get("lat")
-            e1_lon = e1_sweph.get("lon")
-        e1_houses_ra = swe.houses(e1_jd, e1_lat, e1_lon, h_sys)
-        e1_armc = e1_houses_ra[1][2]
-        # get true obliquity of ecliptic
-        # flagret = swe_calc_ut(tjd_ut, swe.ECL_NUT)[x] > filled by :
-        # x[0] = true obliquity of the Ecliptic (includes nutation)
-        # x[1] = mean obliquity of the Ecliptic
-        # x[2] = nutation in longitude
-        # x[3] = nutation in obliquity
-        # x[4] = x[5] = 0
-        e1_ecl = swe.calc_ut(e1_jd, swe.ECL_NUT)[0]
-        e1_obliquity = e1_ecl[0]
-        # msg += (
-        #     f"e1armc : {e1_armc}\ne1ecl(nut) : {e1_ecl}\ne1obliquity : {e1_obliquity}\n"
-        # )
+    # gather e1 data
+    msg += "running e1 data collection\n"
+    e1_sweph = app.e1_sweph if hasattr(app, "e1_sweph") else None
+    if e1_sweph:
+        e1_jd = e1_sweph.get("jd_ut")
+        e1_lat = e1_sweph.get("lat")
+        e1_lon = e1_sweph.get("lon")
+    # need tropical houses for p1
+    e1_houses_ra = swe.houses(e1_jd, e1_lat, e1_lon, h_sys)
+    e1_asc = e1_houses_ra[1][0]  # ascmc[0]
+    e1_mc = e1_houses_ra[1][1]  # ascmc[1]
+    e1_armc = e1_houses_ra[1][2]  # ascmc[2]
+    # get true obliquity of ecliptic
+    # flagret = swe_calc_ut(tjd_ut, swe.ECL_NUT)[x] > returns :
+    # x[0] = true obliquity of the Ecliptic (includes nutation)
+    # x[1] = mean obliquity of the Ecliptic
+    # x[2] = nutation in longitude
+    # x[3] = nutation in obliquity
+    e1_ecl = swe.calc_ut(e1_jd, swe.ECL_NUT)[0]
+    e1_obliquity0 = e1_ecl[0]
+    # todo leave it
+    # e1_obliquity1 = e1_ecl[1]
+    msg += (
+        # f"e1housesra : {e1_houses_ra}\n"
+        f"e1armc : {e1_armc}\n"
+        # f"e1ecl(nut) : {e1_ecl}\n"
+        f"e1obliquity0 [true] : {e1_obliquity0}\n"
+        # f"e1obliquity1 [mean] : {e1_obliquity1}\n"
+    )
+    # calculate tropical positions : valid for both zodiacs : prepare custom flag
+    flag = swe.FLG_SWIEPH | swe.FLG_SPEED | swe.FLG_EQUATORIAL
+    is_topocentric = getattr(app, "is_topocentric", False)
+    use_true_pos = getattr(app, "use_true_pos", False)
+    # add flag if topocentric positions are wanted
+    if is_topocentric:
+        flag |= swe.FLG_TOPOCTR
+    if use_true_pos:
+        flag |= swe.FLG_TRUEPOS
+    use_mean_node = (
+        app.chart_settings["mean node"] if hasattr(app, "chart_settings") else False
+    )
+    msg += (
+        f"topocentric : {is_topocentric}\nusetruepos : {use_true_pos}\nflag : {flag}\n"
+    )
+    e1_lat_rad = math.radians(e1_lat)
+    # natal objects positions
+    e1_pos_p1 = {}
+    e1_sel_objs = getattr(app, "selected_objects_e1", None)
+    if e1_jd and e1_sel_objs:
+        for obj in e1_sel_objs:
+            code, name = objcode(obj, use_mean_node)
+            if code is None:
+                continue
+            try:
+                result = swe.calc_ut(e1_jd, code, flag)
+                data = result[0] if isinstance(result, tuple) else result
+                ra = data[0]
+                decl = data[1]
+                md = swe.difdeg2n(ra, e1_armc)
+                decl_rad = math.radians(decl)
+                ad_rad = math.asin(math.tan(decl_rad) * math.tan(e1_lat_rad))
+                ad = math.degrees(ad_rad)
+                pole = math.degrees(
+                    math.atan(math.tan(decl_rad) / math.sin(math.radians(md)))
+                )
+                zpp = swe.degnorm(
+                    e1_mc
+                    + math.degrees(
+                        math.atan(
+                            math.cos(math.radians(pole)) * math.tan(math.radians(md))
+                        )
+                    )
+                )
+                e1_pos_p1[code] = {
+                    "name": name,
+                    "pole": pole,
+                    "zpp": zpp,
+                }
+            except (swe.Error, ValueError) as e:
+                notify.error(
+                    f"tropical positions calculation failed for [e1] : {event}\n\tdata {name}\n\tswe error :\n\t{e}",
+                    source="progressions",
+                    route=["terminal"],
+                )
+        msg += f"e1posp1 :\n\t{e1_pos_p1}\n"
     if event == "e2":
         msg += "e2 detected\n"
-        msg += f"{e2_cleared(event)}"
+        # msg += f"{e2_cleared(event)}"
         # gather e2 data
         e2_jd = app.e2_lumies.get("jd_ut")
         # objects list from sidepane > settings > objects panel
         e2_sel_objs = getattr(app, "selected_objects_e2", None)
         # msg += f"e2jd : {e2_jd}\ne2selobjs : {e2_sel_objs}\n"
-        # calculate tropical positions : valid for both zodiacs : prepare custom flag
-        flag = swe.FLG_SWIEPH | swe.FLG_SPEED | swe.FLG_EQUATORIAL
-        # add flag if topocentric positions are wanted
-        if is_topocentric:
-            flag |= swe.FLG_TOPOCTR
-        # msg += (
-        #     f"sidereal : {is_sidereal}\ntopocentric : {is_topocentric}\nflag : {flag}\n"
-        # )
-        e2_pos_ra = {}
+        e2_pos_p1 = {}
         if e2_jd and e2_sel_objs and flag:
             for obj in e2_sel_objs:
                 code, name = objcode(obj, use_mean_node)
@@ -88,35 +135,117 @@ def calculate_p1(event: str):
                     # msg += f"ra positions with speeds & flag used : {result}"
                     data = result[0] if isinstance(result, tuple) else result
                     # meridian distance from midheaven todo ???
-                    md = data[0] - e1_armc
+                    # md_orig = data[0] - e1_armc
                     # md = swe.degnorm(data[0] - e1_armc)
-                    e2_pos_ra[code] = {
+                    md = swe.difdeg2n(data[0], e1_armc)
+                    # ascensional difference (ad)
+                    decl_rad = math.radians(data[1])
+                    lat_rad = math.radians(e1_lat)
+                    ad_rad = math.asin(math.tan(decl_rad) * math.tan(lat_rad))
+                    ad = math.degrees(ad_rad)
+                    # oblique ascension / descension
+                    oa = swe.degnorm(data[0] - ad)
+                    od = swe.degnorm(data[0] + ad)
+                    # direction arc to ascendant
+                    arc_asc = swe.difdeg2n(oa, e1_asc)
+                    # arc to descendant
+                    arc_dsc = swe.difdeg2n(od, e1_asc)
+                    # zodiacal ptolemaic positon (zpp)
+                    pole = math.degrees(
+                        math.atan(math.tan(decl_rad) / math.sin(math.radians(md)))
+                    )
+                    zpp = swe.degnorm(
+                        e1_mc
+                        + math.degrees(
+                            math.atan(
+                                math.cos(math.radians(pole))
+                                * math.tan(math.radians(md))
+                            )
+                        )
+                    )
+                    e2_pos_p1[code] = {
                         "name": name,
                         "ra": data[0],
                         "decl": data[1],
+                        "md": md,
+                        "ad": ad,
+                        "oa": oa,
+                        "od": od,
+                        "arc_asc": arc_asc,
+                        "arc_dsc": arc_dsc,
+                        "pole": pole,
+                        "zpp": zpp,
                         # "dist": data[2],
-                        "ra speed": data[3],
+                        # "ra speed": data[3], # might be needed
                         # "decl speed": data[4],
                         # "dist speed": data[5],
-                        "md": md,
                     }
+                    # msg += f"{name} md [original] : {md_orig}\n"
+                    msg += (
+                        f"{name}\n   md [mod] : {md}\n"
+                        # f"   ascdiff : {ad}\n"
+                        # f"   oblasc : {oa}\n   obldsc : {od}\n"
+                        # f"   arcasc : {arc_asc}\n   arcdsc : {arc_dsc}\n"
+                        f"   pole : {pole}\n   zpp : {zpp}\n"
+                    )
                 except swe.Error as e:
                     notify.error(
-                        f"tropical positions calculation failed for : {event}\n\tdata {e2_pos_ra[code]}\n\tswe error :\n\t{e}",
+                        f"tropical positions calculation failed for : {event}\n\tdata {name}\n\tswe error :\n\t{e}",
                         source="progressions",
                         route=["terminal"],
                     )
-        msg += f"e2selobjra :\n\t{e2_pos_ra}\n"
-        # add / remove ayanamsa from tropical positions
-        e2_pos_sid = {}
-        if e2_pos_ra and is_sidereal:
-            # get ayanamsa value
-            cur_ayanamsa = swe.get_ayanamsa_ex_ut(e2_jd, flag)[1] if e2_jd else None
-            # msg += f"curayan : {cur_ayanamsa}\n"
+            msg += f"e2posp1 :\n\t{e2_pos_p1}\n"
+        # calculate final direction arcs between event 1 & 2
+        directions = {}
+        for e2_code, e2_obj in e2_pos_p1.items():
+            e2_name = e2_obj["name"]
+            directions[e2_name] = {}
+            # mundane directions
+            directions[e2_name]["mc"] = {
+                "direct": e2_obj["md"],
+                "converse": -e2_obj["md"],
+            }
+            directions[e2_name]["asc"] = {
+                "direct": e2_obj["arc_asc"],
+                "converse": -e2_obj["arc_asc"],
+            }
+            directions[e2_name]["dsc"] = {
+                "direct": e2_obj["arc_dsc"],
+                "converse": -e2_obj["arc_dsc"],
+            }
+            # directions[e2_code] = {}
+            for e1_code, e1_obj in e1_pos_p1.items():
+                if e2_code == e1_code:
+                    continue  # skip same object
+                # pole_e2 = e2_obj["pole"]
+                # pole_e1 = e1_obj["pole"]
+                e1_name = e1_obj["name"]
+                zpp_e2 = e2_obj["zpp"]
+                zpp_e1 = e1_obj["zpp"]
+                # direct zodiacal direction
+                arc_dire = swe.difdeg2n(zpp_e2, zpp_e1)
+                # converse direction
+                # arc_conv = swe.difdeg2n(zpp_e1, zpp_e2)
+                directions[e2_name][e1_name] = {
+                    "direct": arc_dire,
+                    "converse": -arc_dire,
+                }
+        msg += f"directions :\n\t{directions}\n"
+        # global store todo need ???
+        app.p1_directions = directions
+        # store zpp positions for chart drawing
+        app.p1_positions = e2_pos_p1
+        # sidereal flag is detected on settings change & stored application-wide
+        # FLG_SIDEREAL vs FLG_TROPICAL (default)
+        if getattr(app, "is_sidereal", False) and e2_jd:
+            # apply ayanamsa to tropical positions
+            cur_ayanamsa = swe.get_ayanamsa_ut(e2_jd)
+            # cur_ayanamsa = swe.get_ayanamsa_ex_ut(e2_jd, flag)[1] if e2_jd else None
+            msg += f"curayan : {cur_ayanamsa}\n"
             # convert tropical to sidereal
-            e2_pos_sid = ra_to_sidereal(e2_pos_ra, cur_ayanamsa)
-        # msg += f"possidereal : {e2_pos_sid}\n"
-    # app.signal_manager._emit("progressions_changed", event)
+            app.p1_positions = ra_to_sidereal(e2_pos_p1, cur_ayanamsa)
+            msg += f"possidereal :\n\t{app.p1_positions}\n"
+    # app.signal_manager._emit("p1_changed", event)
     notify.debug(
         msg,
         source="progressions",
@@ -125,7 +254,16 @@ def calculate_p1(event: str):
 
 
 def ra_to_sidereal(positions, ayanamsa):
-    print(f"trotosid : {positions}")
+    # convert zpp tropical positions to sidereal
+    sid_pos = {}
+    for code, data in positions.items():
+        # avoid modifying original dict
+        sid_data = data.copy()
+        # subtract ayanamsa & normalize
+        sid_data["zpp"] = swe.degnorm(data["zpp"] - ayanamsa)
+        sid_pos[code] = sid_data
+    print(f"ratosid : {sid_pos}")
+    return sid_pos
 
 
 def e2_cleared(event):

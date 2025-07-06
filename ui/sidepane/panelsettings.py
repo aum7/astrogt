@@ -45,6 +45,7 @@ def setup_settings(manager) -> CollapsePanel:
     app.sweph_flag = sum(manager.SWEPH_FLAG_MAP[k] for k, v in SWE_FLAG.items() if v[0])
     app.is_sidereal = "sidereal zodiac" in app.selected_flags
     app.is_topocentric = "topocentric" in app.selected_flags
+    app.use_true_pos = "true positions" in app.selected_flags
     # main panel for settings
     clp_settings = CollapsePanel(
         title="settings",

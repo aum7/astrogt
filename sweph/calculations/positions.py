@@ -7,7 +7,6 @@ gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from typing import List, Optional
 from ui.helpers import _object_name_to_code as objcode
-# from user.settings import OBJECTS
 
 
 def calculate_positions(event: Optional[str] = None) -> None:
@@ -136,20 +135,6 @@ def calculate_positions(event: Optional[str] = None) -> None:
         route=[""],
     )
     return
-
-
-# def object_name_to_code(name: str, use_mean_node: bool) -> Tuple[Optional[int], str]:
-#     """get object name as int"""
-#     if name == "true node" and use_mean_node:
-#         name = "mean node"
-#     for code, obj in OBJECTS.items():
-#         if obj[1] == name:
-#             # return int & short name
-#             return code, obj[0]
-#     if name == "mean node":
-#         # return mean node int & same short name as true node
-#         return 10, "ra"
-#     return None, ""
 
 
 def connect_signals_positions(signal_manager):
