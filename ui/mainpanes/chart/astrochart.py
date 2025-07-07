@@ -171,11 +171,11 @@ class AstroChart(Gtk.Box):
         msg += f"outerrings : {outer_rings}\n"
         # reduce mandatory e1 factor per ring : e2 first
         outer_portion = {
-            "transits": 0.05,
+            "transits": 0.07,
             "lunar return": 0.07,
             "solar return": 0.07,
+            "p3 progress": 0.07,
             "p1 progress": 0.07,
-            "p2 progress": 0.07,
             "harmonic": 0.06,
             "naksatras": 0.06,
         }
@@ -204,16 +204,6 @@ class AstroChart(Gtk.Box):
                 chart_settings=self.chart_settings,
             )
             ring_transits.draw(cr)
-        # --- solar return
-        if "solar return" in outer_rings:
-            ring_solar = SolarReturn(
-                radius=radius_outer.get("solar return", max_radius),
-                cx=cx,
-                cy=cy,
-                font_size=int(12 * font_scale),
-                chart_settings=self.chart_settings,
-            )
-            ring_solar.draw(cr)
         # --- lunar return
         if "lunar return" in outer_rings:
             ring_lunar = LunarReturn(
@@ -224,16 +214,16 @@ class AstroChart(Gtk.Box):
                 chart_settings=self.chart_settings,
             )
             ring_lunar.draw(cr)
-        # --- primary progressions
-        if "p1 progress" in outer_rings:
-            ring_p1 = P1Progress(
-                radius=radius_outer.get("p1 progress", max_radius),
+        # --- solar return
+        if "solar return" in outer_rings:
+            ring_solar = SolarReturn(
+                radius=radius_outer.get("solar return", max_radius),
                 cx=cx,
                 cy=cy,
                 font_size=int(12 * font_scale),
                 chart_settings=self.chart_settings,
             )
-            ring_p1.draw(cr)
+            ring_solar.draw(cr)
         # --- tertiary progressions
         if "p3 progress" in outer_rings:
             ring_p3 = P3Progress(
@@ -244,9 +234,19 @@ class AstroChart(Gtk.Box):
                 chart_settings=self.chart_settings,
             )
             ring_p3.draw(cr)
+        # --- primary progressions
+        if "p1 progress" in outer_rings:
+            ring_p1 = P1Progress(
+                radius=radius_outer.get("p1 progress", max_radius),
+                cx=cx,
+                cy=cy,
+                font_size=int(12 * font_scale),
+                chart_settings=self.chart_settings,
+            )
+            ring_p1.draw(cr)
         # --- optional rings : harmonic
         if "harmonic" in outer_rings:
-            msg += f"harmonic ring : {self.chart_settings.get('harmonic ring', '').strip()}\n"
+            # msg += f"harmonic ring : {self.chart_settings.get('harmonic ring', '').strip()}\n"
             try:
                 division_value = int(
                     self.chart_settings.get("harmonic ring", "").strip()

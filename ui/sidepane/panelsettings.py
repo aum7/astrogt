@@ -228,6 +228,7 @@ event 1 & 2 can have different objects"""
     )
     row.set_tooltip_text(CHART_SETTINGS["naksatras ring"][1])
     app.chart_settings["naksatras ring"] = manager.chk_naks_ring.get_active()
+    app.checkbox_chart_settings["naksatras ring"] = manager.chk_naks_ring
     row.set_child(manager.chk_naks_ring)
     lbx_chart_setts_btm.append(row)
     # row for additional naksatras settings
@@ -805,7 +806,11 @@ def house_system_changed(dropdown, _, manager):
 
 def chart_settings_toggled(button, setting, manager):
     """chart settings panel : update chart settings"""
+    msg = f"{setting}"
     active = button.get_active()
+    if setting == "naksatras ring":
+        msg += f"settings is naks - {setting}"
+        update_chart_setting_checkbox(manager, setting, active)
     manager.app.chart_settings[setting] = active
     manager.signal._emit("settings_changed", None)
     manager.notify.debug(
@@ -818,6 +823,7 @@ def chart_settings_toggled(button, setting, manager):
 def update_chart_setting_checkbox(manager, setting, new_value):
     """update checkbox for chart setting on hotkey"""
     app = manager.app
+    print(f"\tupdchrtsettchk : {setting}")
     if (
         hasattr(app, "checkbox_chart_settings")
         and setting in app.checkbox_chart_settings

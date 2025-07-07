@@ -97,7 +97,7 @@ class SidepaneManager:
     def setup_change_time(self) -> CollapsePanel:
         """setup widget for changing time of the event one or two"""
         # main container of change time widget todo expand
-        clp_change_time = CollapsePanel(title="change time", expanded=True)
+        clp_change_time = CollapsePanel(title="change time", expanded=False)  # todo
         clp_change_time.set_margin_end(self.margin_end)
         clp_change_time.set_title_tooltip(
             """change time (ct) period for selected event (one or two)

@@ -142,7 +142,6 @@ class Event(RingBase):
         # main circle of event 1
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
         cr.set_source_rgba(0.2, 0.0, 0.0, 0.3)  # redish for fixed
-        # cr.set_source_rgba(0.18, 0.15, 0.15, 1)  # redish for fixed
         cr.fill_preserve()
         cr.set_source_rgba(1, 1, 1, 1)
         cr.set_line_width(1)
@@ -364,8 +363,9 @@ class Naksatras(RingBase):
             angle = pi - ((i + 0.5) * seg_angle)
             label = str((self.first_nak + i - 1) % self.naks_num + 1)
             te = cr.text_extents(label)
-            x = self.cx + self.radius * 0.965 * cos(angle)
-            y = self.cy + self.radius * 0.965 * sin(angle)
+            x = self.cx + self.radius * 0.967 * cos(angle)
+            y = self.cy + self.radius * 0.967 * sin(angle)
+
             cr.save()
             cr.translate(x, y)
             cr.rotate(angle + pi / 2)
@@ -386,6 +386,9 @@ class Harmonic(RingBase):
     def draw(self, cr):
         # draw circle
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
+        # background color : dark
+        cr.set_source_rgba(0.1, 0.1, 0.1, 1)
+        cr.fill_preserve()
         cr.set_source_rgba(1, 1, 1, 1)
         cr.set_line_width(1)
         cr.stroke()
@@ -448,8 +451,8 @@ class P1Progress(RingBase):
 
     def draw(self, cr):
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
-        cr.set_source_rgba(0.2, 0.0, 0.0, 0.3)  # redish for fixed
-        # cr.set_source_rgba(0.18, 0.15, 0.15, 1)  # redish for fixed
+        # blueish
+        cr.set_source_rgba(0.0471, 0.1059, 0.1843, 1)
         cr.fill_preserve()
         cr.set_source_rgba(1, 1, 1, 1)
         cr.set_line_width(1)
@@ -464,8 +467,8 @@ class P3Progress(RingBase):
 
     def draw(self, cr):
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
-        cr.set_source_rgba(0.2, 0.0, 0.0, 0.3)  # redish for fixed
-        # cr.set_source_rgba(0.18, 0.15, 0.15, 1)  # redish for fixed
+        # blueish
+        cr.set_source_rgba(0.0353, 0.0863, 0.1490, 1)
         cr.fill_preserve()
         cr.set_source_rgba(1, 1, 1, 1)
         cr.set_line_width(1)
@@ -480,8 +483,8 @@ class SolarReturn(RingBase):
 
     def draw(self, cr):
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
-        cr.set_source_rgba(0.2, 0.0, 0.0, 0.3)  # redish for fixed
-        # cr.set_source_rgba(0.18, 0.15, 0.15, 1)  # redish for fixed
+        # yellowish
+        cr.set_source_rgba(0.1686, 0.1569, 0.0392, 1)
         cr.fill_preserve()
         cr.set_source_rgba(1, 1, 1, 1)
         cr.set_line_width(1)
@@ -496,8 +499,8 @@ class LunarReturn(RingBase):
 
     def draw(self, cr):
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
-        cr.set_source_rgba(0.2, 0.0, 0.0, 0.3)  # redish for fixed
-        # cr.set_source_rgba(0.18, 0.15, 0.15, 1)  # redish for fixed
+        # yellowish
+        cr.set_source_rgba(0.149, 0.137, 0.035, 1)
         cr.fill_preserve()
         cr.set_source_rgba(1, 1, 1, 1)
         cr.set_line_width(1)
@@ -513,8 +516,9 @@ class Transits(RingBase):
     def draw(self, cr):
         # main circle of event 1
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
-        cr.set_source_rgba(0.2, 0.0, 0.0, 0.3)  # redish for fixed
-        # cr.set_source_rgba(0.18, 0.15, 0.15, 1)  # redish for fixed
+        # greenish
+        cr.set_source_rgba(0.0078, 0.0941, 0, 1)
+        # cr.set_source_rgba(0.0078, 0.1098, 0.0, 1)
         cr.fill_preserve()
         cr.set_source_rgba(1, 1, 1, 1)
         cr.set_line_width(1)
