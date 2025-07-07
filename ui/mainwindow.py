@@ -19,7 +19,7 @@ from sweph.calculations.houses import connect_signals_houses
 from sweph.calculations.stars import connect_signals_stars
 from sweph.calculations.aspects import connect_signals_aspects
 from sweph.calculations.vimsottari import connect_signals_vimsottari
-from sweph.calculations.progressions import connect_signals_progressions
+from sweph.calculations.p1 import connect_signals_p1
 
 
 class MainWindow(
@@ -59,7 +59,7 @@ class MainWindow(
         connect_signals_stars(self.app.signal_manager)
         connect_signals_aspects(self.app.signal_manager)
         connect_signals_vimsottari(self.app.signal_manager)
-        connect_signals_progressions(self.app.signal_manager)
+        connect_signals_p1(self.app.signal_manager)
         # 4 main panes
         self.astro_chart = AstroChart()
         self.tables = Tables()
@@ -117,6 +117,9 @@ class MainWindow(
         self.hotkeys.register_hotkey(
             "a", lambda: self.toggle_chart_setting("fixed asc")
         )
+        self.hotkeys.register_hotkey("t", lambda: self.toggle_chart_setting("transit"))
+        self.hotkeys.register_hotkey("r", lambda: self.toggle_chart_setting("returns"))
+        self.hotkeys.register_hotkey("p", lambda: self.toggle_chart_setting("progress"))
 
     def toggle_chart_setting(self, setting):
         """hotkey callback to toggle chart setting"""

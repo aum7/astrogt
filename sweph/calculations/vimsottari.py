@@ -6,8 +6,7 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
-
-from ui.mainpanes.panechart.chartcircles import NAKSATRAS27
+from sweph.constants import NAKSATRAS27
 
 YEARLENGTH = 365.2425
 

@@ -107,7 +107,6 @@ event 1 & 2 can have different objects"""
     app.selected_objects_e1 = set()
     app.selected_objects_e2 = {"sun", "moon"}
     manager.selected_objects_event = 1
-
     for _, obj_data in OBJECTS.items():
         row = Gtk.ListBoxRow()
         name = obj_data[1]
@@ -292,6 +291,27 @@ event 1 & 2 can have different objects"""
     box_harmonics.append(ent_harmonics)
     app.chart_settings["harmonics ring"] = ent_harmonics.get_text()
     row.set_child(box_harmonics)
+    lbx_chart_setts_btm.append(row)
+    # event 2 astro chart rings ---------------------------
+    row = Gtk.ListBoxRow()
+    box_e2_ring = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
+
+    def create_e2_ring_checkbox(ring: str, data: tuple, manager) -> Gtk.ListBoxRow:
+        """create checkbox row sweph flags"""
+        row = Gtk.ListBoxRow()
+        row.set_tooltip_text(data[1])
+        check = Gtk.CheckButton(label=ring)
+        check.set_active(data[0])
+        check.connect(
+            "toggled", lambda btn, r=ring, m=manager: e2_rings_toggled(btn, r, m)
+        )
+        row.set_child(check)
+        app.checkbox_chart_settings[ring] = check
+        return row
+
+    for ring, data in CHART_SETTINGS["event2 rings"].items():
+        box_e2_ring.append(create_e2_ring_checkbox(ring, data, manager))
+    row.set_child(box_e2_ring)
     lbx_chart_setts_btm.append(row)
     # fixed stars --------------------------------------
     row = Gtk.ListBoxRow()
@@ -726,6 +746,7 @@ def house_system_changed(dropdown, _, manager):
 
 def chart_settings_toggled(button, setting, manager):
     """chart settings panel : update chart settings"""
+    # todo empty func
     manager.app.chart_settings[setting] = button.get_active()
     # if setting == "mean node":  # if setting in ["mean node", "true mc & ic"]:
     #     calculate_positions(event=None)
@@ -810,6 +831,28 @@ def harmonics_ring(entry, manager):
     manager.signal._emit("settings_changed", None)
     manager.notify.debug(
         f"harmonicsring : {manager.app.chart_settings['harmonics ring']}",
+        source="panelsettings",
+        route=["terminal"],
+    )
+
+
+def e2_rings_toggled(button, ring, manager):
+    """chart settings panel : select chart rings to be shown for event 2"""
+    # get current setting, tuple: (active, tooltip)
+    current, tooltip = manager.app.chart_settings["event2 rings"][ring]
+    # current, tooltip = manager.app.chart_settings["event2 rings"].get(ring, (False, ""))
+    new_val = not current
+    # update event2 ring setting tuple
+    manager.app.chart_settings["event2 rings"][ring] = (new_val, tooltip)
+    # update checkbox if available in e2_checkbuttons dict
+    if hasattr(manager.app, "chart_settings") and ring in manager.app.chart_settings:
+        chk = manager.app.checkbox_chart_settings[ring]
+        if chk.get_active() != new_val:
+            chk.set_active(new_val)
+    # emit settings changed signal
+    manager.signal._emit("settings_changed", None)
+    manager.notify.debug(
+        f"e2ringstoggled :\n\ring : {ring}\n\temited signal ...",
         source="panelsettings",
         route=["terminal"],
     )

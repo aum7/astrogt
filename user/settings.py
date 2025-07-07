@@ -153,6 +153,12 @@ CHART_SETTINGS = {
         "harmonics ring\nempty : do NOT show | 1 : egypt. terms (bounds)\n7, 9, 11 : simple harmonics *similar* to varga",
         # "harmonics ring\nempty : do NOT show | 1 : egypt. terms (bounds)\n7, 9, 11 : simple harmonics *similar* to varga\n2 rings possible ie [1 9] will show terms & navamsa",
     ),
+    # --- event 2 astro chart circles : draw progressions (p1 & p3) | returns | transit
+    "event2 rings": {
+        "progress": (True, "show progressions (p1 & p3) for event 2"),
+        "returns": (True, "show solar & lunar returns for event 2"),
+        "transit": (True, "show transits for event 2"),
+    },
     # --- draw fixed stars
     # in user/fixedstars.py are categories of stars :
     # custom ; naksatras28 ; behenian15 ; robson118 ; alphabetical521

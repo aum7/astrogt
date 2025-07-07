@@ -3,134 +3,12 @@
 import cairo
 from math import pi, cos, sin, radians
 from ui.fonts.glyphs import get_glyph, SIGNS
-
+from sweph.constants import TERMS
 # background colors
 # redish    1,0.7,0.7
 # greenish  0.8,1,0.83
 # yellowish 0.2,0.2,0
 # blueish   0.7,0.75,1
-TERMS = {  # egyptian terms table: starting degree : ruler
-    0: "ju",
-    6: "ve",
-    12: "me",
-    20: "ma",
-    25: "sa",
-    30: "ve",
-    38: "me",
-    44: "ju",
-    52: "sa",
-    57: "ma",
-    60: "me",
-    66: "ju",
-    72: "ve",
-    77: "ma",
-    84: "sa",
-    90: "ma",
-    97: "ve",
-    103: "me",
-    109: "ju",
-    116: "sa",
-    120: "ju",
-    126: "ve",
-    131: "sa",
-    138: "me",
-    144: "ma",
-    150: "me",
-    157: "ve",
-    167: "ju",
-    171: "ma",
-    178: "sa",
-    # 180: "sa",  # extends
-    186: "me",
-    194: "ju",
-    201: "ve",
-    208: "ma",
-    # 210: "ma",  # extends
-    217: "ve",
-    221: "me",
-    229: "ju",
-    234: "sa",
-    240: "ju",
-    252: "ve",
-    257: "me",
-    261: "sa",
-    266: "ma",
-    270: "me",
-    277: "ju",
-    284: "ve",
-    292: "sa",
-    296: "ma",
-    300: "me",
-    307: "ve",
-    313: "ju",
-    320: "ma",
-    325: "sa",
-    330: "ve",
-    342: "ju",
-    346: "me",
-    349: "ma",
-    358: "sa",
-}
-
-NAKSATRAS27 = {
-    1: ("ke", "asv"),
-    2: ("ve", "bha"),
-    3: ("su", "krt"),
-    4: ("mo", "roh"),
-    5: ("ma", "mrg"),
-    6: ("ra", "ard"),
-    7: ("ju", "pun"),
-    8: ("sa", "pus"),
-    9: ("me", "asl"),
-    10: ("ke", "mag"),
-    11: ("ve", "ppa"),
-    12: ("su", "upa"),
-    13: ("mo", "has"),
-    14: ("ma", "cit"),
-    15: ("ra", "sva"),
-    16: ("ju", "vis"),
-    17: ("sa", "anu"),
-    18: ("me", "jye"),
-    19: ("ke", "mul"),
-    20: ("ve", "pas"),
-    21: ("su", "uas"),
-    22: ("mo", "sra"),
-    23: ("ma", "dha"),
-    24: ("ra", "sat"),
-    25: ("ju", "pba"),
-    26: ("sa", "uba"),
-    27: ("me", "rev"),
-}
-MANSIONS28 = {
-    1: ("ve", "leu"),
-    2: ("sa", "oei"),
-    3: ("su", "mao"),  # krt
-    4: ("mo", "pi"),
-    5: ("ma", "tsee"),
-    6: ("me", "shen"),
-    7: ("ju", "tsing"),
-    8: ("ve", "kwei"),
-    9: ("sa", "lieu"),
-    10: ("su", "sing"),
-    11: ("mo", "chang"),
-    12: ("ma", "yen"),
-    13: ("me", "tchin"),
-    14: ("ju", "kio"),
-    15: ("ve", "kang"),
-    16: ("sa", "ti"),
-    17: ("su", "fang"),
-    18: ("mo", "sin"),
-    19: ("ma", "wei"),
-    20: ("me", "ki"),
-    21: ("ju", "tow"),
-    22: ("ve", "nieu"),
-    23: ("sa", "mo"),
-    24: ("su", "heu"),
-    25: ("mo", "gui"),
-    26: ("ma", "shih"),
-    27: ("me", "peih"),
-    28: ("ju", "goei"),
-}
 
 
 class CircleBase:
@@ -448,8 +326,8 @@ class CircleSigns(CircleBase):
         self.set_custom_font(cr, self.font_size)
         for i, (sign, (glyph, element, mode)) in enumerate(SIGNS.items()):
             angle = pi - i * segment_angle - offset
-            x = self.cx + self.radius * 0.965 * cos(angle)
-            y = self.cy + self.radius * 0.965 * sin(angle)
+            x = self.cx + self.radius * 0.96 * cos(angle)
+            y = self.cy + self.radius * 0.96 * sin(angle)
             self.draw_rotated_text(cr, glyph, x, y, angle)
         self.set_custom_font(cr, self.font_size * 1.2)
         for name, (lon, _) in self.stars.items():
@@ -491,8 +369,8 @@ class CircleNaksatras(CircleBase):
             angle = pi - ((i + 0.5) * seg_angle)
             label = str((self.first_nak + i - 1) % self.naks_num + 1)
             te = cr.text_extents(label)
-            x = self.cx + self.radius * 0.97 * cos(angle)
-            y = self.cy + self.radius * 0.97 * sin(angle)
+            x = self.cx + self.radius * 0.965 * cos(angle)
+            y = self.cy + self.radius * 0.965 * sin(angle)
             cr.save()
             cr.translate(x, y)
             cr.rotate(angle + pi / 2)

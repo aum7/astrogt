@@ -44,8 +44,10 @@ class AstroChart(Gtk.Box):
         signal._connect("e2_cleared", self.e2_cleared)
         signal._connect("settings_changed", self.settings_changed)
         signal._connect("stars_changed", self.stars_changed)
+        signal._connect("p1_changed", self.p1_changed)
 
     def event_changed(self, event):
+        # main data - event - changed
         if event == "e1":
             self.e1_chart_info = getattr(self.app, "e1_chart", {})
             # print("astrochart : e1 changed")
@@ -80,6 +82,7 @@ class AstroChart(Gtk.Box):
         # print(f"astrochart : {event} houses changed")
 
     def e2_cleared(self, event):
+        # clenup after event 2 deletion
         """clear event 2 circles"""
         if event == "e2":
             self.notify.info(
@@ -90,6 +93,7 @@ class AstroChart(Gtk.Box):
         self.drawing_area.queue_draw()
 
     def settings_changed(self, arg):
+        # grab data & redraw
         self.chart_settings = getattr(self.app, "chart_settings", {})
         self.drawing_area.queue_draw()
 
@@ -102,8 +106,15 @@ class AstroChart(Gtk.Box):
             # print(f"name : {name} | lon : {lon} | designation : {nomenclature}")
         self.drawing_area.queue_draw()
 
+    def p1_changed(self, event):
+        if event == "e1":
+            self.p1_pos = getattr(self.app, "p1_positions", {})
+            self.p1_arcs = getattr(self.app, "p1_directions", {})
+        self.drawing_area.queue_draw()
+
     def draw(self, area, cr, width, height):
         # get center and base radius
+        msg = ""
         cx = width / 2
         cy = height / 2
         # size of application pane(s)
@@ -127,24 +138,66 @@ class AstroChart(Gtk.Box):
             self.app.selected_ayan_str if self.app.selected_ayan_str else "-"
         )
         max_radius = base * 0.97
+        # outer rings linked to event 2 :
+        # - primary & tertiary progression
+        # - solar & lunar return
+        # - transits
+        outer_rings = []
+        # primary progression : ptolemy
+        if getattr(self.app, "e2_active", False):
+            msg += "e2 is active"
+            if self.app.chart_settings["transit"]:
+                outer_rings.append("transit")
+            if self.app.chart_settings["returns"]:
+                outer_rings.append("returns")
+            if self.app.chart_settings["progress"]:
+                outer_rings.append("progress")
+            # collect candidates # here somewhere todo add checkbox
+            if self.p1_pos or self.p1_arcs:
+                msg += f"got p1 data : {self.p1_pos}"
+        if self.chart_settings.get("harmonics ring", "").strip():
+            outer_rings.append("harmonics")
+        if self.chart_settings.get("naksatras ring", ""):
+            outer_rings.append("naksatras")
+        msg += f"outerrings : {outer_rings}"
+        # reduce mandatory e1 factor per circle : e2 first
+        outer_portion = {
+            "transit": 0.05,
+            "returns": 0.07,
+            "progress": 0.07,
+            "harmonics": 0.06,
+            "naksatras": 0.06,
+        }
+        transit_f = outer_portion["transit"] if "transit" in outer_rings else 0
+        returns_f = outer_portion["returns"] if "returns" in outer_rings else 0
+        progress_f = outer_portion["progress"] if "progress" in outer_rings else 0
+        mandatory_factor = 1 - (transit_f + returns_f + progress_f)
         # optional ring : naksatras
-        show_naks = self.chart_settings.get("naksatras ring", "")
-        show_harm = bool(self.chart_settings.get("harmonics ring", "").strip())
-        if show_naks or show_harm:
-            mandatory_factor = 0.94
-            if show_harm and show_naks:
-                radius_harmonic = max_radius
-                radius_naksatras = max_radius * 0.94
-                # set radius for mandatory circles (event 1)
-                mandatory_factor = 0.885
-            elif show_naks:
+        if "harmonics" in outer_rings:
+            radius_harmonic = max_radius
+            mandatory_factor -= outer_portion["harmonics"]
+        if "naksatras" in outer_rings:
+            if "harmonics" in outer_rings:
+                # naksatras slightly inside harmonic ring
+                radius_naksatras = max_radius * (1 - outer_portion["harmonics"])
+            else:
                 radius_naksatras = max_radius
-                # mandatory_factor = 0.94
-            elif show_harm:
-                radius_harmonic = max_radius
-                # mandatory_factor = 0.94
-        else:
-            mandatory_factor = 1.0
+            mandatory_factor -= outer_portion["naksatras"]
+        # show_naks = self.chart_settings.get("naksatras ring", "")
+        # show_harm = bool(self.chart_settings.get("harmonics ring", "").strip())
+        # if show_naks or show_harm:
+        #     mandatory_factor = 0.94
+        #     if show_harm and show_naks:
+        #         radius_harmonic = max_radius
+        #         radius_naksatras = max_radius * 0.94
+        #         # set radius for mandatory circles (event 1)
+        #         mandatory_factor = 0.885
+        #     elif show_naks:
+        #         radius_naksatras = max_radius
+        #     elif show_harm:
+        #         radius_harmonic = max_radius
+        # else:
+        #     mandatory_factor = 1.0
         # --- rotate block : if fixed asc > rotate circles
         if self.chart_settings.get("fixed asc", False) and self.ascmc:
             asc_angle = radians(self.ascmc[0])
@@ -153,7 +206,7 @@ class AstroChart(Gtk.Box):
             cr.rotate(asc_angle)
             cr.translate(-cx, -cy)
         # --- optional rings : harmonic
-        if show_harm:
+        if "harmonics" in outer_rings:
             try:
                 division_value = int(
                     self.chart_settings.get("harmonics ring", "").strip()
@@ -175,7 +228,7 @@ class AstroChart(Gtk.Box):
                 )
                 circle_harmonic.draw(cr)
         # naksatras ring
-        if show_naks:
+        if "naksatras" in outer_rings:
             naks_num = 28 if self.chart_settings.get("28 naksatras", False) else 27
             first_nak = int(self.chart_settings.get("1st naksatra", 1))
             circle_naksatras = CircleNaksatras(
@@ -194,7 +247,7 @@ class AstroChart(Gtk.Box):
             radius=max_radius * mandatory_factor,
             cx=cx,
             cy=cy,
-            font_size=int(18 * font_scale),
+            font_size=int(17 * font_scale),
             stars=self.stars,
         )
         circle_signs.draw(cr)
@@ -225,6 +278,11 @@ class AstroChart(Gtk.Box):
             extra_info=self.extra_info,
         )
         circle_info.draw(cr)
+        self.notify.debug(
+            msg,
+            source="astrochart",
+            route=["terminal"],
+        )
 
     def create_astro_object(self, obj):
         return AstroObject(obj)
