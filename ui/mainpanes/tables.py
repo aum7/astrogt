@@ -1,4 +1,4 @@
-# ui/mainpanes/panepositions.py
+# ui/mainpanes/tables.py
 # ruff: noqa: E402
 import gi
 
@@ -146,7 +146,7 @@ class Tables(Gtk.Notebook):
             self.notify.error(
                 f"positions or houses missing for {event} : exiting ...",
                 source="panetables",
-                route=["terminal"],
+                route=[""],  # todo need this ???
             )
             return
         pos = self.events_data[event].get("positions")

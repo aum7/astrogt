@@ -6,9 +6,6 @@ import gi
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from ui.collapsepanel import CollapsePanel
-
-# from sweph.calculations.positions import calculate_positions
-# from sweph.calculations.houses import calculate_houses
 from user.settings import (
     OBJECTS,
     HOUSE_SYSTEMS,
@@ -49,7 +46,7 @@ def setup_settings(manager) -> CollapsePanel:
     # main panel for settings
     clp_settings = CollapsePanel(
         title="settings",
-        expanded=False,
+        expanded=True,  # todo
     )
     clp_settings.set_margin_end(manager.margin_end)
     clp_settings.set_title_tooltip("""sweph & application & chart etc settings""")
@@ -147,7 +144,7 @@ event 1 & 2 can have different objects"""
     subpnl_chart_settings = CollapsePanel(
         title="chart settings",
         indent=14,
-        expanded=False,
+        expanded=True,  # todo
     )
     subpnl_chart_settings.set_title_tooltip("""chart drawing & info display settings""")
     # ------ sub-sub-panel : chart info -----------------
@@ -216,7 +213,7 @@ event 1 & 2 can have different objects"""
         # store checkbox reference for later update
         app.chart_settings[setting] = default
         app.checkbox_chart_settings[setting] = check
-    # naksatras ring : connect all naksatra settings in 1 function
+    # naksatras ring ---------------------------------------------
     row = Gtk.ListBoxRow()
     # naksatras ring checkbox
     manager.chk_naks_ring = Gtk.CheckButton(label="naksatras ring")
@@ -274,45 +271,107 @@ event 1 & 2 can have different objects"""
     row = Gtk.ListBoxRow()
     box_harmonics = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=7)
     # label
-    lbl_harmonics = Gtk.Label(label="harmonics ring")
+    lbl_harmonics = Gtk.Label(label="harmonic ring")
     box_harmonics.append(lbl_harmonics)
     # entry for harmonics ring
     ent_harmonics = Gtk.Entry()
     ent_harmonics.set_text(
-        " ".join(str(x) for x in CHART_SETTINGS["harmonics ring"][0])
-        if isinstance(CHART_SETTINGS["harmonics ring"][0], (list, tuple))
-        else str(CHART_SETTINGS["harmonics ring"][0])
+        " ".join(str(x) for x in CHART_SETTINGS["harmonic ring"][0])
+        if isinstance(CHART_SETTINGS["harmonic ring"][0], (list, tuple))
+        else str(CHART_SETTINGS["harmonic ring"][0])
     )
-    ent_harmonics.set_tooltip_text(CHART_SETTINGS["harmonics ring"][1])
+    ent_harmonics.set_tooltip_text(CHART_SETTINGS["harmonic ring"][1])
     ent_harmonics.set_alignment(0.5)
     ent_harmonics.set_max_length(5)
     ent_harmonics.set_max_width_chars(5)
-    ent_harmonics.connect("activate", harmonics_ring, manager)
+    ent_harmonics.connect("activate", harmonic_ring, manager)
     box_harmonics.append(ent_harmonics)
-    app.chart_settings["harmonics ring"] = ent_harmonics.get_text()
+    app.chart_settings["harmonic ring"] = ent_harmonics.get_text()
     row.set_child(box_harmonics)
     lbx_chart_setts_btm.append(row)
-    # event 2 astro chart rings ---------------------------
-    row = Gtk.ListBoxRow()
-    box_e2_ring = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
+    # event 2 astro chart rings --------------------------------------------
+    # progress row
+    row_prog = Gtk.ListBoxRow()
+    box_prog = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+    # checkbox for p1
+    p1_data = CHART_SETTINGS["event2 rings"]["p1 progress"]
+    p1_chk = Gtk.CheckButton(label="p1")
+    p1_chk.set_active(p1_data[0])
+    p1_chk.set_tooltip_text(p1_data[1])
+    p1_chk.connect(
+        "toggled",
+        lambda chk, k="p1 progress", m=manager: chart_settings_toggled(chk, k, m),
+    )
+    box_prog.append(p1_chk)
+    manager.app.checkbox_chart_settings["p1 progress"] = p1_chk
+    manager.app.chart_settings["p1 progress"] = p1_data[0]
+    # checkbox for p3
+    p3_data = CHART_SETTINGS["event2 rings"]["p3 progress"]
+    p3_chk = Gtk.CheckButton(label="p3")
+    p3_chk.set_active(p3_data[0])
+    p3_chk.set_tooltip_text(p3_data[1])
+    p3_chk.connect(
+        "toggled",
+        lambda chk, k="p3 progress", m=manager: chart_settings_toggled(chk, k, m),
+    )
+    box_prog.append(p3_chk)
+    manager.app.checkbox_chart_settings["p3 progress"] = p3_chk
+    manager.app.chart_settings["p3 progress"] = p3_data[0]
+    # label at end
+    lbl_prog = Gtk.Label(label="progressions")
+    box_prog.append(lbl_prog)
+    row_prog.set_child(box_prog)
+    lbx_chart_setts_btm.append(row_prog)
+    # returns row
+    row_retu = Gtk.ListBoxRow()
+    box_retu = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+    # checkbox for solar
+    data_sol = CHART_SETTINGS["event2 rings"]["solar return"]
+    chk_sol = Gtk.CheckButton(label="sol")
+    chk_sol.set_active(data_sol[0])
+    chk_sol.set_tooltip_text(data_sol[1])
+    chk_sol.connect(
+        "toggled",
+        lambda chk, k="solar return", m=manager: chart_settings_toggled(chk, k, m),
+    )
+    box_retu.append(chk_sol)
+    manager.app.checkbox_chart_settings["solar return"] = chk_sol
+    manager.app.chart_settings["solar return"] = data_sol[0]
 
-    def create_e2_ring_checkbox(ring: str, data: tuple, manager) -> Gtk.ListBoxRow:
-        """create checkbox row sweph flags"""
-        row = Gtk.ListBoxRow()
-        row.set_tooltip_text(data[1])
-        check = Gtk.CheckButton(label=ring)
-        check.set_active(data[0])
-        check.connect(
-            "toggled", lambda btn, r=ring, m=manager: e2_rings_toggled(btn, r, m)
-        )
-        row.set_child(check)
-        app.checkbox_chart_settings[ring] = check
-        return row
+    # checkbox for lunar
+    data_lun = CHART_SETTINGS["event2 rings"]["lunar return"]
+    chk_lun = Gtk.CheckButton(label="lun")
+    chk_lun.set_active(data_lun[0])
+    chk_lun.set_tooltip_text(data_lun[1])
+    chk_lun.connect(
+        "toggled",
+        lambda chk, k="lunar return", m=manager: chart_settings_toggled(chk, k, m),
+    )
+    box_retu.append(chk_lun)
+    manager.app.checkbox_chart_settings["lunar return"] = chk_lun
+    manager.app.chart_settings["lunar return"] = data_lun[0]
+    lbl_retu = Gtk.Label(label="returns")
+    box_retu.append(lbl_retu)
+    row_retu.set_child(box_retu)
+    lbx_chart_setts_btm.append(row_retu)
+    # transits row
+    row_tran = Gtk.ListBoxRow()
+    box_tran = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+    # checkbox for transits
+    data_tran = CHART_SETTINGS["event2 rings"]["transits"]
+    chk_tran = Gtk.CheckButton(label="transits")
+    chk_tran.set_active(data_tran[0])
+    chk_tran.set_tooltip_text(data_tran[1])
+    chk_tran.connect(
+        "toggled",
+        lambda chk, k="transits", m=manager: chart_settings_toggled(chk, k, m),
+    )
+    box_tran.append(chk_tran)
+    manager.app.checkbox_chart_settings["transits"] = chk_tran
+    manager.app.chart_settings["transits"] = data_tran[0]
 
-    for ring, data in CHART_SETTINGS["event2 rings"].items():
-        box_e2_ring.append(create_e2_ring_checkbox(ring, data, manager))
-    row.set_child(box_e2_ring)
-    lbx_chart_setts_btm.append(row)
+    row_tran.set_child(box_tran)
+    lbx_chart_setts_btm.append(row_tran)
     # fixed stars --------------------------------------
     row = Gtk.ListBoxRow()
     box_fixed_stars = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=7)
@@ -746,19 +805,13 @@ def house_system_changed(dropdown, _, manager):
 
 def chart_settings_toggled(button, setting, manager):
     """chart settings panel : update chart settings"""
-    # todo empty func
-    manager.app.chart_settings[setting] = button.get_active()
-    # if setting == "mean node":  # if setting in ["mean node", "true mc & ic"]:
-    #     calculate_positions(event=None)
-    # if setting in ["enable glyphs", "fixed asc"]:
-    #     # update astro chart drawing
-    #     manager.signal._emit("settings_changed", None)
-    # todo switched from direct call to calculate_positions()
+    active = button.get_active()
+    manager.app.chart_settings[setting] = active
     manager.signal._emit("settings_changed", None)
     manager.notify.debug(
         f"chartsettingstoggled : {setting} toggled ({button.get_active()})",
         source="panelsettings",
-        route=["none"],
+        route=["terminal"],
     )
 
 
@@ -806,11 +859,11 @@ def naksatras_ring(button, key, manager):
     )
 
 
-def harmonics_ring(entry, manager):
-    """chart settings panel : harmonics ring : None, 1, 7, 9, 11 harmonics : add if needed - also add calculations"""
+def harmonic_ring(entry, manager):
+    """chart settings panel : harmonic ring : None, 1, 7, 9, 11 harmonics : add if needed - also add calculations"""
     text = entry.get_text().strip()
     if text == "":
-        manager.app.chart_settings["harmonics ring"] = ""
+        manager.app.chart_settings["harmonic ring"] = ""
         entry.remove_css_class("entry-warning")
     else:
         nums = text.split()
@@ -823,39 +876,54 @@ def harmonics_ring(entry, manager):
             # invalid input
             entry.add_css_class("entry-warning")
             entry.set_text(
-                " ".join(str(x) for x in manager.app.chart_settings["harmonics ring"])
+                " ".join(str(x) for x in manager.app.chart_settings["harmonic ring"])
             )
         else:
             entry.remove_css_class("entry-warning")
-            manager.app.chart_settings["harmonics ring"] = text
+            manager.app.chart_settings["harmonic ring"] = text
     manager.signal._emit("settings_changed", None)
     manager.notify.debug(
-        f"harmonicsring : {manager.app.chart_settings['harmonics ring']}",
+        f"harmonicring : {manager.app.chart_settings['harmonic ring']}",
         source="panelsettings",
         route=["terminal"],
     )
 
 
-def e2_rings_toggled(button, ring, manager):
-    """chart settings panel : select chart rings to be shown for event 2"""
-    # get current setting, tuple: (active, tooltip)
-    current, tooltip = manager.app.chart_settings["event2 rings"][ring]
-    # current, tooltip = manager.app.chart_settings["event2 rings"].get(ring, (False, ""))
-    new_val = not current
-    # update event2 ring setting tuple
-    manager.app.chart_settings["event2 rings"][ring] = (new_val, tooltip)
-    # update checkbox if available in e2_checkbuttons dict
-    if hasattr(manager.app, "chart_settings") and ring in manager.app.chart_settings:
-        chk = manager.app.checkbox_chart_settings[ring]
-        if chk.get_active() != new_val:
-            chk.set_active(new_val)
-    # emit settings changed signal
-    manager.signal._emit("settings_changed", None)
-    manager.notify.debug(
-        f"e2ringstoggled :\n\ring : {ring}\n\temited signal ...",
-        source="panelsettings",
-        route=["terminal"],
-    )
+# def chart_subsetting_toggled(button, key, group, subkey, manager):
+#     # update composite key from subsetting
+#     active = button.get_active()
+#     manager.app.chart_settings[key] = active
+#     manager.signal._emit("settings_changed", None)
+#     manager.notify.debug(f"{group} {subkey} toggled to {active}")
+
+
+# def e2_rings_toggled(button, ring, manager):
+#     """chart settings panel : select chart rings to be shown for event 2"""
+#     # get current ring setting
+#     active = button.get_active()
+#     # update event2 ring setting
+#     manager.app.chart_settings[ring] = active
+#     # at least 1 ring must be selected
+#     rings = list(CHART_SETTINGS["event2 rings"].keys())
+#     active_count = sum(
+#         bool(manager.app.chart_settings.get(ring, False)) for ring in rings
+#     )
+#     # force checkbox true if none active
+#     if active_count == 0:
+#         button.set_active(True)
+#         manager.app.chart_settings[ring] = True
+#         manager.notify.warning(
+#             "at least 1 event 2 ring must be selected\nif not interested in event 2 > delete event 2 datetime field",
+#             source="panelsettings",
+#             route=["terminal", "user"],
+#         )
+#     # emit settings changed signal
+#     manager.signal._emit("settings_changed", None)
+#     manager.notify.debug(
+#         f"e2ringstoggled : {ring} set to {active} : emited signal ...",
+#         source="panelsettings",
+#         route=[""],
+#     )
 
 
 def fixed_stars(entry, manager):

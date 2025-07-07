@@ -20,8 +20,7 @@ def calculate_p1(event: str):
         notify.error(
             "missing event 1 or 2 data needed for p1 : exiting ...",
             source="p1",
-            route=["terminal", "user"],
-            timeout=1,
+            route=[""],
         )
         return
     h_sys = (
@@ -248,7 +247,7 @@ def calculate_p1(event: str):
     notify.debug(
         msg,
         source="p1",
-        route=["terminal"],
+        route=[""],
     )
 
 
@@ -283,7 +282,7 @@ def ra_to_sidereal(positions, ayanamsa):
         # subtract ayanamsa & normalize
         sid_data["zpp"] = swe.degnorm(data["zpp"] - ayanamsa)
         sid_pos[code] = sid_data
-    print(f"ratosid : {sid_pos}")
+    # print(f"ratosid : {sid_pos}")
     return sid_pos
 
 

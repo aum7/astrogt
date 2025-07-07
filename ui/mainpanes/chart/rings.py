@@ -1,4 +1,4 @@
-# ui/mainpanes/panechart/chartcircles.py
+# ui/mainpanes/chart/rings.py
 # ui/fonts/victor/victormonolightastro.ttf
 import cairo
 from math import pi, cos, sin, radians
@@ -11,9 +11,8 @@ from sweph.constants import TERMS
 # blueish   0.7,0.75,1
 
 
-class CircleBase:
-    """base class to handle common attributes"""
-
+class RingBase:
+    # base class to handle common attributes
     def __init__(self, radius, cx, cy, chart_settings=None):
         self.radius = radius
         self.cx = cx
@@ -45,9 +44,8 @@ class CircleBase:
 
 
 # circles in order from central to outer-most
-class CircleInfo(CircleBase):
-    """show event 1 info in center circle"""
-
+class Info(RingBase):
+    # show event 1 info in center circle
     def __init__(
         self, notify, radius, cx, cy, font_size, chart_settings, event_data, extra_info
     ):
@@ -120,9 +118,8 @@ class CircleInfo(CircleBase):
             y += line_spacing
 
 
-class CircleEvent(CircleBase):
-    """objects / planets & house cusps"""
-
+class Event(RingBase):
+    # objects / planets & house cusps
     def __init__(
         self, radius, cx, cy, font_size, guests, houses, ascmc, chart_settings
     ):
@@ -292,9 +289,8 @@ class CircleEvent(CircleBase):
                     cr.restore()
 
 
-class CircleSigns(CircleBase):
-    """12 astrological signs"""
-
+class Signs(RingBase):
+    # 12 astrological signs
     def __init__(self, radius, cx, cy, font_size, stars):
         super().__init__(radius, cx, cy)
         self.font_size = font_size
@@ -337,9 +333,8 @@ class CircleSigns(CircleBase):
             self.draw_rotated_text(cr, "*", x, y, angle, color=(1, 0.9, 0.2, 1))
 
 
-class CircleNaksatras(CircleBase):
-    """draw 27 or 28 naksatras ring"""
-
+class Naksatras(RingBase):
+    # draw 27 or 28 naksatras ring
     def __init__(self, radius, cx, cy, naks_num, first_nak, font_size):
         super().__init__(radius, cx, cy)
         self.naks_num = naks_num
@@ -380,9 +375,8 @@ class CircleNaksatras(CircleBase):
             cr.new_path()
 
 
-class CircleHarmonic(CircleBase):
-    """draw harmonic / divisions ring"""
-
+class Harmonic(RingBase):
+    # draw harmonic (aka division) ring
     def __init__(self, notify, radius, cx, cy, division, font_size=14):
         super().__init__(radius, cx, cy)
         self.notify = notify
@@ -390,12 +384,12 @@ class CircleHarmonic(CircleBase):
         self.font_size = font_size
 
     def draw(self, cr):
-        """draw circle"""
+        # draw circle
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
         cr.set_source_rgba(1, 1, 1, 1)
         cr.set_line_width(1)
         cr.stroke()
-        # terms (aka bounds) if division 1
+        # (egyptian) terms (aka bounds) if division 1
         if self.division == 1:
             terms_sorted = sorted(TERMS.items())
             terms_num = len(terms_sorted)
@@ -445,4 +439,83 @@ class CircleHarmonic(CircleBase):
                 self.draw_rotated_text(cr, label, x, y, angle)
 
 
-# then event 2 circles
+# event 2 circles (inside-to-outside) : progress, returns, transits
+class P1Progress(RingBase):
+    # p1 progression
+    def __init__(self, radius, cx, cy, font_size, chart_settings):
+        super().__init__(radius, cx, cy, chart_settings)
+        self.font_size = font_size
+
+    def draw(self, cr):
+        cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
+        cr.set_source_rgba(0.2, 0.0, 0.0, 0.3)  # redish for fixed
+        # cr.set_source_rgba(0.18, 0.15, 0.15, 1)  # redish for fixed
+        cr.fill_preserve()
+        cr.set_source_rgba(1, 1, 1, 1)
+        cr.set_line_width(1)
+        cr.stroke()
+
+
+class P3Progress(RingBase):
+    # p3 progression
+    def __init__(self, radius, cx, cy, font_size, chart_settings):
+        super().__init__(radius, cx, cy, chart_settings)
+        self.font_size = font_size
+
+    def draw(self, cr):
+        cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
+        cr.set_source_rgba(0.2, 0.0, 0.0, 0.3)  # redish for fixed
+        # cr.set_source_rgba(0.18, 0.15, 0.15, 1)  # redish for fixed
+        cr.fill_preserve()
+        cr.set_source_rgba(1, 1, 1, 1)
+        cr.set_line_width(1)
+        cr.stroke()
+
+
+class SolarReturn(RingBase):
+    # solar return
+    def __init__(self, radius, cx, cy, font_size, chart_settings):
+        super().__init__(radius, cx, cy, chart_settings)
+        self.font_size = font_size
+
+    def draw(self, cr):
+        cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
+        cr.set_source_rgba(0.2, 0.0, 0.0, 0.3)  # redish for fixed
+        # cr.set_source_rgba(0.18, 0.15, 0.15, 1)  # redish for fixed
+        cr.fill_preserve()
+        cr.set_source_rgba(1, 1, 1, 1)
+        cr.set_line_width(1)
+        cr.stroke()
+
+
+class LunarReturn(RingBase):
+    # lunar return
+    def __init__(self, radius, cx, cy, font_size, chart_settings):
+        super().__init__(radius, cx, cy, chart_settings)
+        self.font_size = font_size
+
+    def draw(self, cr):
+        cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
+        cr.set_source_rgba(0.2, 0.0, 0.0, 0.3)  # redish for fixed
+        # cr.set_source_rgba(0.18, 0.15, 0.15, 1)  # redish for fixed
+        cr.fill_preserve()
+        cr.set_source_rgba(1, 1, 1, 1)
+        cr.set_line_width(1)
+        cr.stroke()
+
+
+class Transits(RingBase):
+    # objects / planets & house cusps
+    def __init__(self, radius, cx, cy, font_size, chart_settings):
+        super().__init__(radius, cx, cy, chart_settings)
+        self.font_size = font_size
+
+    def draw(self, cr):
+        # main circle of event 1
+        cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
+        cr.set_source_rgba(0.2, 0.0, 0.0, 0.3)  # redish for fixed
+        # cr.set_source_rgba(0.18, 0.15, 0.15, 1)  # redish for fixed
+        cr.fill_preserve()
+        cr.set_source_rgba(1, 1, 1, 1)
+        cr.set_line_width(1)
+        cr.stroke()

@@ -11,8 +11,8 @@ from .sidepane.panelsettings import update_chart_setting_checkbox
 from .uisetup import UISetup
 from .hotkeymanager import HotkeyManager
 from ui.helpers import _event_selection
-from ui.mainpanes.panetables import Tables
-from ui.mainpanes.panechart.astrochart import AstroChart
+from ui.mainpanes.tables import Tables
+from ui.mainpanes.chart.astrochart import AstroChart
 from ui.mainpanes.datagraph import DataGraph
 from sweph.calculations.positions import connect_signals_positions
 from sweph.calculations.houses import connect_signals_houses
@@ -111,15 +111,31 @@ class MainWindow(
                 "e1" if self.app.selected_event == "e2" else "e2",
             ),
         )
+        # astro chart drawing
         self.hotkeys.register_hotkey(
             "g", lambda: self.toggle_chart_setting("enable glyphs")
         )
         self.hotkeys.register_hotkey(
             "a", lambda: self.toggle_chart_setting("fixed asc")
         )
-        self.hotkeys.register_hotkey("t", lambda: self.toggle_chart_setting("transit"))
-        self.hotkeys.register_hotkey("r", lambda: self.toggle_chart_setting("returns"))
-        self.hotkeys.register_hotkey("p", lambda: self.toggle_chart_setting("progress"))
+        # astro chart outer rings for event 2
+        self.hotkeys.register_hotkey("t", lambda: self.toggle_chart_setting("transits"))
+        self.hotkeys.register_hotkey(
+            "z", lambda: self.toggle_chart_setting("solar return")
+        )
+        self.hotkeys.register_hotkey(
+            "u", lambda: self.toggle_chart_setting("lunar return")
+        )
+        self.hotkeys.register_hotkey(
+            "i", lambda: self.toggle_chart_setting("p1 progress")
+        )
+        self.hotkeys.register_hotkey(
+            "o", lambda: self.toggle_chart_setting("p3 progress")
+        )
+        # # astro chart naksatras ring
+        self.hotkeys.register_hotkey(
+            "p", lambda: self.toggle_chart_setting("naksatras ring")
+        )
 
     def toggle_chart_setting(self, setting):
         """hotkey callback to toggle chart setting"""
@@ -132,7 +148,7 @@ class MainWindow(
         self.notify.debug(
             f"toggled {setting} : {new_val}",
             source="mainwindow",
-            route=["none"],
+            route=[""],
         )
 
     # hotkey action functions
