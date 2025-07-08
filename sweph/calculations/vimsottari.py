@@ -257,7 +257,7 @@ def vimsottari_table(mo_deg, e1_jd, e2_jd=None, current_lvl=1, max_lvl=3):
     # prepare header text
     idx, frac = find_nakshatra(mo_deg)
     nak_lord, nak_name = NAKSATRAS27[idx]
-    separ = f"{'-' * 35}\n"
+    separ = f"{'-' * 42}\n"
     header = (
         f"\n 'v' : toggle dasas level\n"
         " level 1 & 2 : complete dasas\n"

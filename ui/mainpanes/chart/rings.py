@@ -4,11 +4,7 @@ import cairo
 from math import pi, cos, sin, radians
 from ui.fonts.glyphs import get_glyph, SIGNS
 from sweph.constants import TERMS
-# background colors
-# redish    1,0.7,0.7
-# greenish  0.8,1,0.83
-# yellowish 0.2,0.2,0
-# blueish   0.7,0.75,1
+from ui.mainpanes.chart.astroobject import AstroObject
 
 
 class RingBase:
@@ -43,11 +39,20 @@ class RingBase:
         cr.restore()
 
 
-# circles in order from central to outer-most
+# rings in order from central to outer-most
 class Info(RingBase):
     # show event 1 info in center circle
     def __init__(
-        self, notify, radius, cx, cy, font_size, chart_settings, event_data, extra_info
+        self,
+        notify,
+        radius,
+        cx,
+        cy,
+        font_size,
+        chart_settings,
+        # radius_dict,
+        event_data,
+        extra_info,
     ):
         super().__init__(radius, cx, cy, chart_settings)
         self.notify = notify
@@ -121,7 +126,16 @@ class Info(RingBase):
 class Event(RingBase):
     # objects / planets & house cusps
     def __init__(
-        self, radius, cx, cy, font_size, guests, houses, ascmc, chart_settings
+        self,
+        radius,
+        cx,
+        cy,
+        font_size,
+        guests,
+        houses,
+        ascmc,
+        chart_settings,
+        radius_dict,
     ):
         super().__init__(radius, cx, cy, chart_settings)
         self.guests = guests
@@ -129,9 +143,9 @@ class Event(RingBase):
         self.ascmc = ascmc
         self.font_size = font_size
         # radius factor for middle circle (0° latitude )
-        self.middle_factor = 0.74
-        # inner circle factor (min latitude value)
-        self.inner_factor = 2 * self.middle_factor - 1.0
+        self.event = radius_dict.get("event", "")
+        self.info = radius_dict.get("info", "")
+        self.mid_ring = (self.event + self.info) / 2
         # print(f"chartcircles : circleevent : guests : {[g.data for g in guests]}")
         # print(f"chartcircles : circleevent : self.houses : {self.houses}")
         # print(f"chartcircles : circleevent : ascmc : {ascmc}")
@@ -147,7 +161,7 @@ class Event(RingBase):
         cr.set_line_width(1)
         cr.stroke()
         # middle circle = lat 0°
-        cr.arc(self.cx, self.cy, self.radius * self.middle_factor, 0, 2 * pi)
+        cr.arc(self.cx, self.cy, self.mid_ring, 0, 2 * pi)
         cr.set_source_rgba(1, 1, 1, 0.5)
         cr.set_line_width(1)
         cr.stroke()
@@ -231,40 +245,36 @@ class Event(RingBase):
             name = guest.data.get("name", "").lower()
             # sun always 0 lat
             if name == "su":
-                factor = self.middle_factor
+                # factor = self.mid_ring
+                radius = self.mid_ring
             # pluto has max lat range of them all
             elif name == "pl":
                 max_val = 18.0
+                ratio = lat / max_val
                 if lat >= 0:
-                    factor = self.middle_factor + (lat / max_val) * (
-                        1.0 - self.middle_factor
-                    )
+                    radius = self.mid_ring + (self.event - self.mid_ring) * ratio
+
                 else:
-                    factor = self.middle_factor + (lat / max_val) * (
-                        self.middle_factor - self.inner_factor
-                    )
+                    radius = self.mid_ring + (self.info - self.mid_ring) * (-ratio)
             # other planets
             else:
                 max_val = 8.0
+                ratio = lat / max_val
                 if lat >= 0:
-                    factor = self.middle_factor + (lat / max_val) * (
-                        1.0 - self.middle_factor
-                    )
+                    radius = self.mid_ring + (self.event - self.mid_ring) * ratio
                 else:
-                    factor = self.middle_factor + (lat / max_val) * (
-                        self.middle_factor - self.inner_factor
-                    )
+                    radius = self.mid_ring + (self.info - self.mid_ring) * (-ratio)
             # compute object drawing radius
-            obj_radius = self.radius * factor
-            guest.draw(cr, self.cx, self.cy, obj_radius, self.font_size)
+            # obj_radius = self.radius * factor
+            guest.draw(cr, self.cx, self.cy, radius, self.font_size, source="event")
             # if 'enable glyphs' > draw glyphs
             use_mean_node = self.chart_settings.get("mean node", False)
             if self.chart_settings.get("enable glyphs", True):
                 glyph = get_glyph(name, use_mean_node)
                 if glyph:
                     angle = pi - radians(guest.data.get("lon", 0))
-                    x = self.cx + obj_radius * cos(angle)
-                    y = self.cy + obj_radius * sin(angle)
+                    x = self.cx + radius * cos(angle)
+                    y = self.cy + radius * sin(angle)
                     cr.save()
                     if self.chart_settings.get("fixed asc", False) and self.ascmc:
                         cr.translate(x, y)
@@ -334,11 +344,15 @@ class Signs(RingBase):
 
 class Naksatras(RingBase):
     # draw 27 or 28 naksatras ring
-    def __init__(self, radius, cx, cy, naks_num, first_nak, font_size):
+    def __init__(self, radius, cx, cy, naks_num, first_nak, font_size, radius_dict):
         super().__init__(radius, cx, cy)
         self.naks_num = naks_num
         self.first_nak = first_nak
         self.font_size = font_size
+        self.mid_ring = (
+            radius_dict.get("naksatras", "") + radius_dict.get("signs", "")
+        ) / 2
+        # print(f"midring : {self.mid_ring}")
 
     def draw(self, cr):
         """draw outer circle"""
@@ -363,9 +377,8 @@ class Naksatras(RingBase):
             angle = pi - ((i + 0.5) * seg_angle)
             label = str((self.first_nak + i - 1) % self.naks_num + 1)
             te = cr.text_extents(label)
-            x = self.cx + self.radius * 0.967 * cos(angle)
-            y = self.cy + self.radius * 0.967 * sin(angle)
-
+            x = self.cx + self.mid_ring * cos(angle)
+            y = self.cy + self.mid_ring * sin(angle)
             cr.save()
             cr.translate(x, y)
             cr.rotate(angle + pi / 2)
@@ -377,11 +390,26 @@ class Naksatras(RingBase):
 
 class Harmonic(RingBase):
     # draw harmonic (aka division) ring
-    def __init__(self, notify, radius, cx, cy, division, font_size=14):
+    def __init__(self, notify, radius, cx, cy, division, radius_dict, font_size=14):
         super().__init__(radius, cx, cy)
         self.notify = notify
         self.division = division
         self.font_size = font_size
+        # print(f"harmonic : radlist : {radius_dict}")
+        keys = list(radius_dict.keys())
+        index = ""
+        try:
+            index = keys.index("harmonic")
+        except ValueError:
+            raise ValueError("missing 'harmonic' key in radiusdict")
+        if index < len(keys) - 1:
+            next_key = keys[index + 1]
+            next_val = radius_dict[next_key]
+        else:
+            # fallback
+            next_val = radius_dict["harmonic"]
+        if radius_dict:
+            self.mid_ring = (radius_dict["harmonic"] + next_val) / 2
 
     def draw(self, cr):
         # draw circle
@@ -413,9 +441,10 @@ class Harmonic(RingBase):
                 angle_next = pi - (next_deg * pi / 180)
                 # handle wrap-around
                 mid_angle = (angle + angle_next) / 2
-                # position glyph
-                xg = self.cx + self.radius * 0.975 * cos(mid_angle)
-                yg = self.cy + self.radius * 0.975 * sin(mid_angle)
+                # position glyph at ring middle
+                glyph_fix = 1.008
+                xg = self.cx + self.mid_ring * glyph_fix * cos(mid_angle)
+                yg = self.cy + self.mid_ring * glyph_fix * sin(mid_angle)
                 glyph = get_glyph(ruler, False)
                 self.draw_rotated_text(cr, glyph, xg, yg, mid_angle)
         else:
@@ -445,23 +474,73 @@ class Harmonic(RingBase):
 # event 2 circles (inside-to-outside) : progress, returns, transits
 class P1Progress(RingBase):
     # p1 progression
-    def __init__(self, radius, cx, cy, font_size, chart_settings):
+    def __init__(self, radius, cx, cy, font_size, chart_settings, p1_pos, radius_dict):
         super().__init__(radius, cx, cy, chart_settings)
         self.font_size = font_size
+        self.p1_pos = p1_pos
+        keys = list(radius_dict.keys())
+        index = ""
+        try:
+            index = keys.index("p1 progress")
+        except ValueError:
+            raise ValueError("missing 'p1 progress' key in radiusdict")
+        if index < len(keys) - 1:
+            next_key = keys[index + 1]
+            next_val = radius_dict[next_key]
+        else:
+            # fallback
+            next_val = radius_dict["p1 progress"]
+        if radius_dict:
+            self.mid_ring = (radius_dict["p1 progress"] + next_val) / 2
+            self.ring = radius_dict.get("p1 progress", "/")
+            print(f"p1 radius : {self.ring}")
+            self.before_ring = next_val
+        # ring_range = f""
+        # print(f"p1proggres : p1pos : {p1_pos}")
+        self.guests = []
+        if self.p1_pos and isinstance(self.p1_pos, dict):
+            # create astroobject instance for drawing
+            self.guests = [
+                self.create_astro_obj(obj)
+                for obj in self.p1_pos.values()
+                if isinstance(obj, dict)
+            ]
+            print(f"p1progress : guests : {self.guests}")
+
+    def create_astro_obj(self, obj):
+        p1_obj_data = obj.copy()
+        p1_obj_data["lon"] = p1_obj_data.get("zpp", 0)
+        return AstroObject(p1_obj_data)
 
     def draw(self, cr):
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
         # blueish
-        cr.set_source_rgba(0.0471, 0.1059, 0.1843, 1)
+        cr.set_source_rgba(0.0471, 0.1059, 0.1843, 1.0)
         cr.fill_preserve()
         cr.set_source_rgba(1, 1, 1, 1)
         cr.set_line_width(1)
         cr.stroke()
+        # offset = segment_angle / 2
+        segment_angle = 2 * pi / 12
+        # sign borders
+        for j in range(12):
+            angle = pi - j * segment_angle  # start at left
+            x1 = self.cx + self.radius * 0.9 * cos(angle)
+            y1 = self.cy + self.radius * 0.9 * sin(angle)
+            x2 = self.cx + self.radius * cos(angle)
+            y2 = self.cy + self.radius * sin(angle)
+            cr.move_to(x1, y1)
+            cr.line_to(x2, y2)
+            cr.set_source_rgba(1, 1, 1, 1)
+            cr.set_line_width(1)
+            cr.stroke()
+        for guest in self.guests:
+            guest.draw(cr, self.cx, self.cy, self.radius, source="p1")
 
 
 class P3Progress(RingBase):
     # p3 progression
-    def __init__(self, radius, cx, cy, font_size, chart_settings):
+    def __init__(self, radius, cx, cy, font_size, chart_settings, radius_dict):
         super().__init__(radius, cx, cy, chart_settings)
         self.font_size = font_size
 
@@ -473,11 +552,24 @@ class P3Progress(RingBase):
         cr.set_source_rgba(1, 1, 1, 1)
         cr.set_line_width(1)
         cr.stroke()
+        segment_angle = 2 * pi / 12
+        # sign borders
+        for j in range(12):
+            angle = pi - j * segment_angle  # start at left
+            x1 = self.cx + self.radius * 0.9 * cos(angle)
+            y1 = self.cy + self.radius * 0.9 * sin(angle)
+            x2 = self.cx + self.radius * cos(angle)
+            y2 = self.cy + self.radius * sin(angle)
+            cr.move_to(x1, y1)
+            cr.line_to(x2, y2)
+            cr.set_source_rgba(1, 1, 1, 1)
+            cr.set_line_width(1)
+            cr.stroke()
 
 
 class SolarReturn(RingBase):
     # solar return
-    def __init__(self, radius, cx, cy, font_size, chart_settings):
+    def __init__(self, radius, cx, cy, font_size, chart_settings, radius_dict):
         super().__init__(radius, cx, cy, chart_settings)
         self.font_size = font_size
 
@@ -489,11 +581,24 @@ class SolarReturn(RingBase):
         cr.set_source_rgba(1, 1, 1, 1)
         cr.set_line_width(1)
         cr.stroke()
+        segment_angle = 2 * pi / 12
+        # sign borders
+        for j in range(12):
+            angle = pi - j * segment_angle  # start at left
+            x1 = self.cx + self.radius * 0.9 * cos(angle)
+            y1 = self.cy + self.radius * 0.9 * sin(angle)
+            x2 = self.cx + self.radius * cos(angle)
+            y2 = self.cy + self.radius * sin(angle)
+            cr.move_to(x1, y1)
+            cr.line_to(x2, y2)
+            cr.set_source_rgba(1, 1, 1, 1)
+            cr.set_line_width(1)
+            cr.stroke()
 
 
 class LunarReturn(RingBase):
     # lunar return
-    def __init__(self, radius, cx, cy, font_size, chart_settings):
+    def __init__(self, radius, cx, cy, font_size, chart_settings, radius_dict):
         super().__init__(radius, cx, cy, chart_settings)
         self.font_size = font_size
 
@@ -505,11 +610,24 @@ class LunarReturn(RingBase):
         cr.set_source_rgba(1, 1, 1, 1)
         cr.set_line_width(1)
         cr.stroke()
+        segment_angle = 2 * pi / 12
+        # sign borders
+        for j in range(12):
+            angle = pi - j * segment_angle  # start at left
+            x1 = self.cx + self.radius * 0.9 * cos(angle)
+            y1 = self.cy + self.radius * 0.9 * sin(angle)
+            x2 = self.cx + self.radius * cos(angle)
+            y2 = self.cy + self.radius * sin(angle)
+            cr.move_to(x1, y1)
+            cr.line_to(x2, y2)
+            cr.set_source_rgba(1, 1, 1, 1)
+            cr.set_line_width(1)
+            cr.stroke()
 
 
 class Transits(RingBase):
     # objects / planets & house cusps
-    def __init__(self, radius, cx, cy, font_size, chart_settings):
+    def __init__(self, radius, cx, cy, font_size, chart_settings, radius_dict):
         super().__init__(radius, cx, cy, chart_settings)
         self.font_size = font_size
 
@@ -523,3 +641,16 @@ class Transits(RingBase):
         cr.set_source_rgba(1, 1, 1, 1)
         cr.set_line_width(1)
         cr.stroke()
+        segment_angle = 2 * pi / 12
+        # sign borders
+        for j in range(12):
+            angle = pi - j * segment_angle  # start at left
+            x1 = self.cx + self.radius * 0.9 * cos(angle)
+            y1 = self.cy + self.radius * 0.9 * sin(angle)
+            x2 = self.cx + self.radius * cos(angle)
+            y2 = self.cy + self.radius * sin(angle)
+            cr.move_to(x1, y1)
+            cr.line_to(x2, y2)
+            cr.set_source_rgba(1, 1, 1, 1)
+            cr.set_line_width(1)
+            cr.stroke()

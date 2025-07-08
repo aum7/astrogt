@@ -65,7 +65,7 @@ def _event_selection(manager, gesture, n_press, x, y, event_name):
         manager.notify.debug(
             f"{manager.app.selected_event} selected",
             source="helpers",
-            route=["terminal"],
+            route=[""],
         )
 
 

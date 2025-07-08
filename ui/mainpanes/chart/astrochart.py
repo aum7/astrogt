@@ -1,9 +1,10 @@
-# ui/mainpanes/panechart/astrochart.py
+# ui/mainpanes/chart/astrochart.py
 # ruff: noqa: E402
 import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
+from ui.mainpanes.chart.astroobject import AstroObject
 from ui.mainpanes.chart.rings import (
     Info,
     Event,
@@ -16,8 +17,7 @@ from ui.mainpanes.chart.rings import (
     LunarReturn,
     Transits,
 )
-from user.settings import OBJECTS
-from math import pi, cos, sin, radians
+from math import radians
 
 
 class AstroChart(Gtk.Box):
@@ -179,14 +179,23 @@ class AstroChart(Gtk.Box):
             "harmonic": 0.06,
             "naksatras": 0.06,
         }
-        radius_outer = {}
+        inner_portion = {
+            "signs": 1.0,
+            "event": 0.92,
+            "info": 0.4,
+        }
+        radius_dict = {}
         cumulative = 0.0
         # use fixed order for event 2 rings
         for ring, portion in outer_portion.items():
             if ring in outer_rings:
-                radius_outer[ring] = max_radius * (1 - cumulative)
+                radius_dict[ring] = max_radius * (1 - cumulative)
                 cumulative += portion
-        radius_inner = 1 - cumulative
+        max_inner = 1 - cumulative
+        for ring, portion in inner_portion.items():
+            radius_dict[ring] = max_radius * (max_inner * portion)
+        # radius_dict_bu = radius_dict.copy()
+        # msg += f"\tradiusdict : {radius_dict}"
         # --- rotate block : if fixed asc > rotate rings
         if self.chart_settings.get("fixed asc", False) and self.ascmc:
             asc_angle = radians(self.ascmc[0])
@@ -197,56 +206,61 @@ class AstroChart(Gtk.Box):
         # --- outer rings : transits
         if "transits" in outer_rings:
             ring_transits = Transits(
-                radius=radius_outer.get("transits", max_radius),
+                radius=radius_dict.get("transits", max_radius),
                 cx=cx,
                 cy=cy,
                 font_size=int(12 * font_scale),
                 chart_settings=self.chart_settings,
+                radius_dict=radius_dict,
             )
             ring_transits.draw(cr)
         # --- lunar return
         if "lunar return" in outer_rings:
             ring_lunar = LunarReturn(
-                radius=radius_outer.get("lunar return", max_radius),
+                radius=radius_dict.get("lunar return", max_radius),
                 cx=cx,
                 cy=cy,
                 font_size=int(12 * font_scale),
                 chart_settings=self.chart_settings,
+                radius_dict=radius_dict,
             )
             ring_lunar.draw(cr)
         # --- solar return
         if "solar return" in outer_rings:
             ring_solar = SolarReturn(
-                radius=radius_outer.get("solar return", max_radius),
+                radius=radius_dict.get("solar return", max_radius),
                 cx=cx,
                 cy=cy,
                 font_size=int(12 * font_scale),
                 chart_settings=self.chart_settings,
+                radius_dict=radius_dict,
             )
             ring_solar.draw(cr)
         # --- tertiary progressions
         if "p3 progress" in outer_rings:
             ring_p3 = P3Progress(
-                radius=radius_outer.get("p3 progress", max_radius),
+                radius=radius_dict.get("p3 progress", max_radius),
                 cx=cx,
                 cy=cy,
                 font_size=int(12 * font_scale),
                 chart_settings=self.chart_settings,
+                radius_dict=radius_dict,
             )
             ring_p3.draw(cr)
         # --- primary progressions
         if "p1 progress" in outer_rings:
             ring_p1 = P1Progress(
-                radius=radius_outer.get("p1 progress", max_radius),
+                radius=radius_dict.get("p1 progress", max_radius),
                 cx=cx,
                 cy=cy,
                 font_size=int(12 * font_scale),
                 chart_settings=self.chart_settings,
+                p1_pos=self.p1_pos,
+                radius_dict=radius_dict,
             )
             ring_p1.draw(cr)
         # --- optional rings : harmonic
         if "harmonic" in outer_rings:
-            # msg += f"harmonic ring : {self.chart_settings.get('harmonic ring', '').strip()}\n"
             try:
                 division_value = int(
                     self.chart_settings.get("harmonic ring", "").strip()
@@ -260,11 +274,11 @@ class AstroChart(Gtk.Box):
             if division:
                 ring_harmonic = Harmonic(
                     self.notify,
-                    radius=radius_outer.get("harmonic", max_radius),
+                    radius=radius_dict.get("harmonic", max_radius),
                     cx=cx,
                     cy=cy,
-                    # division=1,
                     division=division,
+                    radius_dict=radius_dict,
                     font_size=int(12 * font_scale),
                 )
                 ring_harmonic.draw(cr)
@@ -273,27 +287,29 @@ class AstroChart(Gtk.Box):
             naks_num = 28 if self.chart_settings.get("28 naksatras", False) else 27
             first_nak = int(self.chart_settings.get("1st naksatra", 1))
             ring_naksatras = Naksatras(
-                radius=radius_outer.get("naksatras", ""),
+                radius=radius_dict.get("naksatras", ""),
                 cx=cx,
                 cy=cy,
                 font_size=int(14 * font_scale),
                 naks_num=naks_num,
                 first_nak=first_nak,
+                radius_dict=radius_dict,
             )
             ring_naksatras.draw(cr)
         # --- outer rings end
         # --- mandatory inner rings
         # chart rings
         ring_signs = Signs(
-            radius=max_radius * radius_inner,
+            radius=radius_dict.get("signs", ""),
             cx=cx,
             cy=cy,
             font_size=int(17 * font_scale),
+            # radius_dict=radius_dict,
             stars=self.stars,
         )
         ring_signs.draw(cr)
         ring_event = Event(
-            radius=max_radius * radius_inner * 0.92,
+            radius=radius_dict.get("event", ""),
             cx=cx,
             cy=cy,
             font_size=int(18 * font_scale),
@@ -301,6 +317,7 @@ class AstroChart(Gtk.Box):
             houses=self.houses if self.houses else [],
             ascmc=self.ascmc if self.ascmc else [],
             chart_settings=self.chart_settings,
+            radius_dict=radius_dict,
         )
         ring_event.draw(cr)
         # restore context if chart rotation was applied
@@ -310,11 +327,12 @@ class AstroChart(Gtk.Box):
         # draw info ring last > no text rotation
         ring_info = Info(
             self.notify,
-            radius=max_radius * radius_inner * 0.4,
+            radius=radius_dict.get("info", ""),
             cx=cx,
             cy=cy,
             font_size=int(16 * font_scale),
             chart_settings=self.chart_settings,
+            # radius_dict=radius_dict,
             event_data=self.e1_chart_info,
             extra_info=self.extra_info,
         )
@@ -322,38 +340,8 @@ class AstroChart(Gtk.Box):
         self.notify.debug(
             msg,
             source="astrochart",
-            route=["terminal"],
+            route=[""],
         )
 
     def create_astro_object(self, obj):
         return AstroObject(obj)
-
-
-class AstroObject:
-    def __init__(self, data):
-        self.data = data
-        # print(f"astrochart : objects : {data}")
-        self.size = 0.7
-        name = self.data.get("name", "su").lower()
-        # default color & scale
-        self.color = (0.1, 0.1, 0.1, 0.5)
-        self.scale = 1.0
-
-        for obj in OBJECTS.values():
-            if obj[0].lower() == name:
-                self.color = obj[4]
-                self.scale = obj[5]
-                break
-
-    def draw(self, cr, cx, cy, radius, obj_scale=1.0):
-        # compute angle & draw in ccw direction, start at left (ari)
-        angle = pi - radians(self.data.get("lon", 0))
-        # determine radius by scale
-        # obj_size = self.scale * obj_scale
-        obj_size = self.size * self.scale * obj_scale
-        x = cx + radius * cos(angle)
-        y = cy + radius * sin(angle)
-        # simple ring marker for object / planet
-        cr.arc(x, y, obj_size, 0, 2 * pi)
-        cr.set_source_rgba(*self.color)
-        cr.fill()

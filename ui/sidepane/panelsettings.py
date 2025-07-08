@@ -823,7 +823,6 @@ def chart_settings_toggled(button, setting, manager):
 def update_chart_setting_checkbox(manager, setting, new_value):
     """update checkbox for chart setting on hotkey"""
     app = manager.app
-    print(f"\tupdchrtsettchk : {setting}")
     if (
         hasattr(app, "checkbox_chart_settings")
         and setting in app.checkbox_chart_settings

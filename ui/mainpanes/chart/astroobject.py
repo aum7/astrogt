@@ -1,0 +1,46 @@
+# ui/mainpanes/chart/astroobject.py
+from user.settings import OBJECTS
+from math import pi, radians, cos, sin
+
+
+class AstroObject:
+    def __init__(self, data):
+        self.data = data
+        # print(f"astrochart : objects : {data}")
+        self.size = 0.7
+        name = self.data.get("name", "su").lower()
+        # default color & scale
+        self.color = (0.1, 0.1, 0.1, 0.5)
+        self.scale = 1.0
+
+        for obj in OBJECTS.values():
+            if obj[0].lower() == name:
+                self.color = obj[4]
+                self.scale = obj[5]
+                break
+
+    def __repr__(self):
+        name = self.data.get("name", "/")
+        lon = self.data.get("lon", "/")
+        return f"astroobject : name {name} | lon {lon}"
+
+    def draw(self, cr, cx, cy, radius, obj_scale=1.0, source=None):
+        cr.save()
+        # compute angle & draw in ccw direction, start at left (ari)
+        angle = pi - radians(self.data.get("lon", 0))
+        # determine radius by scale
+        # obj_size = self.scale * obj_scale
+        obj_size = self.size * self.scale * obj_scale
+        x = cx + radius * cos(angle)
+        y = cy + radius * sin(angle)
+        # debug
+        print(
+            f"drawing {self.data.get('name')}-{source} : "
+            f"lon={self.data.get('lon'):.2f} | "
+            f"radius={radius}, x={x:.2f} | y={y:.2f}\n"
+        )
+        # simple ring marker for object / planet
+        cr.arc(x, y, obj_size, 0, 2 * pi)
+        cr.set_source_rgba(*self.color)
+        cr.fill()
+        cr.restore()
