@@ -41,8 +41,6 @@ def calculate_positions(event: Optional[str] = None) -> None:
         if (
             app.selected_flags
             and app.is_topocentric
-            # todo changed to stored value
-            # and "topocentric" in app.selected_flags
             and all(k in sweph for k in ("lon", "lat", "alt"))
         ):
             # coordinates are reversed here : lon lat alt
@@ -88,7 +86,6 @@ def calculate_positions(event: Optional[str] = None) -> None:
         positions_ordered["jd_ut"] = jd_ut
         for k in keys:
             positions_ordered[k] = positions[k]
-            # positions_ordered[str(k)] = positions[k]
         if event == "e1":
             app.e1_positions = positions_ordered
             msg += f"{event} [e1] :\n\t{positions_ordered}"

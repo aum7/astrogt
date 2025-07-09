@@ -9,9 +9,9 @@ from datetime import datetime, timezone
 from ui.collapsepanel import CollapsePanel
 from ui.helpers import _buttons_from_dict
 from sweph.swetime import custom_iso_to_jd, jd_to_custom_iso
-from .panelevents import setup_event
-from .paneltools import setup_tools
-from .panelsettings import setup_settings
+from .events import setup_event
+from .tools import setup_tools
+from .settings import setup_settings
 
 
 class SidepaneManager:

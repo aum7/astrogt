@@ -1,6 +1,11 @@
 # ui/mainpanes/chart/rings.py
 # ui/fonts/victor/victormonolightastro.ttf
+# ruff: noqa: E402
 import cairo
+import gi
+
+gi.require_version("Gtk", "4.0")
+from gi.repository import Gtk  # type: ignore
 from math import pi, cos, sin, radians
 from ui.fonts.glyphs import get_glyph, SIGNS
 from sweph.constants import TERMS
@@ -18,6 +23,33 @@ class RingBase:
     def draw(self, cr):
         """subclass must override this method"""
         raise NotImplementedError
+
+    # ascendant & midheaven
+    def draw_triangle(self, cr, size):
+        # triangle shape: ascendant/descendant marker
+        cr.move_to(0, size)
+        cr.line_to(size, -size / 2)
+        cr.line_to(-size, -size / 2)
+        cr.close_path()
+        cr.fill()
+
+    def draw_diamond(self, cr, size):
+        # diamond shape: midheaven/nadir marker
+        cr.move_to(0, -size)
+        cr.line_to(size, 0)
+        cr.line_to(0, size)
+        cr.line_to(-size, 0)
+        cr.close_path()
+        cr.fill()
+
+    def draw_marker(self, cr, cx, cy, angle, size, color, shape_func):
+        # generic marker-drawing helper
+        cr.save()
+        cr.set_source_rgba(*color)
+        cr.translate(cx, cy)
+        cr.rotate(angle + pi / 2)
+        shape_func(cr, size)
+        cr.restore()
 
     def set_custom_font(self, cr, font_size=16):
         cr.select_font_face(
@@ -178,33 +210,6 @@ class Event(RingBase):
             cr.set_source_rgba(1, 1, 1, 0.3)
             cr.stroke()
 
-        # ascendant & midheaven
-        def draw_triangle(cr, size):
-            # triangle shape: ascendant/descendant marker
-            cr.move_to(0, size)
-            cr.line_to(size, -size / 2)
-            cr.line_to(-size, -size / 2)
-            cr.close_path()
-            cr.fill()
-
-        def draw_diamond(cr, size):
-            # diamond shape: midheaven/nadir marker
-            cr.move_to(0, -size)
-            cr.line_to(size, 0)
-            cr.line_to(0, size)
-            cr.line_to(-size, 0)
-            cr.close_path()
-            cr.fill()
-
-        def draw_marker(cr, cx, cy, angle, size, color, shape_func):
-            # generic marker-drawing helper
-            cr.save()
-            cr.set_source_rgba(*color)
-            cr.translate(cx, cy)
-            cr.rotate(angle + pi / 2)
-            shape_func(cr, size)
-            cr.restore()
-
         if self.ascmc:
             radius_factor = 1.0
             ascendant = self.ascmc[0]
@@ -215,29 +220,41 @@ class Event(RingBase):
             asc_x = self.cx + self.radius * radius_factor * cos(asc_angle)
             asc_y = self.cy + self.radius * radius_factor * sin(asc_angle)
             # draw ascendant marker (white triangle)
-            draw_marker(
-                cr, asc_x, asc_y, asc_angle, marker_size, (1, 1, 1, 1), draw_triangle
+            self.draw_marker(
+                cr,
+                asc_x,
+                asc_y,
+                asc_angle,
+                marker_size,
+                (1, 1, 1, 1),
+                self.draw_triangle,
             )
             dsc_angle = asc_angle + pi
             dsc_x = self.cx + self.radius * radius_factor * cos(dsc_angle)
             dsc_y = self.cy + self.radius * radius_factor * sin(dsc_angle)
             # draw descendant marker (black triangle)
-            draw_marker(
-                cr, dsc_x, dsc_y, dsc_angle, marker_size, (0, 0, 0, 1), draw_triangle
+            self.draw_marker(
+                cr,
+                dsc_x,
+                dsc_y,
+                dsc_angle,
+                marker_size,
+                (0, 0, 0, 1),
+                self.draw_triangle,
             )
             mc_angle = pi - radians(midheaven)
             mc_x = self.cx + self.radius * radius_factor * cos(mc_angle)
             mc_y = self.cy + self.radius * radius_factor * sin(mc_angle)
             # draw midheaven marker (white diamond)
-            draw_marker(
-                cr, mc_x, mc_y, mc_angle, marker_size, (1, 1, 1, 1), draw_diamond
+            self.draw_marker(
+                cr, mc_x, mc_y, mc_angle, marker_size, (1, 1, 1, 1), self.draw_diamond
             )
             ic_angle = mc_angle + pi
             ic_x = self.cx + self.radius * radius_factor * cos(ic_angle)
             ic_y = self.cy + self.radius * radius_factor * sin(ic_angle)
             # draw nadir marker (black diamond)
-            draw_marker(
-                cr, ic_x, ic_y, ic_angle, marker_size, (0, 0, 0, 1), draw_diamond
+            self.draw_marker(
+                cr, ic_x, ic_y, ic_angle, marker_size, (0, 0, 0, 1), self.draw_diamond
             )
         # guests with adjusted radius based on latitude
         for guest in self.guests:
@@ -476,8 +493,11 @@ class P1Progress(RingBase):
     # p1 progression
     def __init__(self, radius, cx, cy, font_size, chart_settings, p1_pos, radius_dict):
         super().__init__(radius, cx, cy, chart_settings)
+        self.app = Gtk.Application.get_default()
+        self.notify = self.app.notify_manager
         self.font_size = font_size
         self.p1_pos = p1_pos
+        # get ring radius
         keys = list(radius_dict.keys())
         index = ""
         try:
@@ -493,23 +513,29 @@ class P1Progress(RingBase):
         if radius_dict:
             self.mid_ring = (radius_dict["p1 progress"] + next_val) / 2
             self.ring = radius_dict.get("p1 progress", "/")
-            print(f"p1 radius : {self.ring}")
             self.before_ring = next_val
-        # ring_range = f""
-        # print(f"p1proggres : p1pos : {p1_pos}")
+            # msg += (
+            #     f"p1 midring : {self.mid_ring} | radius : {self.ring} | radinext : {next_val}"
+            # )
         self.guests = []
-        if self.p1_pos and isinstance(self.p1_pos, dict):
-            # create astroobject instance for drawing
-            self.guests = [
-                self.create_astro_obj(obj)
-                for obj in self.p1_pos.values()
-                if isinstance(obj, dict)
-            ]
-            print(f"p1progress : guests : {self.guests}")
+        try:
+            if self.p1_pos:
+                # create astroobject instance for drawing
+                self.guests = [
+                    self.create_astro_obj(obj)
+                    for obj in self.p1_pos
+                    if isinstance(obj, dict)
+                ]
+        except Exception as e:
+            self.notify.error(
+                f"no p1 positions\n\terror :\n\t{e}",
+                source="rings",
+                route=["terminal", "user"],
+            )
 
     def create_astro_obj(self, obj):
         p1_obj_data = obj.copy()
-        p1_obj_data["lon"] = p1_obj_data.get("zpp", 0)
+        # p1_obj_data["lon"] = p1_obj_data.get("zpp", 0)
         return AstroObject(p1_obj_data)
 
     def draw(self, cr):
@@ -535,7 +561,26 @@ class P1Progress(RingBase):
             cr.set_line_width(1)
             cr.stroke()
         for guest in self.guests:
-            guest.draw(cr, self.cx, self.cy, self.radius, source="p1")
+            # todo skip age : (e2jd - e1jd) / yearlength
+            if guest.data.get("name") == "age":
+                continue
+            angle = pi - radians(guest.data.get("lon"))
+            x = self.cx + self.mid_ring * cos(angle)
+            y = self.cy + self.mid_ring * sin(angle)
+            marker_size = 7.2
+            # print(f"markersize : {marker_size}")
+            if guest.data.get("name") == "asc":
+                self.draw_marker(
+                    cr, x, y, angle, marker_size, (1, 1, 1, 1), self.draw_triangle
+                )
+            elif guest.data.get("name") == "mc":
+                self.draw_marker(
+                    cr, x, y, angle, marker_size, (1, 1, 1, 1), self.draw_diamond
+                )
+            else:
+                guest.draw(
+                    cr, self.cx, self.cy, self.mid_ring, obj_scale=12.0, source="p1"
+                )
 
 
 class P3Progress(RingBase):

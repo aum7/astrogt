@@ -469,16 +469,12 @@ class EventData:
                     # convert to decimal hour
                     self.tz_offset = days * 24 + h + m / 60 + s / 3600
                     # msg += f"timenow : tz_offset : {self.tz_offset}"
+                    # todo enable below ???
                     msg += (
                         f"{datetime_name} timezone : using time now for {tz}"
                         if self.timezone
                         else f"{datetime_name} no timezone : using event one ({tz})"
                     )
-                    # self.notify.info(
-                    #     msg,
-                    #     source="eventdata",
-                    #     route=["terminal"],
-                    # )
                 # calculate julian day utc
                 _, jd_ut = utc_to_jd(
                     dt_utc.year,
@@ -585,11 +581,7 @@ class EventData:
                 # print(f"utcfromnaive : {dt_utc}")
                 # print(f"manualdt tz : jdut : {jd_ut} | tzoffset : {self.tz_offset}")
                 if not self.timezone:
-                    self.notify.info(
-                        f"\n\t{datetime_name} no timezone : using event one ({tz})",
-                        source="eventdata",
-                        route=["terminal", "user"],
-                    )
+                    msg += f"\n\t{datetime_name} no timezone : using event one ({tz})"
             except Exception as e:
                 self.notify.warning(
                     f"{datetime_name} error"
@@ -608,11 +600,7 @@ class EventData:
                 route=["terminal"],
             )
             return
-        self.notify.debug(
-            f"{datetime_name} julian day : {jd_ut}",
-            source="eventdata",
-            route=["none"],
-        )
+        msg += f"{datetime_name} julian day : {jd_ut}"
         # update datetime entry
         if dt_event_str:
             entry.set_text(dt_event_str)
@@ -636,11 +624,7 @@ class EventData:
             self.app.e2_chart["wday"] = wday
             self.app.e2_chart["offset"] = str(self.tz_offset)
             self.app.e2_sweph["jd_ut"] = jd_ut
-        self.notify.debug(
-            f"{datetime_name} updated\n\t{dt_event_str} | {wday} | jdut : {jd_ut}",
-            source="eventdata",
-            route=["none"],
-        )
+        msg += f"{datetime_name} updated\n\t{dt_event_str} | {wday} | jdut : {jd_ut}"
         # all good : set new old date-time
         self.old_date_time = dt_event_str
         # if datetime two is NOT empty, user is interested in event 2
@@ -649,21 +633,17 @@ class EventData:
         if not self.app.e2_chart.get("datetime"):
             # declare e2 NOT active
             self.app.e2_active = False
-            self.notify.debug(
+            msg += (
                 "datetime 2 is none : user not interested in event 2 : skipping ..."
-                f"\n\te2 active : {self.app.e2_active}",
-                source="eventdata",
-                route=[""],
+                f"\n\te2 active : {self.app.e2_active}"
             )
         elif self.app.e2_chart.get("datetime"):
             # declare e2 active
             self.app.e2_active = True
-            self.notify.debug(
+            msg += (
                 f"\n\tdatetime 2 not empty : {self.app.e2_chart.get('datetime')} : "
                 "merging e1 > e2 data"
-                f"\n\te2 active : {self.app.e2_active}",
-                source="eventdata",
-                route=["terminal"],
+                f"\n\te2 active : {self.app.e2_active}"
             )
             if self.app.e2_chart.get("location", "") == "":
                 for key in [
@@ -677,11 +657,7 @@ class EventData:
                     self.app.e2_chart[key] = self.app.e1_chart.get(key)
                 for key in ["lat", "lon", "alt"]:
                     self.app.e2_sweph[key] = self.app.e1_sweph.get(key)
-            self.notify.debug(
-                "cou & cit & loc & tz & iso & offset + lat & lon & alt : data 1 => 2",
-                source="eventdata",
-                route=["terminal"],
-            )
+            msg += "cou & cit & loc & tz & iso & offset + lat & lon & alt : data 1 => 2"
         # debug-print all data
         import json
 
@@ -702,8 +678,9 @@ class EventData:
         else:
             event = "e2"
         self.app.signal_manager._emit("event_changed", event)
+        msg += f"{datetime_name} ({event}): emitted event changed signal"
         self.notify.debug(
-            f"{datetime_name} ({event}): emitted event changed signal",
+            msg,
             source="eventdata",
             route=["none"],
         )

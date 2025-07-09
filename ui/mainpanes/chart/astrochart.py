@@ -100,6 +100,7 @@ class AstroChart(Gtk.Box):
     def settings_changed(self, arg):
         # grab data & redraw
         self.chart_settings = getattr(self.app, "chart_settings", {})
+        self.p1_changed(arg)
         self.drawing_area.queue_draw()
 
     def stars_changed(self, event, stars):
@@ -112,10 +113,9 @@ class AstroChart(Gtk.Box):
         self.drawing_area.queue_draw()
 
     def p1_changed(self, event):
-        # progressions changed
-        if event == "e2":
-            self.p1_pos = getattr(self.app, "p1_positions", {})
-            self.p1_arcs = getattr(self.app, "p1_directions", {})
+        # primary progressions changed
+        self.p1_pos = getattr(self.app, "p1_pos", None)
+        # print(f"astrochart p1pos : {self.p1_pos}")
         self.drawing_area.queue_draw()
 
     def draw(self, area, cr, width, height):
@@ -164,7 +164,7 @@ class AstroChart(Gtk.Box):
                 outer_rings.append("p1 progress")
             if self.chart_settings.get("p3 progress"):
                 outer_rings.append("p3 progress")
-        if self.chart_settings.get("harmonic ring", "").strip():  # is not None:
+        if self.chart_settings.get("harmonic ring", "").strip():
             outer_rings.append("harmonic")
         if self.chart_settings.get("naksatras ring", ""):
             outer_rings.append("naksatras")
@@ -194,7 +194,6 @@ class AstroChart(Gtk.Box):
         max_inner = 1 - cumulative
         for ring, portion in inner_portion.items():
             radius_dict[ring] = max_radius * (max_inner * portion)
-        # radius_dict_bu = radius_dict.copy()
         # msg += f"\tradiusdict : {radius_dict}"
         # --- rotate block : if fixed asc > rotate rings
         if self.chart_settings.get("fixed asc", False) and self.ascmc:

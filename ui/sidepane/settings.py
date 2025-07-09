@@ -1,4 +1,4 @@
-# ui/sidepane/panelsettings.py
+# ui/sidepane/settings.py
 # ruff: noqa: E402
 import swisseph as swe
 import gi
@@ -46,7 +46,7 @@ def setup_settings(manager) -> CollapsePanel:
     # main panel for settings
     clp_settings = CollapsePanel(
         title="settings",
-        expanded=True,  # todo
+        expanded=False,  # todo
     )
     clp_settings.set_margin_end(manager.margin_end)
     clp_settings.set_title_tooltip("""sweph & application & chart etc settings""")
@@ -56,7 +56,7 @@ def setup_settings(manager) -> CollapsePanel:
     subpnl_objects = CollapsePanel(
         title="objects / planets",
         indent=14,
-        expanded=False,
+        expanded=True,  # todo False,
     )
     subpnl_objects.set_title_tooltip(
         """select objects to calculate & display on chart
@@ -102,7 +102,7 @@ event 1 & 2 can have different objects"""
     box_objects.append(manager.lbx_objects)
     # track selected objects per event
     app.selected_objects_e1 = set()
-    app.selected_objects_e2 = {"sun", "moon"}
+    app.selected_objects_e2 = {"sun", "moon", "jupiter"}  # todo
     manager.selected_objects_event = 1
     for _, obj_data in OBJECTS.items():
         row = Gtk.ListBoxRow()
@@ -727,6 +727,7 @@ def objects_toggle_event(button, manager):
         check = row.get_child()
         name = check.get_label()
         check.set_active(name in objs)
+    manager.app.signal_manager._emit("settings_changed", None)
     manager.notify.debug(
         f"selected objects for e{manager.selected_objects_event}\n\t{objs}",
         source="panelsettings",
@@ -1057,9 +1058,7 @@ def flags_toggled(button, flag, manager):
     manager.subpnl_ayanamsa.toggle_expand(manager.app.is_sidereal)
     if manager.app.is_sidereal:
         set_ayanamsa(manager)
-    # update positions on flag change
-    # calculate_positions(event=None)
-    # todo switched from direct call to calculate_positions()
+    #
     manager.signal._emit("settings_changed", None)
     manager.notify.debug(
         f"flagstoggled :"
@@ -1075,7 +1074,7 @@ def solar_year_changed(dropdown, _, manager):
     """solar & lunar period panel : select solar year period"""
     idx = dropdown.get_selected()
     manager.app.selected_year_period = list(SOLAR_YEAR.values())[idx][0]
-    # collvimsottari (will grab from app) etc
+    #
     manager.signal._emit("settings_changed", None)
     manager.notify.debug(
         f"sol & lun period panel :\n\tsolar year :\t{manager.app.selected_year_period} | "

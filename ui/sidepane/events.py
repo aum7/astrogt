@@ -14,7 +14,7 @@ def setup_event(manager, event_name: str, expand: bool) -> CollapsePanel:
     """setup event one & two collapsible panels, incl location sub-panel"""
     panel = CollapsePanel(
         title="event one" if event_name == "e1" else "event two",
-        expanded=expand,
+        expanded=True,  # todo
     )
     panel.set_margin_end(manager.margin_end)
     panel.add_title_css_class("label-event")
@@ -188,6 +188,7 @@ only use [space] as separator
     subpnl_datetime = CollapsePanel(
         title="date & time one" if event_name == "e1" else "date & time two",
         indent=14,
+        # expanded=True,
     )
     ent_datetime = Gtk.Entry()
     ent_datetime.set_name("datetime one" if event_name == "e1" else "datetime two")

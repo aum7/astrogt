@@ -7,7 +7,7 @@ from gi.repository import Gtk  # type: ignore
 from typing import Any, Optional
 
 from .sidepane.sidepane import SidepaneManager
-from .sidepane.panelsettings import update_chart_setting_checkbox
+from .sidepane.settings import update_chart_setting_checkbox
 from .uisetup import UISetup
 from .hotkeymanager import HotkeyManager
 from ui.helpers import _event_selection
@@ -121,16 +121,16 @@ class MainWindow(
         # astro chart outer rings for event 2
         self.hotkeys.register_hotkey("t", lambda: self.toggle_chart_setting("transits"))
         self.hotkeys.register_hotkey(
-            "z", lambda: self.toggle_chart_setting("solar return")
+            "z", lambda: self.toggle_chart_setting("lunar return")
         )
         self.hotkeys.register_hotkey(
-            "u", lambda: self.toggle_chart_setting("lunar return")
+            "u", lambda: self.toggle_chart_setting("solar return")
         )
         self.hotkeys.register_hotkey(
-            "i", lambda: self.toggle_chart_setting("p1 progress")
+            "i", lambda: self.toggle_chart_setting("p3 progress")
         )
         self.hotkeys.register_hotkey(
-            "o", lambda: self.toggle_chart_setting("p3 progress")
+            "o", lambda: self.toggle_chart_setting("p1 progress")
         )
         # # astro chart naksatras ring
         self.hotkeys.register_hotkey(
