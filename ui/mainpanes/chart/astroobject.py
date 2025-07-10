@@ -25,7 +25,7 @@ class AstroObject:
     #     return f"astroobject : {name} - {lon}"
 
     def draw(self, cr, cx, cy, radius, obj_scale=1.0, source=None):
-        # compute angle & draw in ccw direction, start at left (ari)
+        # compute angle & draw in ccw direction, start at left (aries)
         angle = pi - radians(self.data.get("lon", 0))
         # determine radius by scale
         obj_size = self.size * self.scale * obj_scale

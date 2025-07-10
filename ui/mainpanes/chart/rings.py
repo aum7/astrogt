@@ -562,17 +562,19 @@ class P1Progress(RingBase):
             cr.stroke()
         for guest in self.guests:
             # todo skip age : (e2jd - e1jd) / yearlength
-            if guest.data.get("name") == "age":
-                continue
+            # if guest.data.get("name") == "age":
+            #     continue
             angle = pi - radians(guest.data.get("lon"))
             x = self.cx + self.mid_ring * cos(angle)
             y = self.cy + self.mid_ring * sin(angle)
             marker_size = 7.2
             # print(f"markersize : {marker_size}")
+            # draw triangle for ascendant
             if guest.data.get("name") == "asc":
                 self.draw_marker(
                     cr, x, y, angle, marker_size, (1, 1, 1, 1), self.draw_triangle
                 )
+            # draw diamond for midheaven
             elif guest.data.get("name") == "mc":
                 self.draw_marker(
                     cr, x, y, angle, marker_size, (1, 1, 1, 1), self.draw_diamond
@@ -614,18 +616,63 @@ class P3Progress(RingBase):
 
 class SolarReturn(RingBase):
     # solar return
-    def __init__(self, radius, cx, cy, font_size, chart_settings, radius_dict):
-        super().__init__(radius, cx, cy, chart_settings)
+    def __init__(self, radius, cx, cy, font_size, sol_ret_data, radius_dict):
+        super().__init__(radius, cx, cy)
+        self.app = Gtk.Application.get_default()
+        self.notify = self.app.notify_manager
         self.font_size = font_size
+        self.sol_ret_data = sol_ret_data
+        # get ring radius
+        keys = list(radius_dict.keys())
+        index = ""
+        try:
+            index = keys.index("solar return")
+        except ValueError:
+            raise ValueError("missing 'solar return' key in radiusdict")
+        if index < len(keys) - 1:
+            next_key = keys[index + 1]
+            next_val = radius_dict[next_key]
+        else:
+            # fallback
+            next_val = radius_dict["solar return"]
+        if radius_dict:
+            self.mid_ring = (radius_dict["solar return"] + next_val) / 2
+            self.ring = radius_dict.get("solar return", "/")
+            self.before_ring = next_val
+            # msg += (
+            #     f"p1 midring : {self.mid_ring} | radius : {self.ring} | radinext : {next_val}"
+            # )
+        self.guests = []
+        try:
+            if self.sol_ret_data:
+                # create astroobject instance for drawing
+                self.guests = [
+                    self.create_astro_obj(obj)
+                    for obj in self.sol_ret_data
+                    if isinstance(obj, dict)
+                ]
+        except Exception as e:
+            self.notify.error(
+                f"no solar return positions\n\terror :\n\t{e}",
+                source="rings",
+                route=["terminal", "user"],
+            )
+
+    def create_astro_obj(self, obj):
+        sol_ret_obj_data = obj.copy()
+        # p1_obj_data["lon"] = p1_obj_data.get("zpp", 0)
+        return AstroObject(sol_ret_obj_data)
 
     def draw(self, cr):
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
-        # yellowish
+        # blueish
         cr.set_source_rgba(0.1686, 0.1569, 0.0392, 1)
+        # cr.set_source_rgba(0.0471, 0.1059, 0.1843, 1.0)
         cr.fill_preserve()
         cr.set_source_rgba(1, 1, 1, 1)
         cr.set_line_width(1)
         cr.stroke()
+        # offset = segment_angle / 2
         segment_angle = 2 * pi / 12
         # sign borders
         for j in range(12):
@@ -639,6 +686,34 @@ class SolarReturn(RingBase):
             cr.set_source_rgba(1, 1, 1, 1)
             cr.set_line_width(1)
             cr.stroke()
+        for guest in self.guests:
+            # todo skip age : (e2jd - e1jd) / yearlength
+            # if guest.data.get("name") == "age":
+            #     continue
+            angle = pi - radians(guest.data.get("lon"))
+            x = self.cx + self.mid_ring * cos(angle)
+            y = self.cy + self.mid_ring * sin(angle)
+            marker_size = 7.2
+            # print(f"markersize : {marker_size}")
+            # draw triangle for ascendant
+            if guest.data.get("name") == "asc":
+                self.draw_marker(
+                    cr, x, y, angle, marker_size, (1, 1, 1, 1), self.draw_triangle
+                )
+            # draw diamond for midheaven
+            elif guest.data.get("name") == "mc":
+                self.draw_marker(
+                    cr, x, y, angle, marker_size, (1, 1, 1, 1), self.draw_diamond
+                )
+            else:
+                guest.draw(
+                    cr,
+                    self.cx,
+                    self.cy,
+                    self.mid_ring,
+                    obj_scale=12.0,
+                    source="sollunreturn",
+                )
 
 
 class LunarReturn(RingBase):

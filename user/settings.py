@@ -156,15 +156,15 @@ CHART_SETTINGS = {
     # --- event 2 astro chart circles : draw progressions (p1 & p3) | returns | transit
     "event2 rings": {
         "p1 progress": (
-            True,
-            "show traditional primary progression (p1) for event 2\ncalculations as per martin gansten / ptolemy",
+            False,
+            "show traditional primary progression (p1) for event 2\ncalculations as per martin gansten / ptolemy [todo, current is simple calculation]",
         ),
         "p3 progress": (
             False,
             "show tertiary progression (p3) for event 2\ncalculations as per richard houck",
         ),
-        "solar return": (False, "show solar return for event 2"),
-        "lunar return": (False, "show lunar return for event 2"),
+        "solar return": (True, "show solar return for event 2"),
+        "lunar return": (True, "show lunar return for event 2"),
         "transits": (False, "show transit for event 2"),
     },
     # --- draw fixed stars
@@ -214,15 +214,15 @@ example : {hsys} | {zod}\n{aynm} | {ayvl}""",
 # (solar) year lengths in days
 SOLAR_YEAR = {
     "gre": (365.2425, "gregorian"),
+    "sid": (365.256363, "sidereal"),
     "jul": (365.25, "julian"),
     "trp": (365.24219, "tropical"),
-    "sid": (365.256363, "sidereal"),
     "lun": (354.37, "lunar"),
 }
 # lunar month lengths
 LUNAR_MONTH = {
     "sid": (27.321661, "sidereal\t\tfixed star"),
-    "trp": (27.321582, "tropical\t\t0 ari (houck)"),
+    "trp": (27.321582, "tropical\t\t0 ari"),  # houck
     "syn": (29.53059, "synodic\t\tnew moons"),
     "anm": (27.554551, "anomalistic\tperigee-apogee"),
     "drc": (27.21222, "draconic\tlunar nodes"),

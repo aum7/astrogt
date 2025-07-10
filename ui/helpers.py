@@ -1,3 +1,4 @@
+# ui/helpers.py
 # ruff: noqa: E402
 import gi
 
@@ -62,11 +63,72 @@ def _event_selection(manager, gesture, n_press, x, y, event_name):
             other_clp = manager.clp_event_one
         other_clp.remove_title_css_class("label-event-selected")
         clp.add_title_css_class("label-event-selected")
+        _update_main_title(manager)
         manager.notify.debug(
             f"{manager.app.selected_event} selected",
             source="helpers",
             route=[""],
         )
+
+
+def _update_main_title(manager, change_time=None):
+    """show selected event, its datetime, & age in main titlebar"""
+    # age = (e2 - e1) / 2 : time elapsed from e1 to e2
+    event = manager.app.selected_event
+    # print(f"mainwindow.update_main_title : event : {event}")
+    age_y = getattr(manager.app, "age_y", 0.0)
+    age_m = getattr(manager.app, "age_m", 0.0)
+    sel_year = getattr(manager.app, "selected_year_period", (365.2425, "gregorian"))
+    year_length = sel_year[0]
+    dt = None
+    if event == "e1":
+        dt = manager.app.e1_chart.get("datetime")
+    elif event == "e2":
+        dt = manager.app.e2_chart.get("datetime")
+    title = "astrogt"
+    if event and dt:
+        title += f" | {event} : {dt}"
+    elif event:
+        title += f" | {event} : no date"
+    if age_y:
+        age_y = _decimal_to_ymd(age_y, year_length)
+        # remove spaces to save titlebar space
+        age_y = age_y.replace(" ", "")
+        title += f" | age : {age_y}"
+    if age_m:
+        title += f" - lun : {age_m:.2f}"
+    if change_time:
+        title += f" | ct : {change_time}"
+    elif change_time is None:
+        title += " | ct : 1 d"
+    mainwindow = next(
+        (w for w in manager.app.get_windows() if isinstance(w, Gtk.ApplicationWindow)),
+        None,
+    )
+    if mainwindow is not None:
+        mainwindow.title_label.set_text(title)
+
+
+def _decimal_to_ymd(period, year_length):
+    # decimal period to years, months, days, hours
+    y = int(period)
+    rem_y = period - y
+    dec_m = rem_y * 12
+    m = int(dec_m)
+    rem_m = dec_m - m
+    rem_d = rem_m * (year_length / 12)
+    d = int(rem_d)
+    rem_h = rem_d * 24
+    H = int(rem_h)
+    if y != 0 and m == 0 and d == 0:
+        return f"{y:02} y"
+    elif y == 0 and m == 0 and d == 0:
+        return f"{H:02} h"
+    elif y == 0 and m == 0:
+        return f"{d:02d} d"
+    elif y == 0:
+        return f"{m:02d} m {d:02d} d"
+    return f"{y:02d} y {m:02d} m {d:02d} d"
 
 
 def _decimal_to_dms(decimal: float):
@@ -89,7 +151,7 @@ def _decimal_to_hms(decimal: float):
 
 
 def _decimal_to_ra(decimal: float):
-    # convert circle degrees into right ascension h-m-s
+    # convert circle degrees into right ascension h-m-s todo used ???
     hour = decimal / 15.0
     H = int(hour)
     minute = (hour - H) * 60

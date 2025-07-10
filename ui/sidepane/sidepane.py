@@ -7,7 +7,7 @@ from gi.repository import Gtk  # type: ignore
 from typing import Dict, Optional, Callable
 from datetime import datetime, timezone
 from ui.collapsepanel import CollapsePanel
-from ui.helpers import _buttons_from_dict
+from ui.helpers import _buttons_from_dict, _update_main_title
 from sweph.swetime import custom_iso_to_jd, jd_to_custom_iso
 from .events import setup_event
 from .tools import setup_tools
@@ -17,7 +17,7 @@ from .settings import setup_settings
 class SidepaneManager:
     """mixin class for managing the side pane"""
 
-    update_main_title: Callable
+    _update_main_title: Callable
 
     TOOLS_BUTTONS: Dict[str, str] = {
         "settings": "settings",
@@ -36,19 +36,19 @@ class SidepaneManager:
     CHANGE_TIME_SELECTED = 1.0
     # time periods in julian day(s) as keys, used for change time
     CHANGE_TIME_PERIODS = {
-        "3652.0": "10 years",  # 365 * 10 + 2 leap years (approximation)
-        "365.0": "1 year",  # does not account for leap year
-        "90.0": "3 months (90 d)",
-        "30.0": "1 month (30 d)",
-        "27.321661": "1 month (27.3 d)",
-        "7.0": "1 week",
-        "1.0": "1 day",
-        "0.25": "6 hours",  # 1/4 of a day
-        "0.041667": "1 hour",  # 1/24 of a day
-        "0.006944": "10 minutes",  # 1/144 of a day
-        "0.000694": "1 minute",  # 1/1440 of a day
-        "0.000116": "10 seconds",  # 1/8640 of a day
-        "0.000012": "1 second",  # 1/86400 of a day
+        "3652.0": "10 y",  # 365 * 10 + 2 leap years (approximation)
+        "365.0": "1 y",  # does not account for leap year
+        "90.0": "3 m (90 d)",
+        "30.0": "1 m (30 d)",
+        "27.321661": "1 m (27.3 d)",
+        "7.0": "1 w",
+        "1.0": "1 d",
+        "0.25": "6 h",  # 1/4 of a day
+        "0.041667": "1 h",  # 1/24 of a day
+        "0.006944": "10 mi",  # 1/144 of a day
+        "0.000694": "1 mi",  # 1/1440 of a day
+        "0.000116": "10 s",  # 1/8640 of a day
+        "0.000012": "1 se",  # 1/86400 of a day
     }
 
     def __init__(self, app=None, *args, **kwargs):
@@ -129,7 +129,7 @@ or ie panes have been manually resized (click any text to focus sidepane)"""
         )
         self.ddn_time_periods.add_css_class("dropdown")
         # set default time period : 1 day
-        default_period = self.time_periods_list.index("1 day")
+        default_period = self.time_periods_list.index("1 d")
         self.ddn_time_periods.set_selected(default_period)
         # change time selected as julian day / float
         # self.CHANGE_TIME_SELECTED = 1.0
@@ -177,7 +177,7 @@ or ie panes have been manually resized (click any text to focus sidepane)"""
             key = next(k for k, v in self.CHANGE_TIME_PERIODS.items() if v == new_value)
             self.CHANGE_TIME_SELECTED = float(key)
             # update main window title
-            self.update_main_title(new_value)
+            _update_main_title(self, new_value)
 
     def change_event_time(self, change_delta):
         """adjust selected event time by julian day delta"""
@@ -244,7 +244,7 @@ or ie panes have been manually resized (click any text to focus sidepane)"""
                 self.ddn_time_periods.get_selected()
             ]
             # update main window title
-            self.update_main_title(change_time_period)
+            _update_main_title(self, change_time_period)
         except Exception as e:
             self.notify.error(
                 f"\n\t{datetime_name}\n\terror\n\t{e}\n",

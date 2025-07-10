@@ -16,7 +16,7 @@ def calculate_p1(event: str):
     msg = f"event {event}\n"
     # event 1 & 2 data is mandatory : natal / event & progression chart
     # check against lumies since e1_sweph can have 0 objects (user-selectable)
-    if not app.e1_lumies.get("jd_ut") or not app.e2_lumies.get("jd_ut"):
+    if not app.e1_sweph.get("jd_ut") or not app.e2_sweph.get("jd_ut"):
         notify.error(
             "missing event 1 or 2 data needed for p1 : exiting ...",
             source="p1",

@@ -10,7 +10,7 @@ from .sidepane.sidepane import SidepaneManager
 from .sidepane.settings import update_chart_setting_checkbox
 from .uisetup import UISetup
 from .hotkeymanager import HotkeyManager
-from ui.helpers import _event_selection
+from ui.helpers import _event_selection  # , _decimal_to_ymd
 from ui.mainpanes.tables import Tables
 from ui.mainpanes.chart.astrochart import AstroChart
 from ui.mainpanes.datagraph import DataGraph
@@ -20,6 +20,7 @@ from sweph.calculations.stars import connect_signals_stars
 from sweph.calculations.aspects import connect_signals_aspects
 from sweph.calculations.vimsottari import connect_signals_vimsottari
 from sweph.calculations.p1 import connect_signals_p1
+from sweph.calculations.sollunreturn import connect_signals_sollunreturn
 
 
 class MainWindow(
@@ -60,6 +61,7 @@ class MainWindow(
         connect_signals_aspects(self.app.signal_manager)
         connect_signals_vimsottari(self.app.signal_manager)
         connect_signals_p1(self.app.signal_manager)
+        connect_signals_sollunreturn(self.app.signal_manager)
         # 4 main panes
         self.astro_chart = AstroChart()
         self.tables = Tables()
@@ -188,26 +190,6 @@ class MainWindow(
             route=["user"],
         )
 
-    def update_main_title(self, change_time=None):
-        """show selected event & its datetime in main titlebar"""
-        event = self.app.selected_event
-        # print(f"mainwindow.update_main_title : event : {event}")
-        dt = None
-        if event == "e1":
-            dt = self.app.e1_chart.get("datetime")
-        elif event == "e2":
-            dt = self.app.e2_chart.get("datetime")
-        title = "astrogt"
-        if event and dt:
-            title += f" | {event} : {dt}"
-        elif event:
-            title += f" | {event}"
-        if change_time:
-            title += f" | ct : {change_time}"
-        elif change_time is None:
-            title += " | ct : 1 day"
-        self.title_label.set_text(title)
-
     def init_panes(self):
         """initialize panes with content"""
         # 4 main panes
@@ -230,6 +212,14 @@ class MainWindow(
             # separator position in pixels, from top-left | -ve = unset | default 0
             self.pnd_main_v.set_position(0)
             self.pnd_btm_h.set_position(0)
+
+    # panes show 2
+    def panes_double(self) -> None:
+        """show & center bottom 2 panes (hide top 2)
+        shift+double-click / shift+2"""
+        if hasattr(self, "pnd_main_v") and hasattr(self, "pnd_btm_h"):
+            self.pnd_main_v.set_position(0)
+            self.pnd_btm_h.set_position(self.pnd_btm_h.get_width() // 2)
 
     # panes show 3
     def panes_triple(self) -> None:
@@ -255,12 +245,4 @@ class MainWindow(
         ):
             self.pnd_main_v.set_position(self.pnd_main_v.get_height() // 2)
             self.pnd_top_h.set_position(self.pnd_top_h.get_width() // 2)
-            self.pnd_btm_h.set_position(self.pnd_btm_h.get_width() // 2)
-
-    # panes show 2
-    def panes_double(self) -> None:
-        """show & center bottom 2 panes (hide top 2)
-        shift+double-click / shift+2"""
-        if hasattr(self, "pnd_main_v") and hasattr(self, "pnd_btm_h"):
-            self.pnd_main_v.set_position(0)
             self.pnd_btm_h.set_position(self.pnd_btm_h.get_width() // 2)

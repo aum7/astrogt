@@ -1,19 +1,18 @@
 # sweph/calculations/p1.py
 # ruff: noqa: E402, E701
-# import swisseph as swe
+# primary direction (aka primary progression)
+# actual motion of heavens in hours following birth, brings objects to
+# places in natal chart, unfolding events in years to come; each degree
+# of such motion corresponds to approximately 1 year of life
 import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
-
-# from datetime import datetime
 from ui.helpers import _object_name_to_code as objcode
 
 
 def calculate_p1(event: str):
-    # actual motion of heavens in hours following birth, brings objects to
-    # places in natal chart, unfolding events in years to come; each degree
-    # of such motion corresponds to approximately 1 year of life
+    # primary direction calculation
     app = Gtk.Application.get_default()
     notify = app.notify_manager
     msg = f"event {event}\n"
@@ -34,10 +33,17 @@ def calculate_p1(event: str):
     if e2_sweph:
         e2_jd = e2_sweph.get("jd_ut")
     sel_year = getattr(app, "selected_year_period", (365.2425, "gregorian"))
+    sel_month = getattr(app, "selected_month_period", (27.321661, "sidereal"))
     YEARLENGTH = sel_year[0]
+    MONTHLENGTH = sel_month[0]
     if e1_jd and e2_jd:
-        # period elapsed from birth in years
-        delta_years = (e2_jd - e1_jd) / YEARLENGTH
+        # period elapsed from birth in years : needs event 2 datetime
+        period = e2_jd - e1_jd
+        delta_years = period / YEARLENGTH
+        app.age_y = delta_years
+        # how many lunar months
+        delta_months = period / MONTHLENGTH
+        app.age_m = delta_months
         # print(f"deltayears : {delta_years}")
     chart_sett = getattr(app, "chart_settings")
     true_node = chart_sett.get("mean node")
@@ -47,7 +53,7 @@ def calculate_p1(event: str):
     e1_houses = getattr(app, "e1_houses", None)
     # clear previous data
     p1_data: list[dict] = []
-    p1_data.append({"name": "age", "age": delta_years})
+    # p1_data.append({"name": "age", "age": delta_years})
     # add delta years to each position
     if e1_houses and objs and e1_jd and e1_pos:
         # ascendant

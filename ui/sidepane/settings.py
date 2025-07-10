@@ -498,7 +498,7 @@ more info in user/settings.py > SWE_FLAG"""
     subpnl_flags.add_widget(subsubpnl_flags_extra)
     manager.notify.debug(
         f"swephflag : {app.sweph_flag}",
-        source="panelsettings",
+        source="panel.settings",
         route=["none"],
     )
     # --- sub-panel solar year & lunar months periods --------------------
@@ -528,7 +528,7 @@ more info in user/settings.py > SWE_FLAG"""
     lunar\t\t\t354.37""")
     ddn_solar_year.add_css_class("dropdown")
     ddn_solar_year.set_selected(0)
-    app.selected_year_period = list(SOLAR_YEAR.values())[1]
+    app.selected_year_period = list(SOLAR_YEAR.values())[0]  # todo 1 ?
     ddn_solar_year.connect("notify::selected", solar_year_changed, manager)
     # put widgets into main box
     box_solar_lunar_periods.append(lbl_solar_year)
@@ -550,7 +550,7 @@ more info in user/settings.py > SWE_FLAG"""
     draconic\t\tlunar nodes\t\t27.21222""")
     ddn_lunar_month.add_css_class("dropdown")
     ddn_lunar_month.set_selected(0)
-    app.selected_month_period = list(LUNAR_MONTH.keys())[0]
+    app.selected_month_period = list(LUNAR_MONTH.values())[0]
     ddn_lunar_month.connect(
         "notify::selected", lunar_month_changed, manager
     )  # add widgets to box
@@ -673,7 +673,7 @@ more info in user/settings.py > SWE_FLAG"""
     box_files.set_margin_start(manager.margin_end)
     box_files.set_margin_end(manager.margin_end)
     app.files = {k.replace("\t", ""): v[0] for k, v in FILES.items()}
-    # print(f"panelsettings : app.files : {app.files}")
+    # print(f"panel.settings : app.files : {app.files}")
     for key, value in FILES.items():
         tooltip = value[1]
         box_key = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
@@ -730,7 +730,7 @@ def objects_toggle_event(button, manager):
     manager.app.signal_manager._emit("settings_changed", None)
     manager.notify.debug(
         f"selected objects for e{manager.selected_objects_event}\n\t{objs}",
-        source="panelsettings",
+        source="panel.settings",
         route=["none"],
     )
 
@@ -784,7 +784,7 @@ def objects_toggled(checkbutton, name, manager):
         manager.signal._emit("settings_changed", f"e{manager.selected_objects_event}")
     manager.notify.debug(
         f"\n\tselected objects : e{manager.selected_objects_event} : {sel_objs}",
-        source="panelsettings",
+        source="panel.settings",
         route=["none"],
     )
 
@@ -800,7 +800,7 @@ def house_system_changed(dropdown, _, manager):
     manager.notify.debug(
         f"selectedhousesystem : {manager.app.selected_house_sys}"
         f"\t{manager.app.selected_house_sys_str}",
-        source="panelsettings",
+        source="panel.settings",
         route=["terminal"],
     )
 
@@ -816,8 +816,8 @@ def chart_settings_toggled(button, setting, manager):
     manager.signal._emit("settings_changed", None)
     manager.notify.debug(
         f"chartsettingstoggled : {setting} toggled ({button.get_active()})",
-        source="panelsettings",
-        route=["terminal"],
+        source="panel.settings",
+        route=[""],
     )
 
 
@@ -842,7 +842,7 @@ def naksatras_ring(button, key, manager):
     except ValueError:
         manager.notify.warning(
             "set 1st naksatra to 1",
-            source="panelsettings",
+            source="panel.settings",
             route=["terminal", "user"],
         )
         value = 1
@@ -860,7 +860,7 @@ def naksatras_ring(button, key, manager):
     manager.signal._emit("settings_changed", None)
     manager.notify.debug(
         f"naksatrasring : ring : {val_ring} | 28 : {val_28} | 1st : {val_1st}",
-        source="panelsettings",
+        source="panel.settings",
         route=["terminal"],
     )
 
@@ -890,7 +890,7 @@ def harmonic_ring(entry, manager):
     manager.signal._emit("settings_changed", None)
     manager.notify.debug(
         f"harmonicring : {manager.app.chart_settings['harmonic ring']}",
-        source="panelsettings",
+        source="panel.settings",
         route=["terminal"],
     )
 
@@ -920,14 +920,14 @@ def harmonic_ring(entry, manager):
 #         manager.app.chart_settings[ring] = True
 #         manager.notify.warning(
 #             "at least 1 event 2 ring must be selected\nif not interested in event 2 > delete event 2 datetime field",
-#             source="panelsettings",
+#             source="panel.settings",
 #             route=["terminal", "user"],
 #         )
 #     # emit settings changed signal
 #     manager.signal._emit("settings_changed", None)
 #     manager.notify.debug(
 #         f"e2ringstoggled : {ring} set to {active} : emited signal ...",
-#         source="panelsettings",
+#         source="panel.settings",
 #         route=[""],
 #     )
 
@@ -956,7 +956,7 @@ def fixed_stars(entry, manager):
     manager.signal._emit("settings_changed", None)
     manager.notify.debug(
         f"fixedstars : {manager.app.chart_settings['fixed stars']}",
-        source="panelsettings",
+        source="panel.settings",
         route=["none"],
     )
 
@@ -1002,7 +1002,7 @@ def chart_info_string(entry, info, manager):
             f"\n\tallowed :\t{' '.join(allowed[info])} {allowed['chars']}"
             f"\n\treceived :\t{value}",
             # f"\n\treceived :\t{' '.join(fields)}",
-            source="panelsettings",
+            source="panel.settings",
             route=["terminal", "user"],
             timeout=5,
         )
@@ -1014,7 +1014,7 @@ def chart_info_string(entry, info, manager):
     manager.signal._emit("settings_changed", value)
     manager.notify.success(
         f"chartinfostring : {manager.app.chart_settings[info]}",
-        source="panelsettings",
+        source="panel.settings",
         route=["none"],
     )
 
@@ -1065,7 +1065,7 @@ def flags_toggled(button, flag, manager):
         f"\n\tselected flags : {manager.app.selected_flags}"
         f"\n\tsweph flag : {manager.app.sweph_flag}"
         "\n\tcalled calculatepositions ...",
-        source="panelsettings",
+        source="panel.settings",
         route=["terminal"],
     )
 
@@ -1077,9 +1077,10 @@ def solar_year_changed(dropdown, _, manager):
     #
     manager.signal._emit("settings_changed", None)
     manager.notify.debug(
-        f"sol & lun period panel :\n\tsolar year :\t{manager.app.selected_year_period} | "
+        f"sol & lun period panel :\n\tsolar year :"
+        f"\t{manager.app.selected_year_period} | "
         f"{list(SOLAR_YEAR.keys())[idx]}",
-        source="panelsettings",
+        source="panel.settings",
         route=["none"],
     )
 
@@ -1088,10 +1089,13 @@ def lunar_month_changed(dropdown, _, manager):
     """solar & lunar period panel : select lunar month period"""
     idx = dropdown.get_selected()
     manager.app.selected_month_period = list(LUNAR_MONTH.values())[idx][0]
+    #
+    manager.signal._emit("settings_changed", None)
     manager.notify.debug(
-        f"sol & lun period panel :\n\tlunar month :\t{manager.app.selected_month_period} | "
+        f"sol & lun period panel :\n\tlunar month :"
+        f"\t{manager.app.selected_month_period} | "
         f"{list(LUNAR_MONTH.keys())[idx]}",
-        source="panelsettings",
+        source="panel.settings",
         route=["terminal"],
     )
 
@@ -1109,7 +1113,7 @@ def ayanamsa_changed(dropdown, _, manager):
     manager.notify.debug(
         f"ayanamsa panel : selected : {manager.app.selected_ayanamsa}"
         "\n\tcalled calculatepositions ...",
-        source="panelsettings",
+        source="panel.settings",
         route=["terminal"],
     )
 
@@ -1127,7 +1131,7 @@ def custom_ayanamsa_changed(entry, key, manager):
             entry.add_css_class("entry-warning")
             manager.notify.warning(
                 f"invalid custom julian day utc : {custom_julian_day}",
-                source="panelsettings",
+                source="panel.settings",
                 route=["terminal", "user"],
                 timeout=4,
             )
@@ -1135,7 +1139,7 @@ def custom_ayanamsa_changed(entry, key, manager):
         if manager.app.custom_julian_day == custom_jd:
             manager.notify.debug(
                 "custom julian day not changed : exiting ...",
-                source="panelsettings",
+                source="panel.settings",
                 route=["none"],
             )
             return
@@ -1144,7 +1148,7 @@ def custom_ayanamsa_changed(entry, key, manager):
         # calculate_positions(event=None)
         manager.notify.debug(
             f"customjulday : {manager.app.custom_julian_day}",
-            source="panelsettings",
+            source="panel.settings",
             route=["terminal"],
         )
     # --- custom ayanamsa value
@@ -1158,7 +1162,7 @@ def custom_ayanamsa_changed(entry, key, manager):
             entry.add_css_class("entry-warning")
             manager.notify.warning(
                 f"invalid custom ayanamsa value : {custom_ayan_string}",
-                source="panelsettings",
+                source="panel.settings",
                 route=["terminal", "user"],
                 timeout=4,
             )
@@ -1166,7 +1170,7 @@ def custom_ayanamsa_changed(entry, key, manager):
         if manager.app.custom_ayan == custom_ayan:
             manager.notify.debug(
                 "custom julian day not changed : exiting ...",
-                source="panelsettings",
+                source="panel.settings",
                 route=["none"],
             )
             return
@@ -1175,7 +1179,7 @@ def custom_ayanamsa_changed(entry, key, manager):
         # calculate_positions(event=None)
         manager.notify.debug(
             f"customayanamsa : {manager.app.custom_ayan}",
-            source="panelsettings",
+            source="panel.settings",
             route=["terminal"],
         )
     # todo switched from direct call to calculate_positions()
@@ -1203,7 +1207,7 @@ def set_ayanamsa(manager):
             if ayanamsa == 255
             else ""
         ),
-        source="panelsettings",
+        source="panel.settings",
         route=["none"],
     )
 
@@ -1218,6 +1222,6 @@ def files_changed(entry, key, manager):
     manager.signal._emit("settings_changed", None)
     manager.notify.debug(
         f"files panel : {key} = {value}",
-        source="panelsettings",
+        source="panel.settings",
         route=["terminal"],
     )

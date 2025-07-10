@@ -6,6 +6,7 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
+from ui.helpers import _decimal_to_ymd as decytoymd
 from sweph.constants import NAKSATRAS27
 
 YEARLENGTH = 365.2425
@@ -48,28 +49,6 @@ def jd_to_date(jd):
     M = int((h - H) * 60)
     S = int((((h - H) * 60) - M) * 60)
     return f"{y:04d}-{m:02d}-{d:02d} {H:02d}:{M:02d}:{S:02d}"
-
-
-def period_to_ymd(period):
-    # decimal period to years, months, days, hours
-    y = int(period)
-    rem_y = period - y
-    dec_m = rem_y * 12
-    m = int(dec_m)
-    rem_m = dec_m - m
-    rem_d = rem_m * (YEARLENGTH / 12)
-    d = int(rem_d)
-    rem_h = rem_d * 24
-    H = int(rem_h)
-    if y != 0 and m == 0 and d == 0:
-        return f"{y:02} y"
-    elif y == 0 and m == 0 and d == 0:
-        return f"{H:02} h"
-    elif y == 0 and m == 0:
-        return f"{d:02d} d"
-    elif y == 0:
-        return f"{m:02d} m {d:02d} d"
-    return f"{y:02d} y {m:02d} m {d:02d} d"
 
 
 def initial_dasa(mo_deg, cur_lvl=1, max_lvl=3):
@@ -285,9 +264,7 @@ def vimsottari_table(mo_deg, e1_jd, e2_jd=None, current_lvl=1, max_lvl=3):
             if lord_lvl1 != target_lvl1_lord:
                 cur_jd_lvl1 += rem_years_lvl1 * YEARLENGTH
                 continue  # skip this period if not target
-        lvl1_str = (
-            f" {lord_lvl1:<2} {jd_to_date(start_lvl1)} {period_to_ymd(rem_years_lvl1)}"
-        )
+        lvl1_str = f" {lord_lvl1:<2} {jd_to_date(start_lvl1)} {decytoymd(rem_years_lvl1, YEARLENGTH)}"
         out += lvl1_str + "\n"
         # initialize jd for lvl2 loop
         cur_jd_lvl2 = cur_jd_lvl1
@@ -314,7 +291,7 @@ def vimsottari_table(mo_deg, e1_jd, e2_jd=None, current_lvl=1, max_lvl=3):
                 lvl2_str = (
                     f" {lord_lvl2:<2} "
                     f"{jd_to_date(start_lvl2)} "
-                    f"{period_to_ymd(rem_years_lvl2)}"
+                    f"{decytoymd(rem_years_lvl2, YEARLENGTH)}"
                 )
                 out += " 2 " + lvl2_str + "\n"
                 # initialize jd for lvl3 loop
@@ -350,7 +327,7 @@ def vimsottari_table(mo_deg, e1_jd, e2_jd=None, current_lvl=1, max_lvl=3):
                         lvl3_str = (
                             f" {lord_lvl3:<2} "
                             f"{jd_to_date(start_lvl3)} "
-                            f"{period_to_ymd(rem_years_lvl3)}"
+                            f"{decytoymd(rem_years_lvl3, YEARLENGTH)}"
                         )
                         out += " 3    " + lvl3_str + "\n"
                         # initialize jd for lvl4 loop
@@ -380,7 +357,7 @@ def vimsottari_table(mo_deg, e1_jd, e2_jd=None, current_lvl=1, max_lvl=3):
                                 lvl4_str = (
                                     f" {lord_lvl4:<2} "
                                     f"{jd_to_date(start_lvl4)} "
-                                    f"{period_to_ymd(rem_years_lvl4)}"
+                                    f"{decytoymd(rem_years_lvl4, YEARLENGTH)}"
                                 )
                                 out += " 4       " + lvl4_str + "\n"
                                 # initialize jd for lvl5 loop
@@ -414,7 +391,7 @@ def vimsottari_table(mo_deg, e1_jd, e2_jd=None, current_lvl=1, max_lvl=3):
                                         lvl5_str = (
                                             f" {lord_lvl5:<2} "
                                             f"{jd_to_date(start_lvl5)} "
-                                            f"{period_to_ymd(rem_years_lvl5)}"
+                                            f"{decytoymd(rem_years_lvl5, YEARLENGTH)}"
                                         )
                                         out += "            " + lvl5_str + "\n"
                                         cur_jd_lvl5 += rem_years_lvl5 * YEARLENGTH

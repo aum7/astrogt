@@ -8,7 +8,7 @@ from gi.repository import Gtk  # type: ignore
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 from timezonefinder import TimezoneFinder
-from ui.helpers import _decimal_to_dms
+from ui.helpers import _decimal_to_dms, _update_main_title
 from sweph.swetime import validate_datetime, naive_to_utc, utc_to_jd
 
 
@@ -97,6 +97,7 @@ class EventData:
         location_name = entry.get_name()
         location = entry.get_text().strip()
         mainwindow = self.app.get_active_window()
+        msg = ""
         if not location:
             if location_name == "location one":
                 self.notify.warning(
@@ -121,11 +122,7 @@ class EventData:
                 return
             # todo remove this ?
             if location == self.old_location:
-                self.notify.debug(
-                    f"{location_name} not changed",
-                    source="eventdata",
-                    route=["terminal"],
-                )
+                msg += f"{location_name} not changed"
             return
         try:
             # parse location data
@@ -259,7 +256,7 @@ class EventData:
                     f"{location_name} : alt validation failed\n\tsetting alt to 0 string\n\terror :\n\t{e}",
                     source="eventdata",
                     route=["terminal"],
-                    timeout=4,
+                    timeout=3,
                 )
                 alt = "0"
             # format final string
@@ -280,17 +277,9 @@ class EventData:
             if timezone_:
                 self.timezone = timezone_
             else:
-                self.notify.debug(
-                    f"{location_name} timezone not received",
-                    source="eventdata",
-                    route=["terminal"],
-                )
+                msg += f"{location_name} timezone not received\n"
             self.old_location = location_formatted
-            self.notify.success(
-                f"{location_name} valid & formatted",
-                source="eventdata",
-                route=["user", "terminal"],
-            )
+            msg += f"{location_name} valid & formatted\n"
         except Exception as e:
             self.notify.error(
                 f"{location_name} invalid : we accept"
@@ -361,10 +350,11 @@ class EventData:
             self.app.e2_sweph["lat"] = lat
             self.app.e2_sweph["lon"] = lon
             self.app.e2_sweph["alt"] = int(alt)
-        self.notify.success(
-            f"{location_name} updated",
+        msg += f"{location_name} updated\n"
+        self.notify.debug(
+            msg,
             source="eventdata",
-            route=["terminal"],
+            route=[""],
         )
         return
 
@@ -372,6 +362,7 @@ class EventData:
         """process name / title"""
         name_name = entry.get_name()
         name = entry.get_text().strip()
+        msg = ""
         if name_name == "name one" and not name:
             self.notify.warning(
                 f"\n\tmandatory data missing : {name_name}",
@@ -380,11 +371,7 @@ class EventData:
             )
             return
         if name == self.old_name:
-            self.notify.debug(
-                f"{name_name} not changed",
-                source="eventdata",
-                route=["terminal"],
-            )
+            msg += f"{name_name} not changed : exiting ..."
             return
         if len(name) > 30:
             self.notify.warning(
@@ -398,14 +385,14 @@ class EventData:
         # save by event
         if name_name == "name one":
             self.app.e1_chart["name"] = name
-            msg_ = f"{name_name} updated : {self.app.e1_chart.get('name')}"
+            msg = f"{name_name} updated : {self.app.e1_chart.get('name')}"
         else:
             self.app.e2_chart["name"] = name
-            msg_ = f"{name_name} updated : {self.app.e2_chart.get('name')}"
+            msg = f"{name_name} updated : {self.app.e2_chart.get('name')}"
         self.notify.success(
-            msg_,
+            msg,
             source="eventdata",
-            route=["terminal"],
+            route=[""],
         )
         return
 
@@ -684,11 +671,5 @@ class EventData:
             source="eventdata",
             route=["none"],
         )
-        # todo copy this code to rest of update_main_title() files
-        mainwindow = next(
-            (w for w in self.app.get_windows() if isinstance(w, Gtk.ApplicationWindow)),
-            None,
-        )
-        if mainwindow is not None:
-            mainwindow.update_main_title()
+        _update_main_title(self)
         return
