@@ -125,7 +125,7 @@ class MainWindow(
             "a", lambda: self.toggle_chart_setting("fixed asc")
         )
         # astro chart outer rings for event 2
-        self.hotkeys.register_hotkey("t", lambda: self.toggle_chart_setting("transits"))
+        self.hotkeys.register_hotkey("t", lambda: self.toggle_chart_setting("transit"))
         self.hotkeys.register_hotkey(
             "z", lambda: self.toggle_chart_setting("lunar return")
         )

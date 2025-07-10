@@ -383,6 +383,7 @@ class Naksatras(RingBase):
         cr.set_line_width(1)
         cr.stroke()
         # divide circle into segments
+        cr.set_source_rgba(0.9, 0.9, 0.9, 0.7)
         seg_angle = 2 * pi / self.naks_num
         for i in range(self.naks_num):
             angle = pi - (i * seg_angle)
@@ -784,7 +785,7 @@ class LunarReturn(RingBase):
     def draw(self, cr):
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
         # blueish
-        cr.set_source_rgba(0.1686, 0.1569, 0.0392, 1)
+        cr.set_source_rgba(0.1386, 0.1269, 0.0092, 1)
         cr.fill_preserve()
         cr.set_source_rgba(0.5, 0.5, 0.5, 0.7)
         # cr.set_source_rgba(1, 1, 1, 0.7)
