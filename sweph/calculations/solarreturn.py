@@ -1,36 +1,5 @@
 # sweph/calculations/sollunreturn.py
 # ruff: noqa: E402, E701
-# tertiary progression (aka minor progression)
-# as per richard houck (astrology of death)
-# divide year by sidereal month & use blocks of 13-14 days as representing
-# a year in life
-# use tertiary planets & tertiary solar arc'd mc (and derived asc) as they hit
-# the natal chart
-# a day in life (or ephemeris) is equal to a lunar month in the life
-# p3 MC by amount of tertiary solar arc, ie roughly 1 degree per month
-# p3 ASC just a slight variation on this : derived normally per Table of Houses
-# tertiary angles for rectification : every week of event error (p3 angles) will
-# correlate to about 1 minute of birthtime error ; tertiary angles will pass
-# about 2 1/2 years in each sign and house : correlates to transiting Saturn
-# and the p2 progressed Moon
-
-# Dasa / Bhukti planets with p3 planets, 3 rules that apply (subject of death)
-# 1. p3 planetary stations intensify amplitude to symbolic message in the chart
-# quality of amplitude related directly to fundamental nature of planet
-# 2. an approximate correlation between current Dasa ( or Bhukti planet ) and a
-# p3 planetary station : often signal death if subsidiary factors confirm
-# 3. expect apx p3 angle & planet hits in exact 4th harmonic to current maraka
-# chart sensible to prenatal and p3 eclipses : any point in a chart ( planet or
-# angle) becomes extremely sensitized if hit directly by one of these eclipses
-# ancient astrologers considered eclipses evil : interrupted luminaries
-# 1 degree exact ; jyotisa rules for aspects : ma 4/8 ju 5/9 sa 3/10
-
-# calculate lunar returns before and after e2 (gives exact lunar month)
-# mc progressed by solar arc with all other cusps calculated from that
-# p3 su & mc move around chart at about 1 ° per month, with p3 asc typically
-# at a very slight variation > p3 angles in signs about 2 & ½ years (about as
-# long as Tsa spends in a sign, p3 su circles chart same as Tsa. p3 mo moves
-# ½ a ° per day > 2 months in sign, 2 years to circle entire chart
 import swisseph as swe
 import gi
 
@@ -38,11 +7,9 @@ gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from ui.helpers import _decimal_to_hms, _object_name_to_code as objcode
 # aum : return : Tsu / Tmo longitude equals Nsu / Nmo longitude
-# determine age_y from e2 > jump to age_y 0.0 - 1 jd > search fwd
-# from e1 jump 354 days fwd | 358 d bwd, then solcross_ut | mooncross_ut
 
 
-def calculate_returns(event: str):
+def calculate_sr(event: str):
     # tertiary direction calculation
     app = Gtk.Application.get_default()
     notify = app.notify_manager
@@ -110,8 +77,6 @@ def calculate_returns(event: str):
     objs = getattr(app, "selected_objects_e2")
     use_mean_node = app.chart_settings["mean node"]
     # calculate positions on solar return julian day
-    # clear previous positions
-    # positions = {}
     sol_ret_data: list[dict] = []
     for obj in objs:
         code, name = objcode(obj, use_mean_node)
@@ -131,15 +96,6 @@ def calculate_returns(event: str):
                 source="sollunreturn",
                 route=["terminal"],
             )
-    # print(f"positions : {positions}")
-    # keys = [k for k in positions.keys() if isinstance(k, int)]
-    # keys.sort()
-    # sol_ret_pos_order = {}
-    # # positions_ordered["event"] = event
-    # # positions_ordered["jd_ut"] = jd_ut
-    # for k in keys:
-    #     sol_ret_pos_order[k] = positions[k]
-    # msg += f"posorder : {sol_ret_pos_order}\n"
     # also calculate houses
     hsys = app.selected_house_sys
     # houses = {}
@@ -160,17 +116,20 @@ def calculate_returns(event: str):
                 route=["terminal"],
             )
         if ascmc:
+            sol_ret_cusps = cusps
+            sol_ret_data.append(sol_ret_cusps)
             sol_ret_asc = ascmc[0]
             sol_ret_data.append({"name": "asc", "lon": sol_ret_asc})
             sol_ret_mc = ascmc[1]
             sol_ret_data.append({"name": "mc", "lon": sol_ret_mc})
+        # msg += f"solretdata : {sol_ret_data}"
     app.sol_ret_data = sol_ret_data
     # emit signal
     app.signal_manager._emit("solar_return_changed", event)
     notify.debug(
         msg,
-        source="sollunreturn",
-        route=["terminal"],
+        source="solarreturn",
+        route=[""],
     )
 
 
@@ -180,8 +139,8 @@ def e2_cleared(event):
         return "e2 was cleared : todo\n"
 
 
-def connect_signals_sollunreturn(signal_manager):
+def connect_signals_solarreturn(signal_manager):
     # update progressions when data used changes
-    signal_manager._connect("event_changed", calculate_returns)
-    signal_manager._connect("settings_changed", calculate_returns)
+    signal_manager._connect("event_changed", calculate_sr)
+    signal_manager._connect("settings_changed", calculate_sr)
     signal_manager._connect("e2_cleared", e2_cleared)

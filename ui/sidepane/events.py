@@ -177,6 +177,7 @@ only use [space] as separator
     # ent_event_name.set_text("nyse")
     ent_event_name.set_tooltip_text(
         """will be used for filename when saving
+    recommended fit : max 14 characters
     max 30 characters
 
 [enter] = accept data

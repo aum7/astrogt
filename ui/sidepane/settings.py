@@ -355,21 +355,21 @@ event 1 & 2 can have different objects"""
     box_retu.append(lbl_retu)
     row_retu.set_child(box_retu)
     lbx_chart_setts_btm.append(row_retu)
-    # transits row
+    # transit row
     row_tran = Gtk.ListBoxRow()
     box_tran = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
-    # checkbox for transits
-    data_tran = CHART_SETTINGS["event2 rings"]["transits"]
-    chk_tran = Gtk.CheckButton(label="transits")
+    # checkbox for transit
+    data_tran = CHART_SETTINGS["event2 rings"]["transit"]
+    chk_tran = Gtk.CheckButton(label="transit")
     chk_tran.set_active(data_tran[0])
     chk_tran.set_tooltip_text(data_tran[1])
     chk_tran.connect(
         "toggled",
-        lambda chk, k="transits", m=manager: chart_settings_toggled(chk, k, m),
+        lambda chk, k="transit", m=manager: chart_settings_toggled(chk, k, m),
     )
     box_tran.append(chk_tran)
-    manager.app.checkbox_chart_settings["transits"] = chk_tran
-    manager.app.chart_settings["transits"] = data_tran[0]
+    manager.app.checkbox_chart_settings["transit"] = chk_tran
+    manager.app.chart_settings["transit"] = data_tran[0]
 
     row_tran.set_child(box_tran)
     lbx_chart_setts_btm.append(row_tran)
@@ -801,7 +801,7 @@ def house_system_changed(dropdown, _, manager):
         f"selectedhousesystem : {manager.app.selected_house_sys}"
         f"\t{manager.app.selected_house_sys_str}",
         source="panel.settings",
-        route=["terminal"],
+        route=[""],
     )
 
 
@@ -861,7 +861,7 @@ def naksatras_ring(button, key, manager):
     manager.notify.debug(
         f"naksatrasring : ring : {val_ring} | 28 : {val_28} | 1st : {val_1st}",
         source="panel.settings",
-        route=["terminal"],
+        route=[""],
     )
 
 
@@ -891,7 +891,7 @@ def harmonic_ring(entry, manager):
     manager.notify.debug(
         f"harmonicring : {manager.app.chart_settings['harmonic ring']}",
         source="panel.settings",
-        route=["terminal"],
+        route=[""],
     )
 
 
@@ -1066,7 +1066,7 @@ def flags_toggled(button, flag, manager):
         f"\n\tsweph flag : {manager.app.sweph_flag}"
         "\n\tcalled calculatepositions ...",
         source="panel.settings",
-        route=["terminal"],
+        route=[""],
     )
 
 
@@ -1096,7 +1096,7 @@ def lunar_month_changed(dropdown, _, manager):
         f"\t{manager.app.selected_month_period} | "
         f"{list(LUNAR_MONTH.keys())[idx]}",
         source="panel.settings",
-        route=["terminal"],
+        route=[""],
     )
 
 
@@ -1114,7 +1114,7 @@ def ayanamsa_changed(dropdown, _, manager):
         f"ayanamsa panel : selected : {manager.app.selected_ayanamsa}"
         "\n\tcalled calculatepositions ...",
         source="panel.settings",
-        route=["terminal"],
+        route=[""],
     )
 
 
@@ -1149,7 +1149,7 @@ def custom_ayanamsa_changed(entry, key, manager):
         manager.notify.debug(
             f"customjulday : {manager.app.custom_julian_day}",
             source="panel.settings",
-            route=["terminal"],
+            route=[""],
         )
     # --- custom ayanamsa value
     if key == "custom ayanamsa":
@@ -1180,7 +1180,7 @@ def custom_ayanamsa_changed(entry, key, manager):
         manager.notify.debug(
             f"customayanamsa : {manager.app.custom_ayan}",
             source="panel.settings",
-            route=["terminal"],
+            route=[""],
         )
     # todo switched from direct call to calculate_positions()
     manager.signal._emit("settings_changed", None)
@@ -1223,5 +1223,5 @@ def files_changed(entry, key, manager):
     manager.notify.debug(
         f"files panel : {key} = {value}",
         source="panel.settings",
-        route=["terminal"],
+        route=[""],
     )

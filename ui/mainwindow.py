@@ -10,7 +10,7 @@ from .sidepane.sidepane import SidepaneManager
 from .sidepane.settings import update_chart_setting_checkbox
 from .uisetup import UISetup
 from .hotkeymanager import HotkeyManager
-from ui.helpers import _event_selection  # , _decimal_to_ymd
+from ui.helpers import _event_selection
 from ui.mainpanes.tables import Tables
 from ui.mainpanes.chart.astrochart import AstroChart
 from ui.mainpanes.datagraph import DataGraph
@@ -20,7 +20,9 @@ from sweph.calculations.stars import connect_signals_stars
 from sweph.calculations.aspects import connect_signals_aspects
 from sweph.calculations.vimsottari import connect_signals_vimsottari
 from sweph.calculations.p1 import connect_signals_p1
-from sweph.calculations.sollunreturn import connect_signals_sollunreturn
+from sweph.calculations.solarreturn import connect_signals_solarreturn
+from sweph.calculations.lunarreturn import connect_signals_lunarreturn
+from sweph.calculations.transit import connect_signals_transit
 
 
 class MainWindow(
@@ -61,7 +63,9 @@ class MainWindow(
         connect_signals_aspects(self.app.signal_manager)
         connect_signals_vimsottari(self.app.signal_manager)
         connect_signals_p1(self.app.signal_manager)
-        connect_signals_sollunreturn(self.app.signal_manager)
+        connect_signals_solarreturn(self.app.signal_manager)
+        connect_signals_lunarreturn(self.app.signal_manager)
+        connect_signals_transit(self.app.signal_manager)
         # 4 main panes
         self.astro_chart = AstroChart()
         self.tables = Tables()

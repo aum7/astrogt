@@ -15,7 +15,7 @@ from ui.mainpanes.chart.rings import (
     P3Progress,
     SolarReturn,
     LunarReturn,
-    Transits,
+    Transit,
 )
 from math import radians
 
@@ -41,6 +41,7 @@ class AstroChart(Gtk.Box):
         self.chart_settings = getattr(self.app, "chart_settings", {})
         self.extra_info = {}
         self.stars = {}
+        self.lun_ret_data = []
         # subscribe to signals
         signal = self.app.signal_manager
         signal._connect("event_changed", self.event_changed)
@@ -51,6 +52,8 @@ class AstroChart(Gtk.Box):
         signal._connect("stars_changed", self.stars_changed)
         signal._connect("p1_changed", self.p1_changed)
         signal._connect("solar_return_changed", self.solar_return_changed)
+        signal._connect("lunar_return_changed", self.lunar_return_changed)
+        signal._connect("transit_changed", self.transit_changed)
 
     def event_changed(self, event):
         # main data - event - changed
@@ -129,6 +132,14 @@ class AstroChart(Gtk.Box):
         self.sol_ret_data = getattr(self.app, "sol_ret_data", None)
         self.drawing_area.queue_draw()
 
+    def lunar_return_changed(self, event):
+        self.lun_ret_data = getattr(self.app, "lun_ret_data", None)
+        self.drawing_area.queue_draw()
+
+    def transit_changed(self, event):
+        self.transit_data = getattr(self.app, "transit_data", None)
+        self.drawing_area.queue_draw()
+
     def draw(self, area, cr, width, height):
         # get center and base radius
         msg = ""
@@ -159,14 +170,14 @@ class AstroChart(Gtk.Box):
         # outer rings linked to event 2 :
         # - primary & tertiary progression
         # - solar & lunar return
-        # - transits
+        # - transit
         # includes naksatras & harmonic ring
         outer_rings = []
         if getattr(self.app, "e2_active", False):
             msg += "e2 is active\n"
             # collect outer ring candidates
-            if self.chart_settings.get("transits"):
-                outer_rings.append("transits")
+            if self.chart_settings.get("transit"):
+                outer_rings.append("transit")
             if self.chart_settings.get("solar return"):
                 outer_rings.append("solar return")
             if self.chart_settings.get("lunar return"):
@@ -180,9 +191,9 @@ class AstroChart(Gtk.Box):
         if self.chart_settings.get("naksatras ring", ""):
             outer_rings.append("naksatras")
         msg += f"outerrings : {outer_rings}\n"
-        # reduce mandatory e1 factor per ring : e2 first
+        # reduce mandatory e1 factor per ring : e2 first : in below order
         outer_portion = {
-            "transits": 0.07,
+            "transit": 0.07,
             "lunar return": 0.07,
             "solar return": 0.07,
             "p3 progress": 0.07,
@@ -213,17 +224,17 @@ class AstroChart(Gtk.Box):
             cr.translate(cx, cy)
             cr.rotate(asc_angle)
             cr.translate(-cx, -cy)
-        # --- outer rings : transits
-        if "transits" in outer_rings:
-            ring_transits = Transits(
-                radius=radius_dict.get("transits", max_radius),
+        # --- outer rings : transit
+        if "transit" in outer_rings:
+            ring_transit = Transit(
+                radius=radius_dict.get("transit", max_radius),
                 cx=cx,
                 cy=cy,
-                font_size=int(12 * font_scale),
-                chart_settings=self.chart_settings,
+                font_size=min(int(12 * font_scale), 14),
+                transit_data=self.transit_data,
                 radius_dict=radius_dict,
             )
-            ring_transits.draw(cr)
+            ring_transit.draw(cr)
         # --- lunar return
         if "lunar return" in outer_rings:
             ring_lunar = LunarReturn(
@@ -231,7 +242,7 @@ class AstroChart(Gtk.Box):
                 cx=cx,
                 cy=cy,
                 font_size=int(12 * font_scale),
-                chart_settings=self.chart_settings,
+                lun_ret_data=self.lun_ret_data,
                 radius_dict=radius_dict,
             )
             ring_lunar.draw(cr)
@@ -310,19 +321,18 @@ class AstroChart(Gtk.Box):
         # --- mandatory inner rings
         # chart rings
         ring_signs = Signs(
-            radius=radius_dict.get("signs", ""),
+            radius=radius_dict.get("signs", 0.0),
             cx=cx,
             cy=cy,
-            font_size=int(17 * font_scale),
-            # radius_dict=radius_dict,
+            font_size=int(radius_dict.get("signs", 0.0) * 0.07),
             stars=self.stars,
         )
         ring_signs.draw(cr)
         ring_event = Event(
-            radius=radius_dict.get("event", ""),
+            radius=radius_dict.get("event", 0.0),
             cx=cx,
             cy=cy,
-            font_size=int(18 * font_scale),
+            font_size=int(radius_dict.get("event", 0.0) * 0.08),
             guests=guests,
             houses=self.houses if self.houses else [],
             ascmc=self.ascmc if self.ascmc else [],
@@ -337,10 +347,10 @@ class AstroChart(Gtk.Box):
         # draw info ring last > no text rotation
         ring_info = Info(
             self.notify,
-            radius=radius_dict.get("info", ""),
+            radius=radius_dict.get("info", 0.0),
             cx=cx,
             cy=cy,
-            font_size=int(16 * font_scale),
+            font_size=int(radius_dict.get("info", 0.0) * 0.17),
             chart_settings=self.chart_settings,
             # radius_dict=radius_dict,
             event_data=self.e1_chart_info,

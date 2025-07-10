@@ -187,9 +187,9 @@ class Event(RingBase):
     def draw(self, cr):
         # main circle of event 1
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
-        cr.set_source_rgba(0.2, 0.0, 0.0, 0.3)  # redish for fixed
+        cr.set_source_rgba(0.0776, 0.0, 0.0, 1.0)  # redish for fixed
         cr.fill_preserve()
-        cr.set_source_rgba(1, 1, 1, 1)
+        cr.set_source_rgba(1, 1, 1, 0.7)
         cr.set_line_width(1)
         cr.stroke()
         # middle circle = lat 0°
@@ -293,6 +293,7 @@ class Event(RingBase):
                     x = self.cx + radius * cos(angle)
                     y = self.cy + radius * sin(angle)
                     cr.save()
+                    # rotate chart so ascendant is horizon
                     if self.chart_settings.get("fixed asc", False) and self.ascmc:
                         cr.translate(x, y)
                         cr.rotate(-radians(self.ascmc[0]))
@@ -327,7 +328,8 @@ class Signs(RingBase):
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
         cr.set_source_rgba(0.15, 0.15, 0.15, 1)  # todo set alpha
         cr.fill_preserve()
-        cr.set_source_rgba(1, 1, 1, 1)
+        cr.set_source_rgba(0.5, 0.5, 0.5, 0.7)
+        # cr.set_source_rgba(1, 1, 1, 1)
         cr.set_line_width(1)
         cr.stroke()
         segment_angle = 2 * pi / 12
@@ -376,7 +378,8 @@ class Naksatras(RingBase):
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
         cr.set_source_rgba(0.2, 0.2, 0.2, 1)
         cr.fill_preserve()
-        cr.set_source_rgba(1, 1, 1, 1)
+        cr.set_source_rgba(0.5, 0.5, 0.5, 0.7)
+        # cr.set_source_rgba(1, 1, 1, 1)
         cr.set_line_width(1)
         cr.stroke()
         # divide circle into segments
@@ -434,7 +437,8 @@ class Harmonic(RingBase):
         # background color : dark
         cr.set_source_rgba(0.1, 0.1, 0.1, 1)
         cr.fill_preserve()
-        cr.set_source_rgba(1, 1, 1, 1)
+        cr.set_source_rgba(0.5, 0.5, 0.5, 0.7)
+        # cr.set_source_rgba(1, 1, 1, 1)
         cr.set_line_width(1)
         cr.stroke()
         # (egyptian) terms (aka bounds) if division 1
@@ -535,7 +539,6 @@ class P1Progress(RingBase):
 
     def create_astro_obj(self, obj):
         p1_obj_data = obj.copy()
-        # p1_obj_data["lon"] = p1_obj_data.get("zpp", 0)
         return AstroObject(p1_obj_data)
 
     def draw(self, cr):
@@ -543,10 +546,10 @@ class P1Progress(RingBase):
         # blueish
         cr.set_source_rgba(0.0471, 0.1059, 0.1843, 1.0)
         cr.fill_preserve()
-        cr.set_source_rgba(1, 1, 1, 1)
+        cr.set_source_rgba(0.5, 0.5, 0.5, 0.7)
+        # cr.set_source_rgba(1, 1, 1, 1)
         cr.set_line_width(1)
         cr.stroke()
-        # offset = segment_angle / 2
         segment_angle = 2 * pi / 12
         # sign borders
         for j in range(12):
@@ -561,14 +564,10 @@ class P1Progress(RingBase):
             cr.set_line_width(1)
             cr.stroke()
         for guest in self.guests:
-            # todo skip age : (e2jd - e1jd) / yearlength
-            # if guest.data.get("name") == "age":
-            #     continue
             angle = pi - radians(guest.data.get("lon"))
             x = self.cx + self.mid_ring * cos(angle)
             y = self.cy + self.mid_ring * sin(angle)
             marker_size = 7.2
-            # print(f"markersize : {marker_size}")
             # draw triangle for ascendant
             if guest.data.get("name") == "asc":
                 self.draw_marker(
@@ -596,7 +595,8 @@ class P3Progress(RingBase):
         # blueish
         cr.set_source_rgba(0.0353, 0.0863, 0.1490, 1)
         cr.fill_preserve()
-        cr.set_source_rgba(1, 1, 1, 1)
+        cr.set_source_rgba(0.5, 0.5, 0.5, 0.7)
+        # cr.set_source_rgba(1, 1, 1, 1)
         cr.set_line_width(1)
         cr.stroke()
         segment_angle = 2 * pi / 12
@@ -622,6 +622,8 @@ class SolarReturn(RingBase):
         self.notify = self.app.notify_manager
         self.font_size = font_size
         self.sol_ret_data = sol_ret_data
+        # print(f"rings : solretdata : {self.sol_ret_data}")
+        self.cusps = []
         # get ring radius
         keys = list(radius_dict.keys())
         index = ""
@@ -640,8 +642,11 @@ class SolarReturn(RingBase):
             self.ring = radius_dict.get("solar return", "/")
             self.before_ring = next_val
             # msg += (
-            #     f"p1 midring : {self.mid_ring} | radius : {self.ring} | radinext : {next_val}"
+            #     f"p1 midr : {self.mid_ring} | rad : {self.ring} | rdnext : {next_val}"
             # )
+        # houses drawn 1st
+        self.cusps = next(x for x in self.sol_ret_data if not isinstance(x, dict))
+        # print(f"srrings : cusps :\n\t{self.cusps}")
         self.guests = []
         try:
             if self.sol_ret_data:
@@ -667,12 +672,22 @@ class SolarReturn(RingBase):
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
         # blueish
         cr.set_source_rgba(0.1686, 0.1569, 0.0392, 1)
-        # cr.set_source_rgba(0.0471, 0.1059, 0.1843, 1.0)
         cr.fill_preserve()
-        cr.set_source_rgba(1, 1, 1, 1)
+        cr.set_source_rgba(0.5, 0.5, 0.5, 0.7)
+        # cr.set_source_rgba(1, 1, 1, 0.7)
         cr.set_line_width(1)
         cr.stroke()
-        # offset = segment_angle / 2
+        # houses of e2 solar return
+        for angle in self.cusps:
+            angle = pi - radians(angle)
+            x1 = self.cx + self.radius * 0.35 * cos(angle)
+            y1 = self.cy + self.radius * 0.35 * sin(angle)
+            x2 = self.cx + self.radius * cos(angle)
+            y2 = self.cy + self.radius * sin(angle)
+            cr.move_to(x1, y1)
+            cr.line_to(x2, y2)
+            cr.set_source_rgba(1, 1, 0.6, 1)
+            cr.stroke()
         segment_angle = 2 * pi / 12
         # sign borders
         for j in range(12):
@@ -687,9 +702,6 @@ class SolarReturn(RingBase):
             cr.set_line_width(1)
             cr.stroke()
         for guest in self.guests:
-            # todo skip age : (e2jd - e1jd) / yearlength
-            # if guest.data.get("name") == "age":
-            #     continue
             angle = pi - radians(guest.data.get("lon"))
             x = self.cx + self.mid_ring * cos(angle)
             y = self.cy + self.mid_ring * sin(angle)
@@ -712,24 +724,83 @@ class SolarReturn(RingBase):
                     self.cy,
                     self.mid_ring,
                     obj_scale=12.0,
-                    source="sollunreturn",
+                    source="solarreturn",
                 )
 
 
 class LunarReturn(RingBase):
     # lunar return
-    def __init__(self, radius, cx, cy, font_size, chart_settings, radius_dict):
-        super().__init__(radius, cx, cy, chart_settings)
+    def __init__(self, radius, cx, cy, font_size, lun_ret_data, radius_dict):
+        super().__init__(radius, cx, cy)
+        self.app = Gtk.Application.get_default()
+        self.notify = self.app.notify_manager
         self.font_size = font_size
+        self.lun_ret_data = lun_ret_data
+        self.cusps = []
+        # get ring radius
+        keys = list(radius_dict.keys())
+        index = ""
+        try:
+            index = keys.index("lunar return")
+        except ValueError:
+            raise ValueError("missing 'lunar return' key in radiusdict")
+        if index < len(keys) - 1:
+            next_key = keys[index + 1]
+            next_val = radius_dict[next_key]
+        else:
+            # fallback
+            next_val = radius_dict["lunar return"]
+        if radius_dict:
+            self.mid_ring = (radius_dict["lunar return"] + next_val) / 2
+            self.ring = radius_dict.get("lunar return", "/")
+            self.before_ring = next_val
+            # msg += (
+            #     f"p1 midring : {self.mid_ring} | radius : {self.ring} | radinext : {next_val}"
+            # )
+        # houses drawn 1st
+        self.cusps = next(x for x in self.lun_ret_data if not isinstance(x, dict))
+        # print(f"srrings : cusps :\n\t{self.cusps}")
+        self.guests = []
+        try:
+            if self.lun_ret_data:
+                # create astroobject instance for drawing
+                self.guests = [
+                    self.create_astro_obj(obj)
+                    for obj in self.lun_ret_data
+                    if isinstance(obj, dict)
+                ]
+        except Exception as e:
+            self.notify.error(
+                f"no lunar return positions\n\terror :\n\t{e}",
+                source="rings",
+                route=["terminal", "user"],
+            )
+
+    def create_astro_obj(self, obj):
+        sol_ret_obj_data = obj.copy()
+        # p1_obj_data["lon"] = p1_obj_data.get("zpp", 0)
+        return AstroObject(sol_ret_obj_data)
 
     def draw(self, cr):
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
-        # yellowish
-        cr.set_source_rgba(0.149, 0.137, 0.035, 1)
+        # blueish
+        cr.set_source_rgba(0.1686, 0.1569, 0.0392, 1)
         cr.fill_preserve()
-        cr.set_source_rgba(1, 1, 1, 1)
+        cr.set_source_rgba(0.5, 0.5, 0.5, 0.7)
+        # cr.set_source_rgba(1, 1, 1, 0.7)
         cr.set_line_width(1)
         cr.stroke()
+        # houses of e2 lunar return
+        for angle in self.cusps:
+            angle = pi - radians(angle)
+            x1 = self.cx + self.radius * 0.35 * cos(angle)
+            y1 = self.cy + self.radius * 0.35 * sin(angle)
+            x2 = self.cx + self.radius * cos(angle)
+            y2 = self.cy + self.radius * sin(angle)
+            cr.move_to(x1, y1)
+            cr.line_to(x2, y2)
+            cr.set_source_rgba(1, 1, 0.6, 1)
+            cr.stroke()
         segment_angle = 2 * pi / 12
         # sign borders
         for j in range(12):
@@ -743,24 +814,106 @@ class LunarReturn(RingBase):
             cr.set_source_rgba(1, 1, 1, 1)
             cr.set_line_width(1)
             cr.stroke()
+        for guest in self.guests:
+            angle = pi - radians(guest.data.get("lon"))
+            x = self.cx + self.mid_ring * cos(angle)
+            y = self.cy + self.mid_ring * sin(angle)
+            marker_size = 7.2
+            # print(f"markersize : {marker_size}")
+            # draw triangle for ascendant
+            if guest.data.get("name") == "asc":
+                self.draw_marker(
+                    cr, x, y, angle, marker_size, (1, 1, 1, 1), self.draw_triangle
+                )
+            # draw diamond for midheaven
+            elif guest.data.get("name") == "mc":
+                self.draw_marker(
+                    cr, x, y, angle, marker_size, (1, 1, 1, 1), self.draw_diamond
+                )
+            else:
+                guest.draw(
+                    cr,
+                    self.cx,
+                    self.cy,
+                    self.mid_ring,
+                    obj_scale=12.0,
+                    source="lunarreturn",
+                )
 
 
-class Transits(RingBase):
-    # objects / planets & house cusps
-    def __init__(self, radius, cx, cy, font_size, chart_settings, radius_dict):
-        super().__init__(radius, cx, cy, chart_settings)
+class Transit(RingBase):
+    # transits for event 2 datetime
+    def __init__(self, radius, cx, cy, font_size, transit_data, radius_dict):
+        super().__init__(radius, cx, cy)
+        self.app = Gtk.Application.get_default()
+        self.notify = self.app.notify_manager
         self.font_size = font_size
+        self.transit_data = transit_data
+        self.cusps = []
+        # get ring radius
+        keys = list(radius_dict.keys())
+        index = ""
+        try:
+            index = keys.index("transit")
+        except ValueError:
+            raise ValueError("missing 'transit' key in radiusdict")
+        if index < len(keys) - 1:
+            next_key = keys[index + 1]
+            next_val = radius_dict[next_key]
+        else:
+            # fallback
+            next_val = radius_dict["transit"]
+        if radius_dict:
+            self.mid_ring = (radius_dict["transit"] + next_val) / 2
+            self.ring = radius_dict.get("transit", "/")
+            self.before_ring = next_val
+            # msg += (
+            #     f"p1 midring : {self.mid_ring} | radius : {self.ring} | radinext : {next_val}"
+            # )
+        # houses drawn 1st
+        self.cusps = next(x for x in self.transit_data if not isinstance(x, dict))
+        self.guests = []
+        try:
+            if self.transit_data:
+                # create astroobject instance for drawing
+                self.guests = [
+                    self.create_astro_obj(obj)
+                    for obj in self.transit_data
+                    if isinstance(obj, dict)
+                ]
+        except Exception as e:
+            self.notify.error(
+                f"no transit positions\n\terror :\n\t{e}",
+                source="rings",
+                route=["terminal", "user"],
+            )
+
+    def create_astro_obj(self, obj):
+        transit_obj_data = obj.copy()
+        return AstroObject(transit_obj_data)
 
     def draw(self, cr):
-        # main circle of event 1
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
-        # greenish
+        # circle background : greenish
         cr.set_source_rgba(0.0078, 0.0941, 0, 1)
-        # cr.set_source_rgba(0.0078, 0.1098, 0.0, 1)
         cr.fill_preserve()
-        cr.set_source_rgba(1, 1, 1, 1)
+        # circle border
+        cr.set_source_rgba(0.5, 0.5, 0.5, 0.7)
+        # cr.set_source_rgba(1, 1, 1, 0.7)
         cr.set_line_width(1)
         cr.stroke()
+        # houses of e2 transit
+        for angle in self.cusps:
+            angle = pi - radians(angle)
+            x1 = self.cx + self.radius * 0.35 * cos(angle)
+            y1 = self.cy + self.radius * 0.35 * sin(angle)
+            x2 = self.cx + self.radius * cos(angle)
+            y2 = self.cy + self.radius * sin(angle)
+            cr.move_to(x1, y1)
+            cr.line_to(x2, y2)
+            cr.set_source_rgba(0, 1, 0, 1)
+            # cr.set_source_rgba(0, 1, 0, 0.7)
+            cr.stroke()
         segment_angle = 2 * pi / 12
         # sign borders
         for j in range(12):
@@ -771,6 +924,35 @@ class Transits(RingBase):
             y2 = self.cy + self.radius * sin(angle)
             cr.move_to(x1, y1)
             cr.line_to(x2, y2)
-            cr.set_source_rgba(1, 1, 1, 1)
+            cr.set_source_rgba(
+                1,
+                1,
+                1,
+            )
             cr.set_line_width(1)
             cr.stroke()
+        for guest in self.guests:
+            angle = pi - radians(guest.data.get("lon"))
+            x = self.cx + self.mid_ring * cos(angle)
+            y = self.cy + self.mid_ring * sin(angle)
+            marker_size = 7.2
+            # print(f"markersize : {marker_size}")
+            # draw triangle for ascendant
+            if guest.data.get("name") == "asc":
+                self.draw_marker(
+                    cr, x, y, angle, marker_size, (1, 1, 1, 1), self.draw_triangle
+                )
+            # draw diamond for midheaven
+            elif guest.data.get("name") == "mc":
+                self.draw_marker(
+                    cr, x, y, angle, marker_size, (1, 1, 1, 1), self.draw_diamond
+                )
+            else:
+                guest.draw(
+                    cr,
+                    self.cx,
+                    self.cy,
+                    self.mid_ring,
+                    obj_scale=12.0,
+                    source="transit",
+                )
