@@ -214,7 +214,7 @@ class Event(RingBase):
             radius_factor = 1.0
             ascendant = self.ascmc[0]
             midheaven = self.ascmc[1]
-            marker_size = self.radius * 0.03
+            marker_size = 8.2  # self.radius * 0.03
             # compute positions based on angle transformations
             asc_angle = pi - radians(ascendant)
             asc_x = self.cx + self.radius * radius_factor * cos(asc_angle)
@@ -239,7 +239,7 @@ class Event(RingBase):
                 dsc_y,
                 dsc_angle,
                 marker_size,
-                (0, 0, 0, 1),
+                (0.1, 0.1, 0.1, 1),
                 self.draw_triangle,
             )
             mc_angle = pi - radians(midheaven)
@@ -247,14 +247,26 @@ class Event(RingBase):
             mc_y = self.cy + self.radius * radius_factor * sin(mc_angle)
             # draw midheaven marker (white diamond)
             self.draw_marker(
-                cr, mc_x, mc_y, mc_angle, marker_size, (1, 1, 1, 1), self.draw_diamond
+                cr,
+                mc_x,
+                mc_y,
+                mc_angle,
+                marker_size,
+                (1, 1, 1, 1),
+                self.draw_diamond,
             )
             ic_angle = mc_angle + pi
             ic_x = self.cx + self.radius * radius_factor * cos(ic_angle)
             ic_y = self.cy + self.radius * radius_factor * sin(ic_angle)
             # draw nadir marker (black diamond)
             self.draw_marker(
-                cr, ic_x, ic_y, ic_angle, marker_size, (0, 0, 0, 1), self.draw_diamond
+                cr,
+                ic_x,
+                ic_y,
+                ic_angle,
+                marker_size,
+                (0.1, 0.1, 0.1, 1),
+                self.draw_diamond,
             )
         # guests with adjusted radius based on latitude
         for guest in self.guests:
@@ -343,7 +355,7 @@ class Signs(RingBase):
             y2 = self.cy + self.radius * sin(angle)
             cr.move_to(x1, y1)
             cr.line_to(x2, y2)
-            cr.set_source_rgba(1, 1, 1, 1)
+            cr.set_source_rgba(1, 1, 1, 0.5)
             cr.set_line_width(1)
             cr.stroke()
         # glyphs
@@ -439,7 +451,6 @@ class Harmonic(RingBase):
         cr.set_source_rgba(0.1, 0.1, 0.1, 1)
         cr.fill_preserve()
         cr.set_source_rgba(0.5, 0.5, 0.5, 0.7)
-        # cr.set_source_rgba(1, 1, 1, 1)
         cr.set_line_width(1)
         cr.stroke()
         # (egyptian) terms (aka bounds) if division 1
@@ -454,6 +465,7 @@ class Harmonic(RingBase):
                 y = self.cy + self.radius * sin(angle)
                 cr.move_to(self.cx, self.cy)
                 cr.line_to(x, y)
+                cr.set_source_rgba(1, 1, 1, 0.5)
                 cr.stroke()
                 # glyphs : next border for mid term position
                 if i == terms_num - 1:
@@ -561,23 +573,37 @@ class P1Progress(RingBase):
             y2 = self.cy + self.radius * sin(angle)
             cr.move_to(x1, y1)
             cr.line_to(x2, y2)
-            cr.set_source_rgba(1, 1, 1, 1)
+            # fade sign segments
+            cr.set_source_rgba(1, 1, 1, 0.5)
             cr.set_line_width(1)
             cr.stroke()
         for guest in self.guests:
             angle = pi - radians(guest.data.get("lon"))
             x = self.cx + self.mid_ring * cos(angle)
             y = self.cy + self.mid_ring * sin(angle)
-            marker_size = 7.2
+            marker_size = 9.2
             # draw triangle for ascendant
             if guest.data.get("name") == "asc":
                 self.draw_marker(
-                    cr, x, y, angle, marker_size, (1, 1, 1, 1), self.draw_triangle
+                    cr,
+                    x,
+                    y,
+                    angle,
+                    marker_size,
+                    (0, 0.309, 0.721, 1),
+                    self.draw_triangle,
                 )
             # draw diamond for midheaven
             elif guest.data.get("name") == "mc":
                 self.draw_marker(
-                    cr, x, y, angle, marker_size, (1, 1, 1, 1), self.draw_diamond
+                    cr,
+                    x,
+                    y,
+                    angle,
+                    marker_size,
+                    (0, 0.309, 0.721, 1),
+                    # (1, 1, 1, 1),
+                    self.draw_diamond,
                 )
             else:
                 guest.draw(
@@ -587,16 +613,60 @@ class P1Progress(RingBase):
 
 class P3Progress(RingBase):
     # p3 progression
-    def __init__(self, radius, cx, cy, font_size, chart_settings, radius_dict):
-        super().__init__(radius, cx, cy, chart_settings)
+    def __init__(self, radius, cx, cy, font_size, p3_pos, radius_dict):
+        super().__init__(radius, cx, cy)
+        self.app = Gtk.Application.get_default()
+        self.notify = self.app.notify_manager
         self.font_size = font_size
+        self.p3_pos = p3_pos
+        # print(f"rings : p3pos : {self.p3_pos}")
+        # get ring radius
+        keys = list(radius_dict.keys())
+        index = ""
+        try:
+            index = keys.index("p3 progress")
+        except ValueError:
+            raise ValueError("missing 'p3 progress' key in radiusdict")
+        if index < len(keys) - 1:
+            next_key = keys[index + 1]
+            next_val = radius_dict[next_key]
+        else:
+            # fallback
+            next_val = radius_dict["p3 progress"]
+        if radius_dict:
+            self.mid_ring = (radius_dict["p3 progress"] + next_val) / 2
+            self.ring = radius_dict.get("p3 progress", "/")
+            self.before_ring = next_val
+            # msg += (
+            #     f"p3 midring : {self.mid_ring} | radius : {self.ring} | radinext : {next_val}"
+            # )
+        self.guests = []
+        try:
+            if self.p3_pos:
+                # create astroobject instance for drawing
+                self.guests = [
+                    self.create_astro_obj(obj)
+                    for obj in self.p3_pos
+                    if isinstance(obj, dict)
+                ]
+        except Exception as e:
+            self.notify.error(
+                f"no p3 positions\n\terror :\n\t{e}",
+                source="rings",
+                route=["terminal", "user"],
+            )
+
+    def create_astro_obj(self, obj):
+        p3_obj_data = obj.copy()
+        return AstroObject(p3_obj_data)
 
     def draw(self, cr):
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
         # blueish
         cr.set_source_rgba(0.0353, 0.0863, 0.1490, 1)
+        # cr.set_source_rgba(0.0471, 0.1059, 0.1843, 1.0)
         cr.fill_preserve()
-        cr.set_source_rgba(0.5, 0.5, 0.5, 0.7)
+        cr.set_source_rgba(0.5, 0.5, 0.5, 0.5)
         # cr.set_source_rgba(1, 1, 1, 1)
         cr.set_line_width(1)
         cr.stroke()
@@ -610,9 +680,41 @@ class P3Progress(RingBase):
             y2 = self.cy + self.radius * sin(angle)
             cr.move_to(x1, y1)
             cr.line_to(x2, y2)
-            cr.set_source_rgba(1, 1, 1, 1)
+            # fade sign segments
+            cr.set_source_rgba(1, 1, 1, 0.5)
             cr.set_line_width(1)
             cr.stroke()
+        for guest in self.guests:
+            angle = pi - radians(guest.data.get("lon"))
+            x = self.cx + self.mid_ring * cos(angle)
+            y = self.cy + self.mid_ring * sin(angle)
+            marker_size = 9.2
+            # draw triangle for ascendant
+            if guest.data.get("name") == "asc":
+                self.draw_marker(
+                    cr,
+                    x,
+                    y,
+                    angle,
+                    marker_size,
+                    (0, 0.159, 0.521, 1),
+                    self.draw_triangle,
+                )
+            # draw diamond for midheaven
+            elif guest.data.get("name") == "mc":
+                self.draw_marker(
+                    cr,
+                    x,
+                    y,
+                    angle,
+                    marker_size,
+                    (0, 0.159, 0.521, 1),
+                    self.draw_diamond,
+                )
+            else:
+                guest.draw(
+                    cr, self.cx, self.cy, self.mid_ring, obj_scale=12.0, source="p3"
+                )
 
 
 class SolarReturn(RingBase):
@@ -687,7 +789,8 @@ class SolarReturn(RingBase):
             y2 = self.cy + self.radius * sin(angle)
             cr.move_to(x1, y1)
             cr.line_to(x2, y2)
-            cr.set_source_rgba(1, 1, 0.6, 1)
+            cr.set_line_width(2)
+            cr.set_source_rgba(1, 1, 0.6, 0.7)
             cr.stroke()
         segment_angle = 2 * pi / 12
         # sign borders
@@ -699,24 +802,36 @@ class SolarReturn(RingBase):
             y2 = self.cy + self.radius * sin(angle)
             cr.move_to(x1, y1)
             cr.line_to(x2, y2)
-            cr.set_source_rgba(1, 1, 1, 1)
+            cr.set_source_rgba(1, 1, 1, 0.7)
             cr.set_line_width(1)
             cr.stroke()
         for guest in self.guests:
             angle = pi - radians(guest.data.get("lon"))
             x = self.cx + self.mid_ring * cos(angle)
             y = self.cy + self.mid_ring * sin(angle)
-            marker_size = 7.2
+            marker_size = 9.2
             # print(f"markersize : {marker_size}")
             # draw triangle for ascendant
             if guest.data.get("name") == "asc":
                 self.draw_marker(
-                    cr, x, y, angle, marker_size, (1, 1, 1, 1), self.draw_triangle
+                    cr,
+                    x,
+                    y,
+                    angle,
+                    marker_size,
+                    (0.6686, 0.6569, 0.5392, 1),
+                    self.draw_triangle,
                 )
             # draw diamond for midheaven
             elif guest.data.get("name") == "mc":
                 self.draw_marker(
-                    cr, x, y, angle, marker_size, (1, 1, 1, 1), self.draw_diamond
+                    cr,
+                    x,
+                    y,
+                    angle,
+                    marker_size,
+                    (0.6686, 0.6569, 0.5392, 1),
+                    self.draw_diamond,
                 )
             else:
                 guest.draw(
@@ -812,24 +927,36 @@ class LunarReturn(RingBase):
             y2 = self.cy + self.radius * sin(angle)
             cr.move_to(x1, y1)
             cr.line_to(x2, y2)
-            cr.set_source_rgba(1, 1, 1, 1)
+            cr.set_source_rgba(1, 1, 1, 0.7)
             cr.set_line_width(1)
             cr.stroke()
         for guest in self.guests:
             angle = pi - radians(guest.data.get("lon"))
             x = self.cx + self.mid_ring * cos(angle)
             y = self.cy + self.mid_ring * sin(angle)
-            marker_size = 7.2
+            marker_size = 9.2
             # print(f"markersize : {marker_size}")
             # draw triangle for ascendant
             if guest.data.get("name") == "asc":
                 self.draw_marker(
-                    cr, x, y, angle, marker_size, (1, 1, 1, 1), self.draw_triangle
+                    cr,
+                    x,
+                    y,
+                    angle,
+                    marker_size,
+                    (0.549, 0.568, 0, 1),
+                    self.draw_triangle,
                 )
             # draw diamond for midheaven
             elif guest.data.get("name") == "mc":
                 self.draw_marker(
-                    cr, x, y, angle, marker_size, (1, 1, 1, 1), self.draw_diamond
+                    cr,
+                    x,
+                    y,
+                    angle,
+                    marker_size,
+                    (0.549, 0.568, 0, 1),
+                    self.draw_diamond,
                 )
             else:
                 guest.draw(
@@ -913,7 +1040,6 @@ class Transit(RingBase):
             cr.move_to(x1, y1)
             cr.line_to(x2, y2)
             cr.set_source_rgba(0, 1, 0, 1)
-            # cr.set_source_rgba(0, 1, 0, 0.7)
             cr.stroke()
         segment_angle = 2 * pi / 12
         # sign borders
@@ -925,28 +1051,24 @@ class Transit(RingBase):
             y2 = self.cy + self.radius * sin(angle)
             cr.move_to(x1, y1)
             cr.line_to(x2, y2)
-            cr.set_source_rgba(
-                1,
-                1,
-                1,
-            )
+            cr.set_source_rgba(1, 1, 1, 0.5)
             cr.set_line_width(1)
             cr.stroke()
         for guest in self.guests:
             angle = pi - radians(guest.data.get("lon"))
             x = self.cx + self.mid_ring * cos(angle)
             y = self.cy + self.mid_ring * sin(angle)
-            marker_size = 7.2
+            marker_size = 9.2
             # print(f"markersize : {marker_size}")
             # draw triangle for ascendant
             if guest.data.get("name") == "asc":
                 self.draw_marker(
-                    cr, x, y, angle, marker_size, (1, 1, 1, 1), self.draw_triangle
+                    cr, x, y, angle, marker_size, (0, 0.9, 0.1, 1), self.draw_triangle
                 )
             # draw diamond for midheaven
             elif guest.data.get("name") == "mc":
                 self.draw_marker(
-                    cr, x, y, angle, marker_size, (1, 1, 1, 1), self.draw_diamond
+                    cr, x, y, angle, marker_size, (0, 0.9, 0.1, 1), self.draw_diamond
                 )
             else:
                 guest.draw(

@@ -36,8 +36,7 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
-from ui.helpers import _decimal_to_hms
-# _object_name_to_code as objcode
+from ui.helpers import _object_name_to_code as objcode  # _decimal_to_hms,
 
 
 def calculate_p3(event: str):
@@ -61,29 +60,28 @@ def calculate_p3(event: str):
         e1_jd = e1_sweph.get("jd_ut")
     if e2_sweph:
         e2_jd = e2_sweph.get("jd_ut")
-    sel_year = getattr(app, "selected_year_period", (365.2425, "gregorian"))
+    sel_year = getattr(app, "selected_year_period", (365.2425, "gregorian"))[0]
     # substitute with exact lunar return calculations : before & after e2 datetime
-    sel_month = getattr(app, "selected_month_period", (27.321661, "sidereal"))
-    YEARLENGTH = sel_year[0]
-    MONTHLENGTH = sel_month[0]
+    sel_month = getattr(app, "selected_month_period", (27.321661, "sidereal"))[0]
+    YEARLENGTH = sel_year
+    MONTHLENGTH = sel_month
     if e1_jd and e2_jd:
         # period elapsed from birth in years : needs event 2 datetime
         period = e2_jd - e1_jd
-        delta_years = period / YEARLENGTH
-        app.age_y = delta_years
+        age_years = period / YEARLENGTH
+        app.age_y = age_years
         # how many lunar months
-        delta_months = period / MONTHLENGTH
-        app.age_m = delta_months
+        age_months = period / MONTHLENGTH
+        app.age_m = age_months
         # print(f"deltayears : {delta_years}")
-    P3PERIOD = YEARLENGTH / MONTHLENGTH
-    msg += f"p3period [fixed] : {P3PERIOD}\n"
     chart_sett = getattr(app, "chart_settings")
-    # true_node = chart_sett.get("mean node")
-    # objs = getattr(app, "selected_objects_e2", None)
+    use_mean_node = chart_sett.get("mean node")
+    objs = getattr(app, "selected_objects_e2", None)
     e1_pos = getattr(app, "e1_positions", None)
-    # msg += f"e1pos : {e1_pos}\n"
-    # get moon
+    e1_houses = getattr(app, "e1_houses", None)
+    # msg += f"e2objs : {objs}\n"
     if e1_pos:
+        # get natal moon for lunar returns
         e1_mo = next(
             (
                 v["lon"]
@@ -92,36 +90,100 @@ def calculate_p3(event: str):
             ),
             None,
         )
-    # msg += f"e1mo : {e1_mo}\n"
-    # previous lunar return : search 30 days back range : 3 days extra
-    prev_jd = e2_jd - 30.0
+        # get natal sun for p3 asc & mc arc calculation
+        e1_su = next(
+            (
+                v["lon"]
+                for v in e1_pos.values()
+                if isinstance(v, dict) and v.get("name") == "su"
+            )
+        )
+    if e1_houses:
+        # get ascendant & midheaven
+        e1_asc = e1_houses[1][0]
+        e1_mc = e1_houses[1][1]
+    if e1_su:
+        if e1_mc:
+            e1_mc_arc = (e1_mc - e1_su) % 360
+            if e1_mc_arc > 180:
+                e1_mc_arc = 360 - e1_mc_arc
+        if e1_asc:
+            e1_asc_arc = (e1_asc - e1_su) % 360
+            if e1_asc_arc > 180:
+                e1_asc_arc = 360 - e1_asc_arc
+    # msg += (
+    #     f"e1mo : {e1_mo} | e1su : {e1_su} | "
+    #     f"e1ascarc : {e1_asc_arc} | e1mcarc : {e1_mc_arc}\n"
+    # )
+    # e2_date = swe.revjul(e2_jd, swe.GREG_CAL)
+    # y, m, d, h = e2_date
+    # H, M, S = _decimal_to_hms(h)
+    # msg += f"e2date : {y}-{m:02}-{d:02} {H:02}:{M:02}:{S:02}\n"
+    # previous lunar return : search x days back range
+    prev_jd = e2_jd - 27.5
     lr_prev_jd = swe.mooncross_ut(e1_mo, prev_jd, app.sweph_flag)
-    prev_lunret = swe.revjul(lr_prev_jd, swe.GREG_CAL)
-    y, m, d, h = prev_lunret
-    H, M, S = _decimal_to_hms(h)
-    # msg += (
-    #     f"lrprevjd : {lr_prev_jd} | prevlunret : "
-    #     f"{y}-{m:02}-{d:02} {H:02}:{M:02}:{S:02}\n"
-    # )
+    # lr_prev_date = swe.revjul(lr_prev_jd, swe.GREG_CAL)
+    # y, m, d, h = lr_prev_date
+    # H, M, S = _decimal_to_hms(h)
+    # msg += f"prevlr : {y}-{m:02}-{d:02} {H:02}:{M:02}:{S:02}\n"
     # next lunar return : remove 1h for crossover todo this needed ???
-    next_jd = e2_jd - 0.0416666667
+    next_jd = e2_jd  # - 0.0416666667
     lr_next_jd = swe.mooncross_ut(e1_mo, next_jd, app.sweph_flag)
-    next_lunret = swe.revjul(lr_next_jd, swe.GREG_CAL)
-    y, m, d, h = next_lunret
-    H, M, S = _decimal_to_hms(h)
-    # msg += (
-    #     f"lrnextjd : {lr_next_jd} | nextlunret : "
-    #     f"{y}-{m:02}-{d:02} {H:02}:{M:02}:{S:02}\n"
-    # )
+    # lr_next_date = swe.revjul(lr_next_jd, swe.GREG_CAL)
+    # y, m, d, h = lr_next_date
+    # H, M, S = _decimal_to_hms(h)
+    # msg += f"nextlr : {y}-{m:02}-{d:02} {H:02}:{M:02}:{S:02}\n"
     # calculate lunar month length
     lr_month = lr_next_jd - lr_prev_jd
-    p3_period = YEARLENGTH / lr_month
-    msg += f"p3period [dynamic] : {p3_period}\n"
-    # todo : p3_diff = age / p3period
-    # todo : p3_pos = e1_jd + p3_diff
-    # todo : progress mc by solar arc ???
+    p3_diff = (age_months / lr_month) * lr_month
+    # msg += f"diff : {p3_diff:.4f}\n"
+    # msg += f"period : {p3_period:.4f} | diff : {p3_diff:.4f}\n"
+    p3_jd = e1_jd + p3_diff
+    # p3_date = swe.revjul(p3_jd, swe.GREG_CAL)
+    # y, m, d, h = p3_date
+    # H, M, S = _decimal_to_hms(h)
+    # msg += f"p3date : {y}-{m:02}-{d:02} {H:02}:{M:02}:{S:02}\n"
+    # msg += f"p3jd :> {p3_date}"
     # todo : progress asc by tables of houses
     p3_data: list[dict] = []
+    # todo : progress mc by solar arc : p3-su + (Nsu-Nmc)
+    # insert ascendant & midheaven with p1solarc
+    result, err = swe.calc_ut(p3_jd, swe.SUN, app.sweph_flag)  # su lon
+    p3_su = result[0]
+    # msg += f"p3su : {p3_su}\n"
+    p3_asc = p3_su + e1_asc_arc
+    p3_mc = p3_su + e1_mc_arc
+    p3_data.append({"name": "asc", "lon": p3_asc})
+    p3_data.append({"name": "mc", "lon": p3_mc})
+    # find positions on p3 date
+    if objs:
+        # if "sun" not in objs:
+        #     # need sun for arc mc p3
+        #     print("p3objs : sun not found : calculating su ...")
+        for obj in objs:
+            code, name = objcode(obj, use_mean_node)
+            if code is None:
+                continue
+            # calc_ut() returns array of 6 floats [0] + error string [1]:
+            # longitude, latitude, distance, lon speed, lat speed, dist speed
+            try:
+                result = swe.calc_ut(p3_jd, code, app.sweph_flag)
+                # print(f"positions with speeds & flag used : {result}")
+                data = result[0] if isinstance(result, tuple) else result
+                # print(f"name : {name} | lon : {data[0]}")
+                p3_data.append({
+                    "name": name,
+                    "lon": data[0],
+                })
+                # get p3su & add
+            except swe.Error as e:
+                notify.error(
+                    f"p3 positions calculation failed\n\tdata {p3_data[code]}\n\tswe error :\n\t{e}",
+                    source="p3",
+                    route=["terminal"],
+                )
+        # p3_data.append({"name": "asc", "lon": p3_asc})
+        # p3_data.append({"name": "mc", "lon": p3_mc})
     # msg += f"p3data : {p3_data}\n"
     app.p3_pos = p3_data
     # emit signal
@@ -129,38 +191,8 @@ def calculate_p3(event: str):
     notify.debug(
         msg,
         source="p3",
-        route=["terminal"],
+        route=[""],
     )
-
-    # e1_houses = getattr(app, "e1_houses", None)
-    # clear previous data
-    # p3_data.append({"name": "age", "age": delta_years})
-    # add delta years to each position
-    # if e1_houses and objs and e1_jd and e1_pos:
-    # ascendant
-    # asc = e1_houses[1][0]
-    # p3_data.append({"name": "asc", "lon": asc + delta_years})
-    # nadir
-    # mc = e1_houses[1][1]
-    # p3_data.append({"name": "mc", "lon": mc + delta_years})
-    # msg += f"\tobjs : {objs}\n\tasc : {asc} | mc : {mc}\n"
-    # filter objects selected for event 2
-    # for obj in objs:
-    # code, name = objcode(obj, true_node)
-    # if code is None:
-    #     continue
-    # pos = e1_pos.get(code)
-    # if not isinstance(pos, dict):
-    #     continue
-    # lon = pos.get("lon")
-    # if lon is None:
-    #     continue
-    # data = {"name": name, "lon": lon + delta_years}
-    # if "lat" in pos:
-    #     data["lat"] = pos["lat"]
-    # if "lon speed" in pos:
-    #     data["lon speed"] = pos["lon speed"]
-    # p3_data.append(data)
 
 
 def e2_cleared(event):

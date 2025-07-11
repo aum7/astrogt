@@ -144,7 +144,7 @@ event 1 & 2 can have different objects"""
     subpnl_chart_settings = CollapsePanel(
         title="chart settings",
         indent=14,
-        expanded=True,  # todo
+        expanded=False,  # todo
     )
     subpnl_chart_settings.set_title_tooltip("""chart drawing & info display settings""")
     # ------ sub-sub-panel : chart info -----------------
@@ -543,7 +543,7 @@ more info in user/settings.py > SWE_FLAG"""
         month_store.append(value[1])
     ddn_lunar_month = Gtk.DropDown.new(month_store)
     ddn_lunar_month.set_tooltip_text("""lunar months in days
-    tropical\t\t0 ari (houck)\t27.321582
+    tropical\t\t0 aries\t\t\t27.321582
     synodic\t\tnew moons\t\t29.53059
     sidereal\t\tfixed star\t\t27.321661
     anomalistic\tperig-apog\t\t27.554551

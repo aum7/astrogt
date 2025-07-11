@@ -51,6 +51,7 @@ class AstroChart(Gtk.Box):
         signal._connect("settings_changed", self.settings_changed)
         signal._connect("stars_changed", self.stars_changed)
         signal._connect("p1_changed", self.p1_changed)
+        signal._connect("p3_changed", self.p3_changed)
         signal._connect("solar_return_changed", self.solar_return_changed)
         signal._connect("lunar_return_changed", self.lunar_return_changed)
         signal._connect("transit_changed", self.transit_changed)
@@ -122,11 +123,10 @@ class AstroChart(Gtk.Box):
         # print(f"astrochart p1pos : {self.p1_pos}")
         self.drawing_area.queue_draw()
 
-    # def p3_changed(self, event):
-    #     # primary progressions changed
-    #     self.p3_pos = getattr(self.app, "p3_pos", None)
-    #     # print(f"astrochart p3pos : {self.p3_pos}")
-    #     self.drawing_area.queue_draw()
+    def p3_changed(self, event):
+        # primary progressions changed
+        self.p3_pos = getattr(self.app, "p3_pos", None)
+        self.drawing_area.queue_draw()
 
     def solar_return_changed(self, event):
         self.sol_ret_data = getattr(self.app, "sol_ret_data", None)
@@ -264,7 +264,8 @@ class AstroChart(Gtk.Box):
                 cx=cx,
                 cy=cy,
                 font_size=int(12 * font_scale),
-                chart_settings=self.chart_settings,
+                p3_pos=self.p3_pos,
+                # chart_settings=self.chart_settings,
                 radius_dict=radius_dict,
             )
             ring_p3.draw(cr)
