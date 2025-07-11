@@ -157,15 +157,15 @@ CHART_SETTINGS = {
     "event2 rings": {
         "p1 progress": (
             False,
-            "show traditional primary progression (p1) for event 2\ncalculations as per martin gansten / ptolemy [todo, current is simple calculation]",
+            "show traditional primary progression (p1) for event 2\ncalculations as per martin gansten / ptolemy\n[todo, current is simple calculation]",
         ),
         "p3 progress": (
-            False,
+            True,
             "show tertiary progression (p3) for event 2\ncalculations as per richard houck",
         ),
         "solar return": (False, "show solar return for event 2"),
         "lunar return": (False, "show lunar return for event 2"),
-        "transit": (True, "show transit for event 2"),
+        "transit": (False, "show transit for event 2"),
     },
     # --- draw fixed stars
     # in user/fixedstars.py are categories of stars :

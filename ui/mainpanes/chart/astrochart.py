@@ -360,7 +360,7 @@ class AstroChart(Gtk.Box):
         self.notify.debug(
             msg,
             source="astrochart",
-            route=["terminal"],
+            route=[""],
         )
 
     def create_astro_object(self, obj):

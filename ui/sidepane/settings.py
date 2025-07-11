@@ -56,7 +56,7 @@ def setup_settings(manager) -> CollapsePanel:
     subpnl_objects = CollapsePanel(
         title="objects / planets",
         indent=14,
-        expanded=True,  # todo False,
+        expanded=False,
     )
     subpnl_objects.set_title_tooltip(
         """select objects to calculate & display on chart
