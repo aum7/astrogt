@@ -4,6 +4,8 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
+from math import radians
+from sweph.calculations.retro import calculate_retro
 from ui.mainpanes.chart.astroobject import AstroObject
 from ui.mainpanes.chart.rings import (
     Info,
@@ -17,7 +19,6 @@ from ui.mainpanes.chart.rings import (
     LunarReturn,
     Transit,
 )
-from math import radians
 
 
 class AstroChart(Gtk.Box):
@@ -68,7 +69,6 @@ class AstroChart(Gtk.Box):
             self.positions = (
                 self.app.e1_positions if hasattr(self.app, "e1_positions") else None
             )
-            # self.positions = positions
         self.drawing_area.queue_draw()
         # print(f"astrochart : {event} positions changed")
 
@@ -259,13 +259,13 @@ class AstroChart(Gtk.Box):
             ring_solar.draw(cr)
         # --- tertiary progressions
         if "p3 progress" in outer_rings:
+            calculate_retro("p3")
             ring_p3 = P3Progress(
                 radius=radius_dict.get("p3 progress", max_radius),
                 cx=cx,
                 cy=cy,
                 font_size=int(12 * font_scale),
                 p3_pos=self.p3_pos,
-                # chart_settings=self.chart_settings,
                 radius_dict=radius_dict,
             )
             ring_p3.draw(cr)
@@ -327,6 +327,7 @@ class AstroChart(Gtk.Box):
             cy=cy,
             font_size=int(radius_dict.get("signs", 0.0) * 0.07),
             stars=self.stars,
+            radius_dict=radius_dict,
         )
         ring_signs.draw(cr)
         ring_event = Event(
@@ -356,6 +357,7 @@ class AstroChart(Gtk.Box):
             # radius_dict=radius_dict,
             event_data=self.e1_chart_info,
             extra_info=self.extra_info,
+            radius_dict=radius_dict,
         )
         ring_info.draw(cr)
         self.notify.debug(

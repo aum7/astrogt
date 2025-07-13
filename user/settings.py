@@ -232,6 +232,7 @@ LUNAR_MONTH = {
 # also arrange order as you please > move line up / down & save file
 # top line is default choice
 AYANAMSA = {
+    255: ("user-defined (below)", "usr"),  # SIDM_USER
     45: ("Krishnamurti-Senthilathiban", "kms (45)"),  # SIDM_KRISHNAMURTI_VP291
     17: ("Galact. Center 0 Sag", "glc (17)"),  # SIDM_GALCENT_0SAG
     # 0: ("Fagan/Bradley", "fbr (00)"),  # SIDM_FAGAN_BRADLEY
@@ -279,7 +280,6 @@ AYANAMSA = {
     # 43: ("Lahiri 1940", "lh2 (43)"),  # SIDM_LAHIRI_1940
     # 44: ("Lahiri VP285", "lh3 (44)"),  # SIDM_LAHIRI_VP285
     # 46: ("Lahiri ICRC", "lh4 (46)"),  # SIDM_LAHIRI_ICRC
-    255: ("user-defined (below)", "usr"),  # SIDM_USER
 }
 CUSTOM_AYANAMSA = {
     # custom user-defined ayanamsa properties

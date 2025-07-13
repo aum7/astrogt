@@ -1,3 +1,4 @@
+# ui/sidepane/sidepane.py
 # ruff: noqa: E402
 import re
 import gi
@@ -36,19 +37,19 @@ class SidepaneManager:
     CHANGE_TIME_SELECTED = 1.0
     # time periods in julian day(s) as keys, used for change time
     CHANGE_TIME_PERIODS = {
-        "3652.0": "10 y",  # 365 * 10 + 2 leap years (approximation)
-        "365.0": "1 y",  # does not account for leap year
-        "90.0": "3 m (90 d)",
-        "30.0": "1 m (30 d)",
-        "27.321661": "1 m (27.3 d)",
-        "7.0": "1 w",
-        "1.0": "1 d",
+        "3652.0": "10 Y",  # 365 * 10 + 2 leap years (approximation)
+        "365.0": "1 Y",  # does not account for leap year
+        "90.0": "3 M (90 D)",
+        "30.0": "1 M (30 D)",
+        "27.321661": "1 M (27.3 D)",
+        "7.0": "1 W",
+        "1.0": "1 D",
         "0.25": "6 h",  # 1/4 of a day
         "0.041667": "1 h",  # 1/24 of a day
-        "0.006944": "10 mi",  # 1/144 of a day
-        "0.000694": "1 mi",  # 1/1440 of a day
+        "0.006944": "10 m",  # 1/144 of a day
+        "0.000694": "1 m",  # 1/1440 of a day
         "0.000116": "10 s",  # 1/8640 of a day
-        "0.000012": "1 se",  # 1/86400 of a day
+        "0.000012": "1 s",  # 1/86400 of a day
     }
 
     def __init__(self, app=None, *args, **kwargs):
@@ -129,7 +130,7 @@ or ie panes have been manually resized (click any text to focus sidepane)"""
         )
         self.ddn_time_periods.add_css_class("dropdown")
         # set default time period : 1 day
-        default_period = self.time_periods_list.index("1 d")
+        default_period = self.time_periods_list.index("1 D")
         self.ddn_time_periods.set_selected(default_period)
         # change time selected as julian day / float
         # self.CHANGE_TIME_SELECTED = 1.0

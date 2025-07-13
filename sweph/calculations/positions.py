@@ -45,6 +45,7 @@ def calculate_positions(event: Optional[str] = None) -> None:
         ):
             # coordinates are reversed here : lon lat alt
             swe.set_topo(sweph["lon"], sweph["lat"], sweph["alt"])
+        # retro_events = List[dict]  # defaultdict(dict)
         use_mean_node = app.chart_settings["mean node"]
         jd_ut = sweph.get("jd_ut")
         # msg += (
@@ -72,6 +73,9 @@ def calculate_positions(event: Optional[str] = None) -> None:
                     # "lat speed": data[4],
                     # "dist speed": data[5],
                 }
+                # retro_events.append(
+                #     find_retro_periods(jd_ut, code, name, data[0], data[3])
+                # )
             except swe.Error as e:
                 notify.error(
                     f"positions calculation failed for : {event}\n\tdata {positions[code]}\n\tswe error :\n\t{e}",
@@ -88,12 +92,14 @@ def calculate_positions(event: Optional[str] = None) -> None:
             positions_ordered[k] = positions[k]
         if event == "e1":
             app.e1_positions = positions_ordered
-            msg += f"{event} [e1] :\n\t{positions_ordered}"
+            # msg += f"{event} [e1] :\n\t{positions_ordered}"
             app.signal_manager._emit("positions_changed", event)
         elif event == "e2":
             app.e2_positions = positions_ordered
-            msg += f"{event} [e2] :\n\t{positions_ordered}"
+            # msg += f"{event} [e2] :\n\t{positions_ordered}"
             app.signal_manager._emit("positions_changed", event)
+        # calculate retro periods while we have needed data available
+        # find_retro_periods(positions_ordered)
         # msg += f"{str(positions_ordered)[:200]}\n"
         # ensure luminaries are always calculated
         luminaries = {}

@@ -36,7 +36,7 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
-from ui.helpers import _object_name_to_code as objcode  # _decimal_to_hms,
+from ui.helpers import _object_name_to_code as objcode, _decimal_to_hms
 
 
 def calculate_p3(event: str):
@@ -105,16 +105,16 @@ def calculate_p3(event: str):
     if e1_su:
         if e1_mc:
             e1_mc_arc = (e1_mc - e1_su) % 360
-            if e1_mc_arc > 180:
-                e1_mc_arc = 360 - e1_mc_arc
+            # if e1_mc_arc > 180:
+            #     e1_mc_arc = 360 - e1_mc_arc
         if e1_asc:
             e1_asc_arc = (e1_asc - e1_su) % 360
-            if e1_asc_arc > 180:
-                e1_asc_arc = 360 - e1_asc_arc
-    # msg += (
-    #     f"e1mo : {e1_mo} | e1su : {e1_su} | "
-    #     f"e1ascarc : {e1_asc_arc} | e1mcarc : {e1_mc_arc}\n"
-    # )
+            # if e1_asc_arc > 180:
+            #     e1_asc_arc = 360 - e1_asc_arc
+    msg += (
+        # f"e1mo : {e1_mo} | e1su : {e1_su} | "
+        f"e1ascarc : {e1_asc_arc} | e1mcarc : {e1_mc_arc}\n"
+    )
     # e2_date = swe.revjul(e2_jd, swe.GREG_CAL)
     # y, m, d, h = e2_date
     # H, M, S = _decimal_to_hms(h)
@@ -139,27 +139,32 @@ def calculate_p3(event: str):
     # msg += f"diff : {p3_diff:.4f}\n"
     # msg += f"period : {p3_period:.4f} | diff : {p3_diff:.4f}\n"
     p3_jd = e1_jd + p3_diff
-    # p3_date = swe.revjul(p3_jd, swe.GREG_CAL)
-    # y, m, d, h = p3_date
-    # H, M, S = _decimal_to_hms(h)
+    p3_date = swe.revjul(p3_jd, swe.GREG_CAL)
+    y, m, d, h = p3_date
+    H, M, S = _decimal_to_hms(h)
+    p3_date_f = f"{y}-{m:02}-{d:02} {H:02}:{M:02}:{S:02}"
     # msg += f"p3date : {y}-{m:02}-{d:02} {H:02}:{M:02}:{S:02}\n"
     # msg += f"p3jd :> {p3_date}"
-    # todo : progress asc by tables of houses
     p3_data: list[dict] = []
-    # todo : progress mc by solar arc : p3-su + (Nsu-Nmc)
+    # insert p3 date
+    p3_data.append({"name": "p3jdut", "jd_ut": p3_jd})
+    p3_data.append({"name": "p3date", "date": p3_date_f})
     # insert ascendant & midheaven with p1solarc
-    result, err = swe.calc_ut(p3_jd, swe.SUN, app.sweph_flag)  # su lon
+    try:
+        result, e = swe.calc_ut(p3_jd, swe.SUN, app.sweph_flag)  # su lon
+    except Exception as e:
+        raise ValueError(f"p3 : sun position calculation failed\n\terror :\n\t{e}")
     p3_su = result[0]
     # msg += f"p3su : {p3_su}\n"
+    # todo asc by tables of houses ???
     p3_asc = p3_su + e1_asc_arc
+    # progress mc by solar arc : p3-su + (Nsu - Nmc)
+    # todo need signed values for proper distance from su ???
     p3_mc = p3_su + e1_mc_arc
     p3_data.append({"name": "asc", "lon": p3_asc})
     p3_data.append({"name": "mc", "lon": p3_mc})
     # find positions on p3 date
     if objs:
-        # if "sun" not in objs:
-        #     # need sun for arc mc p3
-        #     print("p3objs : sun not found : calculating su ...")
         for obj in objs:
             code, name = objcode(obj, use_mean_node)
             if code is None:
@@ -174,17 +179,15 @@ def calculate_p3(event: str):
                 p3_data.append({
                     "name": name,
                     "lon": data[0],
+                    "lon speed": data[3],
                 })
-                # get p3su & add
             except swe.Error as e:
                 notify.error(
                     f"p3 positions calculation failed\n\tdata {p3_data[code]}\n\tswe error :\n\t{e}",
                     source="p3",
                     route=["terminal"],
                 )
-        # p3_data.append({"name": "asc", "lon": p3_asc})
-        # p3_data.append({"name": "mc", "lon": p3_mc})
-    # msg += f"p3data : {p3_data}\n"
+    msg += f"p3data : {p3_data}\n"
     app.p3_pos = p3_data
     # emit signal
     app.signal_manager._emit("p3_changed", event)

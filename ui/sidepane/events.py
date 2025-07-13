@@ -92,7 +92,8 @@ comment (add '# ' & save file) uninterested country"""
     ent_city.set_placeholder_text("enter city name")
     # todo test string
     if event_name == "e1":
-        ent_city.set_text("Memphis")
+        ent_city.set_text("Rahway")  # houck # 3
+        # ent_city.set_text("Memphis") # gansten lisa m presley
         # ent_city.set_text("Ljubljana")
     # ent_city.set_text("New York")
     ent_city.set_tooltip_text(
@@ -125,8 +126,10 @@ user needs to select the one of interest
     )
     # todo test string
     if event_name == "e1":
+        # houck # 3
+        ent_location.set_text("40 36 29 n 074 16 39 w 0007 m")
         # memphis usa lisa presley
-        ent_location.set_text("35 08 58 n 090 02 56 w 0085 m")
+        # ent_location.set_text("35 08 58 n 090 02 56 w 0085 m")
         # ent_location.set_text("46 03 03 n 014 30 18 e 0294 m")  # ljubljana
     # ent_location.set_text("51 30 54 n 000 05 56 w") # lse
     # ent_location.set_text("40 42 25 n 74 0 41 w 10 m")  # nyse
@@ -172,7 +175,8 @@ only use [space] as separator
     )
     # todo test string
     if event_name == "e1":
-        ent_event_name.set_text("lisa m presley")
+        ent_event_name.set_text("houck # 3")
+        # ent_event_name.set_text("lisa m presley")
         # ent_event_name.set_text("simon")
     # ent_event_name.set_text("nyse")
     ent_event_name.set_tooltip_text(
@@ -195,7 +199,8 @@ only use [space] as separator
     ent_datetime.set_name("datetime one" if event_name == "e1" else "datetime two")
     # todo test string
     if event_name == "e1":
-        ent_datetime.set_text("1968 2 1 17 1")  # lisa presley
+        ent_datetime.set_text("1964 12 13 15 00")  # houck # 3
+        # ent_datetime.set_text("1968 2 1 17 1")  # lisa presley
         # ent_datetime.set_text("1975 2 8 14 10")  # simon
     # ent_datetime.set_placeholder_text("yyyy mm dd HH MM (SS)")
     ent_datetime.set_tooltip_text(

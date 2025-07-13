@@ -585,6 +585,11 @@ more info in user/settings.py > SWE_FLAG"""
     box_ayanamsa.set_margin_end(manager.margin_end)
     # ayanamsa select : dropdown
     app.selected_ayanamsa = None
+    # init custom ayanamsa todo initialized twice
+    if not hasattr(app, "custom_julian_day"):
+        app.custom_julian_day = float(CUSTOM_AYANAMSA["custom julian day utc"])
+    if not hasattr(app, "custom_ayan"):
+        app.custom_ayan = float(CUSTOM_AYANAMSA["custom ayanamsa"])
     ayanamsa_store = Gtk.StringList()
     for key, value in AYANAMSA.items():
         ayanamsa_store.append(value[0])
@@ -622,7 +627,7 @@ more info in user/settings.py > SWE_FLAG"""
     # entry for julian day utc
     ent_julian_day = Gtk.Entry()
     ent_julian_day.set_text(str(CUSTOM_AYANAMSA["custom julian day utc"]))
-    app.custom_julian_day = float(ent_julian_day.get_text())
+    # app.custom_julian_day = float(ent_julian_day.get_text())
     ent_julian_day.set_tooltip_text("""julian day utc = custom ayanamsa reference date
     default is for 2000-01-01 12:00 utc (julian day starts at noon)
     if needed, get julian day utc online, then copy-paste the number here""")
@@ -644,7 +649,7 @@ more info in user/settings.py > SWE_FLAG"""
     # entry
     ent_ayan_value = Gtk.Entry()
     ent_ayan_value.set_text(str(CUSTOM_AYANAMSA["custom ayanamsa"]))
-    app.custom_ayan = float(ent_ayan_value.get_text())
+    # app.custom_ayan = float(ent_ayan_value.get_text())
     ent_ayan_value.set_tooltip_text("""custom ayanamsa value
     default is 23.76694445 (23° 46' 01") for 2000-01-01""")
     ent_ayan_value.set_max_width_chars(11)
@@ -893,43 +898,6 @@ def harmonic_ring(entry, manager):
         source="panel.settings",
         route=[""],
     )
-
-
-# def chart_subsetting_toggled(button, key, group, subkey, manager):
-#     # update composite key from subsetting
-#     active = button.get_active()
-#     manager.app.chart_settings[key] = active
-#     manager.signal._emit("settings_changed", None)
-#     manager.notify.debug(f"{group} {subkey} toggled to {active}")
-
-
-# def e2_rings_toggled(button, ring, manager):
-#     """chart settings panel : select chart rings to be shown for event 2"""
-#     # get current ring setting
-#     active = button.get_active()
-#     # update event2 ring setting
-#     manager.app.chart_settings[ring] = active
-#     # at least 1 ring must be selected
-#     rings = list(CHART_SETTINGS["event2 rings"].keys())
-#     active_count = sum(
-#         bool(manager.app.chart_settings.get(ring, False)) for ring in rings
-#     )
-#     # force checkbox true if none active
-#     if active_count == 0:
-#         button.set_active(True)
-#         manager.app.chart_settings[ring] = True
-#         manager.notify.warning(
-#             "at least 1 event 2 ring must be selected\nif not interested in event 2 > delete event 2 datetime field",
-#             source="panel.settings",
-#             route=["terminal", "user"],
-#         )
-#     # emit settings changed signal
-#     manager.signal._emit("settings_changed", None)
-#     manager.notify.debug(
-#         f"e2ringstoggled : {ring} set to {active} : emited signal ...",
-#         source="panel.settings",
-#         route=[""],
-#     )
 
 
 def fixed_stars(entry, manager):
@@ -1208,7 +1176,7 @@ def set_ayanamsa(manager):
             else ""
         ),
         source="panel.settings",
-        route=["none"],
+        route=[""],
     )
 
 

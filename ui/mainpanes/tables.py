@@ -42,6 +42,8 @@ class Tables(Gtk.Notebook):
         signal._connect("aspects_changed", self.aspects_changed)
         # vimsottari dasa widget
         signal._connect("vimsottari_changed", self.vimsottari_changed)
+        # p3 table
+        signal._connect("p3_changed", self.p3_changed)
         # if user not interested in event 2
         signal._connect("e2_cleared", self.e2_cleared)
 
@@ -110,6 +112,89 @@ class Tables(Gtk.Notebook):
         self.current_event = event
         # print(f"vmst chg : {str(self.events_data[event].get('vimsottari'))[:800]}")
         self.update_vimsottari("vimsottari", vimsottari)
+
+    def p3_changed(self, event):
+        self.p3_pos = getattr(self.app, "p3_pos", None)
+        self.update_p3(event)
+
+    def update_p3(self, event):
+        p3_pos = getattr(self, "p3_pos", None)
+        msg = ""
+        if not p3_pos:
+            self.notify.error(
+                "missing p3 positions : exiting ...",
+                source="tables",
+                route=["terminal", "user"],
+            )
+            return
+        # msg += f"p3changed : p3pos :\n\t{p3_pos}\n"
+        content = ""
+        p3_date = next(
+            (f.get("date") for f in p3_pos if f.get("name") == "p3date"), None
+        )
+        if p3_date:
+            content += f" p3 date : {p3_date.strip()}\n"
+        separ = f"{self.h_sym * 21}\n"
+        # header
+        header = f" obj {self.v_sym}        sign{self.vic_spc}{self.v_sym}     lon\n"
+        content += header
+        # ascendant & midheaven
+        # p3_asc = next((f.get("lon") for f in p3_pos if f.get("name") == "asc"), None)
+        # p3_mc = next((f.get("lon") for f in p3_pos if f.get("name") == "mc"), None)
+        # if p3_asc and p3_mc:
+        #     content += f" asc {self.v_sym} {self.format_dms(p3_asc)} "
+        #     f"{self.v_sym}   {p3_asc:7.3f}\n"
+        #     content += f" mc  {self.v_sym} {self.format_dms(p3_mc)} "
+        #     f"{self.v_sym} {p3_mc:7.3f}\n"
+        # content += separ
+        for obj in p3_pos:
+            if obj.get("name") in ("p3date", "p3jdut"):
+                continue
+            name = obj.get("name", "")
+            lon = obj.get("lon", 0)
+            ln_pos = (
+                f" {name:3} {self.v_sym} "
+                f"{self.format_dms(lon):10} {self.v_sym} "
+                f"{lon:8.3f}\n"
+            )
+            content += ln_pos
+        content += separ
+        self.notify.debug(
+            msg,
+            source="tables",
+            route=[""],
+        )
+        event = "p3"
+        if event in self.page_widgets:
+            scroll = self.page_widgets[event]
+            text_view = scroll.get_child()
+            buffer = text_view.get_buffer()
+            buffer.set_text(content)
+        else:
+            self.p3_widget(event, content)
+
+    def p3_widget(self, event: str, content: str):
+        # create a scrollable text view for tertiary progression
+        scroll = Gtk.ScrolledWindow()
+        scroll.set_name(f"data_scroll_{event}")
+        scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        scroll.set_hexpand(False)
+        scroll.set_vexpand(True)
+        text_view = Gtk.TextView()
+        text_view.set_margin_top(self.margin)
+        text_view.set_margin_bottom(self.margin)
+        text_view.set_margin_start(self.margin)
+        text_view.set_margin_end(self.margin)
+        text_view.set_editable(False)
+        text_view.set_cursor_visible(False)
+        text_view.add_css_class("table-text")
+        buffer = text_view.get_buffer()
+        buffer.set_text(content)
+        scroll.set_child(text_view)
+        # add page with event label as tab title
+        self.append_page(scroll, Gtk.Label.new(event))
+        self.page_widgets[event] = scroll
+        self.set_current_page(self.get_n_pages() - 1)
 
     def e2_cleared(self, event):
         """
@@ -224,7 +309,7 @@ class Tables(Gtk.Notebook):
                     f" cross points {self.h_sym * 3}\n"
                     f" {self.asc} :  {self.format_dms(self.ascendant)}\n"
                     f" {self.mc} :  {self.format_dms(self.midheaven)}\n"
-                    f" armc :  {decra(self.armc)}\n"
+                    f" ra : {int(raH):02d}h{int(raM):02d}m{int(raS):02d}s\n"
                 )
             ln_csps += separ
             content += ln_csps
