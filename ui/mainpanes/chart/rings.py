@@ -31,7 +31,7 @@ class RingBase:
     def scaled_marker_size(self):
         # scale marker size so it is constant relative to chart
         outer_ring = self.get_outer_ring(self.radius_dict)
-        return 0.024 * outer_ring
+        return 0.03 * outer_ring
 
     def scaled_obj_scale(self):
         # scale object size so it is constant relative to chart
@@ -262,9 +262,9 @@ class Event(RingBase):
             cr.line_to(x2, y2)
             cr.set_source_rgba(1, 1, 1, 0.3)
             cr.stroke()
-        marker_size = self.scaled_marker_size()
+        marker_size = self.scaled_marker_size() * self.radius * 0.0027
         if self.ascmc:
-            radius_factor = 1.03
+            radius_factor = 1.04
             ascendant = self.ascmc[0]
             midheaven = self.ascmc[1]
             # marker_size = self.radius * 0.03
@@ -597,7 +597,6 @@ class P1Progress(ObjectRingBase):
             cr.set_line_width(1)
             cr.stroke()
         self.draw_guests(cr)
-        # self.draw_guests(cr, "p1")
 
 
 class P3Progress(ObjectRingBase):
@@ -643,7 +642,6 @@ class P3Progress(ObjectRingBase):
             cr.set_line_width(1)
             cr.stroke()
         self.draw_guests(cr)
-        # self.draw_guests(cr, "p3")
 
 
 class SolarReturn(ObjectRingBase):
@@ -701,7 +699,6 @@ class SolarReturn(ObjectRingBase):
             cr.set_line_width(1)
             cr.stroke()
         self.draw_guests(cr)
-        # self.draw_guests(cr, "solarreturn")
 
 
 class LunarReturn(ObjectRingBase):
@@ -756,7 +753,6 @@ class LunarReturn(ObjectRingBase):
             cr.set_line_width(1)
             cr.stroke()
         self.draw_guests(cr)
-        # self.draw_guests(cr, "lunarreturn")
 
 
 class Transit(ObjectRingBase):
@@ -811,4 +807,3 @@ class Transit(ObjectRingBase):
             cr.set_line_width(1)
             cr.stroke()
         self.draw_guests(cr)
-        # self.draw_guests(cr, "transit")

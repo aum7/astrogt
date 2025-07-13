@@ -15,7 +15,7 @@ OBJECTS = {  # one-but-last = color ; last = size scale = drawing order
     5: ("ju", "jupiter", "gu", "guru", (0.7, 0.4, 0.0, 1), 0.88),
     6: ("sa", "saturn", "sa", "sani", (0.1176, 0.5647, 1.0, 1), 0.91),
     7: ("ur", "uranus", "ur", "uranus", (0.4, 0.4, 0.4, 1), 0.94),
-    8: ("ne", "neptune", "ne", "neptune", (0.2157, 0.1686, 1.0, 1), 0.97),
+    8: ("ne", "neptune", "ne", "neptune", (0, 0.2539, 0.4931, 1), 0.97),
     9: ("pl", "pluto", "pl", "pluto", (0.2784, 0.2784, 0.2784, 1), 1.0),
     11: ("ra", "true node", "ra", "rahu", (0.8667, 0.7529, 0.7059, 1), 0.8),
     # rahu mean is handled in positions.py

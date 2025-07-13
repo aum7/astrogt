@@ -102,7 +102,7 @@ event 1 & 2 can have different objects"""
     box_objects.append(manager.lbx_objects)
     # track selected objects per event
     app.selected_objects_e1 = set()
-    app.selected_objects_e2 = {"sun", "moon", "jupiter"}  # todo
+    app.selected_objects_e2 = {"sun", "moon", "jupiter", "mercury"}  # todo
     manager.selected_objects_event = 1
     for _, obj_data in OBJECTS.items():
         row = Gtk.ListBoxRow()

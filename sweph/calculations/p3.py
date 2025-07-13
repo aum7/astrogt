@@ -111,10 +111,10 @@ def calculate_p3(event: str):
             e1_asc_arc = (e1_asc - e1_su) % 360
             # if e1_asc_arc > 180:
             #     e1_asc_arc = 360 - e1_asc_arc
-    msg += (
-        # f"e1mo : {e1_mo} | e1su : {e1_su} | "
-        f"e1ascarc : {e1_asc_arc} | e1mcarc : {e1_mc_arc}\n"
-    )
+    # msg += (
+    # f"e1mo : {e1_mo} | e1su : {e1_su} | "
+    # f"e1ascarc : {e1_asc_arc} | e1mcarc : {e1_mc_arc}\n"
+    # )
     # e2_date = swe.revjul(e2_jd, swe.GREG_CAL)
     # y, m, d, h = e2_date
     # H, M, S = _decimal_to_hms(h)
@@ -187,7 +187,14 @@ def calculate_p3(event: str):
                     source="p3",
                     route=["terminal"],
                 )
-    msg += f"p3data : {p3_data}\n"
+    for obj in p3_data:
+        name = obj.get("name")
+        if name in ("su", "mo", "asc", "mc", "p3jdut", "p3date"):
+            continue
+        if name:
+            speed = obj.get("lon speed")
+            msg += f"{name} : {speed}\n"
+    # msg += f"p3data : {p3_data}\n"
     app.p3_pos = p3_data
     # emit signal
     app.signal_manager._emit("p3_changed", event)

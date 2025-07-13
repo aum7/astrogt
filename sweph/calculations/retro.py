@@ -1,12 +1,13 @@
 # sweph/calculations/retro.py
 # ruff: noqa: E402, E701
-import swisseph as swe
-import numpy as np
+# import swisseph as swe
+# import numpy as np
 import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
-from collections import defaultdict  # will add attr if missing
+
+# from collections import defaultdict  # will add attr if missing
 from typing import List, Optional
 from ui.helpers import _object_name_to_code as objcode
 
@@ -25,12 +26,6 @@ average_speed = {
     "pl": 0.004,
 }
 
-# def is_stationary(planet, speed):
-#     # if below x percent > declare stationary
-#     threshold_pct = 0.02  # 2 %
-#     avg = average_speed[planet]
-#     return abs(speed) < abs(avg) * threshold_pct
-
 
 def calculate_retro(event: Optional[str] = None):
     """calculate retro station & direction for one or both events"""
@@ -47,32 +42,31 @@ def calculate_retro(event: Optional[str] = None):
     for event in events:
         # sweph = app.e1_sweph if event == "e1" else app.e2_sweph
         # print(f"retro : sweph :\n\t{sweph}")
-        jd_ut = 0.0
+        # jd_ut = 0.0
         pos = ()
         if event == "e1":
             pos = getattr(app, "e1_positions")
-            jd_ut = pos.get("jd_ut") if isinstance(pos, dict) else None
+            # jd_ut = pos.get("jd_ut") if isinstance(pos, dict) else None
         elif event == "e2":
             pos = getattr(app, "e2_positions")
-            jd_ut = pos.get("jd_ut") if isinstance(pos, dict) else None
+            # jd_ut = pos.get("jd_ut") if isinstance(pos, dict) else None
         elif event == "p3":
             pos = getattr(app, "p3_pos")
-            jd_ut = next(
-                (o["jd_ut"] for o in pos if isinstance(o, dict) and "jd_ut" in o)
-            )
+            # jd_ut = next(
+            #     (o["jd_ut"] for o in pos if isinstance(o, dict) and "jd_ut" in o)
+            # )
         # msg += f"retro [{event}] :\n\tjdut : {jd_ut}\n\tpos : {pos}\n"
         objs = app.selected_objects_e1 if event == "e1" else app.selected_objects_e2
         use_mean_node = app.chart_settings["mean node"]
-        # times = np.arange(start_jd, end_jd, step)
-        # lon, speed = pos.get("lon"), pos.get("lon speed")
-        threshold_pct = 0.02  # 2 %
-        retro_events = {}
+        # threshold_pct = 0.02  # 2 %
+        retro_data = []
+        prev_dir = ""
+        dir = ""
         for obj in objs:
+            # retro_state = ""
             code, name = objcode(obj, use_mean_node)
             if code is None:
                 continue
-            # prev_speed = {}
-            # prev_direction = {}
             avg = average_speed.get(name)
             speed = None
             # e1 / e2 search in pos (dict) for matching name
@@ -92,28 +86,46 @@ def calculate_retro(event: Optional[str] = None):
                         speed = v.get("lon speed")
                         break
             if avg and speed:
-                threshold = abs(avg) * threshold_pct
-                is_station = abs(speed) < threshold
-                # 1 = direct : -1 = retro : 0 = stationary
-                direction = 1 if speed > 0 else (-1 if speed < 0 else 0)
-                prev_direction = retro_events.get(name, {}).get("prev_direction", None)
-                if prev_direction is not None:
-                    # check for stationary retrograde (SR) or stationary direct (SD)
-                    if prev_direction > 0 and direction < 0 and is_station:
-                        retro_events.setdefault(name, {"events": []})["events"].append((
-                            jd_ut,
-                            "SR",
-                            speed,
-                        ))
-                    elif prev_direction < 0 and direction > 0 and is_station:
-                        retro_events.setdefault(name, {"events": []})["events"].append((
-                            jd_ut,
-                            "SD",
-                            speed,
-                        ))
+                # threshold = abs(avg) * threshold_pct
+                # is_station = abs(speed) < threshold
+                dir = "D" if speed > 0 else ("R" if speed < 0 else "S")
+                prev_dir_ = prev_dir
+                print(f"{name} : dir : {dir} | prevdir {prev_dir_}")
+                prev_dir = dir
+                # retro_data.append({"name": name, "dir": dir})
+                # prev_dir = retro_data[name].get("prevdir")
+                # print(f"{name} = {dir} - prevdir : {prev_dir}\n")
+                # retro_state = dir
+                # print(f"\tRETRO : state : {retro_state} | prevdir : {prev_dir}")
+                # if dir:
+                # check for stationary retrograde (SR) or stationary direct (SD)
+                # if dir == "R":
+                #     retro_state = dir
+                #     if prev_dir == "D":
+                #         print(f"{prev_dir} > {dir} GONE RETRO")
+                #         if is_station:
+                #             retro_state = "SR"
+                #     # retro_data[name] = {"state": retro_state}
+                # elif dir == "D":
+                #     retro_state = dir
+                #     if prev_dir == "R":
+                #         print(f"{prev_dir} > {dir} GONE DIRECT")
+                #         if is_station:
+                #             retro_state = "SD"
                 # update previous direction
-                retro_events.setdefault(name, {})["prev_direction"] = direction
-        msg += f"positions : retro : {retro_events}\n"
+            # retro_data[name] = {
+            #     # "state": retro_state,
+            #     # "station": is_station,
+            #     "prevdir": prev_dir,
+            #     # "dir": dir,
+            # }
+            # print(f"RETRO : state : {retro_state}")
+            # msg += (
+            #     f"{name} : {speed:9.5f} | S : {is_station} | "
+            #     f"prevdir : {prev_direction} | dir : {direction} || "
+            #     f"state : {retro_state}\n"
+            # )
+        # msg += f"retrodata : {retro_data}\n"
     notify.debug(
         msg,
         source="retro",

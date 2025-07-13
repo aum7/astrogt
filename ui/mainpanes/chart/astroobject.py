@@ -11,6 +11,7 @@ class AstroObject:
         name = self.data.get("name", "su").lower()
         # default color & scale
         self.color = (0.1, 0.1, 0.1, 0.5)
+        # leave below for proper event ring objects scaling
         self.scale = 1.0
 
         for obj in OBJECTS.values():
