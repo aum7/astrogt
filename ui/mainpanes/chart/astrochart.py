@@ -171,7 +171,7 @@ class AstroChart(Gtk.Box):
         # - primary & tertiary progression
         # - solar & lunar return
         # - transit
-        # includes naksatras & harmonic ring
+        # - also naksatras & harmonic ring
         outer_rings = []
         if getattr(self.app, "e2_active", False):
             msg += "e2 is active\n"

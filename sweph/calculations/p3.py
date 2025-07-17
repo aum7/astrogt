@@ -149,18 +149,39 @@ def calculate_p3(event: str):
     # insert p3 date
     p3_data.append({"name": "p3jdut", "jd_ut": p3_jd})
     p3_data.append({"name": "p3date", "date": p3_date_f})
-    # insert ascendant & midheaven with p1solarc
     try:
         result, e = swe.calc_ut(p3_jd, swe.SUN, app.sweph_flag)  # su lon
     except Exception as e:
         raise ValueError(f"p3 : sun position calculation failed\n\terror :\n\t{e}")
     p3_su = result[0]
     # msg += f"p3su : {p3_su}\n"
+    # true asc & mc : experimental
+    hsys = app.selected_house_sys
+    if e1_sweph:
+        try:
+            _, ascmc = swe.houses_ex(
+                p3_jd,
+                e1_sweph["lat"],
+                e1_sweph["lon"],
+                hsys.encode("ascii"),
+                app.sweph_flag,
+            )
+        except swe.Error as e:
+            notify.error(
+                f"cross points calculation failed\n\tswe error\n\t{e}",
+                source="p3",
+                route=["terminal"],
+            )
+    p3_tasc = ascmc[0]
+    p3_tmc = ascmc[1]
+    p3_data.append({"name": "tas", "lon": p3_tasc})
+    p3_data.append({"name": "tmc", "lon": p3_tmc})
     # todo asc by tables of houses ???
     p3_asc = p3_su + e1_asc_arc
     # progress mc by solar arc : p3-su + (Nsu - Nmc)
     # todo need signed values for proper distance from su ???
     p3_mc = p3_su + e1_mc_arc
+    # insert ascendant & midheaven with p1solarc
     p3_data.append({"name": "asc", "lon": p3_asc})
     p3_data.append({"name": "mc", "lon": p3_mc})
     # find positions on p3 date

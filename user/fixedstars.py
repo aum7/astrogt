@@ -20,8 +20,9 @@
 
 fixedstars = {
     "custom": [
-        ("etTau", "krttika", "03 krt krttika"),
-        ("GCLiu", "gcliu", "galactic center (new) (liu/zhu/zhang 2010)"),
+        ("alCMa", "sirius", "096. sirius"),
+        # ("etTau", "krttika", "03 krt krttika"),
+        # ("GCLiu", "gcliu", "galactic center (new) (liu/zhu/zhang 2010)"),
     ],
     "naksatras": [  # 28
         ("beAri", "ashvini", "01 asv asvini"),

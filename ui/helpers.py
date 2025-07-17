@@ -96,7 +96,7 @@ def _update_main_title(manager, change_time=None):
         age_y = age_y.replace(" ", "")
         title += f" | age : {age_y}"
     if age_m:
-        title += f" - lun : {age_m:.2f}"
+        title += f" - lun : {age_m:.2f}m"
     if change_time:
         title += f" | ct : {change_time}"
     elif change_time is None:

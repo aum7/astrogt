@@ -84,6 +84,25 @@ class RingBase:
 # event ring base class for all with guests/objects
 class ObjectRingBase(RingBase):
     # subclasses should set self.guests, self.mid_ring
+    # drawing order for objects in reverse
+    draw_order = [
+        "ra",
+        "pl",
+        "ne",
+        "ur",
+        "sa",
+        "ju",
+        "ma",
+        "su",
+        "ve",
+        "me",
+        "mo",
+        "tas",  # true p3 ascendant
+        "tmc",  # true p3 midheaven
+        "asc",
+        "mc",
+    ]
+
     def draw_guests(self, cr):
         # def draw_guests(self, cr, guest_source):
         marker_size = self.scaled_marker_size()
@@ -92,15 +111,47 @@ class ObjectRingBase(RingBase):
         mid_ring = getattr(self, "mid_ring", self.radius)
         if not mid_ring:
             return
-        for guest in guests:  # getattr(self, "guests", []):
+        # create dict for name lookup
+        guest_by_name = {}
+        for guest in guests:
+            name = guest.data.get("name", "")
+            guest_by_name[name] = guest
+        # draw objects in order
+        for name in self.draw_order:
+            # for guest in guests:
+            guest = guest_by_name.get(name)
+            if not guest:
+                continue
             if guest.data.get("name") in ("p3date", "p3jdut"):
                 continue
             angle = pi - radians(guest.data.get("lon"))
             x = self.cx + mid_ring * cos(angle)
             y = self.cy + mid_ring * sin(angle)
-            name = guest.data.get("name", "").lower()
+            # name = guest.data.get("name", "").lower()
+            # true asc marker
+            if name == "tas":
+                self.draw_marker(
+                    cr,
+                    x,
+                    y,
+                    angle,
+                    marker_size * 0.5,
+                    (1, 1, 1, 1),
+                    self.draw_triangle,
+                )
+            # true mc marker
+            elif name == "tmc":
+                self.draw_marker(
+                    cr,
+                    x,
+                    y,
+                    angle,
+                    marker_size * 0.5,
+                    (1, 1, 1, 1),
+                    self.draw_diamond,
+                )
             # asc marker
-            if name == "asc":
+            elif name == "asc":
                 self.draw_marker(
                     cr,
                     x,
@@ -620,7 +671,7 @@ class P3Progress(ObjectRingBase):
         self.mid_ring = (radius_dict["p3 progress"] + next_val) / 2
 
     def marker_color(self, name):
-        return (0, 0.459, 0.821, 1)
+        return (0, 0.659, 0.921, 0.5)
 
     def draw(self, cr):
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
