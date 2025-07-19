@@ -9,6 +9,8 @@ from swisseph import contrib as swh
 from ui.fonts.glyphs import SIGNS
 from ui.helpers import _decimal_to_ra as decra
 from user.settings import HOUSE_SYSTEMS
+from sweph.calculations.retro import calculate_retro
+from sweph.swetime import jd_to_custom_iso as jdtoiso
 
 
 class Tables(Gtk.Notebook):
@@ -36,6 +38,7 @@ class Tables(Gtk.Notebook):
         self.vic_spc = "\u01ac"
         self.asc = "\u01bf"
         self.mc = "\u01c1"
+        self.order = ("su", "mo", "me", "ve", "ma", "ju", "sa", "ur", "ne", "pl", "ra")
         # event data widget
         signal._connect("positions_changed", self.positions_changed)
         signal._connect("houses_changed", self.houses_changed)
@@ -115,6 +118,7 @@ class Tables(Gtk.Notebook):
 
     def p3_changed(self, event):
         self.p3_pos = getattr(self.app, "p3_pos", None)
+        self.p3_retro = calculate_retro("p3")
         self.update_p3(event)
 
     def update_p3(self, event):
@@ -128,37 +132,66 @@ class Tables(Gtk.Notebook):
             )
             return
         # msg += f"p3changed : p3pos :\n\t{p3_pos}\n"
+        separ = f"{self.h_sym * 20}\n"
         content = ""
         p3_date = next(
             (f.get("date") for f in p3_pos if f.get("name") == "p3date"), None
         )
         if p3_date:
-            content += f" p3 date : {p3_date.strip()}\n"
-        separ = f"{self.h_sym * 21}\n"
-        # header
-        header = f" obj {self.v_sym}        sign{self.vic_spc}{self.v_sym}     lon\n"
-        content += header
-        # ascendant & midheaven
-        # p3_asc = next((f.get("lon") for f in p3_pos if f.get("name") == "asc"), None)
-        # p3_mc = next((f.get("lon") for f in p3_pos if f.get("name") == "mc"), None)
-        # if p3_asc and p3_mc:
-        #     content += f" asc {self.v_sym} {self.format_dms(p3_asc)} "
-        #     f"{self.v_sym}   {p3_asc:7.3f}\n"
-        #     content += f" mc  {self.v_sym} {self.format_dms(p3_mc)} "
-        #     f"{self.v_sym} {p3_mc:7.3f}\n"
-        # content += separ
-        for obj in p3_pos:
-            if obj.get("name") in ("p3date", "p3jdut"):
-                continue
-            name = obj.get("name", "")
-            lon = obj.get("lon", 0)
-            ln_pos = (
-                f" {name:3} {self.v_sym} "
-                f"{self.format_dms(lon):10} {self.v_sym} "
-                f"{lon:8.3f}\n"
+            content += (
+                " all time is utc\n"
+                " tas & tmc - true asc & mc (experimental)\n"
+                f"{separ}"
+                f" p3 date : {p3_date.strip()}\n"
             )
+        content += separ
+        # header
+        header = f" obj {self.v_sym}        sign\n"
+        content += header
+        # sort objects for table
+        pos_sorted = sorted(
+            p3_pos,
+            key=lambda obj: self.order.index(obj["name"])
+            if obj.get("name") in self.order
+            else len(self.order),
+        )
+        for obj in pos_sorted:
+            name = obj.get("name", "")
+            if name in ("p3date", "p3jdut"):
+                continue
+            lon = obj.get("lon", 0)
+            retro_info = next((r for r in self.p3_retro if r.get("name") == name), None)
+            direction = retro_info["direction"] if retro_info else ""
+            # dont show direct indicator
+            if direction == "D":
+                direction = ""
+            name_with_dir = f"{name}{direction}"
+            ln_pos = f" {name_with_dir:3} {self.v_sym} {self.format_dms(lon):10}\n"
+            if name == "tas":
+                ln_pos = (
+                    f" {self.h_sym * 2} {self.v_sym}\n"
+                    f" {name_with_dir:3} {self.v_sym} {self.format_dms(lon):10}\n"
+                )
             content += ln_pos
         content += separ
+        content += " planetary stations :\n"
+        # additional retro data
+        if self.p3_retro:
+            retro_sorted = sorted(
+                self.p3_retro,
+                key=lambda r: self.order.index(r["name"])
+                if r.get("name") in self.order
+                else len(self.order),
+            )
+            for retro in retro_sorted:
+                if "name" not in retro:
+                    continue
+                name = retro["name"]
+                prev_st = jdtoiso(retro.get("prevstation"))
+                next_st = jdtoiso(retro.get("nextstation"))
+                content += f" {name}\n"
+                content += f"   prev : {prev_st}\n"
+                content += f"   next : {next_st}\n"
         self.notify.debug(
             msg,
             source="tables",

@@ -271,6 +271,7 @@ class Event(RingBase):
         cy,
         font_size,
         guests,
+        retro,
         houses,
         ascmc,
         chart_settings,
@@ -286,6 +287,8 @@ class Event(RingBase):
         self.event = radius_dict.get("event", "")
         self.info = radius_dict.get("info", "")
         self.mid_ring = (self.event + self.info) / 2
+        # todo inject retro into table
+        self.retro = retro
         if not self.guests or not self.houses or not self.ascmc:
             return
 
@@ -651,7 +654,7 @@ class P1Progress(ObjectRingBase):
 
 
 class P3Progress(ObjectRingBase):
-    def __init__(self, radius, cx, cy, font_size, p3_pos, radius_dict):
+    def __init__(self, radius, cx, cy, font_size, p3_pos, retro, radius_dict):
         super().__init__(radius, cx, cy, None, radius_dict)
         self.app = Gtk.Application.get_default()
         self.notify = self.app.notify_manager
@@ -669,6 +672,9 @@ class P3Progress(ObjectRingBase):
             else radius_dict["p3 progress"]
         )
         self.mid_ring = (radius_dict["p3 progress"] + next_val) / 2
+        # note : planets in retro should match those in guests (that can go retro)
+        self.retro = retro
+        # print(f"rings : p3retro : {self.retro}")
 
     def marker_color(self, name):
         return (0, 0.659, 0.921, 0.5)
@@ -807,7 +813,7 @@ class LunarReturn(ObjectRingBase):
 
 
 class Transit(ObjectRingBase):
-    def __init__(self, radius, cx, cy, font_size, transit_data, radius_dict):
+    def __init__(self, radius, cx, cy, font_size, transit_data, retro, radius_dict):
         super().__init__(radius, cx, cy, None, radius_dict)
         self.app = Gtk.Application.get_default()
         self.notify = self.app.notify_manager
@@ -824,9 +830,11 @@ class Transit(ObjectRingBase):
             else radius_dict["transit"]
         )
         self.mid_ring = (radius_dict["transit"] + next_val) / 2
+        # todo inject retro into tables
+        self.retro = retro
 
     def marker_color(self, name):
-        return (0, 0.9, 0.1, 1)
+        return (0, 1, 0, 0.5)
 
     def draw(self, cr):
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)

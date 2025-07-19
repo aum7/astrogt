@@ -232,6 +232,7 @@ class AstroChart(Gtk.Box):
                 cy=cy,
                 font_size=min(int(12 * font_scale), 14),
                 transit_data=self.transit_data,
+                retro=calculate_retro("e2"),
                 radius_dict=radius_dict,
             )
             ring_transit.draw(cr)
@@ -259,13 +260,13 @@ class AstroChart(Gtk.Box):
             ring_solar.draw(cr)
         # --- tertiary progressions
         if "p3 progress" in outer_rings:
-            calculate_retro("p3")
             ring_p3 = P3Progress(
                 radius=radius_dict.get("p3 progress", max_radius),
                 cx=cx,
                 cy=cy,
                 font_size=int(12 * font_scale),
                 p3_pos=self.p3_pos,
+                retro=calculate_retro("p3"),
                 radius_dict=radius_dict,
             )
             ring_p3.draw(cr)
@@ -336,6 +337,7 @@ class AstroChart(Gtk.Box):
             cy=cy,
             font_size=int(radius_dict.get("event", 0.0) * 0.08),
             guests=guests,
+            retro=calculate_retro("e1"),
             houses=self.houses if self.houses else [],
             ascmc=self.ascmc if self.ascmc else [],
             chart_settings=self.chart_settings,
