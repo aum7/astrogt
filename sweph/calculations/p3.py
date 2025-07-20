@@ -1,42 +1,18 @@
 # sweph/calculations/p3.py
-# tertiary progression (aka minor progression)
-# as per richard houck (astrology of death)
-# divide year by sidereal month & use blocks of 13-14 days as representing
-# a year in life
-# use tertiary planets & tertiary solar arc'd mc (and derived asc) as they hit
-# the natal chart
-# a day in life (or ephemeris) is equal to a lunar month in the life
-# p3 MC by amount of tertiary solar arc, ie roughly 1 degree per month
-# p3 ASC just a slight variation on this : derived normally per Table of Houses
-# tertiary angles for rectification : every week of event error (p3 angles) will
-# correlate to about 1 minute of birthtime error ; tertiary angles will pass
-# about 2 1/2 years in each sign and house : correlates to transiting Saturn
-# and the p2 progressed Moon
-
-# Dasa / Bhukti planets with p3 planets, 3 rules that apply (subject of death)
-# 1. p3 planetary stations intensify amplitude to symbolic message in the chart
-# quality of amplitude related directly to fundamental nature of planet
-# 2. an approximate correlation between current Dasa (or Bhukti) planet and a
-# p3 planetary station : often signal death if subsidiary factors confirm
-# 3. expect apx p3 angle & planet hits in exact 4th harmonic to current maraka
-# chart sensible to prenatal and p3 eclipses : any point in a chart ( planet or
-# angle) becomes extremely sensitized if hit directly by one of these eclipses
-# ancient astrologers considered eclipses evil : interrupted luminaries
-# 1 degree exact ; jyotisa rules for aspects : ma 4/8 ju 5/9 sa 3/10
-
-# calculate lunar returns before and after e2 (gives exact lunar month)
-# mc progressed by solar arc with all other cusps calculated from that
-# p3 su & mc move around chart at about 1 ° per month, with p3 asc typically
-# at a very slight variation > p3 angles in signs about 2 & ½ years (about as
-# long as Tsa spends in a sign, p3 su circles chart same as Tsa. p3 mo moves
-# ½ a ° per day > 2 months in sign, 2 years to circle entire chart
 # ruff: noqa: E402
 import swisseph as swe
 import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
-from ui.helpers import _object_name_to_code as objcode, _decimal_to_hms
+from ui.helpers import _object_name_to_code as objcode, _decimal_to_hms as dectohms
+
+
+def tuple_to_iso(jd):
+    date = swe.revjul(jd, swe.GREG_CAL)
+    y, m, d, h = date
+    H, M, S = dectohms(h)
+    return f"{y}-{m:02}-{d:02} {H:02}:{M:02}:{S:02}\n"
 
 
 def calculate_p3(event: str):
@@ -103,6 +79,7 @@ def calculate_p3(event: str):
         e1_asc = e1_houses[1][0]
         e1_mc = e1_houses[1][1]
     if e1_su:
+        # todo need signed values for proper distance from su ???
         if e1_mc:
             e1_mc_arc = (e1_mc - e1_su) % 360
             # if e1_mc_arc > 180:
@@ -115,40 +92,22 @@ def calculate_p3(event: str):
     # f"e1mo : {e1_mo} | e1su : {e1_su} | "
     # f"e1ascarc : {e1_asc_arc} | e1mcarc : {e1_mc_arc}\n"
     # )
-    # e2_date = swe.revjul(e2_jd, swe.GREG_CAL)
-    # y, m, d, h = e2_date
-    # H, M, S = _decimal_to_hms(h)
-    # msg += f"e2date : {y}-{m:02}-{d:02} {H:02}:{M:02}:{S:02}\n"
     # previous lunar return : search x days back range
     prev_jd = e2_jd - 27.5
     lr_prev_jd = swe.mooncross_ut(e1_mo, prev_jd, app.sweph_flag)
-    # lr_prev_date = swe.revjul(lr_prev_jd, swe.GREG_CAL)
-    # y, m, d, h = lr_prev_date
-    # H, M, S = _decimal_to_hms(h)
-    # msg += f"prevlr : {y}-{m:02}-{d:02} {H:02}:{M:02}:{S:02}\n"
-    # next lunar return : remove 1h for crossover todo this needed ???
-    next_jd = e2_jd  # - 0.0416666667
+    # next lunar return
+    next_jd = e2_jd
     lr_next_jd = swe.mooncross_ut(e1_mo, next_jd, app.sweph_flag)
-    # lr_next_date = swe.revjul(lr_next_jd, swe.GREG_CAL)
-    # y, m, d, h = lr_next_date
-    # H, M, S = _decimal_to_hms(h)
-    # msg += f"nextlr : {y}-{m:02}-{d:02} {H:02}:{M:02}:{S:02}\n"
     # calculate lunar month length
     lr_month = lr_next_jd - lr_prev_jd
     p3_diff = (age_months / lr_month) * lr_month
-    # msg += f"diff : {p3_diff:.4f}\n"
-    # msg += f"period : {p3_period:.4f} | diff : {p3_diff:.4f}\n"
     p3_jd = e1_jd + p3_diff
-    p3_date = swe.revjul(p3_jd, swe.GREG_CAL)
-    y, m, d, h = p3_date
-    H, M, S = _decimal_to_hms(h)
-    p3_date_f = f"{y}-{m:02}-{d:02} {H:02}:{M:02}:{S:02}"
-    # msg += f"p3date : {y}-{m:02}-{d:02} {H:02}:{M:02}:{S:02}\n"
-    # msg += f"p3jd :> {p3_date}"
+    p3_date = tuple_to_iso(p3_jd)
+    # msg += p3_date
     p3_data: list[dict] = []
     # insert p3 date
     p3_data.append({"name": "p3jdut", "jd_ut": p3_jd})
-    p3_data.append({"name": "p3date", "date": p3_date_f})
+    p3_data.append({"name": "p3date", "date": p3_date})
     try:
         result, e = swe.calc_ut(p3_jd, swe.SUN, app.sweph_flag)  # su lon
     except Exception as e:
@@ -179,7 +138,6 @@ def calculate_p3(event: str):
     # todo asc by tables of houses ???
     p3_asc = p3_su + e1_asc_arc
     # progress mc by solar arc : p3-su + (Nsu - Nmc)
-    # todo need signed values for proper distance from su ???
     p3_mc = p3_su + e1_mc_arc
     # insert ascendant & midheaven with p1solarc
     p3_data.append({"name": "asc", "lon": p3_asc})
@@ -237,3 +195,36 @@ def connect_signals_p3(signal_manager):
     signal_manager._connect("event_changed", calculate_p3)
     signal_manager._connect("settings_changed", calculate_p3)
     signal_manager._connect("e2_cleared", e2_cleared)
+
+
+# tertiary progression (aka minor progression)
+# as per richard houck (astrology of death)
+# divide year by sidereal month & use blocks of 13-14 days as representing
+# a year in life
+# use tertiary planets & tertiary solar arc'd mc (and derived asc) as they hit
+# the natal chart
+# a day in life (or ephemeris) is equal to a lunar month in the life
+# p3 MC by amount of tertiary solar arc, ie roughly 1 degree per month
+# p3 ASC just a slight variation on this : derived normally per Table of Houses
+# tertiary angles for rectification : every week of event error (p3 angles) will
+# correlate to about 1 minute of birthtime error ; tertiary angles will pass
+# about 2 1/2 years in each sign and house : correlates to transiting Saturn
+# and the p2 progressed Moon
+
+# Dasa / Bhukti planets with p3 planets, 3 rules that apply (subject of death)
+# 1. p3 planetary stations intensify amplitude to symbolic message in the chart
+# quality of amplitude related directly to fundamental nature of planet
+# 2. an approximate correlation between current Dasa (or Bhukti) planet and a
+# p3 planetary station : often signal death if subsidiary factors confirm
+# 3. expect apx p3 angle & planet hits in exact 4th harmonic to current maraka
+# chart sensible to prenatal and p3 eclipses : any point in a chart ( planet or
+# angle) becomes extremely sensitized if hit directly by one of these eclipses
+# ancient astrologers considered eclipses evil : interrupted luminaries
+# 1 degree exact ; jyotisa rules for aspects : ma 4/8 ju 5/9 sa 3/10
+
+# calculate lunar returns before and after e2 (gives exact lunar month)
+# mc progressed by solar arc with all other cusps calculated from that
+# p3 su & mc move around chart at about 1 ° per month, with p3 asc typically
+# at a very slight variation > p3 angles in signs about 2 & ½ years (about as
+# long as Tsa spends in a sign, p3 su circles chart same as Tsa. p3 mo moves
+# ½ a ° per day > 2 months in sign, 2 years to circle entire chart

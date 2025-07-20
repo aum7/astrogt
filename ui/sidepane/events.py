@@ -8,6 +8,7 @@ from ui.collapsepanel import CollapsePanel
 from sweph.eventdata import EventData
 from sweph.eventlocation import EventLocation
 from ui.helpers import _event_selection
+from user.settings import DEFAULT_E1  # default event 1 data
 
 
 def setup_event(manager, event_name: str, expand: bool) -> CollapsePanel:
@@ -71,6 +72,11 @@ open it with text editor & un-comment any country of interest (delete '# ' & sav
 comment (add '# ' & save file) uninterested country"""
     )
     ddn_country.add_css_class("dropdown")
+    # insert country for default event 1 from user/settings.py
+    if event_name == "e1":
+        default = DEFAULT_E1.get("country")
+        if default in countries:
+            ddn_country.set_selected(countries.index(default))
     # store as widget so we access fresh data later
     if event_name == "e1":
         manager.country_one = ddn_country
@@ -92,10 +98,7 @@ comment (add '# ' & save file) uninterested country"""
     ent_city.set_placeholder_text("enter city name")
     # todo test string
     if event_name == "e1":
-        ent_city.set_text("Rahway")  # houck # 3
-        # ent_city.set_text("Memphis") # gansten lisa m presley
-        # ent_city.set_text("Ljubljana")
-    # ent_city.set_text("New York")
+        ent_city.set_text(DEFAULT_E1.get("city"))
     ent_city.set_tooltip_text(
         """enter city name
 if more than 1 city (within selected country) is found
@@ -126,13 +129,7 @@ user needs to select the one of interest
     )
     # todo test string
     if event_name == "e1":
-        # houck # 3
-        ent_location.set_text("40 36 29 n 074 16 39 w 0007 m")
-        # memphis usa lisa presley
-        # ent_location.set_text("35 08 58 n 090 02 56 w 0085 m")
-        # ent_location.set_text("46 03 03 n 014 30 18 e 0294 m")  # ljubljana
-    # ent_location.set_text("51 30 54 n 000 05 56 w") # lse
-    # ent_location.set_text("40 42 25 n 74 0 41 w 10 m")  # nyse
+        ent_location.set_text(DEFAULT_E1.get("location"))
     ent_location.set_tooltip_text(
         """latitude & longitude (location)
 
@@ -175,10 +172,7 @@ only use [space] as separator
     )
     # todo test string
     if event_name == "e1":
-        ent_event_name.set_text("houck # 3")
-        # ent_event_name.set_text("lisa m presley")
-        # ent_event_name.set_text("simon")
-    # ent_event_name.set_text("nyse")
+        ent_event_name.set_text(DEFAULT_E1.get("name"))
     ent_event_name.set_tooltip_text(
         """will be used for filename when saving
     recommended fit : max 14 characters
@@ -199,9 +193,7 @@ only use [space] as separator
     ent_datetime.set_name("datetime one" if event_name == "e1" else "datetime two")
     # todo test string
     if event_name == "e1":
-        ent_datetime.set_text("1964 12 13 15 00")  # houck # 3
-        # ent_datetime.set_text("1968 2 1 17 1")  # lisa presley
-        # ent_datetime.set_text("1975 2 8 14 10")  # simon
+        ent_datetime.set_text(DEFAULT_E1.get("datetime"))
     # ent_datetime.set_placeholder_text("yyyy mm dd HH MM (SS)")
     ent_datetime.set_tooltip_text(
         """year month day hour minute (second)

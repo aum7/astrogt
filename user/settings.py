@@ -21,6 +21,32 @@ OBJECTS = {  # one-but-last = color ; last = size scale = drawing order
     # rahu mean is handled in positions.py
     # 14: ("ea", "earth", "ea", "earth"),ke color (0.3, 0.3, 0.3, 1)
 }
+# selected objects for event 2
+OBJECTS_2 = {"sun", "moon", "mercury", "jupiter"}
+DEFAULT_E1 = {
+    # default data (state, city, location, name, date-time) for event 1
+    # IMPORTANT ! default country must be enabled in countries.py
+    # locations :
+    # "51 30 54 n 000 05 56 w" : lse
+    # "40 42 25 n 74 0 41 w 10 m" : nyse
+    # ---
+    # "country": "usa",
+    # "city": "memphis",
+    # "location": "35 08 58 n 090 02 56 w 0085 m",
+    # "name":"lisa presley",
+    # "datetime": "1968 2 1 17 1",
+    # ---
+    "country": "slo",
+    "city": "ljubljana",
+    "location": "46 03 03 n 014 30 18 e 0294 m",
+    "name": "simon",
+    "datetime": "1975 2 8 14 10",
+    # "country": "USA",
+    # "city": "Rahway",
+    # "location": "40 36 29 n 074 16 39 w 0007 m",
+    # "name": "houck # 3",
+    # "datetime": "1964-12-13 15:00:00",
+}
 SWE_FLAG = {
     # default flags for sweph calculations
     # all flags are duplicated & commented as backup ; user can toggle them in

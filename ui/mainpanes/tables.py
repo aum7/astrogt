@@ -140,7 +140,7 @@ class Tables(Gtk.Notebook):
         if p3_date:
             content += (
                 " all time is utc\n"
-                " tas & tmc - true asc & mc (experimental)\n"
+                " tas & tmc - true asc & mc\n"
                 f"{separ}"
                 f" p3 date : {p3_date.strip()}\n"
             )
@@ -160,7 +160,10 @@ class Tables(Gtk.Notebook):
             if name in ("p3date", "p3jdut"):
                 continue
             lon = obj.get("lon", 0)
-            retro_info = next((r for r in self.p3_retro if r.get("name") == name), None)
+            if self.p3_retro:
+                retro_info = next(
+                    (r for r in self.p3_retro if r.get("name") == name), None
+                )
             direction = retro_info["direction"] if retro_info else ""
             # dont show direct indicator
             if direction == "D":

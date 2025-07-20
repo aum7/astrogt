@@ -8,6 +8,7 @@ from gi.repository import Gtk  # type: ignore
 from ui.collapsepanel import CollapsePanel
 from user.settings import (
     OBJECTS,
+    OBJECTS_2,
     HOUSE_SYSTEMS,
     CHART_SETTINGS,
     SWE_FLAG,
@@ -102,7 +103,7 @@ event 1 & 2 can have different objects"""
     box_objects.append(manager.lbx_objects)
     # track selected objects per event
     app.selected_objects_e1 = set()
-    app.selected_objects_e2 = {"sun", "moon", "mercury", "jupiter"}  # todo
+    app.selected_objects_e2 = OBJECTS_2
     manager.selected_objects_event = 1
     for _, obj_data in OBJECTS.items():
         row = Gtk.ListBoxRow()
@@ -528,7 +529,7 @@ more info in user/settings.py > SWE_FLAG"""
     lunar\t\t\t354.37""")
     ddn_solar_year.add_css_class("dropdown")
     ddn_solar_year.set_selected(0)
-    app.selected_year_period = list(SOLAR_YEAR.values())[0]  # todo 1 ?
+    app.selected_year_period = list(SOLAR_YEAR.values())[0]
     ddn_solar_year.connect("notify::selected", solar_year_changed, manager)
     # put widgets into main box
     box_solar_lunar_periods.append(lbl_solar_year)
@@ -784,8 +785,7 @@ def objects_toggled(checkbutton, name, manager):
         sel_objs.discard(name)
     # recalculate positions on objecs change
     if sweph:
-        # calculate_positions(f"e{manager.selected_objects_event}")
-        # todo switched from direct call to calculate_positions()
+        # emit signal
         manager.signal._emit("settings_changed", f"e{manager.selected_objects_event}")
     manager.notify.debug(
         f"\n\tselected objects : e{manager.selected_objects_event} : {sel_objs}",
@@ -800,7 +800,7 @@ def house_system_changed(dropdown, _, manager):
     hsys, _, short_name = HOUSE_SYSTEMS[idx]
     manager.app.selected_house_sys = hsys
     manager.app.selected_house_sys_str = short_name
-    # todo switched from direct call to calculate_positions()
+    # emit signal
     manager.signal._emit("settings_changed", None)
     manager.notify.debug(
         f"selectedhousesystem : {manager.app.selected_house_sys}"
@@ -990,7 +990,7 @@ def chart_info_string(entry, info, manager):
 def flags_toggled(button, flag, manager):
     """flags panel : update selected sweph flags"""
     if button.get_active():
-        # helio vs geo centric
+        # helio vs geo centric todo remove heliocentric
         if flag == "heliocentric":
             # init : topocentric is rivaling
             manager.is_topocentric = "topocentric" in manager.app.selected_flags
@@ -1074,9 +1074,7 @@ def ayanamsa_changed(dropdown, _, manager):
     manager.app.selected_ayanamsa = list(AYANAMSA.keys())[idx]
     manager.app.selected_ayan_str = list(AYANAMSA.values())[idx][1]
     set_ayanamsa(manager)
-    # update positions
-    # calculate_positions(event=None)
-    # todo switched from direct call to calculate_positions()
+    # emit signal
     manager.signal._emit("settings_changed", None)
     manager.notify.debug(
         f"ayanamsa panel : selected : {manager.app.selected_ayanamsa}"
@@ -1150,7 +1148,7 @@ def custom_ayanamsa_changed(entry, key, manager):
             source="panel.settings",
             route=[""],
         )
-    # todo switched from direct call to calculate_positions()
+    # emit signal
     manager.signal._emit("settings_changed", None)
 
 
@@ -1186,7 +1184,7 @@ def files_changed(entry, key, manager):
     if manager.app.files[key] == value:
         return
     manager.app.files[key] = value
-    # todo
+    # emit signal
     manager.signal._emit("settings_changed", None)
     manager.notify.debug(
         f"files panel : {key} = {value}",
