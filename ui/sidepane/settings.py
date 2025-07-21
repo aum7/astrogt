@@ -9,6 +9,10 @@ from ui.collapsepanel import CollapsePanel
 from user.settings import (
     OBJECTS,
     OBJECTS_2,
+    LOTS,
+    LOTS_2,
+    PRENATAL,
+    PRENATAL_2,
     HOUSE_SYSTEMS,
     CHART_SETTINGS,
     SWE_FLAG,
@@ -47,7 +51,7 @@ def setup_settings(manager) -> CollapsePanel:
     # main panel for settings
     clp_settings = CollapsePanel(
         title="settings",
-        expanded=False,  # todo
+        expanded=True,  # todo
     )
     clp_settings.set_margin_end(manager.margin_end)
     clp_settings.set_title_tooltip("""sweph & application & chart etc settings""")
@@ -57,7 +61,7 @@ def setup_settings(manager) -> CollapsePanel:
     subpnl_objects = CollapsePanel(
         title="objects / planets",
         indent=14,
-        expanded=False,
+        expanded=True,  # todo
     )
     subpnl_objects.set_title_tooltip(
         """select objects to calculate & display on chart
@@ -68,7 +72,7 @@ event 1 & 2 can have different objects"""
     box_objects.set_margin_start(manager.margin_end)
     box_objects.set_margin_end(manager.margin_end)
     # button box at top
-    box_button = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+    box_button = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=5)
     box_button.set_halign(Gtk.Align.START)
     box_objects.append(box_button)
     # select event button : objects are separate for event 1 & 2
@@ -118,8 +122,84 @@ event 1 & 2 can have different objects"""
         row.set_child(check)
         manager.lbx_objects.append(row)
     objects_select_all(check, manager)
+    # ------ sub-sub-panel : extra objects : arabic lots -----------------
+    subsubpnl_lots = CollapsePanel(
+        title="lots / parts",
+        indent=21,
+        expanded=True,  # False todo
+    )
+    subsubpnl_lots.set_title_tooltip(
+        """hermetic lots / arabic parts
+    setup your preferences in
+    user/settings.py > LOTS"""
+    )
+    # main box
+    box_lots = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
+    box_lots.set_margin_start(manager.margin_end)
+    box_lots.set_margin_end(manager.margin_end)
+    # list box for selection
+    manager.lbx_lots = Gtk.ListBox()
+    # we'll manage selection with checkboxes
+    manager.lbx_lots.set_selection_mode(Gtk.SelectionMode.NONE)
+    box_lots.append(manager.lbx_lots)
+    # track selected lots per event
+    app.selected_lots_e1 = set()
+    app.selected_lots_e2 = LOTS_2
+    # manager.selected_objects_event = 1 # handled by objects
+    for name, obj_data in LOTS.items():
+        row = Gtk.ListBoxRow()
+        # set tooltip on the row
+        tooltip = obj_data["day"]
+        row.set_tooltip_text(tooltip)
+        # create checkbox for selection
+        check = Gtk.CheckButton(label=name)
+        check.connect("toggled", lambda btn, n=name: lots_toggled(btn, n, manager))
+        check.set_active(obj_data["enable"])
+        row.set_child(check)
+        manager.lbx_lots.append(row)
     # add box to sub-panel
+    subsubpnl_lots.add_widget(box_lots)
+    # ------ sub-sub-panel : extra objects : prenatal -----------------
+    subsubpnl_prenatal = CollapsePanel(
+        title="prenatal",
+        indent=21,
+        expanded=True,  # False todo
+    )
+    subsubpnl_prenatal.set_title_tooltip(
+        """prenatal lunation & eclipse
+    syzygy = prenatal lunation, either full or new moon before event
+    eclipse is either solar or lunar one before event"""
+    )
+    # main box
+    box_prenatal = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
+    box_prenatal.set_margin_start(manager.margin_end)
+    box_prenatal.set_margin_end(manager.margin_end)
+    # list box for selection
+    manager.lbx_prenatal = Gtk.ListBox()
+    # we'll manage selection with checkboxes
+    manager.lbx_prenatal.set_selection_mode(Gtk.SelectionMode.NONE)
+    box_prenatal.append(manager.lbx_prenatal)
+    # track selected prenatal per event
+    app.selected_prenatal_e1 = set()
+    app.selected_prenatal_e2 = PRENATAL_2
+    # manager.selected_objects_event = 1 # handled by objects
+    for name, obj_data in PRENATAL.items():
+        row = Gtk.ListBoxRow()
+        # set tooltip on the row
+        tooltip = obj_data["tooltip"]
+        row.set_tooltip_text(tooltip)
+        # create checkbox for selection
+        check = Gtk.CheckButton(label=name)
+        check.connect("toggled", lambda btn, n=name: prenatal_toggled(btn, n, manager))
+        check.set_active(obj_data["enable"])
+        row.set_child(check)
+        manager.lbx_prenatal.append(row)
+    # add box to sub-panel
+    subsubpnl_prenatal.add_widget(box_prenatal)
+    # populate objects panel
     subpnl_objects.add_widget(box_objects)
+    subpnl_objects.add_widget(subsubpnl_lots)
+    subpnl_objects.add_widget(subsubpnl_prenatal)
     # --- sub-panel house system --------------------
     subpnl_housesys = CollapsePanel(
         title="house system",
@@ -723,7 +803,7 @@ def objects_toggle_event(button, manager):
     else:
         img.set_from_file("ui/imgs/icons/hicolor/scalable/objects/event_2.svg")
         img.set_tooltip_text("select objects for event 2")
-    # update checkboxes for event set
+    # update objects checkboxes for event set
     objs = (
         manager.app.selected_objects_e1
         if manager.selected_objects_event == 1
@@ -733,11 +813,32 @@ def objects_toggle_event(button, manager):
         check = row.get_child()
         name = check.get_label()
         check.set_active(name in objs)
+    # update lots checkboxes for event set
+    lots = (
+        manager.app.selected_lots_e1
+        if manager.selected_objects_event == 1
+        else manager.app.selected_lots_e2
+    )
+    for row in manager.lbx_lots:
+        check = row.get_child()
+        name = check.get_label()
+        check.set_active(name in lots)
+    # update prenatal checkboxes for event set
+    prenatal = (
+        manager.app.selected_prenatal_e1
+        if manager.selected_objects_event == 1
+        else manager.app.selected_prenatal_e2
+    )
+    for row in manager.lbx_prenatal:
+        check = row.get_child()
+        name = check.get_label()
+        check.set_active(name in prenatal)
     manager.app.signal_manager._emit("settings_changed", None)
     manager.notify.debug(
-        f"selected objects for e{manager.selected_objects_event}\n\t{objs}",
+        f"selected objects for e{manager.selected_objects_event}"
+        f"\n\tobjs :\n\t{objs}\n\tlots : {lots}\n\tprenatal : {prenatal}",
         source="panel.settings",
-        route=["none"],
+        route=["terminal"],
     )
 
 
@@ -783,14 +884,60 @@ def objects_toggled(checkbutton, name, manager):
         sel_objs.add(name)
     else:
         sel_objs.discard(name)
-    # recalculate positions on objecs change
+    # recalculate positions on objects change
     if sweph:
         # emit signal
         manager.signal._emit("settings_changed", f"e{manager.selected_objects_event}")
     manager.notify.debug(
-        f"\n\tselected objects : e{manager.selected_objects_event} : {sel_objs}",
+        f"e{manager.selected_objects_event} selected :\n\tobjects : {sel_objs}",
         source="panel.settings",
-        route=["none"],
+        route=[""],
+    )
+
+
+def lots_toggled(checkbutton, name, manager):
+    """objects panel : toggle selected lots per event"""
+    if manager.selected_objects_event == 1:
+        sweph = manager.app.e1_sweph
+        sel_lots = manager.app.selected_lots_e1
+    else:
+        sweph = manager.app.e2_sweph
+        sel_lots = manager.app.selected_lots_e2
+    if checkbutton.get_active():
+        sel_lots.add(name)
+    else:
+        sel_lots.discard(name)
+    # recalculate positions on objects change
+    if sweph:
+        # emit signal
+        manager.signal._emit("settings_changed", f"e{manager.selected_objects_event}")
+    manager.notify.debug(
+        f"e{manager.selected_objects_event} selected :\n\tlots : {sel_lots}",
+        source="panel.settings",
+        route=[""],
+    )
+
+
+def prenatal_toggled(checkbutton, name, manager):
+    """objects panel : toggle selected prenatal objects per event"""
+    if manager.selected_objects_event == 1:
+        sweph = manager.app.e1_sweph
+        sel_prenatal = manager.app.selected_prenatal_e1
+    else:
+        sweph = manager.app.e2_sweph
+        sel_prenatal = manager.app.selected_prenatal_e2
+    if checkbutton.get_active():
+        sel_prenatal.add(name)
+    else:
+        sel_prenatal.discard(name)
+    # recalculate positions on objects change
+    if sweph:
+        # emit signal
+        manager.signal._emit("settings_changed", f"e{manager.selected_objects_event}")
+    manager.notify.debug(
+        f"e{manager.selected_objects_event} selected :\n\tprenatal : {sel_prenatal}",
+        source="panel.settings",
+        route=[""],
     )
 
 

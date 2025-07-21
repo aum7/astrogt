@@ -15,7 +15,7 @@ def setup_event(manager, event_name: str, expand: bool) -> CollapsePanel:
     """setup event one & two collapsible panels, incl location sub-panel"""
     panel = CollapsePanel(
         title="event one" if event_name == "e1" else "event two",
-        expanded=True,  # todo
+        expanded=expand,  # todo
     )
     panel.set_margin_end(manager.margin_end)
     panel.add_title_css_class("label-event")

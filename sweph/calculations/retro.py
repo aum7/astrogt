@@ -78,7 +78,7 @@ def calculate_retro(event: Optional[str] = None):  # -> List[Dict]:
             jd_ut = next(d["jd_ut"] for d in pos if d.get("name") == "p3jdut")
         # msg += f"{event} jdut curr : {jdtoiso(jd_ut)}\n"
         if not jd_ut:
-            notify.error(
+            notify.warning(
                 f"jdut for {event_name} not found : exiting ...",
                 source="retro",
                 route=["terminal"],
@@ -92,7 +92,7 @@ def calculate_retro(event: Optional[str] = None):  # -> List[Dict]:
             if code not in station_speed:
                 continue
             speed = None
-            # e1 / e2 search in pos (dict) for matching name
+            # e1 / e2 search in pos (dict) for matching code
             if isinstance(pos, dict):
                 v = pos.get(code)
                 if isinstance(v, dict) and "lon speed" in v:
@@ -121,11 +121,10 @@ def calculate_retro(event: Optional[str] = None):  # -> List[Dict]:
                     f"< curr={jdtoiso(jd_ut)} < next={jdtoiso(s_next)}\n"
                 )
         # msg += f"retrodata : {retro_data}\n"
-    # app.signal_manager._emit("retro_changed", "p3")
     notify.debug(
         msg,
         source="retro",
-        route=["terminal"],
+        route=[""],
     )
     return retro_data
 
@@ -170,11 +169,11 @@ def refine_root(body: int, bracket: Tuple[float, float]) -> float:
 
 def find_closest_station(body: int, start_jd: float, step: float) -> Optional[float]:
     # iterative search for nearest station
-    eps = 0.01  # 1e-5
+    eps = 1e-7
     t = start_jd + (eps * (1 if step > 0 else -1))
     s0 = lon_speed(body, t)
     max_iter = int(365.25 * 3 / abs(step))
-    for _ in range(max_iter):
+    for i in range(max_iter):
         t += step
         s = lon_speed(body, t)
         # sign change = station
@@ -186,65 +185,19 @@ def find_closest_station(body: int, start_jd: float, step: float) -> Optional[fl
 
 def find_stations(body: int, jd: float) -> Tuple[Optional[float], Optional[float], str]:
     # find previous & next station, use cache to avoid recalculation
+    jd = round(jd * 86400) / 86400
     retro_length = retro_days.get(body, 180.0)
     step = min(retro_length / 20.0, 0.5)
-    # tol = 1e-5
-    # eps = 0.01
     threshold = station_speed[body]
     curr_speed = lon_speed(body, jd)
     curr_dir = retro_marker(curr_speed, threshold)
     # cached results first
     old_prev_s, old_next_s = last_stations.get(body, (None, None))
-    if old_prev_s is not None and old_next_s is not None:
+    if old_prev_s and old_next_s:
         if old_prev_s < jd < old_next_s:
             return old_prev_s, old_next_s, curr_dir
-        # shift forward if past next
-        if jd >= old_next_s:
-            s_prev = old_next_s
-            s_next = find_closest_station(body, s_prev, step)
-        # shift backward if before prev
-        elif jd <= old_prev_s:
-            s_next = old_prev_s
-            s_prev = find_closest_station(body, s_next, -step)
-    else:
-        # find previous & next station
-        s_prev = find_closest_station(body, jd, -step)
-        s_next = find_closest_station(body, jd, step)
+    # find previous & next station
+    s_prev = find_closest_station(body, jd, -step)
+    s_next = find_closest_station(body, jd, step)
     last_stations[body] = (s_prev, s_next)
     return s_prev, s_next, curr_dir
-
-
-# def prev_station(
-#     body: int, end_jd: float, retro_length: float, step: float, eps: float, tol: float
-# ) -> Optional[float]:
-#     start = end_jd - retro_length
-#     s0 = lon_speed(body, start)
-#     t = start + step
-#     bracket = None
-#     while t <= end_jd:
-#         s = lon_speed(body, t)
-#         if s0 * s <= 0:
-#             bracket = (t - step, t)
-#             break
-#         s0, t = s, t + step
-#     if not bracket and s0 * lon_speed(body, end_jd) <= 0:
-#         bracket = (end_jd - eps, end_jd)
-#     return refine_root(body, bracket, tol) if bracket else None
-
-
-# def next_station(
-#     body: int, start_jd: float, retro_length: float, step: float, eps: float, tol: float
-# ) -> Optional[float]:
-#     end = start_jd + retro_length
-#     s0 = lon_speed(body, start_jd)
-#     t = start_jd + step
-#     bracket = None
-#     while t <= end:
-#         s = lon_speed(body, t)
-#         if s0 * s <= 0:
-#             bracket = (t - step, t)
-#             break
-#         s0, t = s, t + step
-#     if not bracket and s0 * lon_speed(body, end) <= 0:
-#         bracket = (end - eps, end)
-#     return refine_root(body, bracket, tol) if bracket else None

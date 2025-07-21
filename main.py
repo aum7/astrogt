@@ -37,7 +37,6 @@ class AstrogtApp(Gtk.Application):
     def do_activate(self):
         # activate main window & notifications manager
         win = MainWindow(application=self)
-        # self.add_window(win)
         # handle app quit from mainwindow
         win.connect("close-request", win.close_request)
         # get existing content
@@ -65,11 +64,6 @@ class AstrogtApp(Gtk.Application):
         Gio.Application.do_shutdown(self)
 
 
-# def final_cleanup():
-#     print("main : python interpreter exiting : final cleanup check")
-
-
 if __name__ == "__main__":
-    # atexit.register(final_cleanup)
     app = AstrogtApp()
     app.run(None)

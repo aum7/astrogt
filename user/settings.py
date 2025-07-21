@@ -23,6 +23,41 @@ OBJECTS = {  # one-but-last = color ; last = size scale = drawing order
 }
 # selected objects for event 2
 OBJECTS_2 = {"sun", "moon", "mercury", "jupiter"}
+LOTS = {  # 7 hermetic lots : many differing definitions exist
+    # add your definitions & also update calculations in
+    # sweph/calculations/lots.py : example :
+    # https://sarahsastrology.com/arabic-parts
+    # LEGAL AFFAIRS   9th house cusp + 3rd house cusp - Venus
+    # "affairs+": {"day": "9th + 3rd - ve"},
+    # benefics 1st, fortuna / spirit next; fortuna / spirit 1st, malefic next
+    # fortuna : body
+    "fortuna": {"enable": True, "day": "asc + (mo - su)", "night": "asc + (su - mo)"},
+    # spirit : soul & intelect
+    "spirit": {"enable": True, "day": "asc + (su - mo)", "night": "asc + (mo - su)"},
+    # eros : apetite, desire
+    "eros": {"enable": False, "day": "ve - spirit", "night": "spirit - ve"},
+    # necessity : constraints, war, enmity
+    "necessity": {"enable": False, "day": "fortuna - me", "night": "me - fortuna"},
+    # courage : boldness, treachery, strangth, all evildoings
+    "courage": {"enable": False, "day": "fortuna - ma", "night": "ma - fortuna"},
+    # victory : faith, contests, generosity, success
+    # "victory": {"day": "ju - spirit", "night": "spirit - ju"},  # original
+    "victory": {"enable": False, "day": "ju - spirit", "night": "spirit - ju"},
+    # nemesis : underworld, concealed, exposure, destruction
+    "nemesis": {"enable": False, "day": "fortuna - sa", "night": "sa - fortuna"},
+}
+# selected lots for event 2
+LOTS_2 = {"fortuna"}
+# prenatal events : syzygy & eclipses
+PRENATAL = {
+    "lunation": {
+        "enable": True,
+        "tooltip": "syzygy - last full or new moon before event",
+    },
+    "eclipse": {"enable": True, "tooltip": "last solar or lunar eclipse before event"},
+}
+# default prenatal for event 2
+PRENATAL_2 = {"eclipse"}
 DEFAULT_E1 = {
     # default data (state, city, location, name, date-time) for event 1
     # IMPORTANT ! default country must be enabled in countries.py
