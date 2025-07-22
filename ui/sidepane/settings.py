@@ -126,7 +126,7 @@ event 1 & 2 can have different objects"""
     subsubpnl_lots = CollapsePanel(
         title="lots / parts",
         indent=21,
-        expanded=True,  # False todo
+        expanded=False,  # todo
     )
     subsubpnl_lots.set_title_tooltip(
         """hermetic lots / arabic parts
@@ -168,7 +168,7 @@ event 1 & 2 can have different objects"""
     subsubpnl_prenatal.set_title_tooltip(
         """prenatal lunation & eclipse
     syzygy = prenatal lunation, either full or new moon before event
-    eclipse is either solar or lunar one before event"""
+    eclipses are both solar or lunar one before event"""
     )
     # main box
     box_prenatal = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
@@ -419,7 +419,6 @@ event 1 & 2 can have different objects"""
     box_retu.append(chk_sol)
     manager.app.checkbox_chart_settings["solar return"] = chk_sol
     manager.app.chart_settings["solar return"] = data_sol[0]
-
     # checkbox for lunar
     data_lun = CHART_SETTINGS["event2 rings"]["lunar return"]
     chk_lun = Gtk.CheckButton(label="lun")
@@ -777,7 +776,8 @@ more info in user/settings.py > SWE_FLAG"""
         box_key.append(ent_key)
         box_files.append(box_key)
     subpnl_files.add_widget(box_files)
-    # add sub-panels
+    # add sub-panels/selected
+
     box_settings.append(subpnl_objects)
     box_settings.append(subpnl_housesys)
     box_settings.append(subpnl_chart_settings)
@@ -829,6 +829,7 @@ def objects_toggle_event(button, manager):
         if manager.selected_objects_event == 1
         else manager.app.selected_prenatal_e2
     )
+    print(f"sett : selprenatale1 : {manager.app.selected_prenatal_e1}")
     for row in manager.lbx_prenatal:
         check = row.get_child()
         name = check.get_label()
@@ -836,7 +837,8 @@ def objects_toggle_event(button, manager):
     manager.app.signal_manager._emit("settings_changed", None)
     manager.notify.debug(
         f"selected objects for e{manager.selected_objects_event}"
-        f"\n\tobjs : {objs}\n\tlots : {lots}\n\tprenatal : {prenatal}",
+        f"\n\tprenatal :\t{prenatal}",
+        # f"\n\tobjs : {objs}\n\tlots : {lots}\n\tprenatal : {prenatal}",
         source="panel.settings",
         route=["terminal"],
     )
@@ -887,7 +889,9 @@ def objects_toggled(checkbutton, name, manager):
     # recalculate positions on objects change
     if sweph:
         # emit signal
-        manager.signal._emit("settings_changed", f"e{manager.selected_objects_event}")
+        manager.app.signal_manager._emit(
+            "settings_changed", f"e{manager.selected_objects_event}"
+        )
     manager.notify.debug(
         f"e{manager.selected_objects_event} selected :\n\tobjects : {sel_objs}",
         source="panel.settings",
@@ -910,7 +914,9 @@ def lots_toggled(checkbutton, name, manager):
     # recalculate positions on objects change
     if sweph:
         # emit signal
-        manager.signal._emit("settings_changed", f"e{manager.selected_objects_event}")
+        manager.app.signal_manager._emit(
+            "settings_changed", f"e{manager.selected_objects_event}"
+        )
     manager.notify.debug(
         f"e{manager.selected_objects_event} selected :\n\tlots : {sel_lots}",
         source="panel.settings",
@@ -933,11 +939,13 @@ def prenatal_toggled(checkbutton, name, manager):
     # recalculate positions on objects change
     if sweph:
         # emit signal
-        manager.signal._emit("settings_changed", f"e{manager.selected_objects_event}")
+        manager.app.signal_manager._emit(
+            "settings_changed", f"e{manager.selected_objects_event}"
+        )
     manager.notify.debug(
         f"e{manager.selected_objects_event} selected :\n\tprenatal : {sel_prenatal}",
         source="panel.settings",
-        route=[""],
+        route=["terminal"],
     )
 
 

@@ -7,7 +7,7 @@ import gi
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from math import pi, cos, sin, radians
-from ui.fonts.glyphs import SIGNS, get_glyph, get_lot_glyph
+from ui.fonts.glyphs import SIGNS, get_glyph, get_lot_glyph, get_eclipse_glyph
 from sweph.constants import TERMS
 from ui.mainpanes.chart.astroobject import AstroObject
 
@@ -276,6 +276,7 @@ class Event(RingBase):
         chart_settings,
         retro,
         lots,
+        eclipses,
         radius_dict,
     ):
         super().__init__(radius, cx, cy, radius_dict)
@@ -288,9 +289,14 @@ class Event(RingBase):
         self.event_r = radius_dict.get("event", "")
         self.info_r = radius_dict.get("info", "")
         self.mid_ring = (self.event_r + self.info_r) / 2
-        # todo inject retro into table
+        # todo inject retro onto chart
         self.retro = retro
         self.lots = [AstroObject(lot) for lot in (lots or []) if isinstance(lot, dict)]
+        self.eclipses = [
+            AstroObject(eclipse)
+            for eclipse in (eclipses or [])
+            if isinstance(eclipse, dict)
+        ]
         if not self.guests or not self.houses or not self.ascmc:
             return
 
@@ -456,6 +462,50 @@ class Event(RingBase):
                     glyph = get_lot_glyph(name)
                     if glyph:
                         angle = pi - radians(lot.data.get("lon", 0))
+                        x = self.cx + radius * cos(angle)
+                        y = self.cy + radius * sin(angle)
+                        cr.save()
+                        # rotate chart so ascendant is horizon
+                        if self.chart_settings.get("fixed asc", False) and self.ascmc:
+                            cr.translate(x, y)
+                            cr.rotate(-radians(self.ascmc[0]))
+                            te = cr.text_extents(glyph)
+                            tx = -(te.width / 2 + te.x_bearing)
+                            ty = -(te.height / 2 + te.y_bearing)
+                            cr.set_source_rgba(0, 0, 0, 1)
+                            cr.move_to(tx, ty)
+                            cr.show_text(glyph)
+                            cr.new_path()
+                        else:
+                            te = cr.text_extents(glyph)
+                            tx = x - (te.width / 2 + te.x_bearing)
+                            ty = y - (te.height / 2 + te.y_bearing)
+                            cr.set_source_rgba(0, 0, 0, 1)
+                            cr.move_to(tx, ty)
+                            cr.show_text(glyph)
+                            cr.new_path()
+                        cr.restore()
+        if self.eclipses:
+            for eclipse in self.eclipses:
+                # skip event attribute
+                if eclipse.data.get("name") is None:
+                    continue
+                name = eclipse.data.get("name", "").lower()
+                radius = self.event_r + self.event_r * 0.043
+                eclipse.draw(
+                    cr,
+                    self.cx,
+                    self.cy,
+                    radius,
+                    self.font_size,
+                    color=(1, 1, 1, 0.7) if name == "lun" else (1, 1, 0, 0.5),
+                    scale=0.7,
+                )
+                # if 'enable glyphs' > draw glyphs
+                if self.chart_settings.get("enable glyphs", True):
+                    glyph = get_eclipse_glyph(name)
+                    if glyph:
+                        angle = pi - radians(eclipse.data.get("lon", 0))
                         x = self.cx + radius * cos(angle)
                         y = self.cy + radius * sin(angle)
                         cr.save()

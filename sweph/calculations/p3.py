@@ -12,7 +12,7 @@ def tuple_to_iso(jd):
     date = swe.revjul(jd, swe.GREG_CAL)
     y, m, d, h = date
     H, M, S = dectohms(h)
-    return f"{y}-{m:02}-{d:02} {H:02}:{M:02}:{S:02}\n"
+    return f"{y}-{m:02}-{d:02} {H:02}:{M:02}:{S:02}"
 
 
 def calculate_p3(event: str):

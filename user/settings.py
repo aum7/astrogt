@@ -6,6 +6,7 @@
 # some info / description is provided below as comments, details are in
 # original sweph documentation, ie swephprg.pdf & swisseph.pdf at
 # https://github.com/aloistr/swisseph/tree/master/doc
+# for glyph explanation see ui/fonts/victor/...pdf
 OBJECTS = {  # one-but-last = color ; last = size scale = drawing order
     0: ("su", "sun", "sy", "surya", (1.0, 0.898, 0.0, 1), 0.82),
     1: ("mo", "moon", "ca", "candra", (0.95, 0.95, 0.95, 1), 0.73),
@@ -19,13 +20,13 @@ OBJECTS = {  # one-but-last = color ; last = size scale = drawing order
     9: ("pl", "pluto", "pl", "pluto", (0.2784, 0.2784, 0.2784, 1), 1.0),
     11: ("ra", "true node", "ra", "rahu", (0.8667, 0.7529, 0.7059, 1), 0.8),
     # rahu mean is handled in positions.py
-    # 14: ("ea", "earth", "ea", "earth"),ke color (0.3, 0.3, 0.3, 1)
+    # 14: ("ea", "earth", "ea", "earth"), ke color (0.3, 0.3, 0.3, 1)
 }
 # selected objects for event 2
 OBJECTS_2 = {"sun", "moon", "mercury", "jupiter"}
 LOTS = {  # 7 hermetic lots : many different definitions for lots exist
     # add your definitions & also update calculations in
-    # sweph/calculations/lots.py : example :
+    # sweph/calculations/lots.py (example given there) : example :
     # https://sarahsastrology.com/arabic-parts
     # LEGAL AFFAIRS   9th house cusp + 3rd house cusp - Venus :
     # "affairs+": {"day": "9th + 3rd - ve"},
@@ -39,15 +40,15 @@ LOTS = {  # 7 hermetic lots : many different definitions for lots exist
         "day": "asc + (su - mo)",
         "tooltip": "soul & intelect",
     },
-    "eros": {
-        "enable": False,
-        "day": "ve - (asc + (su - mo))",
-        "tooltip": "ve - spirit\napetite, desire",
-    },
     "necessity": {
         "enable": False,
         "day": "(asc + (mo - su)) - me",
         "tooltip": "fortuna - me\nconstraints, war, enmity",
+    },
+    "eros": {
+        "enable": True,
+        "day": "ve - (asc + (su - mo))",
+        "tooltip": "ve - spirit\napetite, desire",
     },
     "courage": {
         "enable": False,
@@ -73,7 +74,7 @@ PRENATAL = {
         "enable": True,
         "tooltip": "syzygy - last full or new moon before event",
     },
-    "eclipse": {"enable": True, "tooltip": "last solar or lunar eclipse before event"},
+    "eclipse": {"enable": True, "tooltip": "last solar and lunar eclipse before event"},
 }
 # default prenatal for event 2 todo do we need this ???
 PRENATAL_2 = {"eclipse"}

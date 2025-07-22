@@ -91,6 +91,11 @@ EXTRA = {
 }
 
 
+def get_eclipse_glyph(name: str) -> str:
+    # select eclipse glyph
+    return ECLIPSES.get(name[:3], "")
+
+
 def get_lot_glyph(name: str) -> str:
     # select lot glyph
     return LOTS.get(name, "")

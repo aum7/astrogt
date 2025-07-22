@@ -5,11 +5,9 @@ from math import pi, radians, cos, sin
 
 class AstroObject:
     def __init__(self, data):
-        # def __init__(self, data, color=None, scale=None):
         self.data = data
         # print(f"astrochart : objects : {data}")
         self.size = 0.7
-        # self.size = size if size is not None else 0.7
         name = self.data.get("name", "su").lower()
         # default color & scale
         self.color = (0.1, 0.1, 0.1, 0.5)
@@ -35,11 +33,9 @@ class AstroObject:
         angle = pi - radians(self.data.get("lon", 0))
         # determine radius by scale
         obj_size = self.size * draw_scale * obj_scale
-        # obj_size = self.size * self.scale * obj_scale
         x = cx + radius * cos(angle)
         y = cy + radius * sin(angle)
         # simple ring marker for object / planet
         cr.arc(x, y, obj_size, 0, 2 * pi)
         cr.set_source_rgba(*draw_color)
-        # cr.set_source_rgba(*self.color)
         cr.fill()

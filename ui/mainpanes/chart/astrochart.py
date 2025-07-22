@@ -7,6 +7,7 @@ from gi.repository import Gtk  # type: ignore
 from math import radians
 from sweph.calculations.retro import calculate_retro
 from sweph.calculations.lots import calculate_lots
+from sweph.calculations.eclipses import calculate_eclipses
 from ui.mainpanes.chart.astroobject import AstroObject
 from ui.mainpanes.chart.rings import (
     Info,
@@ -193,7 +194,7 @@ class AstroChart(Gtk.Box):
         if self.chart_settings.get("naksatras ring", ""):
             outer_rings.append("naksatras")
         msg += f"outerrings : {outer_rings}\n"
-        # reduce mandatory e1 factor per ring : e2 first : in below order
+        # factor per ring : e2 first : in below order : circle outer diameter
         outer_portion = {
             "transit": 0.07,
             "lunar return": 0.07,
@@ -203,6 +204,7 @@ class AstroChart(Gtk.Box):
             "harmonic": 0.06,
             "naksatras": 0.06,
         }
+        # mandatory rings for event 1 : circle diameter ratio
         inner_portion = {
             "signs": 1.0,
             "event": 0.92,
@@ -344,6 +346,7 @@ class AstroChart(Gtk.Box):
             chart_settings=self.chart_settings,
             retro=calculate_retro("e1"),
             lots=calculate_lots("e1"),
+            eclipses=calculate_eclipses("e1"),
             radius_dict=radius_dict,
         )
         ring_event.draw(cr)
