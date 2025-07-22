@@ -13,7 +13,7 @@ class SignalManager:
         self.handlers = {}
 
     def _emit(self, signal_name, *args):
-        print(f"signalmanager : emitting signal : {signal_name}")
+        # print(f"signalmanager : emitting signal : {signal_name}")
         for handler in self.handlers.get(signal_name, []):
             handler(*args)
 

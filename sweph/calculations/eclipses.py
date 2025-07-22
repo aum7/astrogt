@@ -24,10 +24,12 @@ def calculate_eclipses(event: str):
         swe_flag = getattr(app, "sweph_flag", None)
         # get existing data needed
         if event_name == "e1":
-            event_data = getattr(app, f"{event_name}_sweph", None)
+            event_data = getattr(app, "e1_sweph", None)
+            prenatal = getattr(app, "selected_prenatal_e1")
         elif event_name in ("e2", "p3"):
             # progression is linked to event 2
             event_data = getattr(app, "e2_sweph", None)
+            prenatal = getattr(app, "selected_prenatal_e2", None)
         if event_data:
             jd_ut = event_data.get("jd_ut")
         # msg += f"eventdata : {event_data}\n"
@@ -38,15 +40,18 @@ def calculate_eclipses(event: str):
                 route=["terminal"],
             )
             return
-        else:
-            # get last solar eclipse before event
-            solar = find_solecl_glob(jd_ut, swe_flag, search="prev")
-            # get last lunar eclipse
-            lunar = find_lunecl_glob(jd_ut, swe_flag, search="prev")
-            eclipses_data.append({"event": event_name})
-            eclipses_data.append(solar)
-            eclipses_data.append(lunar)
-            msg += f"eclipsesdata : {eclipses_data}\n"
+        elif prenatal:
+            # clear eclipses data
+            eclipses_data = []
+            if "eclipse" in prenatal:
+                # get last solar eclipse before event
+                solar = find_solecl_glob(jd_ut, swe_flag, search="prev")
+                # get last lunar eclipse
+                lunar = find_lunecl_glob(jd_ut, swe_flag, search="prev")
+                eclipses_data.append({"event": event_name})
+                eclipses_data.append(solar)
+                eclipses_data.append(lunar)
+                msg += f"eclipsesdata : {eclipses_data}\n"
     notify.debug(
         msg,
         source="eclipses",

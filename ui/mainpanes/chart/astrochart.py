@@ -45,7 +45,7 @@ class AstroChart(Gtk.Box):
         self.extra_info = {}
         self.stars = {}
         self.lun_ret_data = []
-        self.lots = []
+        # self.lots = []
         # subscribe to signals
         signal = self.app.signal_manager
         signal._connect("event_changed", self.event_changed)

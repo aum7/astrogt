@@ -829,7 +829,6 @@ def objects_toggle_event(button, manager):
         if manager.selected_objects_event == 1
         else manager.app.selected_prenatal_e2
     )
-    print(f"sett : selprenatale1 : {manager.app.selected_prenatal_e1}")
     for row in manager.lbx_prenatal:
         check = row.get_child()
         name = check.get_label()
@@ -840,7 +839,7 @@ def objects_toggle_event(button, manager):
         f"\n\tprenatal :\t{prenatal}",
         # f"\n\tobjs : {objs}\n\tlots : {lots}\n\tprenatal : {prenatal}",
         source="panel.settings",
-        route=["terminal"],
+        route=[""],
     )
 
 
@@ -945,7 +944,7 @@ def prenatal_toggled(checkbutton, name, manager):
     manager.notify.debug(
         f"e{manager.selected_objects_event} selected :\n\tprenatal : {sel_prenatal}",
         source="panel.settings",
-        route=["terminal"],
+        route=[""],
     )
 
 

@@ -6,9 +6,6 @@ import gi
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from typing import List
-
-# from ui.helpers import _object_name_to_code as objcode
-# from sweph.swetime import jd_to_custom_iso as jdtoiso
 from user.settings import LOTS
 
 
