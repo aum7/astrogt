@@ -14,8 +14,7 @@ class CollapsePanel(Gtk.Box):
     def __init__(
         self,
         title="",
-        css_class="label",
-        # css_class="heading",
+        css_class="collapse-panel",
         expanded=True,
         indent=7,
     ):

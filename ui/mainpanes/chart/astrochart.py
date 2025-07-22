@@ -6,6 +6,7 @@ gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from math import radians
 from sweph.calculations.retro import calculate_retro
+from sweph.calculations.lots import calculate_lots
 from ui.mainpanes.chart.astroobject import AstroObject
 from ui.mainpanes.chart.rings import (
     Info,
@@ -43,6 +44,7 @@ class AstroChart(Gtk.Box):
         self.extra_info = {}
         self.stars = {}
         self.lun_ret_data = []
+        self.lots = []
         # subscribe to signals
         signal = self.app.signal_manager
         signal._connect("event_changed", self.event_changed)
@@ -337,10 +339,11 @@ class AstroChart(Gtk.Box):
             cy=cy,
             font_size=int(radius_dict.get("event", 0.0) * 0.08),
             guests=guests,
-            retro=calculate_retro("e1"),
             houses=self.houses if self.houses else [],
             ascmc=self.ascmc if self.ascmc else [],
             chart_settings=self.chart_settings,
+            retro=calculate_retro("e1"),
+            lots=calculate_lots("e1"),
             radius_dict=radius_dict,
         )
         ring_event.draw(cr)

@@ -56,41 +56,13 @@ SYZYGY = {  # prenatal lunation
 }
 LOTS = {  # aka arabic parts
     "fortuna2": "\u018b",  # fortuna X
-    "fortuna": (  # mo
-        "\u01e2",
-        "body",
-        "day : asc + (mo - su) | night : asc + (su - mo)",
-    ),
-    "spirit": (  # su
-        "\u01e3",
-        "soul & intelect",
-        "day : asc + (su - mo) | night : asc + (mo - su)",
-    ),
-    "eros": (  # ve
-        "\u01e4",
-        "apetite, desire",
-        "day : ve - spirit | night : spirit - ve",
-    ),
-    "necessity": (  # me
-        "\u01e5",
-        "constraints, war, enmity",
-        "day : fortuna - me | night : me - fortuna",
-    ),
-    "courage": (  # ma
-        "\u01e6",
-        "boldness, treachery, strangth, all evildoings",
-        "day : fortuna - ma | night : ma - fortuna",
-    ),
-    "victory": (  # ju
-        "\u01e7",
-        "faith, contests, generosity, success",
-        "day : ju - spirit | night : spirit - ju",
-    ),
-    "nemesis": (  # sa
-        "\u01e8",
-        "underworld, concealed, exposure, destruction",
-        "day : fortuna - sa | night : sa - fortuna",
-    ),
+    "fortuna": "\u01e2",  # mo
+    "spirit": "\u01e3",  # su
+    "eros": "\u01e4",  # ve
+    "necessity": "\u01e5",  # me
+    "courage": "\u01e6",  # ma
+    "victory": "\u01e7",  # ju
+    "nemesis": "\u01e8",  # sa
 }
 MOON_PHASES = {
     "new": "\u01c7",
@@ -117,6 +89,11 @@ EXTRA = {
     "mc": "\u01c1",
     "ic": "\u01c2",
 }
+
+
+def get_lot_glyph(name: str) -> str:
+    # select lot glyph
+    return LOTS.get(name, "")
 
 
 def get_glyph(name: str, use_mean_node: bool) -> str:

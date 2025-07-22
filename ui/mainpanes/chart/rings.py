@@ -7,7 +7,7 @@ import gi
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from math import pi, cos, sin, radians
-from ui.fonts.glyphs import get_glyph, SIGNS
+from ui.fonts.glyphs import SIGNS, get_glyph, get_lot_glyph
 from sweph.constants import TERMS
 from ui.mainpanes.chart.astroobject import AstroObject
 
@@ -173,7 +173,7 @@ class ObjectRingBase(RingBase):
                     self.draw_diamond,
                 )
             else:
-                guest.draw(cr, self.cx, self.cy, mid_ring, obj_scale, source="")
+                guest.draw(cr, self.cx, self.cy, mid_ring, obj_scale)
 
     # override in subclasses for custom colors
     def marker_color(self, name):
@@ -271,10 +271,11 @@ class Event(RingBase):
         cy,
         font_size,
         guests,
-        retro,
         houses,
         ascmc,
         chart_settings,
+        retro,
+        lots,
         radius_dict,
     ):
         super().__init__(radius, cx, cy, radius_dict)
@@ -284,11 +285,12 @@ class Event(RingBase):
         self.font_size = font_size
         self.chart_settings = chart_settings
         # radius factor for middle circle (0° latitude )
-        self.event = radius_dict.get("event", "")
-        self.info = radius_dict.get("info", "")
-        self.mid_ring = (self.event + self.info) / 2
+        self.event_r = radius_dict.get("event", "")
+        self.info_r = radius_dict.get("info", "")
+        self.mid_ring = (self.event_r + self.info_r) / 2
         # todo inject retro into table
         self.retro = retro
+        self.lots = [AstroObject(lot) for lot in (lots or []) if isinstance(lot, dict)]
         if not self.guests or not self.houses or not self.ascmc:
             return
 
@@ -376,35 +378,35 @@ class Event(RingBase):
                 self.draw_diamond,
             )
         # guests with adjusted radius based on latitude
+        use_mean_node = self.chart_settings.get("mean node", False)
         for guest in self.guests:
+            # print(f"guest : {guest.data}\n")
             lat = guest.data.get("lat", 0)
             name = guest.data.get("name", "").lower()
+            # compute object drawing radius
             # sun always 0 lat
             if name == "su":
-                # factor = self.mid_ring
                 radius = self.mid_ring
             # pluto has max lat range of them all
             elif name == "pl":
                 max_val = 18.0
                 ratio = lat / max_val
                 if lat >= 0:
-                    radius = self.mid_ring + (self.event - self.mid_ring) * ratio
+                    radius = self.mid_ring + (self.event_r - self.mid_ring) * ratio
 
                 else:
-                    radius = self.mid_ring + (self.info - self.mid_ring) * (-ratio)
+                    radius = self.mid_ring + (self.info_r - self.mid_ring) * (-ratio)
             # other planets
             else:
                 max_val = 8.0
                 ratio = lat / max_val
                 if lat >= 0:
-                    radius = self.mid_ring + (self.event - self.mid_ring) * ratio
+                    radius = self.mid_ring + (self.event_r - self.mid_ring) * ratio
                 else:
-                    radius = self.mid_ring + (self.info - self.mid_ring) * (-ratio)
-            # compute object drawing radius
-            # obj_radius = self.radius * factor
-            guest.draw(cr, self.cx, self.cy, radius, self.font_size, source="event")
+                    radius = self.mid_ring + (self.info_r - self.mid_ring) * (-ratio)
+            # draw guests : astro object
+            guest.draw(cr, self.cx, self.cy, radius, self.font_size)
             # if 'enable glyphs' > draw glyphs
-            use_mean_node = self.chart_settings.get("mean node", False)
             if self.chart_settings.get("enable glyphs", True):
                 glyph = get_glyph(name, use_mean_node)
                 if glyph:
@@ -432,6 +434,51 @@ class Event(RingBase):
                         cr.show_text(glyph)
                         cr.new_path()
                     cr.restore()
+        if self.lots:
+            for lot in self.lots:
+                # print(f"rings : lot : {lot.data}")
+                # skip event attribute
+                if lot.data.get("name") is None:
+                    continue
+                name = lot.data.get("name", "").lower()
+                radius = self.event_r + self.event_r * 0.043
+                lot.draw(
+                    cr,
+                    self.cx,
+                    self.cy,
+                    radius,
+                    self.font_size,
+                    color=(1, 1, 1, 0.7),
+                    scale=0.7,
+                )
+                # if 'enable glyphs' > draw glyphs
+                if self.chart_settings.get("enable glyphs", True):
+                    glyph = get_lot_glyph(name)
+                    if glyph:
+                        angle = pi - radians(lot.data.get("lon", 0))
+                        x = self.cx + radius * cos(angle)
+                        y = self.cy + radius * sin(angle)
+                        cr.save()
+                        # rotate chart so ascendant is horizon
+                        if self.chart_settings.get("fixed asc", False) and self.ascmc:
+                            cr.translate(x, y)
+                            cr.rotate(-radians(self.ascmc[0]))
+                            te = cr.text_extents(glyph)
+                            tx = -(te.width / 2 + te.x_bearing)
+                            ty = -(te.height / 2 + te.y_bearing)
+                            cr.set_source_rgba(0, 0, 0, 1)
+                            cr.move_to(tx, ty)
+                            cr.show_text(glyph)
+                            cr.new_path()
+                        else:
+                            te = cr.text_extents(glyph)
+                            tx = x - (te.width / 2 + te.x_bearing)
+                            ty = y - (te.height / 2 + te.y_bearing)
+                            cr.set_source_rgba(0, 0, 0, 1)
+                            cr.move_to(tx, ty)
+                            cr.show_text(glyph)
+                            cr.new_path()
+                        cr.restore()
 
 
 class Signs(RingBase):

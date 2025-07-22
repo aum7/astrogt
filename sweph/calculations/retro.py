@@ -1,20 +1,5 @@
 # sweph/calculations/retro.py
 # ruff: noqa: E402, E701
-# retro periods
-# legend :
-#     Rl - average length of retro period
-#     f - (yearly) frequency
-#     as - average speed
-#     ms - max speed
-# obj : Rl     : f                   : as    : ms
-# me : 21 d    : 3 times a year      : 1.607 : 1.6667  # (6') 5' / d : 24 h
-# ve : 40-44 d : every 18 months     : 1.174 : 1.25  # 3' / d : 3 d 4 h
-# ma : 60-80 d : every 26 months     : 0.524 : 0.7833  # 90" / d : 6 d 12 h
-# ju : 4 m     : every 13 months     : 0.083 : 0.2333  # 60" / d : 7 d
-# sa : 4.5 m   : every 12 1/2 months : 0.033 : 0.12472  # 60" /  : 7 d
-# ur : 5 m     : every 12 months     : 0.012 : 0.05722  # 20" / d : 6 d 12 h
-# ne : 5 m 6 d : every 12 months     : 0.006 : 0.038055556  # 10" / d
-# pl : 5-6 m   : every 12 months     : 0.004 : 0.036388889  # 10" / d
 import swisseph as swe
 import gi
 
@@ -55,8 +40,8 @@ def retro_marker(speed: float, threshold: float) -> str:
     return "R" if speed < 0 else "D"
 
 
-def calculate_retro(event: Optional[str] = None):  # -> List[Dict]:
-    """calculate retro stations & direction for event"""
+def calculate_retro(event: str):
+    """calculate retro stations & direction for event (< mandatory)"""
     # grab existing positions with lon speed & calculate direction & stations
     app = Gtk.Application.get_default()
     notify = app.notify_manager
@@ -201,3 +186,20 @@ def find_stations(body: int, jd: float) -> Tuple[Optional[float], Optional[float
     s_next = find_closest_station(body, jd, step)
     last_stations[body] = (s_prev, s_next)
     return s_prev, s_next, curr_dir
+
+
+# retro periods
+# legend :
+#     Rl - average length of retro period
+#     f - (yearly) frequency
+#     as - average speed
+#     ms - max speed
+# obj : Rl     : f                   : as    : ms
+# me : 21 d    : 3 times a year      : 1.607 : 1.6667  # (6') 5' / d : 24 h
+# ve : 40-44 d : every 18 months     : 1.174 : 1.25  # 3' / d : 3 d 4 h
+# ma : 60-80 d : every 26 months     : 0.524 : 0.7833  # 90" / d : 6 d 12 h
+# ju : 4 m     : every 13 months     : 0.083 : 0.2333  # 60" / d : 7 d
+# sa : 4.5 m   : every 12 1/2 months : 0.033 : 0.12472  # 60" /  : 7 d
+# ur : 5 m     : every 12 months     : 0.012 : 0.05722  # 20" / d : 6 d 12 h
+# ne : 5 m 6 d : every 12 months     : 0.006 : 0.038055556  # 10" / d
+# pl : 5-6 m   : every 12 months     : 0.004 : 0.036388889  # 10" / d

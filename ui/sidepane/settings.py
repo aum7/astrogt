@@ -149,7 +149,7 @@ event 1 & 2 can have different objects"""
     for name, obj_data in LOTS.items():
         row = Gtk.ListBoxRow()
         # set tooltip on the row
-        tooltip = obj_data["day"]
+        tooltip = f"{obj_data['day']}\n{obj_data['tooltip']}"
         row.set_tooltip_text(tooltip)
         # create checkbox for selection
         check = Gtk.CheckButton(label=name)
@@ -836,7 +836,7 @@ def objects_toggle_event(button, manager):
     manager.app.signal_manager._emit("settings_changed", None)
     manager.notify.debug(
         f"selected objects for e{manager.selected_objects_event}"
-        f"\n\tobjs :\n\t{objs}\n\tlots : {lots}\n\tprenatal : {prenatal}",
+        f"\n\tobjs : {objs}\n\tlots : {lots}\n\tprenatal : {prenatal}",
         source="panel.settings",
         route=["terminal"],
     )

@@ -23,30 +23,49 @@ OBJECTS = {  # one-but-last = color ; last = size scale = drawing order
 }
 # selected objects for event 2
 OBJECTS_2 = {"sun", "moon", "mercury", "jupiter"}
-LOTS = {  # 7 hermetic lots : many differing definitions exist
+LOTS = {  # 7 hermetic lots : many different definitions for lots exist
     # add your definitions & also update calculations in
     # sweph/calculations/lots.py : example :
     # https://sarahsastrology.com/arabic-parts
-    # LEGAL AFFAIRS   9th house cusp + 3rd house cusp - Venus
+    # LEGAL AFFAIRS   9th house cusp + 3rd house cusp - Venus :
     # "affairs+": {"day": "9th + 3rd - ve"},
-    # benefics 1st, fortuna / spirit next; fortuna / spirit 1st, malefic next
-    # fortuna : body
-    "fortuna": {"enable": True, "day": "asc + (mo - su)", "night": "asc + (su - mo)"},
-    # spirit : soul & intelect
-    "spirit": {"enable": True, "day": "asc + (su - mo)", "night": "asc + (mo - su)"},
-    # eros : apetite, desire
-    "eros": {"enable": False, "day": "ve - spirit", "night": "spirit - ve"},
-    # necessity : constraints, war, enmity
-    "necessity": {"enable": False, "day": "fortuna - me", "night": "me - fortuna"},
-    # courage : boldness, treachery, strangth, all evildoings
-    "courage": {"enable": False, "day": "fortuna - ma", "night": "ma - fortuna"},
-    # victory : faith, contests, generosity, success
-    # "victory": {"day": "ju - spirit", "night": "spirit - ju"},  # original
-    "victory": {"enable": False, "day": "ju - spirit", "night": "spirit - ju"},
-    # nemesis : underworld, concealed, exposure, destruction
-    "nemesis": {"enable": False, "day": "fortuna - sa", "night": "sa - fortuna"},
+    "fortuna": {
+        "enable": True,
+        "day": "asc + (mo - su)",
+        "tooltip": "body",
+    },
+    "spirit": {
+        "enable": True,
+        "day": "asc + (su - mo)",
+        "tooltip": "soul & intelect",
+    },
+    "eros": {
+        "enable": False,
+        "day": "ve - (asc + (su - mo))",
+        "tooltip": "ve - spirit\napetite, desire",
+    },
+    "necessity": {
+        "enable": False,
+        "day": "(asc + (mo - su)) - me",
+        "tooltip": "fortuna - me\nconstraints, war, enmity",
+    },
+    "courage": {
+        "enable": False,
+        "day": "(asc + (mo - su)) - ma",
+        "tooltip": "fortuna - ma\nboldness, treachery, strength, all evildoings",
+    },
+    "victory": {
+        "enable": False,
+        "day": "ju - (asc + (su - mo))",
+        "tooltip": "ju - spirit\nfaith, contests, generosity, success",
+    },
+    "nemesis": {
+        "enable": False,
+        "day": "(asc + (mo - su)) - sa",
+        "tooltip": "fortuna - sa\nunderworld, concealed, exposure, destruction",
+    },
 }
-# selected lots for event 2
+# selected lots for event 2 todo do we need this ???
 LOTS_2 = {"fortuna"}
 # prenatal events : syzygy & eclipses
 PRENATAL = {
@@ -56,7 +75,7 @@ PRENATAL = {
     },
     "eclipse": {"enable": True, "tooltip": "last solar or lunar eclipse before event"},
 }
-# default prenatal for event 2
+# default prenatal for event 2 todo do we need this ???
 PRENATAL_2 = {"eclipse"}
 DEFAULT_E1 = {
     # default data (state, city, location, name, date-time) for event 1
@@ -144,8 +163,8 @@ if checked also select ayanamsa below""",
 # below are most popular 7 out of 24+; arrange line up or down as you please
 # top line is default choice
 HOUSE_SYSTEMS = [
-    ("B", "alc : alcabitus", "alc"),  # gansten : close to porphyry
     ("E", "eqa : equal asc", "eqa"),
+    ("B", "alc : alcabitus", "alc"),  # gansten : close to porphyry
     ("O", "prp : porphyry", "prp"),
     ("D", "eqm : equal mc", "eqm"),
     ("P", "plc : placidus", "plc"),
@@ -293,9 +312,9 @@ LUNAR_MONTH = {
 # also arrange order as you please > move line up / down & save file
 # top line is default choice
 AYANAMSA = {
+    17: ("Galact. Center 0 Sag", "glc (17)"),  # SIDM_GALCENT_0SAG
     255: ("user-defined (below)", "usr"),  # SIDM_USER
     45: ("Krishnamurti-Senthilathiban", "kms (45)"),  # SIDM_KRISHNAMURTI_VP291
-    17: ("Galact. Center 0 Sag", "glc (17)"),  # SIDM_GALCENT_0SAG
     # 0: ("Fagan/Bradley", "fbr (00)"),  # SIDM_FAGAN_BRADLEY
     # 1: ("Lahiri 1", "lhr (01)"),  # SIDM_LAHIRI
     # 2: ("De Luce", "dlc (02)"),  # SIDM_DELUCE
@@ -324,7 +343,7 @@ AYANAMSA = {
     # 26: ("SS Citra", "ssc (26)"),  # SIDM_SS_CITRA
     # 27: ("True Citra", "tct (27)"),  # SIDM_TRUE_CITRA
     # 28: ("True Revati", "trv (28)"),  # SIDM_TRUE_REVATI
-    29: ("True Pushya (PVRN Rao)", "tps (29)"),  # SIDM_TRUE_PUSHYA
+    # 29: ("True Pushya (PVRN Rao)", "tps (29)"),  # SIDM_TRUE_PUSHYA
     # 30: ("Galactic Center (Gil Brand)", "gcb (30)"),  # SIDM_GALCENT_RGBRAND
     # 31: ("Galactic Equator (IAU1958)", "gei (31)"),  # SIDM_GALEQU_IAU1958
     # 32: ("Galactic Equator", "geq (32)"),  # SIDM_GALEQU_TRUE
@@ -336,7 +355,7 @@ AYANAMSA = {
     # 38: ("Babylonian/Britton", "bbb (38)"),  # SIDM_BABYL_BRITTON
     # 39: ("Vedic Sheoran", "vsh (39)"),  # SIDM_TRUE_SHEORAN
     # 40: ("Cochrane (Gal.Center 0 Cap)", "gcc (40)"),  # SIDM_GALCENT_COCHRANE
-    41: ("Galactic Equator (Fiorenza)", "gef (41)"),  # SIDM_GALEQU_FIORENZA
+    # 41: ("Galactic Equator (Fiorenza)", "gef (41)"),  # SIDM_GALEQU_FIORENZA
     # 42: ("Vettius Valens", "vvl (42)"),  # SIDM_VALENS_MOON
     # 43: ("Lahiri 1940", "lh2 (43)"),  # SIDM_LAHIRI_1940
     # 44: ("Lahiri VP285", "lh3 (44)"),  # SIDM_LAHIRI_VP285
