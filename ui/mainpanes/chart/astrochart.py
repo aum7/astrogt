@@ -8,6 +8,7 @@ from math import radians
 from sweph.calculations.retro import calculate_retro
 from sweph.calculations.lots import calculate_lots
 from sweph.calculations.eclipses import calculate_eclipses
+from sweph.calculations.lunation import calculate_lunation
 from ui.mainpanes.chart.astroobject import AstroObject
 from ui.mainpanes.chart.rings import (
     Info,
@@ -347,6 +348,7 @@ class AstroChart(Gtk.Box):
             retro=calculate_retro("e1"),
             lots=calculate_lots("e1"),
             eclipses=calculate_eclipses("e1"),
+            lunation=calculate_lunation("e1"),
             radius_dict=radius_dict,
         )
         ring_event.draw(cr)

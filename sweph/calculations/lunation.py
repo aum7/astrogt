@@ -1,4 +1,4 @@
-# sweph/calculations/eclipses.py
+# sweph/calculations/lunation.py
 # ruff: noqa: E402
 import swisseph as swe
 import gi
@@ -6,10 +6,11 @@ import gi
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from typing import List
+from sweph.swetime import jd_to_custom_iso as jdtoiso
 
 
-def calculate_eclipses(event: str):
-    """calculate (prenatal) solar & lunar eclipses"""
+def calculate_lunation(event: str):
+    """calculate prenatal (last) full or new moon - syzygy"""
     app = Gtk.Application.get_default()
     notify = app.notify_manager
     msg = f"event {event}\n"
@@ -41,63 +42,43 @@ def calculate_eclipses(event: str):
             return
         elif prenatal:
             # clear eclipses data
-            eclipses_data = []
-            if "eclipse" in prenatal:
-                # get last solar eclipse before event
-                solar = find_solecl_glob(jd_ut, swe_flag, search="prev")
-                # get last lunar eclipse
-                lunar = find_lunecl_glob(jd_ut, swe_flag, search="prev")
-                eclipses_data.append({"event": event_name})
-                eclipses_data.append(solar)
-                eclipses_data.append(lunar)
-                msg += f"eclipsesdata : {eclipses_data}\n"
+            lunation_data = []
+            if "lunation" in prenatal:
+                flag = swe_flag
+                # find closest lunation
+                flag |= swe.ECL_ONE_TRY
+                # get lunar occultation of sun 0 & 180 degrees
+                find_type = 0  # any eclipse type
+                _, tret = swe.lun_occult_when_glob(
+                    jd_ut, 0, swe_flag, find_type, backwards=True
+                )
+                # maximum lunation
+                jd_max_lun = tret[0]
+                msg += f"lunation datetime : {jdtoiso(jd_max_lun)}\n"
+                try:
+                    data, e = swe.calc_ut(jd_max_lun, 1, swe_flag)
+                    mo_lon = data[0]
+                    lunation_data.append({"event": event})
+                    lunation_data.append({"name": "conj", "lon": mo_lon})
+                    # lunation_data.append({"lon": mo_lon})
+                except Exception as e:
+                    notify.error(
+                        f"lunation error : exiting ...\n\t{e}",
+                        source="lunation",
+                        route=["terminal"],
+                    )
+                    return
+                msg += f"lunationdata : {lunation_data}\n"
     notify.debug(
         msg,
-        source="eclipses",
-        route=[""],
+        source="lunation",
+        route=["terminal"],
     )
-    return eclipses_data
+    return lunation_data
 
 
-def find_solecl_glob(jd_ut, swe_flag, search="next"):
-    backwards = True if search == "prev" else False
-    try:
-        # find time of any global eclipse
-        find_type = 0  # any eclipse type
-        _, tret = swe.sol_eclipse_when_glob(jd_ut, swe_flag, find_type, backwards)
-        # time of eclipse maximum
-        jd_max_ecl = tret[0]
-        # get sun on max eclipse julian day
-        su, e = swe.calc_ut(jd_max_ecl, 0, swe_flag)
-        su_lon = su[0]
-        return {
-            "name": "sol",
-            "lon": su_lon,
-        }
-    except Exception as e:
-        print(f"solar eclipse error : exiting ...\n\t{e}")
-        return None
-
-
-def find_lunecl_glob(jd_ut, swe_flag, search="next"):
-    # order of input params is mess
-    backwards = True if search == "prev" else False
-    try:
-        # find 1st global occurence of lunar eclipse
-        find_type = 0  # any eclipse type
-        _, tret = swe.lun_eclipse_when(jd_ut, swe_flag, find_type, backwards)
-        # julian day of maximum eclipse
-        jd_max_ecl = tret[0]
-        # get moon on max eclipse julian day
-        mo, _ = swe.calc_ut(jd_max_ecl, 1, swe_flag)
-        mo_lon = mo[0]
-        return {
-            "name": "lun",
-            "lon": mo_lon,
-        }
-    except Exception as e:
-        print(f"lunar eclipse error : exiting ...\n\t{e}")
-        return None
+def find_last_solar_lunation(jd_ut, samanthafox):
+    print(f"solarlunation : {samanthafox}")
 
 
 def format_eclipse_type(eclflag):

@@ -21,8 +21,8 @@ from sweph.calculations.aspects import connect_signals_aspects
 from sweph.calculations.vimsottari import connect_signals_vimsottari
 from sweph.calculations.p1 import connect_signals_p1
 from sweph.calculations.p3 import connect_signals_p3
-from sweph.calculations.solarreturn import connect_signals_solarreturn
-from sweph.calculations.lunarreturn import connect_signals_lunarreturn
+from sweph.calculations.returnsolar import connect_signals_solarreturn
+from sweph.calculations.returnlunar import connect_signals_lunarreturn
 from sweph.calculations.transit import connect_signals_transit
 
 

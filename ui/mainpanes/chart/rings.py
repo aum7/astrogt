@@ -7,11 +7,17 @@ import gi
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from math import pi, cos, sin, radians
-from ui.fonts.glyphs import SIGNS, get_glyph, get_lot_glyph, get_eclipse_glyph
+from ui.fonts.glyphs import (
+    SIGNS,
+    get_glyph,
+    get_lot_glyph,
+    get_eclipse_glyph,
+    get_lunation_glyph,
+)
 from sweph.constants import TERMS
 from ui.mainpanes.chart.astroobject import AstroObject
 
-# base ring size for scaling
+# base ring size for scaling todo remove ???
 BASE_RING_SIZE = 410
 
 
@@ -277,6 +283,7 @@ class Event(RingBase):
         retro,
         lots,
         eclipses,
+        lunation,
         radius_dict,
     ):
         super().__init__(radius, cx, cy, radius_dict)
@@ -296,6 +303,9 @@ class Event(RingBase):
             AstroObject(eclipse)
             for eclipse in (eclipses or [])
             if isinstance(eclipse, dict)
+        ]
+        self.lunation = [
+            AstroObject(lun) for lun in (lunation or []) if isinstance(lun, dict)
         ]
         if not self.guests or not self.houses or not self.ascmc:
             return
@@ -517,6 +527,52 @@ class Event(RingBase):
                             tx = -(te.width / 2 + te.x_bearing)
                             ty = -(te.height / 2 + te.y_bearing)
                             cr.set_source_rgba(0, 0, 0, 1)
+                            cr.move_to(tx, ty)
+                            cr.show_text(glyph)
+                            cr.new_path()
+                        else:
+                            te = cr.text_extents(glyph)
+                            tx = x - (te.width / 2 + te.x_bearing)
+                            ty = y - (te.height / 2 + te.y_bearing)
+                            cr.set_source_rgba(0, 0, 0, 1)
+                            cr.move_to(tx, ty)
+                            cr.show_text(glyph)
+                            cr.new_path()
+                        cr.restore()
+        if self.lunation:
+            for lun in self.lunation:
+                # skip event attribute
+                if lun.data.get("name") is None:
+                    continue
+                name = lun.data.get("name", "")
+                radius = self.event_r + self.event_r * 0.039
+                lun.draw(
+                    cr,
+                    self.cx,
+                    self.cy,
+                    radius,
+                    self.font_size,
+                    color=(1, 1, 1, 0.5),
+                    scale=0.5,
+                )
+                # if 'enable glyphs' > draw glyphs
+                if self.chart_settings.get("enable glyphs", True):
+                    glyph = get_lunation_glyph(name)
+                    if glyph:
+                        angle = pi - radians(lun.data.get("lon", 0))
+                        print(f"rings : eventdraw : lon : {lun.data.get('lon', 0)}")
+                        x = self.cx + radius * cos(angle)
+                        y = self.cy + radius * sin(angle)
+                        cr.save()
+                        # rotate chart so ascendant is horizon
+                        if self.chart_settings.get("fixed asc", False) and self.ascmc:
+                            self.set_custom_font(cr, font_size=20)
+                            cr.translate(x, y)
+                            cr.rotate(-radians(self.ascmc[0]))
+                            te = cr.text_extents(glyph)
+                            tx = -(te.width / 2 + te.x_bearing)
+                            ty = -(te.height / 2 + te.y_bearing)
+                            cr.set_source_rgba(0, 0, 0, 0.7)
                             cr.move_to(tx, ty)
                             cr.show_text(glyph)
                             cr.new_path()

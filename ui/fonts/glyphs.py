@@ -91,6 +91,11 @@ EXTRA = {
 }
 
 
+def get_lunation_glyph(name: str) -> str:
+    # select conj or oppo glyph
+    return EXTRA.get("jinjang", "")
+
+
 def get_eclipse_glyph(name: str) -> str:
     # select eclipse glyph
     return ECLIPSES.get(name[:3], "")
