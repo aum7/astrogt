@@ -18,6 +18,7 @@ def calculate_eclipses(event: str):
         # skip e2 if no datetime / julian day utc set = user not interested in e2
         events.remove("e2")
         msg += "e2 removed\n"
+    eclipses_data = []
     for event_name in events:
         event_data, jd_ut = None, None
         swe_flag = getattr(app, "sweph_flag", None)
@@ -39,24 +40,22 @@ def calculate_eclipses(event: str):
                 route=["terminal"],
             )
             return
-        elif prenatal:
-            # clear eclipses data
-            eclipses_data = []
-            if "eclipse" in prenatal:
-                # get last solar eclipse before event
-                solar = find_solecl_glob(jd_ut, swe_flag, search="prev")
-                # get last lunar eclipse
-                lunar = find_lunecl_glob(jd_ut, swe_flag, search="prev")
-                eclipses_data.append({"event": event_name})
-                eclipses_data.append(solar)
-                eclipses_data.append(lunar)
-                msg += f"eclipsesdata : {eclipses_data}\n"
+        if prenatal and "eclipse" in prenatal:
+            # get last solar eclipse before event
+            solar = find_solecl_glob(jd_ut, swe_flag, search="prev")
+            # get last lunar eclipse
+            lunar = find_lunecl_glob(jd_ut, swe_flag, search="prev")
+            eclipses_data.append({"event": event_name})
+            eclipses_data.append(solar)
+            eclipses_data.append(lunar)
+            msg += f"eclipsesdata : {eclipses_data}\n"
+            return eclipses_data
     notify.debug(
         msg,
         source="eclipses",
         route=[""],
     )
-    return eclipses_data
+    return None
 
 
 def find_solecl_glob(jd_ut, swe_flag, search="next"):

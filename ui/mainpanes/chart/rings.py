@@ -110,7 +110,6 @@ class ObjectRingBase(RingBase):
     ]
 
     def draw_guests(self, cr):
-        # def draw_guests(self, cr, guest_source):
         marker_size = self.scaled_marker_size()
         obj_scale = self.scaled_obj_scale()
         guests = getattr(self, "guests", [])
@@ -560,7 +559,7 @@ class Event(RingBase):
                     glyph = get_lunation_glyph(name)
                     if glyph:
                         angle = pi - radians(lun.data.get("lon", 0))
-                        print(f"rings : eventdraw : lon : {lun.data.get('lon', 0)}")
+                        # print(f"rings : eventdraw : lon : {lun.data.get('lon', 0)}")
                         x = self.cx + radius * cos(angle)
                         y = self.cy + radius * sin(angle)
                         cr.save()
@@ -983,7 +982,7 @@ class Transit(ObjectRingBase):
             else radius_dict["transit"]
         )
         self.mid_ring = (radius_dict["transit"] + next_val) / 2
-        # todo inject retro into tables
+        # todo inject retro into ring
         self.retro = retro
 
     def marker_color(self, name):

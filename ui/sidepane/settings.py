@@ -51,7 +51,7 @@ def setup_settings(manager) -> CollapsePanel:
     # main panel for settings
     clp_settings = CollapsePanel(
         title="settings",
-        expanded=True,  # todo
+        expanded=False,  # todo
     )
     clp_settings.set_margin_end(manager.margin_end)
     clp_settings.set_title_tooltip("""sweph & application & chart etc settings""")
@@ -61,7 +61,7 @@ def setup_settings(manager) -> CollapsePanel:
     subpnl_objects = CollapsePanel(
         title="objects / planets",
         indent=14,
-        expanded=True,  # todo
+        expanded=False,  # todo
     )
     subpnl_objects.set_title_tooltip(
         """select objects to calculate & display on chart

@@ -74,11 +74,14 @@ PRENATAL = {
         "enable": True,
         "tooltip": "syzygy - last full or new moon before event",
     },
-    "eclipse": {"enable": True, "tooltip": "last solar and lunar eclipse before event"},
+    "eclipse": {
+        "enable": False,
+        "tooltip": "last solar and lunar eclipse before event",
+    },
 }
 # default prenatal for event 2 todo do we need this ???
-PRENATAL_2 = {"eclipse"}
-DEFAULT_E1 = {
+PRENATAL_2 = {""}
+DEFAULT_E1 = {  # todo move to db
     # default data (state, city, location, name, date-time) for event 1
     # IMPORTANT ! default country must be enabled in countries.py
     # locations :
@@ -91,16 +94,29 @@ DEFAULT_E1 = {
     # "name":"lisa presley",
     # "datetime": "1968 2 1 17 1",
     # ---
-    "country": "slo",
+    "country": "Slo",
     "city": "ljubljana",
     "location": "46 03 03 n 014 30 18 e 0294 m",
     "name": "simon",
     "datetime": "1975 2 8 14 10",
+    # ---
     # "country": "USA",
     # "city": "Rahway",
     # "location": "40 36 29 n 074 16 39 w 0007 m",
     # "name": "houck # 3",
     # "datetime": "1964-12-13 15:00:00",
+    # ---
+    # "country": "USA",
+    # "city": "philadelphia, pa",
+    # "location": "39 57 08 n 075 09 49 w 0046 m",
+    # "name": "usa 4.jul birth", # houck
+    # "datetime": "1776-6-19 11:53:00",
+    # ---
+    # "country": "Morocco",
+    # "city": "Agadir",
+    # "location": "30 25 12 n 009 35 53 w 0 m",
+    # "name": "solitaire",
+    # "datetime": "2024-6-19 11:53:00",
 }
 SWE_FLAG = {
     # default flags for sweph calculations
@@ -230,7 +246,7 @@ CHART_SETTINGS = {
     # add them if you need them | 2 rings are possible
     # !!! those are simple divisions, similar but NOT all equal to varga
     "harmonic ring": (
-        "1",
+        "9",
         "harmonic ring\nempty : do NOT show | 1 : egypt. terms (bounds)\n7, 9, 11 : simple harmonics *similar* to varga",
         # "harmonics ring\nempty : do NOT show | 1 : egypt. terms (bounds)\n7, 9, 11 : simple harmonics *similar* to varga\n2 rings possible ie [1 9] will show terms & navamsa",
     ),
@@ -384,11 +400,11 @@ FILES = {
     ),
     # --- fonts for glyphs = astro_font & for ie tables = mono_font
     "astro font\t": (
-        "ui/fonts/osla/open_sans_light_astro.ttf",
+        "ui/fonts/osla/opensanslightastro.ttf",
         "font with glyphs for astro chart etc",
     ),
     "mono font\t": (
-        "ui/fonts/victor/VictorMonoNerdFont-Light.ttf",
+        "ui/fonts/victor/victormonolightastro.ttf",
         "mono-spaced font for pretty tables etc",
     ),
     # --- path to events / birth charts database folder; inside go saved charts

@@ -12,6 +12,17 @@ from user.settings import HOUSE_SYSTEMS
 from sweph.calculations.retro import calculate_retro
 from sweph.swetime import jd_to_custom_iso as jdtoiso
 
+station_speed = {  # stationary speed
+    "me": 0.08333,
+    "ve": 0.05,
+    "ma": 0.025,
+    "ju": 0.016666667,
+    "sa": 0.016666667,
+    "ur": 0.005555556,
+    "ne": 0.002777778,
+    "pl": 0.002777778,
+}
+
 
 class Tables(Gtk.Notebook):
     def __init__(self):
@@ -50,6 +61,12 @@ class Tables(Gtk.Notebook):
         # if user not interested in event 2
         signal._connect("e2_cleared", self.e2_cleared)
 
+    def retro_marker(self, obj: str, speed: float) -> str:
+        threshold = station_speed[obj]
+        if abs(speed) < threshold:
+            return "S"
+        return "R" if speed < 0 else " "
+
     def event_data_widget(self, event: str, content: str):
         # create a scrollable text view for an event
         scroll = Gtk.ScrolledWindow()
@@ -71,6 +88,113 @@ class Tables(Gtk.Notebook):
         # add page with event label as tab title
         self.append_page(scroll, Gtk.Label.new(event))
         self.page_widgets[event] = scroll
+
+    def update_event_data(self, event: str):
+        # assure data exists
+        if (
+            event not in self.events_data
+            or "positions" not in self.events_data[event]
+            or not self.events_data[event]["positions"]
+            or "houses" not in self.events_data[event]
+            or not self.events_data[event]["houses"]
+        ):
+            self.notify.error(
+                f"positions or houses missing for {event} : exiting ...",
+                source="panetables",
+                route=[""],  # todo need this ???
+            )
+            return
+        pos = self.events_data[event].get("positions")
+        # print(f"panetables pos : {pos}")
+        pos_map = {k: v for k, v in pos.items() if isinstance(k, int)}
+        # print(f"panetables posmap : {pos_map}")
+        # get houses data if available
+        houses = self.events_data[event].get("houses")
+        aspects = self.make_aspects(event)
+        content = str(aspects)
+        if houses:
+            cusps, ascmc = houses
+        else:
+            cusps = ()
+        if ascmc:
+            self.ascendant = ascmc[0]
+            self.midheaven = ascmc[1]
+            self.armc = ascmc[2]
+        # build header string with house column added
+        header = (
+            f" positions {self.h_sym * 29}\n"
+            f" name {self.v_sym}      sign {self.vic_spc} "
+            f"{self.v_sym}        lat {self.v_sym}         lon "
+            f"{self.v_sym} hs\n"
+        )
+        content += header
+        separ = f"{self.h_sym * 36}\n"
+        # loop through positions and calculate houses if possible
+        for _, obj in pos_map.items():
+            # print(f"tables : obj : {obj}")
+            name = obj.get("name", "")
+            speed = obj.get("lon speed", 0)
+            retro = self.retro_marker(name, speed) if name in station_speed else " "
+            # retro = "R" if obj.get("lon speed", 0) < 0 else " "
+            lon = obj.get("lon", 0)
+            # calculate house if cusps are available
+            house = self.which_house(lon, tuple(cusps)) if cusps else ""
+            ln_pos = (
+                f" {obj.get('name', '')}{retro}  {self.v_sym} "
+                f"{self.format_dms(lon):10} {self.v_sym} "
+                f"{obj.get('lat', 0):10.6f} {self.v_sym} "
+                f"{lon:11.6f} {self.v_sym} {house}\n"
+            )
+            content += ln_pos
+        # houses
+        if cusps:
+            if hasattr(self.app, "selected_house_sys_str"):
+                if isinstance(self.app.selected_house_sys_str, bytes):
+                    selected = self.app.selected_house_sys_str.decode("ascii")
+                else:
+                    selected = self.app.selected_house_sys_str
+            else:
+                selected = ""
+            hsys_char = None
+            for sys in HOUSE_SYSTEMS:
+                if sys[2] == selected.lower():
+                    hsys_char = sys[0]
+                    break
+            else:
+                selected = ""
+                hsys_char = None
+            ln_csps = ""
+            raH, raM, raS = decra(self.armc)
+            if hsys_char in ["E", "D", "W"]:
+                # print(f"selected_hsys : {self.app.selected_house_sys_str}")
+                # if selected in ["eqa", "eqm", "whs"]:
+                ln_csps += (
+                    f" cross points {self.h_sym * 3}\n"
+                    f" {self.asc} :  {self.format_dms(self.ascendant)}\n"
+                    f" {self.mc} :  {self.format_dms(self.midheaven)}\n"
+                    f" ra : {int(raH):02d}h{int(raM):02d}m{int(raS):02d}s\n"
+                )
+            else:
+                ln_csps += f" houses {self.h_sym * 7}\n"
+                ln_csps += f"    {self.v_sym}      cusp\n"
+                for i, cusp in enumerate(cusps, 1):
+                    ln_csps += f" {i:2d} {self.v_sym} {self.format_dms(cusp):20}\n"
+                ln_csps += (
+                    f" cross points {self.h_sym * 3}\n"
+                    f" {self.asc} :  {self.format_dms(self.ascendant)}\n"
+                    f" {self.mc} :  {self.format_dms(self.midheaven)}\n"
+                    f" ra : {int(raH):02d}h{int(raM):02d}m{int(raS):02d}s\n"
+                )
+            ln_csps += separ
+            content += ln_csps
+        # update page widget if exists, else create one
+        if event in self.page_widgets:
+            scroll = self.page_widgets[event]
+            text_view = scroll.get_child()
+            buffer = text_view.get_buffer()
+            buffer.set_text(content)
+        else:
+            self.event_data_widget(event, content)
 
     def positions_changed(self, event: str):
         # update event with positions data
@@ -254,109 +378,6 @@ class Tables(Gtk.Notebook):
                  )
         """
         pass
-
-    def update_event_data(self, event: str):
-        # assure data exists
-        if (
-            event not in self.events_data
-            or "positions" not in self.events_data[event]
-            or not self.events_data[event]["positions"]
-            or "houses" not in self.events_data[event]
-            or not self.events_data[event]["houses"]
-        ):
-            self.notify.error(
-                f"positions or houses missing for {event} : exiting ...",
-                source="panetables",
-                route=[""],  # todo need this ???
-            )
-            return
-        pos = self.events_data[event].get("positions")
-        # print(f"panetables pos : {pos}")
-        pos_map = {k: v for k, v in pos.items() if isinstance(k, int)}
-        # print(f"panetables posmap : {pos_map}")
-        # get houses data if available
-        houses = self.events_data[event].get("houses")
-        aspects = self.make_aspects(event)
-        content = str(aspects)
-        if houses:
-            cusps, ascmc = houses
-        else:
-            cusps = ()
-        if ascmc:
-            self.ascendant = ascmc[0]
-            self.midheaven = ascmc[1]
-            self.armc = ascmc[2]
-        # build header string with house column added
-        header = (
-            f" positions {self.h_sym * 29}\n"
-            f" name {self.v_sym}      sign {self.vic_spc} "
-            f"{self.v_sym}        lat {self.v_sym}         lon "
-            f"{self.v_sym} hs\n"
-        )
-        content += header
-        separ = f"{self.h_sym * 36}\n"
-        # loop through positions and calculate houses if possible
-        for _, obj in pos_map.items():
-            retro = "R" if obj.get("lon speed", 0) < 0 else " "
-            lon = obj.get("lon", 0)
-            # calculate house if cusps are available
-            house = self.which_house(lon, tuple(cusps)) if cusps else ""
-            ln_pos = (
-                f" {obj.get('name', '')}{retro}  {self.v_sym} "
-                f"{self.format_dms(lon):10} {self.v_sym} "
-                f"{obj.get('lat', 0):10.6f} {self.v_sym} "
-                f"{lon:11.6f} {self.v_sym} {house}\n"
-            )
-            content += ln_pos
-        # houses
-        if cusps:
-            if hasattr(self.app, "selected_house_sys_str"):
-                if isinstance(self.app.selected_house_sys_str, bytes):
-                    selected = self.app.selected_house_sys_str.decode("ascii")
-                else:
-                    selected = self.app.selected_house_sys_str
-            else:
-                selected = ""
-            hsys_char = None
-            for sys in HOUSE_SYSTEMS:
-                if sys[2] == selected.lower():
-                    hsys_char = sys[0]
-                    break
-            else:
-                selected = ""
-                hsys_char = None
-            ln_csps = ""
-            raH, raM, raS = decra(self.armc)
-            if hsys_char in ["E", "D", "W"]:
-                # print(f"selected_hsys : {self.app.selected_house_sys_str}")
-                # if selected in ["eqa", "eqm", "whs"]:
-                ln_csps += (
-                    f" cross points {self.h_sym * 3}\n"
-                    f" {self.asc} :  {self.format_dms(self.ascendant)}\n"
-                    f" {self.mc} :  {self.format_dms(self.midheaven)}\n"
-                    f" ra : {int(raH):02d}h{int(raM):02d}m{int(raS):02d}s\n"
-                )
-            else:
-                ln_csps += f" houses {self.h_sym * 7}\n"
-                ln_csps += f"    {self.v_sym}      cusp\n"
-                for i, cusp in enumerate(cusps, 1):
-                    ln_csps += f" {i:2d} {self.v_sym} {self.format_dms(cusp):20}\n"
-                ln_csps += (
-                    f" cross points {self.h_sym * 3}\n"
-                    f" {self.asc} :  {self.format_dms(self.ascendant)}\n"
-                    f" {self.mc} :  {self.format_dms(self.midheaven)}\n"
-                    f" ra : {int(raH):02d}h{int(raM):02d}m{int(raS):02d}s\n"
-                )
-            ln_csps += separ
-            content += ln_csps
-        # update page widget if exists, else create one
-        if event in self.page_widgets:
-            scroll = self.page_widgets[event]
-            text_view = scroll.get_child()
-            buffer = text_view.get_buffer()
-            buffer.set_text(content)
-        else:
-            self.event_data_widget(event, content)
 
     def make_aspects(self, event):
         aspects = self.events_data[event].get("aspects")
