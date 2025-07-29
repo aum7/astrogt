@@ -100,7 +100,7 @@ def _update_main_title(manager, change_time=None):
     if change_time:
         title += f" | ct : {change_time}"
     elif change_time is None:
-        title += " | ct : 1 d"
+        title += " | ct : 1 D"
     mainwindow = next(
         (w for w in manager.app.get_windows() if isinstance(w, Gtk.ApplicationWindow)),
         None,

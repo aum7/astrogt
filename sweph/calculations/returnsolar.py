@@ -1,5 +1,7 @@
 # sweph/calculations/sollunreturn.py
 # ruff: noqa: E402, E701
+# aum note : results depend on selected year : sidereal gives closest solar
+# position at return time
 import swisseph as swe
 import gi
 
@@ -33,7 +35,6 @@ def calculate_sr(event: str):
         e1_jd = e1_pos.get("jd_ut")
     if e2_sweph:
         e2_jd = e2_sweph.get("jd_ut")
-    # sel_year = getattr(app, "selected_year_period", (365.2425, "gregorian"))
     sel_year = getattr(app, "selected_year_period", (365.256363, "sidereal"))
     sel_month = getattr(app, "selected_month_period", (27.321661, "sidereal"))
     YEARLENGTH = sel_year[0]
@@ -64,9 +65,7 @@ def calculate_sr(event: str):
             if isinstance(v, dict):
                 if v.get("name") == "su":
                     e1_su = v.get("lon")
-                elif v.get("name") == "mo":
-                    e1_mo = v.get("lon")
-    msg += f"e1su : {e1_su} | e1mo : {e1_mo} [crosscheck longitudes]\n"
+    msg += f"e1su : {e1_su} [crosscheck]\n"
     # search solar crossing
     sol_ret_jd = swe.solcross_ut(e1_su, start_jd, app.sweph_flag)
     solret = swe.revjul(sol_ret_jd, swe.GREG_CAL)

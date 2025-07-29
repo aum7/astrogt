@@ -645,7 +645,8 @@ more info in user/settings.py > SWE_FLAG"""
         expanded=False,
     )
     manager.subpnl_ayanamsa.set_title_tooltip(
-        "select 'sidereal zodiac' in settings / sweph flags to enable ayanamsa selection"
+        """select 'sidereal zodiac' in settings / sweph flags to enable ayanamsa selection
+    setup your preferences in user/settings.py > AYANAMSA"""
     )
     # todo remove ???
     # manager.subpnl_ayanamsa.toggle_expand(manager.app.is_sidereal)
@@ -1195,7 +1196,7 @@ def flags_toggled(button, flag, manager):
 def solar_year_changed(dropdown, _, manager):
     """solar & lunar period panel : select solar year period"""
     idx = dropdown.get_selected()
-    manager.app.selected_year_period = list(SOLAR_YEAR.values())[idx][0]
+    manager.app.selected_year_period = list(SOLAR_YEAR.values())[idx]
     #
     manager.signal._emit("settings_changed", None)
     manager.notify.debug(
@@ -1210,7 +1211,7 @@ def solar_year_changed(dropdown, _, manager):
 def lunar_month_changed(dropdown, _, manager):
     """solar & lunar period panel : select lunar month period"""
     idx = dropdown.get_selected()
-    manager.app.selected_month_period = list(LUNAR_MONTH.values())[idx][0]
+    manager.app.selected_month_period = list(LUNAR_MONTH.values())[idx]
     #
     manager.signal._emit("settings_changed", None)
     manager.notify.debug(

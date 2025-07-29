@@ -23,7 +23,19 @@ OBJECTS = {  # one-but-last = color ; last = size scale = drawing order
     # 14: ("ea", "earth", "ea", "earth"), ke color (0.3, 0.3, 0.3, 1)
 }
 # selected objects for event 2
-OBJECTS_2 = {"sun", "moon", "mercury", "jupiter"}
+OBJECTS_2 = {
+    "sun",
+    "moon",
+    "mercury",
+    "venus",
+    "mars",
+    "jupiter",
+    "saturn",
+    "uranus",
+    "neptune",
+    "pluto",
+    "true node",
+}
 LOTS = {  # 7 hermetic lots : many different definitions for lots exist
     # add your definitions & also update calculations in
     # sweph/calculations/lots.py (example given there) : example :
@@ -36,12 +48,12 @@ LOTS = {  # 7 hermetic lots : many different definitions for lots exist
         "tooltip": "body",
     },
     "spirit": {
-        "enable": True,
+        "enable": False,
         "day": "asc + (su - mo)",
         "tooltip": "soul & intelect",
     },
     "necessity": {
-        "enable": False,
+        "enable": True,
         "day": "(asc + (mo - su)) - me",
         "tooltip": "fortuna - me\nconstraints, war, enmity",
     },
@@ -51,31 +63,31 @@ LOTS = {  # 7 hermetic lots : many different definitions for lots exist
         "tooltip": "ve - spirit\napetite, desire",
     },
     "courage": {
-        "enable": False,
+        "enable": True,
         "day": "(asc + (mo - su)) - ma",
         "tooltip": "fortuna - ma\nboldness, treachery, strength, all evildoings",
     },
     "victory": {
-        "enable": False,
+        "enable": True,
         "day": "ju - (asc + (su - mo))",
         "tooltip": "ju - spirit\nfaith, contests, generosity, success",
     },
     "nemesis": {
-        "enable": False,
+        "enable": True,
         "day": "(asc + (mo - su)) - sa",
         "tooltip": "fortuna - sa\nunderworld, concealed, exposure, destruction",
     },
 }
 # selected lots for event 2 todo do we need this ???
-LOTS_2 = {"fortuna"}
+LOTS_2 = {""}
 # prenatal events : syzygy & eclipses
 PRENATAL = {
     "lunation": {
-        "enable": True,
+        "enable": False,
         "tooltip": "syzygy - last full or new moon before event",
     },
     "eclipse": {
-        "enable": False,
+        "enable": True,
         "tooltip": "last solar and lunar eclipse before event",
     },
 }
@@ -99,6 +111,30 @@ DEFAULT_E1 = {  # todo move to db
     "location": "46 03 03 n 014 30 18 e 0294 m",
     "name": "simon",
     "datetime": "1975 2 8 14 10",
+    # --- houck p59
+    # "country": "USA",
+    # "city": "Garden City",  # ny
+    # "location": "40 44 00 n 073 58 00 w 0032 m",
+    # "name": "telly savalas",  # kojak actor
+    # "datetime": "1924-1-20 5:00:00",
+    # --- houck p59
+    # "country": "USA",
+    # "city": "cobleskill",  # ny
+    # "location": "42 40 40 n 074 29 07 w 0281 m",
+    # "name": "chart # 4",
+    # "datetime": "1946-5-30 16:33:00",
+    # --- houck p62
+    # "country": "USA",
+    # "city": "tupelo",  # mississippi
+    # "location": "34 15 29 n 088 42 16 w 0089 m",
+    # "name": "elvis presley",
+    # "datetime": "1935-1-8 16:35:00",  # died 1977-08-16
+    # --- houck p65
+    # "country": "USA",
+    # "city": "milton",  # ma
+    # "location": "42 14 58 n 071 03 58 w 0043 m",
+    # "name": "george bush",
+    # "datetime": "1924-6-12 15:45:30",  # died
     # ---
     # "country": "USA",
     # "city": "Rahway",
@@ -180,6 +216,7 @@ if checked also select ayanamsa below""",
 # below are most popular 7 out of 24+; arrange line up or down as you please
 # top line is default choice
 HOUSE_SYSTEMS = [
+    ("W", "whs : whole sign", "whs"),  # jyotisa & houck
     ("E", "eqa : equal asc", "eqa"),
     ("B", "alc : alcabitus", "alc"),  # gansten : close to porphyry
     ("O", "prp : porphyry", "prp"),
@@ -188,7 +225,6 @@ HOUSE_SYSTEMS = [
     ("R", "rgm : regiomontanus", "rgm"),
     ("C", "cmp : campanus", "cmp"),
     ("K", "kch : koch", "kch"),
-    ("W", "whs : whole sign", "whs"),  # makes no sense to draw it, same as signs
 ]
 CHART_SETTINGS = {
     # --- toggle glyphs visibility (shortcut)
@@ -257,12 +293,12 @@ CHART_SETTINGS = {
             "show traditional primary progression (p1) for event 2\ncalculations as per martin gansten / ptolemy\n[todo, current is simple calculation]",
         ),
         "p3 progress": (
-            True,
+            False,
             "show tertiary progression (p3) for event 2\ncalculations as per richard houck",
         ),
         "solar return": (False, "show solar return for event 2"),
-        "lunar return": (False, "show lunar return for event 2"),
-        "transit": (False, "show transit for event 2"),
+        "lunar return": (True, "show lunar return for event 2"),
+        "transit": (True, "show transit for event 2"),
     },
     # --- draw fixed stars
     # in user/fixedstars.py are categories of stars :
@@ -310,8 +346,8 @@ example : {hsys} | {zod}\n{aynm} | {ayvl}""",
 # --- time constants ---
 # (solar) year lengths in days
 SOLAR_YEAR = {
-    "gre": (365.2425, "gregorian"),
     "sid": (365.256363, "sidereal"),
+    "gre": (365.2425, "gregorian"),
     "jul": (365.25, "julian"),
     "trp": (365.24219, "tropical"),
     "lun": (354.37, "lunar"),

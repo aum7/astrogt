@@ -36,11 +36,11 @@ def calculate_p3(event: str):
         e1_jd = e1_sweph.get("jd_ut")
     if e2_sweph:
         e2_jd = e2_sweph.get("jd_ut")
-    sel_year = getattr(app, "selected_year_period", (365.2425, "gregorian"))[0]
+    sel_year = getattr(app, "selected_year_period", (365.2425, "gregorian"))
     # substitute with exact lunar return calculations : before & after e2 datetime
-    sel_month = getattr(app, "selected_month_period", (27.321661, "sidereal"))[0]
-    YEARLENGTH = sel_year
-    MONTHLENGTH = sel_month
+    sel_month = getattr(app, "selected_month_period", (27.321661, "sidereal"))
+    YEARLENGTH = sel_year[0]
+    MONTHLENGTH = sel_month[0]
     if e1_jd and e2_jd:
         # period elapsed from birth in years : needs event 2 datetime
         period = e2_jd - e1_jd

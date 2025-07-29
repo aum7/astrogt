@@ -5,8 +5,7 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
-from ui.helpers import _object_name_to_code as objcode
-from sweph.swetime import jd_to_custom_iso as jdtoiso
+from ui.helpers import _decimal_to_hms, _object_name_to_code as objcode
 
 
 def calculate_lr(event: str):
@@ -26,7 +25,6 @@ def calculate_lr(event: str):
     # gather data
     # e1 positions for su / mo longitude crosscheck only
     e1_pos = getattr(app, "e1_positions", None)
-    e2_pos = getattr(app, "e2_positions", None)
     # sweph 3 members < pos upto 11 members
     e1_sweph = getattr(app, "e1_sweph", None)
     e2_sweph = getattr(app, "e2_sweph", None)
@@ -34,7 +32,6 @@ def calculate_lr(event: str):
         e1_jd = e1_pos.get("jd_ut")
     if e2_sweph:
         e2_jd = e2_sweph.get("jd_ut")
-    # msg += f"e1jd : {jdtoiso(e1_jd)} | e2jd : {jdtoiso(e2_jd)}\n"
     sel_year = getattr(app, "selected_year_period", (365.256363, "sidereal"))
     sel_month = getattr(app, "selected_month_period", (27.321661, "sidereal"))
     YEARLENGTH = sel_year[0]
@@ -49,62 +46,35 @@ def calculate_lr(event: str):
         app.age_m = delta_months
     objs = getattr(app, "selected_objects_e2", None)
     # above is repetetive code
+    # solcross & mooncros always search forward
+    # from period get fraction
+    age_fract = delta_months % 1.0
+    msg += f"agefract : {age_fract}\n"
+    # convert to days by month for lunar
+    frac_days = age_fract * MONTHLENGTH
+    # remove fraction days from e2 julian day
+    frac_jd = e2_jd - frac_days
+    # remove 1 julian day to ensure crossing (fwd search)
+    start_jd = frac_jd  # - 1.0
     # get natal su & mo longitude
     if e1_pos:
         for _, v in e1_pos.items():
             if isinstance(v, dict):
+                # if v.get("name") == "su":
+                #     e1_su = v.get("lon")
                 if v.get("name") == "mo":
                     e1_mo = v.get("lon")
-    if e2_pos:
-        for _, v in e2_pos.items():
-            if isinstance(v, dict):
-                if v.get("name") == "mo":
-                    e2_mo = v.get("lon")
-    msg += f"e1mo : {e1_mo:.7f} [crosscheck] e2mo : {e2_mo:.7f}\n"
-    # solcross & mooncros always search forward
-    # globally store previous & next lunar return julian day
-    if not hasattr(app, "lr_prev_jd") or not hasattr(app, "lr_next_jd"):
-        app.lr_prev_jd = None
-        app.lr_next_jd = None
-    # previous lunar return : search x days back range
-    prev_jd = e2_jd - MONTHLENGTH
-    lr_prev_jd = swe.mooncross_ut(e1_mo, prev_jd, app.sweph_flag)
-    # next lunar return
-    next_jd = e2_jd
-    lr_next_jd = swe.mooncross_ut(e1_mo, next_jd, app.sweph_flag)
-    lr_month = lr_next_jd - lr_prev_jd
-    # store values while lr month is proper
-    if lr_month != 0.0:
-        app.lr_prev_jd = lr_prev_jd
-        app.lr_next_jd = lr_next_jd
-    # recalculate values only inside problematic time window
-    if e1_mo and e2_mo and app.lr_prev_jd and app.lr_next_jd:
-        if lr_month == 0.0:
-            # transit time is before next lr jd > keep old values
-            if e2_jd <= app.lr_next_jd:
-                lr_prev_jd = app.lr_prev_jd
-                lr_next_jd = app.lr_next_jd
-            # transit time is before prev lr jd > recalculate
-            if e2_jd <= app.lr_prev_jd:
-                new_prev_jd = e2_jd - MONTHLENGTH - 1
-                lr_prev_jd = swe.mooncross_ut(e1_mo, new_prev_jd, app.sweph_flag)
-                new_next_jd = e2_jd - 1
-                lr_next_jd = swe.mooncross_ut(e1_mo, new_next_jd, app.sweph_flag)
-        if lr_month > 53.0:
-            if e2_jd <= app.lr_next_jd:
-                new_prev_jd = e2_jd - 1
-                lr_prev_jd = swe.mooncross_ut(e1_mo, new_prev_jd, app.sweph_flag)
-    # update stored values
-    app.lr_prev_jd = lr_prev_jd
-    app.lr_next_jd = lr_next_jd
-    # current lunar return on chart
-    lr_curr_jd = lr_prev_jd
+    msg += f" e1mo : {e1_mo} [crosscheck longitudes]\n"
+    # search lunar crossing
+    lun_ret_jd = swe.mooncross_ut(e1_mo, start_jd, app.sweph_flag)
+    # if e2_jd < lun_ret_jd:
+    #     return
+    lunret = swe.revjul(lun_ret_jd, swe.GREG_CAL)
+    y, m, d, h = lunret
+    H, M, S = _decimal_to_hms(h)
     msg += (
-        f"e2jd : {jdtoiso(e2_jd)}\n"
-        f"lrmonth : {lr_month}\n"
-        f"lrprevjd : {jdtoiso(lr_prev_jd)}\n"
-        f"lrnextjd : {jdtoiso(lr_next_jd)}\n"
-        # f"lrcurrjd : {jdtoiso(lr_curr_jd)}\n"
+        f"lunretjd : {lun_ret_jd} | lun return : "
+        f"{y}-{m:02}-{d:02} {H:02}:{M:02}:{S:02}\n"
     )
     # gather data needed for calc_ut() function
     objs = getattr(app, "selected_objects_e2")
@@ -118,11 +88,11 @@ def calculate_lr(event: str):
         # calc_ut() returns array of 6 floats [0] + error string [1]:
         # longitude, latitude, distance, lon speed, lat speed, dist speed
         try:
-            result = swe.calc_ut(lr_curr_jd, code, app.sweph_flag)
+            result = swe.calc_ut(lun_ret_jd, code, app.sweph_flag)
             # print(f"positions with speeds & flag used : {result}")
             data = result[0] if isinstance(result, tuple) else result
             lun_ret_data.append({"name": name, "lon": data[0]})
-            # msg += f"{name} : {data[0]}\n"
+            msg += f"{name} : {data[0]}\n"
         except swe.Error as e:
             notify.error(
                 f"lunar return positions calculation failed for : "
@@ -132,10 +102,12 @@ def calculate_lr(event: str):
             )
     # also calculate houses
     hsys = app.selected_house_sys
-    if lr_curr_jd and e1_sweph and hsys:
+    # houses = {}
+    if lun_ret_jd and e1_sweph and hsys:
         try:
+            # todo also draw house cusps
             cusps, ascmc = swe.houses_ex(
-                lr_curr_jd,
+                lun_ret_jd,
                 e1_sweph["lat"],
                 e1_sweph["lon"],
                 hsys.encode("ascii"),
@@ -148,9 +120,12 @@ def calculate_lr(event: str):
                 route=["terminal"],
             )
         if ascmc:
-            lun_ret_data.append(cusps)
-            lun_ret_data.append({"name": "asc", "lon": ascmc[0]})
-            lun_ret_data.append({"name": "mc", "lon": ascmc[1]})
+            lun_ret_cusps = cusps
+            lun_ret_data.append(lun_ret_cusps)
+            lun_ret_asc = ascmc[0]
+            lun_ret_data.append({"name": "asc", "lon": lun_ret_asc})
+            lun_ret_mc = ascmc[1]
+            lun_ret_data.append({"name": "mc", "lon": lun_ret_mc})
         # msg += f"lunretdata :\n\t{lun_ret_data}"
     app.lun_ret_data = lun_ret_data
     # emit signal
