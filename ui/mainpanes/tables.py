@@ -5,8 +5,10 @@ import gi
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from typing import Tuple
-from swisseph import contrib as swh
-from ui.fonts.glyphs import SIGNS
+
+# from swisseph import contrib as swh
+# from ui.fonts.glyphs import SIGNS
+from ui.helpers import _decimal_to_sign_dms as decsigndms
 from ui.helpers import _decimal_to_ra as decra
 from user.settings import HOUSE_SYSTEMS
 from sweph.calculations.retro import calculate_retro
@@ -141,7 +143,7 @@ class Tables(Gtk.Notebook):
             house = self.which_house(lon, tuple(cusps)) if cusps else ""
             ln_pos = (
                 f" {obj.get('name', '')}{retro}  {self.v_sym} "
-                f"{self.format_dms(lon):10} {self.v_sym} "
+                f"{decsigndms(lon):10} {self.v_sym} "
                 f"{obj.get('lat', 0):10.6f} {self.v_sym} "
                 f"{lon:11.6f} {self.v_sym} {house}\n"
             )
@@ -170,19 +172,19 @@ class Tables(Gtk.Notebook):
                 # if selected in ["eqa", "eqm", "whs"]:
                 ln_csps += (
                     f" cross points {self.h_sym * 3}\n"
-                    f" {self.asc} :  {self.format_dms(self.ascendant)}\n"
-                    f" {self.mc} :  {self.format_dms(self.midheaven)}\n"
+                    f" {self.asc} :  {decsigndms(self.ascendant)}\n"
+                    f" {self.mc} :  {decsigndms(self.midheaven)}\n"
                     f" ra : {int(raH):02d}h{int(raM):02d}m{int(raS):02d}s\n"
                 )
             else:
                 ln_csps += f" houses {self.h_sym * 7}\n"
                 ln_csps += f"    {self.v_sym}      cusp\n"
                 for i, cusp in enumerate(cusps, 1):
-                    ln_csps += f" {i:2d} {self.v_sym} {self.format_dms(cusp):20}\n"
+                    ln_csps += f" {i:2d} {self.v_sym} {decsigndms(cusp):20}\n"
                 ln_csps += (
                     f" cross points {self.h_sym * 3}\n"
-                    f" {self.asc} :  {self.format_dms(self.ascendant)}\n"
-                    f" {self.mc} :  {self.format_dms(self.midheaven)}\n"
+                    f" {self.asc} :  {decsigndms(self.ascendant)}\n"
+                    f" {self.mc} :  {decsigndms(self.midheaven)}\n"
                     f" ra : {int(raH):02d}h{int(raM):02d}m{int(raS):02d}s\n"
                 )
             ln_csps += separ
@@ -293,11 +295,11 @@ class Tables(Gtk.Notebook):
             if direction == "D":
                 direction = ""
             name_with_dir = f"{name}{direction}"
-            ln_pos = f" {name_with_dir:3} {self.v_sym} {self.format_dms(lon):10}\n"
+            ln_pos = f" {name_with_dir:3} {self.v_sym} {decsigndms(lon):10}\n"
             if name == "tas":
                 ln_pos = (
                     f" {self.h_sym * 2} {self.v_sym}\n"
-                    f" {name_with_dir:3} {self.v_sym} {self.format_dms(lon):10}\n"
+                    f" {name_with_dir:3} {self.v_sym} {decsigndms(lon):10}\n"
                 )
             content += ln_pos
         content += separ
@@ -515,11 +517,3 @@ class Tables(Gtk.Notebook):
                 if lon >= c0 or lon < c1:
                     return f"{h0:2d}"
         return ""
-
-    def format_dms(self, lon: float) -> str:
-        # convert lon to dms string using pyswisseph
-        deg, sign, min, sec = swh.degsplit(lon)
-        sign_keys = list(SIGNS.keys())
-        sign_key = sign_keys[sign]
-        glyph = SIGNS[sign_key][0]
-        return f"{deg:2d}°{min:02d}'{sec:02d}\" {glyph}"

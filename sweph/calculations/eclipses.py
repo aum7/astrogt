@@ -37,7 +37,7 @@ def calculate_eclipses(event: str):
             notify.warning(
                 f"data for {event_name} missing : exiting ...",
                 source="eclipses",
-                route=["terminal"],
+                route=[""],
             )
             return
         if prenatal and "eclipse" in prenatal:

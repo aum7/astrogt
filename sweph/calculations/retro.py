@@ -66,7 +66,7 @@ def calculate_retro(event: str):
             notify.warning(
                 f"jdut for {event_name} not found : exiting ...",
                 source="retro",
-                route=["terminal"],
+                route=[""],
             )
             return
         objs = app.selected_objects_e1 if event == "e1" else app.selected_objects_e2

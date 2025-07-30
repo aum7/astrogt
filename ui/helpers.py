@@ -6,6 +6,8 @@ gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from typing import Optional, Tuple
 from math import modf
+from swisseph import contrib as swh
+from ui.fonts.glyphs import SIGNS
 from user.settings import OBJECTS
 
 
@@ -172,3 +174,12 @@ def _object_name_to_code(name: str, use_mean_node: bool) -> Tuple[Optional[int],
         # return mean node int & same short name as true node
         return 10, "ra"
     return None, ""
+
+
+def _decimal_to_sign_dms(lon: float, use_glyph: bool = True) -> str:
+    # convert lon to sign & dms
+    deg, sign, min, sec = swh.degsplit(lon)
+    sign_keys = list(SIGNS.keys())
+    sign_key = sign_keys[sign]
+    glyph = SIGNS[sign_key][0] if use_glyph else sign_key
+    return f"{deg:2d}°{min:02d}'{sec:02d}\" {glyph}"

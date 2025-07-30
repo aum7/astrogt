@@ -9,6 +9,7 @@ from sweph.calculations.retro import calculate_retro
 from sweph.calculations.lots import calculate_lots
 from sweph.calculations.eclipses import calculate_eclipses
 from sweph.calculations.lunation import calculate_lunation
+from sweph.calculations.varga import calculate_varga
 from ui.mainpanes.chart.astroobject import AstroObject
 from ui.mainpanes.chart.rings import (
     Info,
@@ -60,6 +61,7 @@ class AstroChart(Gtk.Box):
         signal._connect("solar_return_changed", self.solar_return_changed)
         signal._connect("lunar_return_changed", self.lunar_return_changed)
         signal._connect("transit_changed", self.transit_changed)
+        signal._connect("varga_changed", self.varga_changed)
 
     def event_changed(self, event):
         # main data - event - changed
@@ -142,6 +144,10 @@ class AstroChart(Gtk.Box):
 
     def transit_changed(self, event):
         self.transit_data = getattr(self.app, "transit_data", None)
+        self.drawing_area.queue_draw()
+
+    def varga_changed(self, event):
+        self.varga_data = getattr(self.app, "varga_data", None)
         self.drawing_area.queue_draw()
 
     def draw(self, area, cr, width, height):
@@ -349,6 +355,7 @@ class AstroChart(Gtk.Box):
             lots=calculate_lots("e1"),
             eclipses=calculate_eclipses("e1"),
             lunation=calculate_lunation("e1"),
+            varga=calculate_varga("e1", 9),  # todo get varga from user input
             radius_dict=radius_dict,
         )
         ring_event.draw(cr)

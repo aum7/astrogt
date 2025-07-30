@@ -24,6 +24,7 @@ from sweph.calculations.p3 import connect_signals_p3
 from sweph.calculations.returnsolar import connect_signals_solarreturn
 from sweph.calculations.returnlunar import connect_signals_lunarreturn
 from sweph.calculations.transit import connect_signals_transit
+from sweph.calculations.varga import connect_signals_varga
 
 
 class MainWindow(
@@ -68,6 +69,7 @@ class MainWindow(
         connect_signals_solarreturn(self.app.signal_manager)
         connect_signals_lunarreturn(self.app.signal_manager)
         connect_signals_transit(self.app.signal_manager)
+        connect_signals_varga(self.app.signal_manager)
         # 4 main panes
         self.astro_chart = AstroChart()
         self.tables = Tables()

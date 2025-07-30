@@ -40,7 +40,7 @@ def calculate_lots(event: str):
             notify.warning(
                 f"data for {event_name} missing : exiting ...",
                 source="lots",
-                route=["terminal"],
+                route=[""],
             )
             return
         lots_data.append({"event": event_name})

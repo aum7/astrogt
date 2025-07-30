@@ -38,7 +38,7 @@ def calculate_lunation(event: str):
             notify.warning(
                 f"data for {event_name} missing : exiting ...",
                 source="lunation",
-                route=["terminal"],
+                route=[""],
             )
             return
         if prenatal and "lunation" in prenatal:

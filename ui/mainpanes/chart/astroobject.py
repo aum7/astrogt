@@ -20,10 +20,11 @@ class AstroObject:
                 self.scale = obj[5]
                 break
 
-    # def __repr__(self):
-    #     name = self.data.get("name", "/")
-    #     lon = self.data.get("lon", "/")
-    #     return f"astroobject : {name} - {lon}"
+    def __repr__(self):
+        # use this to access data with print(...)
+        name = self.data.get("name", "/")
+        lon = self.data.get("lon", "/")
+        return f"astroobject : {name} - {lon}"
 
     def draw(self, cr, cx, cy, radius, obj_scale=1.0, scale=None, color=None):
         # allow for custom color & scale
