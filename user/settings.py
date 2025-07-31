@@ -277,14 +277,11 @@ CHART_SETTINGS = {
         1,
         "start naksatras ring with any naksatra\nrotate relative to 0° aries\n1 = asvini (standard)\n19 = mula\n22 = abhijit if 28 naksatras etc",
     ),
-    # --- harmonics division ring : 0 hide | 1 egypt. terms (bounds)
-    # 7, 9 (navamsa), 11 etc ; not all harmonics are available ;
-    # add them if you need them | 2 rings are possible
-    # !!! those are simple divisions, similar but NOT all equal to varga
+    # --- harmonics division ring : 0 hide | 1 egypt. terms (bounds) |
+    # 1+ simple divisions, similar but NOT all equal to varga
     "harmonic ring": (
         "9",
-        "harmonic ring\nempty : do NOT show | 1 : egypt. terms (bounds)\n7, 9, 11 : simple harmonics *similar* to varga",
-        # "harmonics ring\nempty : do NOT show | 1 : egypt. terms (bounds)\n7, 9, 11 : simple harmonics *similar* to varga\n2 rings possible ie [1 9] will show terms & navamsa",
+        "harmonic ring\nempty : do NOT show | 1 : egypt. terms (bounds)\n1+ : simple harmonic for event 1 *similar* to varga",
     ),
     # --- event 2 astro chart circles : draw progressions (p1 & p3) | returns | transit
     "event2 rings": {
@@ -297,7 +294,11 @@ CHART_SETTINGS = {
             "show tertiary progression (p3) for event 2\ncalculations as per richard houck",
         ),
         "solar return": (False, "show solar return for event 2"),
-        "lunar return": (True, "show lunar return for event 2"),
+        "lunar return": (False, "show lunar return for event 2"),
+        "varga": (
+            True,
+            "show (simple) varga ring for event 2\nset varga in above harmonic ring",
+        ),
         "transit": (True, "show transit for event 2"),
     },
     # --- draw fixed stars

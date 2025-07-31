@@ -21,6 +21,7 @@ from ui.mainpanes.chart.rings import (
     P3Progress,
     SolarReturn,
     LunarReturn,
+    Varga,
     Transit,
 )
 
@@ -60,8 +61,8 @@ class AstroChart(Gtk.Box):
         signal._connect("p3_changed", self.p3_changed)
         signal._connect("solar_return_changed", self.solar_return_changed)
         signal._connect("lunar_return_changed", self.lunar_return_changed)
-        signal._connect("transit_changed", self.transit_changed)
         signal._connect("varga_changed", self.varga_changed)
+        signal._connect("transit_changed", self.transit_changed)
 
     def event_changed(self, event):
         # main data - event - changed
@@ -124,13 +125,12 @@ class AstroChart(Gtk.Box):
         self.drawing_area.queue_draw()
 
     def p1_changed(self, event):
-        # primary progressions changed
+        # primary progression changed
         self.p1_pos = getattr(self.app, "p1_pos", None)
-        # print(f"astrochart p1pos : {self.p1_pos}")
         self.drawing_area.queue_draw()
 
     def p3_changed(self, event):
-        # primary progressions changed
+        # tertiary progression changed
         self.p3_pos = getattr(self.app, "p3_pos", None)
         self.drawing_area.queue_draw()
 
@@ -142,12 +142,12 @@ class AstroChart(Gtk.Box):
         self.lun_ret_data = getattr(self.app, "lun_ret_data", None)
         self.drawing_area.queue_draw()
 
-    def transit_changed(self, event):
-        self.transit_data = getattr(self.app, "transit_data", None)
+    def varga_changed(self, event):
+        # self.varga_data = getattr(self.app, "varga_data", None)
         self.drawing_area.queue_draw()
 
-    def varga_changed(self, event):
-        self.varga_data = getattr(self.app, "varga_data", None)
+    def transit_changed(self, event):
+        self.transit_data = getattr(self.app, "transit_data", None)
         self.drawing_area.queue_draw()
 
     def draw(self, area, cr, width, height):
@@ -188,6 +188,8 @@ class AstroChart(Gtk.Box):
             # collect outer ring candidates
             if self.chart_settings.get("transit"):
                 outer_rings.append("transit")
+            if self.chart_settings.get("varga"):
+                outer_rings.append("varga")
             if self.chart_settings.get("solar return"):
                 outer_rings.append("solar return")
             if self.chart_settings.get("lunar return"):
@@ -204,12 +206,13 @@ class AstroChart(Gtk.Box):
         # factor per ring : e2 first : in below order : circle outer diameter
         outer_portion = {
             "transit": 0.07,
+            "varga": 0.07,
             "lunar return": 0.07,
             "solar return": 0.07,
             "p3 progress": 0.07,
             "p1 progress": 0.07,
             "harmonic": 0.06,
-            "naksatras": 0.06,
+            "naksatras": 0.05,
         }
         # mandatory rings for event 1 : circle diameter ratio
         inner_portion = {
@@ -247,6 +250,23 @@ class AstroChart(Gtk.Box):
                 radius_dict=radius_dict,
             )
             ring_transit.draw(cr)
+        # --- varga
+        if "varga" in outer_rings:
+            try:
+                division = int(self.chart_settings.get("harmonic ring", "").strip())
+                varga_data = calculate_varga("e2", division)
+            except Exception:
+                division = None
+            if varga_data:
+                ring_varga = Varga(
+                    radius=radius_dict.get("varga", max_radius),
+                    cx=cx,
+                    cy=cy,
+                    font_size=int(12 * font_scale),
+                    varga_data=varga_data,
+                    radius_dict=radius_dict,
+                )
+                ring_varga.draw(cr)
         # --- lunar return
         if "lunar return" in outer_rings:
             ring_lunar = LunarReturn(
@@ -296,13 +316,8 @@ class AstroChart(Gtk.Box):
         # --- optional rings : harmonic
         if "harmonic" in outer_rings:
             try:
-                division_value = int(
-                    self.chart_settings.get("harmonic ring", "").strip()
-                )
-                if division_value not in {1, 7, 9, 11}:
-                    division = None
-                else:
-                    division = division_value
+                division = int(self.chart_settings.get("harmonic ring", "").strip())
+                varga_data = calculate_varga("e1", division)
             except Exception:
                 division = None
             if division:
@@ -312,6 +327,7 @@ class AstroChart(Gtk.Box):
                     cx=cx,
                     cy=cy,
                     division=division,
+                    varga_data=varga_data,
                     radius_dict=radius_dict,
                     font_size=int(12 * font_scale),
                 )
@@ -324,7 +340,7 @@ class AstroChart(Gtk.Box):
                 radius=radius_dict.get("naksatras", ""),
                 cx=cx,
                 cy=cy,
-                font_size=int(14 * font_scale),
+                font_size=int(12 * font_scale),
                 naks_num=naks_num,
                 first_nak=first_nak,
                 radius_dict=radius_dict,
@@ -355,7 +371,7 @@ class AstroChart(Gtk.Box):
             lots=calculate_lots("e1"),
             eclipses=calculate_eclipses("e1"),
             lunation=calculate_lunation("e1"),
-            varga=calculate_varga("e1", 9),  # todo get varga from user input
+            # varga=calculate_varga("e1", 9),  # todo get varga from user input
             radius_dict=radius_dict,
         )
         ring_event.draw(cr)

@@ -435,9 +435,21 @@ event 1 & 2 can have different objects"""
     box_retu.append(lbl_retu)
     row_retu.set_child(box_retu)
     lbx_chart_setts_btm.append(row_retu)
-    # transit row
-    row_tran = Gtk.ListBoxRow()
-    box_tran = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+    # varga & transit row
+    row_var_tran = Gtk.ListBoxRow()
+    box_var_tran = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+    # checkbox for divisional (varga) ring
+    data_var = CHART_SETTINGS["event2 rings"]["varga"]
+    chk_var = Gtk.CheckButton(label="varga")
+    chk_var.set_active(data_var[0])
+    chk_var.set_tooltip_text(data_var[1])
+    chk_var.connect(
+        "toggled",
+        lambda chk, k="varga", m=manager: chart_settings_toggled(chk, k, m),
+    )
+    box_var_tran.append(chk_var)
+    manager.app.checkbox_chart_settings["varga"] = chk_var
+    manager.app.chart_settings["varga"] = data_var[0]
     # checkbox for transit
     data_tran = CHART_SETTINGS["event2 rings"]["transit"]
     chk_tran = Gtk.CheckButton(label="transit")
@@ -447,12 +459,12 @@ event 1 & 2 can have different objects"""
         "toggled",
         lambda chk, k="transit", m=manager: chart_settings_toggled(chk, k, m),
     )
-    box_tran.append(chk_tran)
+    box_var_tran.append(chk_tran)
     manager.app.checkbox_chart_settings["transit"] = chk_tran
     manager.app.chart_settings["transit"] = data_tran[0]
 
-    row_tran.set_child(box_tran)
-    lbx_chart_setts_btm.append(row_tran)
+    row_var_tran.set_child(box_var_tran)
+    lbx_chart_setts_btm.append(row_var_tran)
     # fixed stars --------------------------------------
     row = Gtk.ListBoxRow()
     box_fixed_stars = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=7)
@@ -1026,24 +1038,16 @@ def naksatras_ring(button, key, manager):
 
 
 def harmonic_ring(entry, manager):
-    """chart settings panel : harmonic ring : None, 1, 7, 9, 11 harmonics : add if needed - also add calculations"""
+    """chart settings panel : harmonic ring : None, 1 = draw terms, 1+ = simple division (aka varga)"""
     text = entry.get_text().strip()
     if text == "":
         manager.app.chart_settings["harmonic ring"] = ""
         entry.remove_css_class("entry-warning")
     else:
-        nums = text.split()
-        valid_nums = {1, 7, 9, 11}
-        if (
-            not nums
-            or not all(n.isdigit() and int(n) in valid_nums for n in nums)
-            or not (1 <= len(nums) <= 2)
-        ):
+        if not text or not text.isdigit():
             # invalid input
             entry.add_css_class("entry-warning")
-            entry.set_text(
-                " ".join(str(x) for x in manager.app.chart_settings["harmonic ring"])
-            )
+            entry.set_text("")
         else:
             entry.remove_css_class("entry-warning")
             manager.app.chart_settings["harmonic ring"] = text

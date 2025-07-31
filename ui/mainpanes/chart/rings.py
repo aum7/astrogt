@@ -284,7 +284,7 @@ class Event(RingBase):
         lots,
         eclipses,
         lunation,
-        varga,
+        # varga,
         radius_dict,
     ):
         super().__init__(radius, cx, cy, radius_dict)
@@ -309,9 +309,9 @@ class Event(RingBase):
         self.lunation = [
             AstroObject(lun) for lun in (lunation or []) if isinstance(lun, dict)
         ]
-        self.varga = [
-            AstroObject(var) for var in (varga or []) if isinstance(var, dict)
-        ]
+        # self.varga = [
+        #     AstroObject(var) for var in (varga or []) if isinstance(var, dict)
+        # ]
         # print(f"rings : varga : {varga}")
         if not self.guests or not self.houses or not self.ascmc:
             return
@@ -591,57 +591,55 @@ class Event(RingBase):
                             cr.show_text(glyph)
                             cr.new_path()
                         cr.restore()
-        if self.varga:
-            for obj in self.varga:
-                # print(f"rings : lot : {lot.data}")
-                # skip event attribute
-                if obj.data.get("name") is None:
-                    continue
-                name = obj.data.get("name", "").lower()
-                lon = obj.data.get("lon", 0.0)
-                var = obj.data.get("var", 0.0)
-                print(
-                    f"{name} : lon={lon} ({decsigndms(lon, use_glyph=False)}) "
-                    f": var={var} ({decsigndms(var, use_glyph=False)})"
-                )
-                radius = self.event_r * 1.04
-                obj.draw(
-                    cr,
-                    self.cx,
-                    self.cy,
-                    radius,
-                    self.font_size * 0.5,
-                    # color=(1, 1, 1, 0.7),
-                    # scale=0.7,
-                )
-                # if 'enable glyphs' > draw glyphs
-                # if self.chart_settings.get("enable glyphs", True):
-                #     glyph = get_lot_glyph(name)
-                #     if glyph:
-                #         angle = pi - radians(lot.data.get("lon", 0))
-                #         x = self.cx + radius * cos(angle)
-                #         y = self.cy + radius * sin(angle)
-                #         cr.save()
-                #         # rotate chart so ascendant is horizon
-                #         if self.chart_settings.get("fixed asc", False) and self.ascmc:
-                #             cr.translate(x, y)
-                #             cr.rotate(-radians(self.ascmc[0]))
-                #             te = cr.text_extents(glyph)
-                #             tx = -(te.width / 2 + te.x_bearing)
-                #             ty = -(te.height / 2 + te.y_bearing)
-                #             cr.set_source_rgba(0, 0, 0, 1)
-                #             cr.move_to(tx, ty)
-                #             cr.show_text(glyph)
-                #             cr.new_path()
-                #         else:
-                #             te = cr.text_extents(glyph)
-                #             tx = x - (te.width / 2 + te.x_bearing)
-                #             ty = y - (te.height / 2 + te.y_bearing)
-                #             cr.set_source_rgba(0, 0, 0, 1)
-                #             cr.move_to(tx, ty)
-                #             cr.show_text(glyph)
-                #             cr.new_path()
-                #         cr.restore()
+        # if self.varga:
+        #     for obj in self.varga:
+        #         # print(f"rings : lot : {lot.data}")
+        #         # skip event attribute
+        #         if obj.data.get("name") is None:
+        #             continue
+        #         name = obj.data.get("name", "").lower()
+        #         lon = obj.data.get("lon", 0.0)
+        #         var = obj.data.get("var", 0.0)
+        #         print(
+        #             f"{name} : lon={lon} ({decsigndms(lon, use_glyph=False)}) "
+        #             f": var={var} ({decsigndms(var, use_glyph=False)})"
+        #         )
+        #         radius = self.event_r * 1.04
+        #         obj.draw(
+        #             cr,
+        #             self.cx,
+        #             self.cy,
+        #             radius,
+        #             self.font_size * 0.5,
+        #         )
+        # if 'enable glyphs' > draw glyphs
+        # if self.chart_settings.get("enable glyphs", True):
+        #     glyph = get_lot_glyph(name)
+        #     if glyph:
+        #         angle = pi - radians(lot.data.get("lon", 0))
+        #         x = self.cx + radius * cos(angle)
+        #         y = self.cy + radius * sin(angle)
+        #         cr.save()
+        #         # rotate chart so ascendant is horizon
+        #         if self.chart_settings.get("fixed asc", False) and self.ascmc:
+        #             cr.translate(x, y)
+        #             cr.rotate(-radians(self.ascmc[0]))
+        #             te = cr.text_extents(glyph)
+        #             tx = -(te.width / 2 + te.x_bearing)
+        #             ty = -(te.height / 2 + te.y_bearing)
+        #             cr.set_source_rgba(0, 0, 0, 1)
+        #             cr.move_to(tx, ty)
+        #             cr.show_text(glyph)
+        #             cr.new_path()
+        #         else:
+        #             te = cr.text_extents(glyph)
+        #             tx = x - (te.width / 2 + te.x_bearing)
+        #             ty = y - (te.height / 2 + te.y_bearing)
+        #             cr.set_source_rgba(0, 0, 0, 1)
+        #             cr.move_to(tx, ty)
+        #             cr.show_text(glyph)
+        #             cr.new_path()
+        #         cr.restore()
 
 
 class Signs(RingBase):
@@ -737,13 +735,26 @@ class Naksatras(RingBase):
 
 
 class Harmonic(RingBase):
-    # draw harmonic (aka division) ring
-    def __init__(self, notify, radius, cx, cy, division, radius_dict, font_size=14):
+    # draw harmonic (aka division aka varga) ring
+    def __init__(
+        self, notify, radius, cx, cy, division, varga_data, radius_dict, font_size=14
+    ):
         super().__init__(radius, cx, cy, radius_dict)
         self.notify = notify
         self.division = division
+        # print(f"rings : divdata1 : {division_data}")
+        if self.division > 1 and not varga_data:
+            # always set self.division_data to avoid error on init
+            self.event = None
+            self.varga_data = None
+            return
+        self.event = varga_data[0].get("event") if varga_data else None
+        self.varga_data = [
+            AstroObject(div) for div in (varga_data or []) if isinstance(div, dict)
+        ]
+        # print(f"rings : divdata : {self.division_data}")
         self.font_size = font_size
-        # print(f"harmonic : radlist : {radius_dict}")
+        # print(f"harmonic : raddict : {radius_dict}")
         keys = list(radius_dict.keys())
         index = ""
         try:
@@ -765,7 +776,7 @@ class Harmonic(RingBase):
         # background color : dark
         cr.set_source_rgba(0.1, 0.1, 0.1, 1)
         cr.fill_preserve()
-        cr.set_source_rgba(0.5, 0.5, 0.5, 0.7)
+        cr.set_source_rgba(1, 1, 1, 0.7)
         cr.set_line_width(1)
         cr.stroke()
         # (egyptian) terms (aka bounds) if division 1
@@ -796,27 +807,37 @@ class Harmonic(RingBase):
                 yg = self.cy + self.mid_ring * glyph_fix * sin(mid_angle)
                 glyph = get_glyph(ruler, False)
                 self.draw_rotated_text(cr, glyph, xg, yg, mid_angle)
-        else:
+        elif self.division > 1 and self.varga_data is not None:
             # draw divisions for selected harmonic
-            total_divisions = 12 * self.division
-            seg_angle = 2 * pi / total_divisions
-            # draw lines
-            for i in range(total_divisions):
-                angle = pi - (i * seg_angle)
+            segment_angle = 2 * pi / 12
+            # sign borders
+            for j in range(12):
+                angle = pi - j * segment_angle  # start at left
                 x = self.cx + self.radius * cos(angle)
                 y = self.cy + self.radius * sin(angle)
                 cr.move_to(self.cx, self.cy)
                 cr.line_to(x, y)
+                cr.set_source_rgba(1, 1, 1, 0.5)
+                cr.set_line_width(1)
                 cr.stroke()
-            # labels
-            self.set_custom_font(cr, self.font_size)
-            for i in range(total_divisions):
-                angle = pi - ((i + 0.5) * seg_angle)
-                sign = (i + 1) % 12
-                label = str(12 if sign == 0 else sign)
-                x = self.cx + self.radius * 0.97 * cos(angle)
-                y = self.cy + self.radius * 0.97 * sin(angle)
-                self.draw_rotated_text(cr, label, x, y, angle)
+            for obj in self.varga_data:
+                # print(f"rings : lot : {lot.data}")
+                if self.event != "e1":
+                    return
+                # skip event attribute
+                if obj.data.get("name") is None:
+                    continue
+                name = obj.data.get("name", "").lower()
+                lon = obj.data.get("lon", 0.0)
+                # print(f"{name} : lon={lon} ({decsigndms(lon, use_glyph=False)}) ")
+                radius = self.mid_ring  # * 1.04
+                obj.draw(
+                    cr,
+                    self.cx,
+                    self.cy,
+                    radius,
+                    self.font_size * 0.5,
+                )
 
 
 class P1Progress(ObjectRingBase):
@@ -1021,6 +1042,61 @@ class LunarReturn(ObjectRingBase):
         self.draw_guests(cr)
 
 
+class Varga(ObjectRingBase):
+    def __init__(self, radius, cx, cy, font_size, varga_data, radius_dict):
+        # division / varga / harmonic ring for event 2 (transit)
+        super().__init__(radius, cx, cy, None, radius_dict)
+        self.app = Gtk.Application.get_default()
+        self.notify = self.app.notify_manager
+        self.font_size = font_size
+        # self.cusps = next(x for x in transit_data if not isinstance(x, dict))
+        self.guests = [
+            AstroObject(obj) for obj in (varga_data or []) if isinstance(obj, dict)
+        ]
+        keys = list(radius_dict.keys())
+        idx = keys.index("varga")
+        next_val = (
+            radius_dict[keys[idx + 1]] if idx < len(keys) - 1 else radius_dict["varga"]
+        )
+        self.mid_ring = (radius_dict["varga"] + next_val) / 2
+        # todo inject retro into ring
+        # self.retro = retro
+
+    def marker_color(self, name):
+        return (0, 1, 0, 0.5)
+
+    def draw(self, cr):
+        cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
+        cr.set_source_rgba(0.0078, 0.0941, 0, 1)
+        cr.fill_preserve()
+        cr.set_source_rgba(0.5, 0.5, 0.5, 0.7)
+        cr.set_line_width(1)
+        cr.stroke()
+        # for angle in self.cusps:
+        #     angle = pi - radians(angle)
+        #     x1 = self.cx + self.radius * 0.35 * cos(angle)
+        #     y1 = self.cy + self.radius * 0.35 * sin(angle)
+        #     x2 = self.cx + self.radius * cos(angle)
+        #     y2 = self.cy + self.radius * sin(angle)
+        #     cr.move_to(x1, y1)
+        #     cr.line_to(x2, y2)
+        #     cr.set_source_rgba(0, 1, 0, 1)
+        #     cr.stroke()
+        segment_angle = 2 * pi / 12
+        for j in range(12):
+            angle = pi - j * segment_angle
+            x1 = self.cx + self.radius * 0.9 * cos(angle)
+            y1 = self.cy + self.radius * 0.9 * sin(angle)
+            x2 = self.cx + self.radius * cos(angle)
+            y2 = self.cy + self.radius * sin(angle)
+            cr.move_to(x1, y1)
+            cr.line_to(x2, y2)
+            cr.set_source_rgba(1, 1, 1, 0.5)
+            cr.set_line_width(1)
+            cr.stroke()
+        self.draw_guests(cr)
+
+
 class Transit(ObjectRingBase):
     def __init__(self, radius, cx, cy, font_size, transit_data, retro, radius_dict):
         super().__init__(radius, cx, cy, None, radius_dict)
@@ -1047,7 +1123,7 @@ class Transit(ObjectRingBase):
 
     def draw(self, cr):
         cr.arc(self.cx, self.cy, self.radius, 0, 2 * pi)
-        cr.set_source_rgba(0.0078, 0.0941, 0, 1)
+        cr.set_source_rgba(0.0038, 0.0741, 0, 1)
         cr.fill_preserve()
         cr.set_source_rgba(0.5, 0.5, 0.5, 0.7)
         cr.set_line_width(1)

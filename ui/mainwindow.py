@@ -130,6 +130,7 @@ class MainWindow(
         )
         # astro chart outer rings for event 2
         self.hotkeys.register_hotkey("t", lambda: self.toggle_chart_setting("transit"))
+        self.hotkeys.register_hotkey("r", lambda: self.toggle_chart_setting("varga"))
         self.hotkeys.register_hotkey(
             "z", lambda: self.toggle_chart_setting("lunar return")
         )
@@ -142,7 +143,7 @@ class MainWindow(
         self.hotkeys.register_hotkey(
             "o", lambda: self.toggle_chart_setting("p1 progress")
         )
-        # # astro chart naksatras ring
+        # astro chart naksatras ring
         self.hotkeys.register_hotkey(
             "p", lambda: self.toggle_chart_setting("naksatras ring")
         )
@@ -191,6 +192,7 @@ class MainWindow(
             "\n\nnote : if entry / text field is focused, hotkeys will not work"
             "\na : toggle zodiac rotation (ascendant vs ari 0° at left)"
             "\ng : toggle glyphs visibility"
+            "\nr-t-z-u-i-o-p : toggle event 2 rings : varga-transit-lun-sol return-p3-p1-naksatras"
             "\n\nnote : if entry / text field is focused, hotkeys will not work"
             "\n\t(text field will 'consume' key press)",
             source="help",

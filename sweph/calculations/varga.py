@@ -17,21 +17,46 @@ def calculate_varga(event: str, division: int = 9):
     app = Gtk.Application.get_default()
     notify = app.notify_manager
     msg = f"event {event}\n"
+    varga_data = []
+    varga_data.append({"event": event})
     # event 1 is mandatory
-    # check by event 1 sweph attribute
-    if not app.e1_sweph.get("jd_ut"):
-        notify.error(
-            "missing event 1 data : exiting ...",
-            source="varga",
-            route=[""],
-        )
-        return
     if event == "e1":
+        # check by event 1 sweph attribute
+        if not app.e1_sweph.get("jd_ut"):
+            notify.error(
+                "missing event 1 data : exiting ...",
+                source="varga",
+                route=[""],
+            )
+            return
         # e1 positions
         e1_pos = getattr(app, "e1_positions", None)
-        varga_data = []
         if e1_pos:
-            for idx, data in e1_pos.items():
+            for _, data in e1_pos.items():
+                if isinstance(data, dict) and "lon" in data:
+                    name = data.get("name", "")
+                    lon = data.get("lon", 0.0)
+                    sign = int(lon // 30)
+                    seg = int((lon % 30) // (30 / division))
+                    varga_sign = (sign * division + seg) % 12
+                    varga = (varga_sign * 30) + ((lon % (30 / division)) * division)
+                    varga_data.append({"name": name, "lon": varga})
+                    # varga_data.append({"name": name, "lon": varga, "var": varga})
+            app.varga_e1 = varga_data
+        # msg += f"e1pos : {e1_pos}\n"
+    if event == "e2":
+        # check by event 2 sweph attribute
+        if not app.e2_sweph.get("jd_ut"):
+            notify.error(
+                "missing event 2 data : exiting ...",
+                source="varga",
+                route=[""],
+            )
+            return
+        # e2 positions
+        e2_pos = getattr(app, "e2_positions", None)
+        if e2_pos:
+            for _, data in e2_pos.items():
                 if isinstance(data, dict) and "lon" in data:
                     name = data.get("name", "")
                     lon = data.get("lon", 0.0)
@@ -40,9 +65,8 @@ def calculate_varga(event: str, division: int = 9):
                     varga_sign = (sign * division + seg) % 12
                     varga = (varga_sign * 30) + ((lon % (30 / division)) * division)
                     varga_data.append({"name": name, "lon": varga, "var": varga})
-    if event == "e2":
-        pass
-        # msg += f"e1pos : {e1_pos}\n"
+            app.varga_e2 = varga_data
+        # msg += f"e2pos : {e2_pos}\n"
     msg += f"vargadata : {varga_data}"
     # emit signal
     app.signal_manager._emit("varga_changed", event)
