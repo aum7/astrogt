@@ -210,23 +210,23 @@ only use [space] as separator
     # create eventdata instance & store widgets
     if event_name == "e1":
         manager.app.EVENT_ONE = EventData(
+            id="e1",
             name=ent_event_name,
             country=ddn_country,
             city=ent_city,
             location=ent_location,
             date_time=ent_datetime,
             app=manager.app,
-            id="e1",
         )
     else:
         manager.app.EVENT_TWO = EventData(
+            id="e2",
             name=ent_event_name,
             country=ddn_country,
             city=ent_city,
             location=ent_location,
             date_time=ent_datetime,
             app=manager.app,
-            id="e2",
         )
     # main box for event panels
     box_event = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)

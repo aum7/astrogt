@@ -9,8 +9,8 @@
 #("GB", "UK", "GBR"),
 ("HR", "Cro", "HRV"),
 ("SI", "Slo", "SVN"),
-("US", "USA", "USA"),
-#("MA", "Morocco", "MAR"),
+#("US", "USA", "USA"),
+("MA", "Morocco", "MAR"),
 #--------------------------------------------
 #("AF", "Afghanistan", "AFG"),
 #("AX", "Aland Islands", "ALA"),

@@ -19,7 +19,7 @@ OBJECTS = {  # one-but-last = color ; last = size scale = drawing order
     8: ("ne", "neptune", "ne", "neptune", (0, 0.2539, 0.4931, 1), 0.97),
     9: ("pl", "pluto", "pl", "pluto", (0.2784, 0.2784, 0.2784, 1), 1.0),
     11: ("ra", "true node", "ra", "rahu", (0.8667, 0.7529, 0.7059, 1), 0.8),
-    # rahu mean is handled in positions.py
+    # 10: rahu mean is handled in positions.py
     # 14: ("ea", "earth", "ea", "earth"), ke color (0.3, 0.3, 0.3, 1)
 }
 # selected objects for event 2
@@ -248,7 +248,7 @@ CHART_SETTINGS = {
     ),
     # --- naksatras MEGA-ring ! lol
     "naksatras ring": (
-        False,
+        True,
         """show naksatras ring
 1  asv\t2  bha\t3  krt
 4  roh\t5  mrg\t6  ard

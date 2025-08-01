@@ -10,7 +10,7 @@ from user.settings import LOTS
 
 
 def calculate_lots(event: str):
-    """calculate arabic parts aka hermetic lots for event (< mandatory)"""
+    """calculate arabic parts aka hermetic lots for event"""
     # grab existing positions with lon speed & calculate positions of lots
     app = Gtk.Application.get_default()
     notify = app.notify_manager

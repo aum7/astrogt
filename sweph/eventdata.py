@@ -17,13 +17,13 @@ class EventData:
 
     def __init__(
         self,
-        name,
-        country,
-        city,
+        id=None,
+        name=None,
+        country=None,
+        city=None,
         location=None,
         date_time=None,
         app=None,
-        id=None,
     ):
         """get user input and prepare for swe"""
         self.app = app or Gtk.Application.get_default()

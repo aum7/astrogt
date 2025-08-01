@@ -1,15 +1,23 @@
 # sweph/calculations/varga.py
 # navams
 # draw natal navams into event ring
-# draw transit navams into separate /varga ring
+# draw transit navams into separate / varga ring
 # ruff: noqa: E402, E701
 # import swisseph as swe
 import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
-# from ui.helpers import _object_name_to_code as objcode
-# from sweph.swetime import jd_to_custom_iso as jdtoiso
+
+
+def get_varga(lon: float, division: int = 9):
+    if division == "" or division == 1:
+        return lon
+    sign = int(lon // 30)
+    seg = int((lon % 30) // (30 / division))
+    varga_sign = (sign * division + seg) % 12
+    varga = (varga_sign * 30) + ((lon % (30 / division)) * division)
+    return varga
 
 
 def calculate_varga(event: str, division: int = 9):
@@ -31,7 +39,8 @@ def calculate_varga(event: str, division: int = 9):
             return
         # e1 positions
         e1_pos = getattr(app, "e1_positions", None)
-        if e1_pos:
+        e1_houses = getattr(app, "e1_houses", None)
+        if e1_pos and e1_houses:
             for _, data in e1_pos.items():
                 if isinstance(data, dict) and "lon" in data:
                     name = data.get("name", "")
@@ -41,9 +50,17 @@ def calculate_varga(event: str, division: int = 9):
                     varga_sign = (sign * division + seg) % 12
                     varga = (varga_sign * 30) + ((lon % (30 / division)) * division)
                     varga_data.append({"name": name, "lon": varga})
-                    # varga_data.append({"name": name, "lon": varga, "var": varga})
-            app.varga_e1 = varga_data
-        # msg += f"e1pos : {e1_pos}\n"
+            # add asc & mc from houses / ascmc
+            ascmc = e1_houses[1]
+            if ascmc:
+                asc = ascmc[0]
+                mc = ascmc[1]
+                for obj, name in zip((asc, mc), ("asc", "mc")):
+                    sign = int(obj // 30)
+                    seg = int((obj % 30) // (30 / division))
+                    varga_sign = (sign * division + seg) % 12
+                    varga = (varga_sign * 30) + ((obj % (30 / division)) * division)
+                    varga_data.append({"name": name, "lon": varga})
     if event == "e2":
         # check by event 2 sweph attribute
         if not app.e2_sweph.get("jd_ut"):
@@ -55,7 +72,9 @@ def calculate_varga(event: str, division: int = 9):
             return
         # e2 positions
         e2_pos = getattr(app, "e2_positions", None)
-        if e2_pos:
+        e2_houses = getattr(app, "e2_houses", None)
+        msg += f"e2houses : {e2_houses}\n"
+        if e2_pos and e2_houses:
             for _, data in e2_pos.items():
                 if isinstance(data, dict) and "lon" in data:
                     name = data.get("name", "")
@@ -65,8 +84,18 @@ def calculate_varga(event: str, division: int = 9):
                     varga_sign = (sign * division + seg) % 12
                     varga = (varga_sign * 30) + ((lon % (30 / division)) * division)
                     varga_data.append({"name": name, "lon": varga, "var": varga})
-            app.varga_e2 = varga_data
-        # msg += f"e2pos : {e2_pos}\n"
+            # add asc & mc from houses / ascmc
+            ascmc = e2_houses[1]
+            msg += f"ascmc : {ascmc}\n"
+            if ascmc:
+                asc = ascmc[0]
+                mc = ascmc[1]
+                for obj, name in zip((asc, mc), ("asc", "mc")):
+                    sign = int(obj // 30)
+                    seg = int((obj % 30) // (30 / division))
+                    varga_sign = (sign * division + seg) % 12
+                    varga = (varga_sign * 30) + ((obj % (30 / division)) * division)
+                    varga_data.append({"name": name, "lon": varga})
     msg += f"vargadata : {varga_data}"
     # emit signal
     app.signal_manager._emit("varga_changed", event)

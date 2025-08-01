@@ -167,7 +167,7 @@ def _object_name_to_code(name: str, use_mean_node: bool) -> Tuple[Optional[int],
     if name == "true node" and use_mean_node:
         name = "mean node"
     for code, obj in OBJECTS.items():
-        if obj[1] == name:
+        if obj[1] == name or obj[0] == name:
             # return int & short name
             return code, obj[0]
     if name == "mean node":

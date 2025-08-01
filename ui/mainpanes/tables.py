@@ -6,24 +6,12 @@ gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 from typing import Tuple
 
-# from swisseph import contrib as swh
-# from ui.fonts.glyphs import SIGNS
 from ui.helpers import _decimal_to_sign_dms as decsigndms
 from ui.helpers import _decimal_to_ra as decra
 from user.settings import HOUSE_SYSTEMS
-from sweph.calculations.retro import calculate_retro
+from sweph.calculations.retro import calculate_retro, retro_marker
 from sweph.swetime import jd_to_custom_iso as jdtoiso
-
-station_speed = {  # stationary speed
-    "me": 0.08333,
-    "ve": 0.05,
-    "ma": 0.025,
-    "ju": 0.016666667,
-    "sa": 0.016666667,
-    "ur": 0.005555556,
-    "ne": 0.002777778,
-    "pl": 0.002777778,
-}
+# from ui.helpers import _object_name_to_code as objcode
 
 
 class Tables(Gtk.Notebook):
@@ -63,12 +51,6 @@ class Tables(Gtk.Notebook):
         # if user not interested in event 2
         signal._connect("e2_cleared", self.e2_cleared)
 
-    def retro_marker(self, obj: str, speed: float) -> str:
-        threshold = station_speed[obj]
-        if abs(speed) < threshold:
-            return "S"
-        return "R" if speed < 0 else " "
-
     def event_data_widget(self, event: str, content: str):
         # create a scrollable text view for an event
         scroll = Gtk.ScrolledWindow()
@@ -92,7 +74,7 @@ class Tables(Gtk.Notebook):
         self.page_widgets[event] = scroll
 
     def update_event_data(self, event: str):
-        # assure data exists
+        # calculations of table content by event
         if (
             event not in self.events_data
             or "positions" not in self.events_data[event]
@@ -125,25 +107,31 @@ class Tables(Gtk.Notebook):
         # build header string with house column added
         header = (
             f" positions {self.h_sym * 29}\n"
-            f" name {self.v_sym}      sign {self.vic_spc} "
-            f"{self.v_sym}        lat {self.v_sym}         lon "
+            f" obj {self.v_sym}        sign{self.vic_spc}{self.v_sym} "
+            f"        nak {self.v_sym}       varga{self.vic_spc}{self.v_sym} "
+            f"       lat {self.v_sym}         lon "
             f"{self.v_sym} hs\n"
         )
         content += header
         separ = f"{self.h_sym * 36}\n"
         # loop through positions and calculate houses if possible
-        for _, obj in pos_map.items():
+        for key, obj in pos_map.items():
             # print(f"tables : obj : {obj}")
             name = obj.get("name", "")
             speed = obj.get("lon speed", 0)
-            retro = self.retro_marker(name, speed) if name in station_speed else " "
-            # retro = "R" if obj.get("lon speed", 0) < 0 else " "
+            body = key
+            retro = " "
+            if name and body:
+                retro = retro_marker(body, speed)  # if name in station_speed else " "
             lon = obj.get("lon", 0)
             # calculate house if cusps are available
             house = self.which_house(lon, tuple(cusps)) if cusps else ""
+            nak = obj.get("naksatra", "")
             ln_pos = (
-                f" {obj.get('name', '')}{retro}  {self.v_sym} "
+                f" {obj.get('name', '')}{retro} {self.v_sym} "
                 f"{decsigndms(lon):10} {self.v_sym} "
+                f"{nak[0]:02}-{nak[2]}-{nak[1]:5} {self.v_sym} "
+                f"{decsigndms(obj.get('varga', '')):10} {self.v_sym} "
                 f"{obj.get('lat', 0):10.6f} {self.v_sym} "
                 f"{lon:11.6f} {self.v_sym} {house}\n"
             )

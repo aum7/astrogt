@@ -34,14 +34,21 @@ retro_days = {  # average length of retro period
 last_stations: Dict[int, Tuple[Optional[float], Optional[float]]] = {}
 
 
-def retro_marker(speed: float, threshold: float) -> str:
-    if abs(speed) < threshold:
-        return "S"
-    return "R" if speed < 0 else "D"
+def retro_marker(body: int, speed: float) -> str:
+    if body in (0, 1):
+        return " "
+    elif body in (10, 11):
+        return "R" if speed < 0 else " "
+    # used in positions.py & tables todo ???
+    else:
+        threshold = station_speed[body]
+        if abs(speed) < threshold:
+            return "S"
+        return "R" if speed < 0 else " "
 
 
 def calculate_retro(event: str):
-    """calculate retro stations & direction for event (< mandatory)"""
+    """calculate retro stations & direction for event"""
     # grab existing positions with lon speed & calculate direction & stations
     app = Gtk.Application.get_default()
     notify = app.notify_manager
@@ -173,9 +180,8 @@ def find_stations(body: int, jd: float) -> Tuple[Optional[float], Optional[float
     jd = round(jd * 86400) / 86400
     retro_length = retro_days.get(body, 180.0)
     step = min(retro_length / 20.0, 0.5)
-    threshold = station_speed[body]
     curr_speed = lon_speed(body, jd)
-    curr_dir = retro_marker(curr_speed, threshold)
+    curr_dir = retro_marker(body, curr_speed)
     # cached results first
     old_prev_s, old_next_s = last_stations.get(body, (None, None))
     if old_prev_s and old_next_s:

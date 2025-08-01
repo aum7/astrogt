@@ -41,14 +41,13 @@ class AstroChart(Gtk.Box):
         self.append(self.drawing_area)
         # initial data
         self.positions = {}
-        self.houses = {}
+        self.cusps = {}
         self.ascmc = None
         self.e1_chart_info = {}
         self.chart_settings = getattr(self.app, "chart_settings", {})
         self.extra_info = {}
         self.stars = {}
         self.lun_ret_data = []
-        # self.lots = []
         # subscribe to signals
         signal = self.app.signal_manager
         signal._connect("event_changed", self.event_changed)
@@ -61,7 +60,6 @@ class AstroChart(Gtk.Box):
         signal._connect("p3_changed", self.p3_changed)
         signal._connect("solar_return_changed", self.solar_return_changed)
         signal._connect("lunar_return_changed", self.lunar_return_changed)
-        signal._connect("varga_changed", self.varga_changed)
         signal._connect("transit_changed", self.transit_changed)
 
     def event_changed(self, event):
@@ -91,8 +89,9 @@ class AstroChart(Gtk.Box):
                     source="astrochart",
                     route=["terminal"],
                 )
-            self.houses = cusps
+            self.cusps = cusps
             self.ascmc = ascmc
+        # print(f"astrochart : cusps : {self.cusps} | ascmc : {self.ascmc}")
         # construct extra info
         self.extra_info["hsys"] = getattr(self.app, "selected_house_sys_str")
         self.drawing_area.queue_draw()
@@ -140,10 +139,6 @@ class AstroChart(Gtk.Box):
 
     def lunar_return_changed(self, event):
         self.lun_ret_data = getattr(self.app, "lun_ret_data", None)
-        self.drawing_area.queue_draw()
-
-    def varga_changed(self, event):
-        # self.varga_data = getattr(self.app, "varga_data", None)
         self.drawing_area.queue_draw()
 
     def transit_changed(self, event):
@@ -364,14 +359,13 @@ class AstroChart(Gtk.Box):
             cy=cy,
             font_size=int(radius_dict.get("event", 0.0) * 0.08),
             guests=guests,
-            houses=self.houses if self.houses else [],
+            cusps=self.cusps if self.cusps else [],
             ascmc=self.ascmc if self.ascmc else [],
             chart_settings=self.chart_settings,
             retro=calculate_retro("e1"),
             lots=calculate_lots("e1"),
             eclipses=calculate_eclipses("e1"),
             lunation=calculate_lunation("e1"),
-            # varga=calculate_varga("e1", 9),  # todo get varga from user input
             radius_dict=radius_dict,
         )
         ring_event.draw(cr)
