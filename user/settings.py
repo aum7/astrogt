@@ -17,7 +17,7 @@ OBJECTS = {  # one-but-last = color ; last = size scale = drawing order
     6: ("sa", "saturn", "sa", "sani", (0.1176, 0.5647, 1.0, 1), 0.91),
     7: ("ur", "uranus", "ur", "uranus", (0.4, 0.4, 0.4, 1), 0.94),
     8: ("ne", "neptune", "ne", "neptune", (0, 0.2539, 0.4931, 1), 0.97),
-    9: ("pl", "pluto", "pl", "pluto", (0.2784, 0.2784, 0.2784, 1), 1.0),
+    9: ("pl", "pluto", "pl", "pluto", (0.1784, 0.1784, 0.1784, 1), 1.0),
     11: ("ra", "true node", "ra", "rahu", (0.8667, 0.7529, 0.7059, 1), 0.8),
     # 10: rahu mean is handled in positions.py
     # 14: ("ea", "earth", "ea", "earth"), ke color (0.3, 0.3, 0.3, 1)
@@ -53,7 +53,7 @@ LOTS = {  # 7 hermetic lots : many different definitions for lots exist
         "tooltip": "soul & intelect",
     },
     "necessity": {
-        "enable": True,
+        "enable": False,
         "day": "(asc + (mo - su)) - me",
         "tooltip": "fortuna - me\nconstraints, war, enmity",
     },
@@ -63,17 +63,17 @@ LOTS = {  # 7 hermetic lots : many different definitions for lots exist
         "tooltip": "ve - spirit\napetite, desire",
     },
     "courage": {
-        "enable": True,
+        "enable": False,
         "day": "(asc + (mo - su)) - ma",
         "tooltip": "fortuna - ma\nboldness, treachery, strength, all evildoings",
     },
     "victory": {
-        "enable": True,
+        "enable": False,
         "day": "ju - (asc + (su - mo))",
         "tooltip": "ju - spirit\nfaith, contests, generosity, success",
     },
     "nemesis": {
-        "enable": True,
+        "enable": False,
         "day": "(asc + (mo - su)) - sa",
         "tooltip": "fortuna - sa\nunderworld, concealed, exposure, destruction",
     },
@@ -100,17 +100,26 @@ DEFAULT_E1 = {  # todo move to db
     # "51 30 54 n 000 05 56 w" : lse
     # "40 42 25 n 74 0 41 w 10 m" : nyse
     # ---
+    "country": "UK",
+    "city": "london",
+    "location": "51 30 54 n 000 05 56 w 10 m",
+    "name": "nse 030531 0508",
+    # "datetime": "2025-03-29 10:47:34",  # last solecl
+    # "datetime": "2025 8 1 17 1", # trading start
+    # "datetime": "2003-05-31 05:08:26",  # next solecl
+    "datetime": "2002-12-04 07:31:22",  # dkc 1h solecl
+    # ---
     # "country": "usa",
     # "city": "memphis",
     # "location": "35 08 58 n 090 02 56 w 0085 m",
     # "name":"lisa presley",
     # "datetime": "1968 2 1 17 1",
     # ---
-    "country": "Slo",
-    "city": "ljubljana",
-    "location": "46 03 03 n 014 30 18 e 0294 m",
-    "name": "simon",
-    "datetime": "1975 2 8 14 10",
+    # "country": "Slo",
+    # "city": "ljubljana",
+    # "location": "46 03 03 n 014 30 18 e 0294 m",
+    # "name": "simon",
+    # "datetime": "1975 2 8 14 10",
     # --- houck p59
     # "country": "USA",
     # "city": "Garden City",  # ny
@@ -290,7 +299,7 @@ CHART_SETTINGS = {
             "show traditional primary progression (p1) for event 2\ncalculations as per martin gansten / ptolemy\n[todo, current is simple calculation]",
         ),
         "p3 progress": (
-            False,
+            True,
             "show tertiary progression (p3) for event 2\ncalculations as per richard houck",
         ),
         "solar return": (False, "show solar return for event 2"),

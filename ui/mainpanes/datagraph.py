@@ -53,7 +53,8 @@ class DataGraph(Gtk.Box):
         """load & plot data"""
         # construct file path
         data_folder = self.app.files.get("data")
-        filepath = os.path.join(data_folder, "gold/gold_1h_utc.csv")
+        filepath = os.path.join(data_folder, "gold/xauusd_1h_030505_250801.csv")
+        # filepath = os.path.join(data_folder, "gold/gold_1h_utc.csv")
         # filepath = os.path.join(data_folder, "gold/gold_1h_est.csv")
         # load csv
         df = pd.read_csv(
@@ -223,7 +224,7 @@ class DataGraph(Gtk.Box):
                 # normal click
                 if self.df is not None and 0 <= ix < len(self.df):
                     dt = self.df.index[ix]
-                    self.app.signal_manager._emit("datetime_captured", ("e1", dt))
+                    self.app.signal_manager._emit("datetime_captured", ("e2", dt))
                     # print(f"datagraph : datetime : {dt}")
 
     def jump_bars(self, bars):
