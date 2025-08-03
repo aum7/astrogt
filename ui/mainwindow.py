@@ -20,6 +20,7 @@ from sweph.calculations.stars import connect_signals_stars
 from sweph.calculations.aspects import connect_signals_aspects
 from sweph.calculations.vimsottari import connect_signals_vimsottari
 from sweph.calculations.p1 import connect_signals_p1
+from sweph.calculations.p2 import connect_signals_p2
 from sweph.calculations.p3 import connect_signals_p3
 from sweph.calculations.returnsolar import connect_signals_solarreturn
 from sweph.calculations.returnlunar import connect_signals_lunarreturn
@@ -65,6 +66,7 @@ class MainWindow(
         connect_signals_aspects(self.app.signal_manager)
         connect_signals_vimsottari(self.app.signal_manager)
         connect_signals_p1(self.app.signal_manager)
+        connect_signals_p2(self.app.signal_manager)
         connect_signals_p3(self.app.signal_manager)
         connect_signals_solarreturn(self.app.signal_manager)
         connect_signals_lunarreturn(self.app.signal_manager)
@@ -129,23 +131,26 @@ class MainWindow(
             "a", lambda: self.toggle_chart_setting("fixed asc")
         )
         # astro chart outer rings for event 2
-        self.hotkeys.register_hotkey("t", lambda: self.toggle_chart_setting("transit"))
-        self.hotkeys.register_hotkey("r", lambda: self.toggle_chart_setting("varga"))
+        self.hotkeys.register_hotkey("1", lambda: self.toggle_chart_setting("transit"))
+        self.hotkeys.register_hotkey("2", lambda: self.toggle_chart_setting("varga"))
         self.hotkeys.register_hotkey(
-            "z", lambda: self.toggle_chart_setting("lunar return")
+            "3", lambda: self.toggle_chart_setting("lunar return")
         )
         self.hotkeys.register_hotkey(
-            "u", lambda: self.toggle_chart_setting("solar return")
+            "4", lambda: self.toggle_chart_setting("solar return")
         )
         self.hotkeys.register_hotkey(
-            "i", lambda: self.toggle_chart_setting("p3 progress")
+            "5", lambda: self.toggle_chart_setting("p3 progress")
         )
         self.hotkeys.register_hotkey(
-            "o", lambda: self.toggle_chart_setting("p1 progress")
+            "6", lambda: self.toggle_chart_setting("p2 progress")
+        )
+        self.hotkeys.register_hotkey(
+            "7", lambda: self.toggle_chart_setting("p1 progress")
         )
         # astro chart naksatras ring
         self.hotkeys.register_hotkey(
-            "p", lambda: self.toggle_chart_setting("naksatras ring")
+            "8", lambda: self.toggle_chart_setting("naksatras ring")
         )
 
     def toggle_chart_setting(self, setting):

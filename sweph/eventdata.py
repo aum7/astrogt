@@ -10,6 +10,7 @@ from zoneinfo import ZoneInfo
 from timezonefinder import TimezoneFinder
 from ui.helpers import _decimal_to_dms, _update_main_title
 from sweph.swetime import validate_datetime, naive_to_utc, utc_to_jd
+from sweph.calculations.hora import get_current_hora
 
 
 class EventData:
@@ -426,6 +427,7 @@ class EventData:
         dt_event_str = ""
         weekdays = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]  # monday = 0
         wday = "-"
+        hora = "-"
         if self.is_hotkey_now:
             # datetime set by hotkey time now utc : validation not needed
             """get utc from computer time"""
@@ -596,19 +598,30 @@ class EventData:
         time_short = time[:5]
         # save datetime data by event
         if datetime_name == "datetime one":
+            # calculate hora
+            lon = self.app.e1_sweph["lon"]
+            lat = self.app.e1_sweph["lat"]
+            alt = self.app.e1_sweph["alt"]
+            hora = get_current_hora(jd_ut, lon, lat, alt, self.app.sweph_flag)
             self.app.e1_chart["datetime"] = dt_event_str
             self.app.e1_chart["date"] = date
             self.app.e1_chart["time"] = time
             self.app.e1_chart["time_short"] = time_short
             self.app.e1_chart["wday"] = wday
+            self.app.e1_chart["hora"] = hora
             self.app.e1_chart["offset"] = str(self.tz_offset)
             self.app.e1_sweph["jd_ut"] = jd_ut
         else:
+            lon = self.app.e1_sweph["lon"]
+            lat = self.app.e1_sweph["lat"]
+            alt = self.app.e1_sweph["alt"]
+            hora = get_current_hora(jd_ut, lon, lat, alt, self.app.sweph_flag)
             self.app.e2_chart["datetime"] = dt_event_str
             self.app.e2_chart["date"] = date
             self.app.e2_chart["time"] = time
             self.app.e2_chart["time_short"] = time_short
             self.app.e2_chart["wday"] = wday
+            self.app.e2_chart["hora"] = hora
             self.app.e2_chart["offset"] = str(self.tz_offset)
             self.app.e2_sweph["jd_ut"] = jd_ut
         msg += f"{datetime_name} updated\n\t{dt_event_str} | {wday} | jdut : {jd_ut}"

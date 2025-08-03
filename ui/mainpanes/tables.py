@@ -10,8 +10,9 @@ from ui.helpers import _decimal_to_sign_dms as decsigndms
 from ui.helpers import _decimal_to_ra as decra
 from user.settings import HOUSE_SYSTEMS
 from sweph.calculations.retro import calculate_retro, retro_marker
+from sweph.calculations.hora import calculate_hora
 from sweph.swetime import jd_to_custom_iso as jdtoiso
-# from ui.helpers import _object_name_to_code as objcode
+from ui.fonts.glyphs import get_glyph
 
 
 class Tables(Gtk.Notebook):
@@ -46,10 +47,10 @@ class Tables(Gtk.Notebook):
         signal._connect("aspects_changed", self.aspects_changed)
         # vimsottari dasa widget
         signal._connect("vimsottari_changed", self.vimsottari_changed)
+        # p2 table
+        signal._connect("p2_changed", self.p2_changed)
         # p3 table
         signal._connect("p3_changed", self.p3_changed)
-        # if user not interested in event 2
-        signal._connect("e2_cleared", self.e2_cleared)
 
     def event_data_widget(self, event: str, content: str):
         # create a scrollable text view for an event
@@ -155,6 +156,10 @@ class Tables(Gtk.Notebook):
                 hsys_char = None
             ln_csps = ""
             raH, raM, raS = decra(self.armc)
+            horas_data = calculate_hora(event)
+            if horas_data:
+                curr_hora = horas_data["current_hora"]
+                hora_glyph = get_glyph(curr_hora, False)
             if hsys_char in ["E", "D", "W"]:
                 # print(f"selected_hsys : {self.app.selected_house_sys_str}")
                 # if selected in ["eqa", "eqm", "whs"]:
@@ -163,6 +168,7 @@ class Tables(Gtk.Notebook):
                     f" {self.asc} :  {decsigndms(self.ascendant)}\n"
                     f" {self.mc} :  {decsigndms(self.midheaven)}\n"
                     f" ra : {int(raH):02d}h{int(raM):02d}m{int(raS):02d}s\n"
+                    f" hora : {hora_glyph}\n"
                 )
             else:
                 ln_csps += f" houses {self.h_sym * 7}\n"
@@ -174,6 +180,7 @@ class Tables(Gtk.Notebook):
                     f" {self.asc} :  {decsigndms(self.ascendant)}\n"
                     f" {self.mc} :  {decsigndms(self.midheaven)}\n"
                     f" ra : {int(raH):02d}h{int(raM):02d}m{int(raS):02d}s\n"
+                    f" hora : {hora_glyph}\n"
                 )
             ln_csps += separ
             content += ln_csps
@@ -230,6 +237,121 @@ class Tables(Gtk.Notebook):
         # print(f"vmst chg : {str(self.events_data[event].get('vimsottari'))[:800]}")
         self.update_vimsottari("vimsottari", vimsottari)
 
+    def p2_changed(self, event):
+        self.p2_pos = getattr(self.app, "p2_pos", None)
+        self.p2_retro = calculate_retro("p2")
+        self.update_p2(event)
+
+    def update_p2(self, event):
+        p2_pos = getattr(self, "p2_pos", None)
+        msg = ""
+        if not p2_pos:
+            self.notify.error(
+                "missing p2 positions : exiting ...",
+                source="tables",
+                route=["terminal", "user"],
+            )
+            return
+        # msg += f"p2changed : p2pos :\n\t{p2_pos}\n"
+        separ = f"{self.h_sym * 20}\n"
+        content = ""
+        p2_date = next(d["p2date"] for d in p2_pos if "p2date" in d)
+        if p2_date:
+            content += (
+                " all time is utc\n"
+                " tas & tmc - true asc & mc\n"
+                f"{separ}"
+                f" p2 date : {p2_date.strip()}\n"
+            )
+        content += separ
+        # header
+        header = f" obj {self.v_sym}        sign\n"
+        content += header
+        # sort objects for table
+        pos_sorted = sorted(
+            p2_pos,
+            key=lambda obj: self.order.index(obj["name"])
+            if obj.get("name") in self.order
+            else len(self.order),
+        )
+        for obj in pos_sorted:
+            name = obj.get("name", "")
+            if list(obj.keys())[0] in ("p2jdut", "p2date"):
+                continue
+            lon = obj.get("lon", 0)
+            if self.p2_retro:
+                retro_info = next(
+                    (r for r in self.p2_retro if r.get("name") == name), None
+                )
+            direction = retro_info["direction"] if retro_info else ""
+            # dont show direct indicator
+            if direction == "D":
+                direction = ""
+            name_with_dir = f"{name}{direction}"
+            ln_pos = f" {name_with_dir:3} {self.v_sym} {decsigndms(lon):10}\n"
+            if name == "tas":
+                ln_pos = (
+                    f" {self.h_sym * 2} {self.v_sym}\n"
+                    f" {name_with_dir:3} {self.v_sym} {decsigndms(lon):10}\n"
+                )
+            content += ln_pos
+        content += separ
+        content += " planetary stations :\n"
+        # additional retro data
+        if self.p2_retro:
+            retro_sorted = sorted(
+                self.p2_retro,
+                key=lambda r: self.order.index(r["name"])
+                if r.get("name") in self.order
+                else len(self.order),
+            )
+            for retro in retro_sorted:
+                if "name" not in retro:
+                    continue
+                name = retro["name"]
+                prev_st = jdtoiso(retro.get("prevstation"))
+                next_st = jdtoiso(retro.get("nextstation"))
+                content += f" {name}\n"
+                content += f"   prev : {prev_st}\n"
+                content += f"   next : {next_st}\n"
+        self.notify.debug(
+            msg,
+            source="tables",
+            route=[""],
+        )
+        event = "p2"
+        if event in self.page_widgets:
+            scroll = self.page_widgets[event]
+            text_view = scroll.get_child()
+            buffer = text_view.get_buffer()
+            buffer.set_text(content)
+        else:
+            self.p2_widget(event, content)
+
+    def p2_widget(self, event: str, content: str):
+        # create a scrollable text view for tertiary progression
+        scroll = Gtk.ScrolledWindow()
+        scroll.set_name(f"data_scroll_{event}")
+        scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        scroll.set_hexpand(False)
+        scroll.set_vexpand(True)
+        text_view = Gtk.TextView()
+        text_view.set_margin_top(self.margin)
+        text_view.set_margin_bottom(self.margin)
+        text_view.set_margin_start(self.margin)
+        text_view.set_margin_end(self.margin)
+        text_view.set_editable(False)
+        text_view.set_cursor_visible(False)
+        text_view.add_css_class("table-text")
+        buffer = text_view.get_buffer()
+        buffer.set_text(content)
+        scroll.set_child(text_view)
+        # add page with event label as tab title
+        self.append_page(scroll, Gtk.Label.new(event))
+        self.page_widgets[event] = scroll
+        self.set_current_page(self.get_n_pages() - 1)
+
+    # ----
     def p3_changed(self, event):
         self.p3_pos = getattr(self.app, "p3_pos", None)
         self.p3_retro = calculate_retro("p3")
@@ -248,9 +370,7 @@ class Tables(Gtk.Notebook):
         # msg += f"p3changed : p3pos :\n\t{p3_pos}\n"
         separ = f"{self.h_sym * 20}\n"
         content = ""
-        p3_date = next(
-            (f.get("date") for f in p3_pos if f.get("name") == "p3date"), None
-        )
+        p3_date = next(d["p3date"] for d in p3_pos if "p3date" in d)
         if p3_date:
             content += (
                 " all time is utc\n"
@@ -271,7 +391,7 @@ class Tables(Gtk.Notebook):
         )
         for obj in pos_sorted:
             name = obj.get("name", "")
-            if name in ("p3date", "p3jdut"):
+            if list(obj.keys())[0] in ("p3jdut", "p3date"):
                 continue
             lon = obj.get("lon", 0)
             if self.p3_retro:
@@ -345,29 +465,6 @@ class Tables(Gtk.Notebook):
         self.append_page(scroll, Gtk.Label.new(event))
         self.page_widgets[event] = scroll
         self.set_current_page(self.get_n_pages() - 1)
-
-    def e2_cleared(self, event):
-        """
-        if event == "e2":
-             if event in self.events_data:
-                 # remove tab if exists
-                 for i in range(self.get_n_pages()):
-                     page = self.get_nth_page(i)
-                     label = self.get_tab_label_text(page)
-                     if label.strip() == event:
-                         self.remove_page(i)
-                         break
-                 # remove e2 from data storage
-                 del self.events_data[event]
-                 if event in self.table_pages:
-                     del self.table_pages[event]
-                 self.notify.info(
-                     f"cleared table for {event}",
-                     source="panetables",
-                     route=["terminal", "user"],
-                 )
-        """
-        pass
 
     def make_aspects(self, event):
         aspects = self.events_data[event].get("aspects")

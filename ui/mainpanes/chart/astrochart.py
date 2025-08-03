@@ -18,6 +18,7 @@ from ui.mainpanes.chart.rings import (
     Naksatras,
     Harmonic,
     P1Progress,
+    P2Progress,
     P3Progress,
     SolarReturn,
     LunarReturn,
@@ -57,6 +58,7 @@ class AstroChart(Gtk.Box):
         signal._connect("settings_changed", self.settings_changed)
         signal._connect("stars_changed", self.stars_changed)
         signal._connect("p1_changed", self.p1_changed)
+        signal._connect("p2_changed", self.p2_changed)
         signal._connect("p3_changed", self.p3_changed)
         signal._connect("solar_return_changed", self.solar_return_changed)
         signal._connect("lunar_return_changed", self.lunar_return_changed)
@@ -128,6 +130,11 @@ class AstroChart(Gtk.Box):
         self.p1_pos = getattr(self.app, "p1_pos", None)
         self.drawing_area.queue_draw()
 
+    def p2_changed(self, event):
+        # secondary progression changed
+        self.p2_pos = getattr(self.app, "p2_pos", None)
+        self.drawing_area.queue_draw()
+
     def p3_changed(self, event):
         # tertiary progression changed
         self.p3_pos = getattr(self.app, "p3_pos", None)
@@ -191,6 +198,8 @@ class AstroChart(Gtk.Box):
                 outer_rings.append("lunar return")
             if self.chart_settings.get("p1 progress"):
                 outer_rings.append("p1 progress")
+            if self.chart_settings.get("p2 progress"):
+                outer_rings.append("p2 progress")
             if self.chart_settings.get("p3 progress"):
                 outer_rings.append("p3 progress")
         if self.chart_settings.get("harmonic ring", "").strip():
@@ -205,6 +214,7 @@ class AstroChart(Gtk.Box):
             "lunar return": 0.07,
             "solar return": 0.07,
             "p3 progress": 0.07,
+            "p2 progress": 0.07,
             "p1 progress": 0.07,
             "harmonic": 0.06,
             "naksatras": 0.05,
@@ -296,6 +306,18 @@ class AstroChart(Gtk.Box):
                 radius_dict=radius_dict,
             )
             ring_p3.draw(cr)
+        # --- secondary progressions
+        if "p2 progress" in outer_rings:
+            ring_p2 = P2Progress(
+                radius=radius_dict.get("p2 progress", max_radius),
+                cx=cx,
+                cy=cy,
+                font_size=int(12 * font_scale),
+                p2_pos=self.p2_pos,
+                retro=calculate_retro("p2"),
+                radius_dict=radius_dict,
+            )
+            ring_p2.draw(cr)
         # --- primary progressions
         if "p1 progress" in outer_rings:
             ring_p1 = P1Progress(

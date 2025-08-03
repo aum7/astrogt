@@ -24,7 +24,7 @@ def calculate_p3(event: str):
     # check against lumies since e1_sweph can have 0 objects (user-selectable)
     if not app.e1_sweph.get("jd_ut") or not app.e2_sweph.get("jd_ut"):
         notify.error(
-            "missing event 1 or 2 data needed for p3 : exiting ...",
+            "missing event 1 or 2 data : exiting ...",
             source="p3",
             route=[""],
         )
@@ -79,15 +79,10 @@ def calculate_p3(event: str):
         e1_asc = e1_houses[1][0]
         e1_mc = e1_houses[1][1]
     if e1_su:
-        # todo need signed values for proper distance from su ???
         if e1_mc:
             e1_mc_arc = (e1_mc - e1_su) % 360
-            # if e1_mc_arc > 180:
-            #     e1_mc_arc = 360 - e1_mc_arc
         if e1_asc:
             e1_asc_arc = (e1_asc - e1_su) % 360
-            # if e1_asc_arc > 180:
-            #     e1_asc_arc = 360 - e1_asc_arc
     # msg += (
     # f"e1mo : {e1_mo} | e1su : {e1_su} | "
     # f"e1ascarc : {e1_asc_arc} | e1mcarc : {e1_mc_arc}\n"
@@ -106,8 +101,8 @@ def calculate_p3(event: str):
     # msg += p3_date
     p3_data: list[dict] = []
     # insert p3 date
-    p3_data.append({"name": "p3jdut", "jd_ut": p3_jd})
-    p3_data.append({"name": "p3date", "date": p3_date})
+    p3_data.append({"p3jdut": p3_jd})
+    p3_data.append({"p3date": p3_date})
     try:
         result, e = swe.calc_ut(p3_jd, swe.SUN, app.sweph_flag)  # su lon
     except Exception as e:

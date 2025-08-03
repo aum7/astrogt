@@ -8,7 +8,8 @@ from ui.collapsepanel import CollapsePanel
 from sweph.eventdata import EventData
 from sweph.eventlocation import EventLocation
 from ui.helpers import _event_selection
-from user.settings import DEFAULT_E1  # default event 1 data
+from user.eventsdb.db import DEFAULT_E1  # default event 1 data
+from user.eventsdb.db import DEFAULT_E2
 
 
 def setup_event(manager, event_name: str, expand: bool) -> CollapsePanel:
@@ -75,7 +76,11 @@ comment (add '# ' & save file) uninterested country"""
     # insert country for default event 1 from user/settings.py
     if event_name == "e1":
         default = DEFAULT_E1.get("country")
-        if default in countries:
+        if default and default in countries:
+            ddn_country.set_selected(countries.index(default))
+    else:
+        default = DEFAULT_E2.get("country")
+        if default and default in countries:
             ddn_country.set_selected(countries.index(default))
     # store as widget so we access fresh data later
     if event_name == "e1":
@@ -98,7 +103,13 @@ comment (add '# ' & save file) uninterested country"""
     ent_city.set_placeholder_text("enter city name")
     # todo test string
     if event_name == "e1":
-        ent_city.set_text(DEFAULT_E1.get("city"))
+        default = DEFAULT_E1.get("city")
+        if default:
+            ent_city.set_text(default)
+    else:
+        default = DEFAULT_E2.get("city")
+        if default:
+            ent_city.set_text(default)
     ent_city.set_tooltip_text(
         """enter city name
 if more than 1 city (within selected country) is found
@@ -129,7 +140,13 @@ user needs to select the one of interest
     )
     # todo test string
     if event_name == "e1":
-        ent_location.set_text(DEFAULT_E1.get("location"))
+        default = DEFAULT_E1.get("location")
+        if default:
+            ent_location.set_text(default)
+    else:
+        default = DEFAULT_E2.get("location")
+        if default:
+            ent_location.set_text(default)
     ent_location.set_tooltip_text(
         """latitude & longitude (location)
 
@@ -172,7 +189,13 @@ only use [space] as separator
     )
     # todo test string
     if event_name == "e1":
-        ent_event_name.set_text(DEFAULT_E1.get("name"))
+        default = DEFAULT_E1.get("name")
+        if default:
+            ent_event_name.set_text(default)
+    else:
+        default = DEFAULT_E2.get("name")
+        if default:
+            ent_event_name.set_text(default)
     ent_event_name.set_tooltip_text(
         """will be used for filename when saving
     recommended fit : max 14 characters
@@ -193,7 +216,13 @@ only use [space] as separator
     ent_datetime.set_name("datetime one" if event_name == "e1" else "datetime two")
     # todo test string
     if event_name == "e1":
-        ent_datetime.set_text(DEFAULT_E1.get("datetime"))
+        default = DEFAULT_E1.get("datetime")
+        if default:
+            ent_datetime.set_text(default)
+    else:
+        default = DEFAULT_E2.get("datetime")
+        if default:
+            ent_datetime.set_text(default)
     # ent_datetime.set_placeholder_text("yyyy mm dd HH MM (SS)")
     ent_datetime.set_tooltip_text(
         """year month day hour minute (second)

@@ -65,9 +65,12 @@ def calculate_retro(event: str):
         if event_name in ("e1", "e2"):
             pos = getattr(app, f"{event_name}_positions")
             jd_ut = pos.get("jd_ut")
+        elif event_name == "p2":
+            pos = getattr(app, "p2_pos")
+            jd_ut = next(d["p2jdut"] for d in pos if "p2jdut" in d)
         elif event_name == "p3":
             pos = getattr(app, "p3_pos")
-            jd_ut = next(d["jd_ut"] for d in pos if d.get("name") == "p3jdut")
+            jd_ut = next(d["p3jdut"] for d in pos if "p3jdut" in d)
         # msg += f"{event} jdut curr : {jdtoiso(jd_ut)}\n"
         if not jd_ut:
             notify.warning(
@@ -107,7 +110,7 @@ def calculate_retro(event: str):
                 "nextstation": s_next,
                 "direction": direction,
             })
-            if event == "p3":
+            if event == "p2":
                 msg += (
                     f"[{event}] {name} [{direction}] :\nprev={jdtoiso(s_prev)} "
                     f"< curr={jdtoiso(jd_ut)} < next={jdtoiso(s_next)}\n"

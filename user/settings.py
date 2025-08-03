@@ -93,76 +93,6 @@ PRENATAL = {
 }
 # default prenatal for event 2 todo do we need this ???
 PRENATAL_2 = {""}
-DEFAULT_E1 = {  # todo move to db
-    # default data (state, city, location, name, date-time) for event 1
-    # IMPORTANT ! default country must be enabled in countries.py
-    # locations :
-    # "51 30 54 n 000 05 56 w" : lse
-    # "40 42 25 n 74 0 41 w 10 m" : nyse
-    # ---
-    "country": "UK",
-    "city": "london",
-    "location": "51 30 54 n 000 05 56 w 10 m",
-    "name": "nse 030531 0508",
-    # "datetime": "2025-03-29 10:47:34",  # last solecl
-    # "datetime": "2025 8 1 17 1", # trading start
-    # "datetime": "2003-05-31 05:08:26",  # next solecl
-    "datetime": "2002-12-04 07:31:22",  # dkc 1h solecl
-    # ---
-    # "country": "usa",
-    # "city": "memphis",
-    # "location": "35 08 58 n 090 02 56 w 0085 m",
-    # "name":"lisa presley",
-    # "datetime": "1968 2 1 17 1",
-    # ---
-    # "country": "Slo",
-    # "city": "ljubljana",
-    # "location": "46 03 03 n 014 30 18 e 0294 m",
-    # "name": "simon",
-    # "datetime": "1975 2 8 14 10",
-    # --- houck p59
-    # "country": "USA",
-    # "city": "Garden City",  # ny
-    # "location": "40 44 00 n 073 58 00 w 0032 m",
-    # "name": "telly savalas",  # kojak actor
-    # "datetime": "1924-1-20 5:00:00",
-    # --- houck p59
-    # "country": "USA",
-    # "city": "cobleskill",  # ny
-    # "location": "42 40 40 n 074 29 07 w 0281 m",
-    # "name": "chart # 4",
-    # "datetime": "1946-5-30 16:33:00",
-    # --- houck p62
-    # "country": "USA",
-    # "city": "tupelo",  # mississippi
-    # "location": "34 15 29 n 088 42 16 w 0089 m",
-    # "name": "elvis presley",
-    # "datetime": "1935-1-8 16:35:00",  # died 1977-08-16
-    # --- houck p65
-    # "country": "USA",
-    # "city": "milton",  # ma
-    # "location": "42 14 58 n 071 03 58 w 0043 m",
-    # "name": "george bush",
-    # "datetime": "1924-6-12 15:45:30",  # died
-    # ---
-    # "country": "USA",
-    # "city": "Rahway",
-    # "location": "40 36 29 n 074 16 39 w 0007 m",
-    # "name": "houck # 3",
-    # "datetime": "1964-12-13 15:00:00",
-    # ---
-    # "country": "USA",
-    # "city": "philadelphia, pa",
-    # "location": "39 57 08 n 075 09 49 w 0046 m",
-    # "name": "usa 4.jul birth", # houck
-    # "datetime": "1776-6-19 11:53:00",
-    # ---
-    # "country": "Morocco",
-    # "city": "Agadir",
-    # "location": "30 25 12 n 009 35 53 w 0 m",
-    # "name": "solitaire",
-    # "datetime": "2024-6-19 11:53:00",
-}
 SWE_FLAG = {
     # default flags for sweph calculations
     # all flags are duplicated & commented as backup ; user can toggle them in
@@ -181,7 +111,6 @@ if checked also select ayanamsa below""",
     # --- calculate topocentric positions, viewed from latitude & longitude of
     # event ; else calculate geocentric positions (default, used traditionally
     # in astrology), viewed from center of the earth
-    # if true : call swe_set_topo(geo_lon, geo_lat, altitude_above_sea) todo
     # FLG_TOPOCTR
     "topocentric": (True, "calculate topocentric (vs geocentric) positions"),
     # --- calculate heliocentric positions : astrology uses geocentric positions
@@ -298,6 +227,10 @@ CHART_SETTINGS = {
             False,
             "show traditional primary progression (p1) for event 2\ncalculations as per martin gansten / ptolemy\n[todo, current is simple calculation]",
         ),
+        "p2 progress": (
+            False,
+            "show secondary progression (p2) for event 2",
+        ),
         "p3 progress": (
             True,
             "show tertiary progression (p3) for event 2\ncalculations as per richard houck",
@@ -327,14 +260,14 @@ CHART_SETTINGS = {
     # 4: {time} | 5: {city} | 6: {country} | 7: {lat}itude |
     # 8: {lon}gitude ; for short time format (no seconds) use {time_short}
     "chart info string": (
-        r"{name}\n{date}\n{wday} {time_short}\n{city} @ {iso3}\n{lat}\n{lon}",
+        r"{name}\n{date}\n{wday} {time_short} {hora}\n{city} @ {iso3}\n{lat}\n{lon}",
         # r"{name}\n{date}\n{wday} {time_short}\n{city} @ {country}\n{lat}\n{lon}",
         r"""construct your own 'chart info' format : allowed fields :
     1: event {name} | 2: {datetime} | 3: {date} | 4: {time}
-    5: {time_short} (no seconds) | 6: {wday} weekday
-    7: {country} | 8: {iso3} country code | 9: {city}
-    10: {location} | 11: {lat}itude | 12: {lon}gitude
-    13: {timezone} | 14: timezone {offset} | chars: @ | - :
+    5: {time_short} no seconds | 6: {hora} | 7: {wday} weekday
+    8: {country} | 9: {iso3} country code | 10: {city}
+    11: {location} | 12: {lat}itude | 13: {lon}gitude
+    14: {timezone} | 15: timezone {offset} | chars: @ | - :
 \n = new line
 example : {name}\n{date}\n{wday} {time_short}\n{city} @ {country}\n{lat}\n{lon}""",
     ),

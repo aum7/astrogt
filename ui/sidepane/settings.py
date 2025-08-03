@@ -387,6 +387,18 @@ event 1 & 2 can have different objects"""
     box_prog.append(p1_chk)
     manager.app.checkbox_chart_settings["p1 progress"] = p1_chk
     manager.app.chart_settings["p1 progress"] = p1_data[0]
+    # checkbox for p2
+    p2_data = CHART_SETTINGS["event2 rings"]["p2 progress"]
+    p2_chk = Gtk.CheckButton(label="p2")
+    p2_chk.set_active(p2_data[0])
+    p2_chk.set_tooltip_text(p2_data[1])
+    p2_chk.connect(
+        "toggled",
+        lambda chk, k="p2 progress", m=manager: chart_settings_toggled(chk, k, m),
+    )
+    box_prog.append(p2_chk)
+    manager.app.checkbox_chart_settings["p2 progress"] = p2_chk
+    manager.app.chart_settings["p2 progress"] = p2_data[0]
     # checkbox for p3
     p3_data = CHART_SETTINGS["event2 rings"]["p3 progress"]
     p3_chk = Gtk.CheckButton(label="p3")
@@ -1100,6 +1112,7 @@ def chart_info_string(entry, info, manager):
             "{time}",
             "{time_short}",
             "{wday}",
+            "{hora}",
             "{country}",
             "{iso3}",
             "{city}",
