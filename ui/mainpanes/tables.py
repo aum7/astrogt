@@ -160,6 +160,7 @@ class Tables(Gtk.Notebook):
             if horas_data:
                 curr_hora = horas_data["current_hora"]
                 hora_glyph = get_glyph(curr_hora, False)
+                weekday = horas_data["horas"][0]["weekday"]
             if hsys_char in ["E", "D", "W"]:
                 # print(f"selected_hsys : {self.app.selected_house_sys_str}")
                 # if selected in ["eqa", "eqm", "whs"]:
@@ -168,7 +169,7 @@ class Tables(Gtk.Notebook):
                     f" {self.asc} :  {decsigndms(self.ascendant)}\n"
                     f" {self.mc} :  {decsigndms(self.midheaven)}\n"
                     f" ra : {int(raH):02d}h{int(raM):02d}m{int(raS):02d}s\n"
-                    f" hora : {hora_glyph}\n"
+                    f" {weekday} : {hora_glyph}\n"
                 )
             else:
                 ln_csps += f" houses {self.h_sym * 7}\n"
@@ -180,7 +181,7 @@ class Tables(Gtk.Notebook):
                     f" {self.asc} :  {decsigndms(self.ascendant)}\n"
                     f" {self.mc} :  {decsigndms(self.midheaven)}\n"
                     f" ra : {int(raH):02d}h{int(raM):02d}m{int(raS):02d}s\n"
-                    f" hora : {hora_glyph}\n"
+                    f" {weekday} : {hora_glyph}\n"
                 )
             ln_csps += separ
             content += ln_csps

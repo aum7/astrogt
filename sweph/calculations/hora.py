@@ -157,6 +157,6 @@ def calculate_hora(event: str):
     notify.debug(
         msg,
         source="hora",
-        route=["terminal"],
+        route=[""],
     )
     return {"horas": horas, "current_hora": curr_hora}

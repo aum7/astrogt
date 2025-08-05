@@ -230,7 +230,7 @@ class Info(RingBase):
         # convert raw newline into actual newline
         fmt_basic = fmt_basic.replace(r"\n", "\n")
         if "hora" in fmt_basic:
-            print("rings : hora found in info string ")
+            # print("rings : hora found in info string ")
             hora_lord = self.event_data["hora"]
             self.event_data["hora"] = get_glyph(hora_lord, False)
         fmt_extra = fmt_extra.replace(r"\n", "\n")
@@ -243,7 +243,7 @@ class Info(RingBase):
             self.notify.debug(
                 f"circleinfo : infotext : {info_text}",
                 source="rings",
-                route=["terminal"],
+                route=[""],
             )
         except Exception as e:
             # fallback to default info string

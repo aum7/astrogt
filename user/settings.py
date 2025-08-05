@@ -241,7 +241,7 @@ CHART_SETTINGS = {
             True,
             "show (simple) varga ring for event 2\nset varga in above harmonic ring",
         ),
-        "transit": (True, "show transit for event 2"),
+        "transit": (False, "show transit for event 2"),
     },
     # --- draw fixed stars
     # in user/fixedstars.py are categories of stars :
