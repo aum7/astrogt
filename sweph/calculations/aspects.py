@@ -10,7 +10,7 @@ from ui.fonts.glyphs import ASPECTS
 
 
 def angle_diff(a: float, b: float) -> float:
-    # shortest angle difference, range -180..+180
+    # shortest angle difference, range -180..+180, and phase up / down
     diff = (b - a) % 360.0
     # diff = (a - b) % 360.0 # for am2, also change line there
     if diff > 180.0:
@@ -42,8 +42,6 @@ def nearest_major_aspect(angle: float, orb: float):
 
 
 def aspects_matrix(objs_map: list[str], pos_map: dict, orb: float):
-    # obj_names = [name for name in draw_order if name in pos_map]
-    # keys = [k for name in obj_names for k, v in pos_map.items() if v["name"] == name]
     num = len(objs_map)
     matrix = []
     for i in range(num):
@@ -100,6 +98,12 @@ def aspects_matrix(objs_map: list[str], pos_map: dict, orb: float):
     return objs_map, matrix, speeds
 
 
+# def phases_matrix(objs_map: list[str], pos_map: dict):
+#     """build phases/aspects hybrid matrix"""
+#     n = len(objs_map)
+#     return ""
+
+
 def calculate_aspects(event: str):
     """calculate aspectarian for one or both events"""
     app = Gtk.Application.get_default()
@@ -111,7 +115,7 @@ def calculate_aspects(event: str):
     # event 1 data is mandatory
     if not app.e1_sweph.get("jd_ut"):
         notify.error(
-            "missing event one data needed for aspectarian : exiting ...",
+            "missing event one data : exiting ...",
             source="aspects",
             route=["terminal", "user"],
         )
@@ -121,20 +125,29 @@ def calculate_aspects(event: str):
         # skip e2 if no julian day 2 utc set = user not interested in e2
         events.remove("e2")
         msg += "e2 removed\n"
-    pos = getattr(app, "e1_positions", None)
+    if event == "e1":
+        pos = getattr(app, "e1_positions", None)
+    elif event == "e2":
+        pos = getattr(app, "e2_positions", None)
+
     draw_order = ["mo", "me", "ve", "su", "ma", "ju", "sa", "ur", "ne", "pl", "ra"]
     if pos:
         # get objects positions by name
         pos_map = {v["name"]: v for k, v in pos.items() if isinstance(k, int)}
         objs_map = [name for name in draw_order if name in pos_map]
-    msg += f"posmap : {pos_map}"
+    msg = f"objsmap : {objs_map} | posmap : {pos_map}"
+    # msg += f"posmap : {pos_map}"
     orb = 1.5
     obj_names, aspect_matrix, speeds = aspects_matrix(objs_map, pos_map, orb)
-    data = {
+    # add also cumulative phases data
+    # phases_matrix = phases_matrix(objs_map, pos_map)
+    aspects_data = {
         "obj names": obj_names,
-        "matrix": aspect_matrix,
+        "aspects": aspect_matrix,
+        # "phases": phases_matrix,
         "speeds": speeds,
     }
+
     if print_am:
         print("--- am ---")
         for row in aspect_matrix:
@@ -152,7 +165,7 @@ def calculate_aspects(event: str):
                     )
         print("--- am end ---")
     # --- new code end
-    app.signal_manager._emit("aspects_changed", event, data)
+    app.signal_manager._emit("aspects_changed", event, aspects_data)
     notify.debug(
         msg,
         source="aspects",

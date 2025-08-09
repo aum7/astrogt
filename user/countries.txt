@@ -9,7 +9,7 @@
 ("GB", "UK", "GBR"),
 #("HR", "Cro", "HRV"),
 ("SI", "Slo", "SVN"),
-#("US", "USA", "USA"),
+("US", "USA", "USA"),
 #("MA", "Morocco", "MAR"),
 #--------------------------------------------
 #("AF", "Afghanistan", "AFG"),
