@@ -481,7 +481,6 @@ class Tables(Gtk.Notebook):
 
     def update_aspects(self, event):
         # called by update_event_data()
-        aspects = self.events_data[event].get("aspects")
         if (
             event not in self.events_data
             or "aspects" not in self.events_data[event]
@@ -493,7 +492,7 @@ class Tables(Gtk.Notebook):
                 route=["terminal"],
             )
             return
-
+        aspects = self.events_data[event].get("aspects")
         obj_names = aspects["obj names"]
         speeds = aspects["speeds"]
         name2idx = {n: i for i, n in enumerate(aspects["obj names"])}
@@ -546,6 +545,7 @@ class Tables(Gtk.Notebook):
         return text
 
     def update_phases(self, event):
+        # called by update_event_data()
         if (
             event not in self.events_data
             or "phases" not in self.events_data[event]
@@ -558,92 +558,42 @@ class Tables(Gtk.Notebook):
             )
             return
         phases = self.events_data[event]["phases"]
-        pairs = phases["pairs"]
-        waves = phases["waves"]
-        # obj_names = phases["obj names"]
-        # matrix = phases["matrix"]
-        # name2idx = {n: i for i, n in enumerate(obj_names)}
+        obj_names = phases["obj names"]
+        matrix = phases["matrix"]
+        name2idx = {n: i for i, n in enumerate(obj_names)}
         # header
-        # text = f" phases {self.h_sym * 56}\n"
-        # for name in obj_names:
-        #     text += f"{self.vic_spc}{name}   {self.v_sym}"
-        # text += "\n"
-        # h_line = f"{self.h_sym * 62}\n"
-        # for row_name in obj_names:
-        #     i = name2idx[row_name]
-        #     # speed = speeds.get(row_name, 0.0)
-        #     # retro = "R" if speed < 0 else " "
-        #     # text += f" {row_name}{retro}{self.v_sym}"
-        #     for col_name in obj_names:
-        #         j = name2idx[col_name]
-        #         cell = matrix[i][j]
-        #         if cell["type"] == "diag":
-        #             text += f"{self.vic_spc}**** {self.v_sym}"
-        #         elif cell["type"] == "aspect":
-        #             if i < j and cell.get("major"):
-        #                 glyph = cell.get("glyph", "")
-        #                 orb = cell.get("orb")
-        #                 orb_s = f"{orb:4.1f}" if orb is not None else "    "
-        #                 a_s = "a" if cell.get("applying") else "s"
-        #                 text += f"{glyph}{orb_s}{a_s}{self.v_sym}"
-        #             else:
-        #                 text += f"{self.vic_spc}  -  {self.v_sym}"
-        #         else:  # phase cell
-        #             sep = cell.get("separation")
-        #             ph = cell.get("phase")
-        #             cum = cell.get("cumulative")
-        #             # format: sep phase (cum)
-        #             if sep is not None:
-        #                 sep_s = f"{sep:5.1f}"
-        #                 cum_s = f"{cum:5.1f}"
-        #                 # keep width stable: use sep + phase letter + cum
-        #                 ph_l = "u" if ph == "up" else "d"
-        #                 text += f"{sep_s}{ph_l}{cum_s}{self.v_sym}"
-        #             else:
-        #                 text += f"{self.vic_spc}  -  {self.v_sym}"
-        #     text += "\n"
-        # text += h_line
-        # header
-        txt = f" phases / cycles {self.h_sym * 11}\n"
-        txt += (
-            f" sl-fa {self.v_sym} sep "
-            f"{self.v_sym} raw {self.v_sym}ph {self.v_sym} dspeed\n"
-        )
-        # pairs listed in slow->fast order
-        for p in pairs:
-            slow = p["slower"]
-            fast = p["faster"]
-            sep = f"{p['separation']:5.1f}"
-            raw = f"{p['raw']:5.1f}"
-            phase = p["phase"]
-            ds = f"{p['delta_speed']:7.3f}"
-            # dspd = f"{ds: .3f}"
-            txt += (
-                f" {slow}-{fast} {self.v_sym}"
-                f"{sep}{self.v_sym}{raw}{self.v_sym} "
-                # f"{phase}\n"
-                f"{phase} {self.v_sym}{ds}\n"
-            )
-        txt += f"{self.h_sym * 22}\n"
-        # waves section
-        if waves:
-            txt_w = f" waves (cumulative indices) {'-' * 27}\n"
-            txt_w += f" pl | members (slow->fast){' ' * 12} | pairs |    sum\n"
-            for w in waves:
-                planet = w["planet"]
-                members = w["members"]
-                n_pairs = (len(members) * (len(members) - 1)) // 2
-                members_s = "-".join(members)
-                txt_w += (
-                    f" {planet} | {members_s:<32} | {n_pairs:>5} | {w['sum']:6.1f}\n"
-                )
-        # txt += f"{self.h_sym * 62}\n"
+        text = f" phases{self.vic_spc}{self.h_sym * 59}\n"
+        text += f" > {self.v_sym}"
+        for name in obj_names:
+            text += f" {name:>2}    {self.v_sym}"
+        text += "\n"
+        h_line = f"{self.h_sym * 65}\n"
+        for row_name in obj_names:
+            i = name2idx[row_name]
+            # speed = speeds.get(row_name, 0.0)
+            # retro = "R" if speed < 0 else " "
+            # text += f" {row_name}{retro}{self.v_sym}"
+            text += f" {row_name:>2}{self.v_sym}"
+            for col_name in obj_names:
+                j = name2idx[col_name]
+                cell = matrix[i][j]
+                if i == j:
+                    text += f" ***** {self.v_sym}"
+                else:
+                    sep = cell.get("angle")
+                    ph = cell.get("phase")
+                    # cum = cell.get("cumulative")
+                    sep_s = f"{sep:5.1f}" if sep is not None else ""
+                    ph_s = ph if ph is not None else ""
+                    text += f"{sep_s} {ph_s}{self.v_sym}"
+            text += "\n"
+        text += h_line
         self.notify.debug(
-            f"updatephases :\n{txt}\n{txt_w}",
+            f"updatephases :\n{text}",
             source="tables",
             route=["terminal"],
         )
-        return txt
+        return text
 
     def vimsottari_widget(self, event: str, content: str):
         # create a scrollable text view for an event

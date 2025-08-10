@@ -153,14 +153,8 @@ def calculate_aspects(event: str):
         for row in aspect_matrix:
             for cell in row:
                 if not do_filter or cell.get("major"):
-                    # if (obj1["name"] == "me" and obj2["name"] == "mo") or (
-                    #     obj1["name"] == "mo" and obj2["name"] == "me"
-                    # ):
                     print(
                         f"{cell['obj1']}->{cell['obj2']} | {cell['aspect']} | "
-                        # f"angle={cell['angle']} | "
-                        # f"major={cell['major']} | "
-                        # f"orb={cell['orb']} | "
                         f"applying={'a' if cell['applying'] else 's'} "
                     )
         print("--- am end ---")

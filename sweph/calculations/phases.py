@@ -1,36 +1,97 @@
 # sweph/calculations/aspects.py
 # ruff: noqa: E402, E701
-# import math
 import gi
 
 gi.require_version("Gtk", "4.0")
 from gi.repository import Gtk  # type: ignore
 
-# fixed slowest->fastest order (filter later for available objects)
+# fixed slowest->fastest order by synodic period
 SLOW_ORDER = ["pl", "ne", "ur", "sa", "ra", "ju", "ma", "su", "ve", "me", "mo"]
-# SLOW_ORDER = ["pl", "ne", "ur", "sa", "ju", "ma", "su", "ve", "me", "mo", "ra"]
 
 
-def angle_diff_0_360(a: float, b: float) -> float:
+def angle_diff(a: float, b: float) -> float:
     """angular distance from a to b forward 0..360"""
     return (b - a) % 360.0
 
 
-def phase_pair(lon_slow: float, speed_slow: float, lon_fast: float, speed_fast: float):
+def phase_pair(lon_slow: float, lon_fast: float):
     """compute raw angle, signed phase (+/-) and separation <=180"""
-    raw = angle_diff_0_360(lon_slow, lon_fast)  # 0..360
-    delta_speed = speed_fast - speed_slow
+    raw = angle_diff(lon_slow, lon_fast)  # 0..360
     if raw <= 180.0:
-        separation = raw
-        angle = "+"
+        angle = raw
+        phase = "+"
     else:
-        separation = 360.0 - raw
-        angle = "-"
-    return raw, separation, angle, delta_speed
+        angle = 360.0 - raw
+        phase = "-"
+    return raw, angle, phase
+
+
+def compound_column(col_idx, ordered, pos_map):
+    # compute cumulative phase per column
+    col_name = ordered[col_idx]
+    num = len(ordered)
+    compound_vals = [None for _ in range(num)]
+    synodic_vals = [None for _ in range(num)]
+    # initial value (diagonal)
+    compound = None
+    for row_idx in range(num):
+        # row_name = ordered[row_idx]
+        if row_idx == col_idx:
+            compound_vals[row_idx] = None
+            synodic_vals[row_idx] = None
+            continue
+        # get synodic value for col-row pair
+        lon_slow = pos_map[col_name]["lon"]
+        lon_fast = pos_map[ordered[row_idx]]["lon"]
+        raw, angle, phase = phase_pair(lon_slow, lon_fast)
+        synodic_vals[row_idx] = (angle, phase)
+        # compound calculation
+        if compound is None:
+            compound = angle
+        else:
+            # add/subtract as per phase
+            if phase == "+":
+                compound = (compound + angle) % 360
+            else:
+                compound = (compound - angle) % 360
+            # keep in 0..360
+            compound %= 360.0
+        compound_vals[row_idx] = compound
+    return synodic_vals, compound_vals
+
+
+def phases_matrix(ordered, pos_map):
+    # make phases table matrix
+    num = len(ordered)
+    matrix = []
+    for row_idx in range(num):
+        row = []
+        for col_idx in range(num):
+            if row_idx == col_idx:
+                row.append({
+                    "angle": None,
+                    "phase": None,
+                    "compound": None,
+                    "type": "diag",
+                })
+                continue
+            synodic_vals, compound_vals = compound_column(col_idx, ordered, pos_map)
+            # if synodic_vals and compound_vals:
+            angle, phase = synodic_vals[row_idx]
+            compound = compound_vals[row_idx]
+            cell = {
+                "angle": round(angle, 1) if angle else None,
+                "phase": phase,
+                "compound": round(compound, 1) if compound else None,
+                "type": "phase",
+            }
+            row.append(cell)
+        matrix.append(row)
+    return ordered, matrix
 
 
 def calculate_phases(event: str):
-    """calculate compound phase table for one event"""
+    # calculate compound phase table for event
     app = Gtk.Application.get_default()
     notify = app.notify_manager
     if event not in ("e1", "e2"):
@@ -38,68 +99,44 @@ def calculate_phases(event: str):
     pos = getattr(app, f"{event}_positions", None)
     if not pos:
         notify.error(
-            f"missing positions for {event} : compound abort",
-            source="compound",
-            route=["terminal", "user"],
+            f"missing positions for {event} : exiting ...",
+            source="phases",
+            route=["terminal"],
         )
         return
     # build name -> obj map (only numeric keys)
     pos_map = {v["name"]: v for k, v in pos.items() if isinstance(k, int)}
     # filter slow order by available names
     ordered = [n for n in SLOW_ORDER if n in pos_map]
-    # collect pairs (unique slower->faster)
-    pairs = []
-    for i in range(len(ordered)):
-        slow = ordered[i]
-        lon_slow = pos_map[slow]["lon"]
-        speed_slow = pos_map[slow]["lon speed"]
-        for j in range(i + 1, len(ordered)):
-            fast = ordered[j]
-            lon_fast = pos_map[fast]["lon"]
-            speed_fast = pos_map[fast]["lon speed"]
-            raw, sep, phase, speed = phase_pair(
-                lon_slow, speed_slow, lon_fast, speed_fast
-            )
-            pairs.append({
-                "slower": slow,
-                "faster": fast,
-                "separation": round(sep, 2),
-                "raw": round(raw, 2),
-                "phase": phase,
-                "delta_speed": speed,
-            })
-    # build cumulative waves (cyclic indices)
-    # for each planet from third onward (index >=2) sum all separations
-    # among subset ordered[0..k]
-    # preindex separations for speed
-    pair_sep = {}
-    for p in pairs:
-        pair_sep[(p["slower"], p["faster"])] = p["separation"]
-    waves = []
-    for k in range(2, len(ordered)):
-        members = ordered[0 : k + 1]
-        s = 0.0
-        for i in range(len(members)):
-            for j in range(i + 1, len(members)):
-                slow = members[i]
-                fast = members[j]
-                s += pair_sep.get((slow, fast), 0.0)
-        waves.append({
-            "planet": ordered[k],
-            "members": members.copy(),
-            "sum": round(s, 2),
-        })
+    obj_names, phase_matrix = phases_matrix(ordered, pos_map)
     phases_data = {
-        "ordered": ordered,
-        "pairs": pairs,
-        "waves": waves,
+        "obj names": obj_names,
+        "matrix": phase_matrix,
     }
-
+    # debug print
+    msg = "\n--- phases matrix ---\n"
+    # header
+    msg += " > | " + "     | ".join(f" {n:>5} |" for n in obj_names) + "\n"
+    num = len(obj_names)
+    for row_idx in range(num):
+        row_label = obj_names[row_idx]
+        msg += f"{row_label:>2} |"
+        for col_idx in range(num):
+            cell = phase_matrix[row_idx][col_idx]
+            if cell["type"] == "diag":
+                msg += " *** |"
+            else:
+                angle = cell["angle"]
+                phase = cell["phase"]
+                compound = cell["compound"]
+                val = f"{angle:5.1f} {phase} {compound:6.1f}"
+                msg += f"{val}"
+        msg += "\n"
     app.signal_manager._emit("phases_changed", event, phases_data)
     notify.debug(
-        f"phases updated for {event}",
+        msg,
         source="phases",
-        route=[""],
+        route=["terminal"],
     )
 
 
