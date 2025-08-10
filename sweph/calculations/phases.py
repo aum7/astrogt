@@ -116,7 +116,7 @@ def calculate_phases(event: str):
     # debug print
     msg = "\n--- phases matrix ---\n"
     # header
-    msg += " > | " + "     | ".join(f" {n:>5} |" for n in obj_names) + "\n"
+    msg += " > | " + "          | ".join(obj_names) + "\n"
     num = len(obj_names)
     for row_idx in range(num):
         row_label = obj_names[row_idx]
@@ -124,12 +124,12 @@ def calculate_phases(event: str):
         for col_idx in range(num):
             cell = phase_matrix[row_idx][col_idx]
             if cell["type"] == "diag":
-                msg += " *** |"
+                msg += " *********** |"
             else:
                 angle = cell["angle"]
                 phase = cell["phase"]
                 compound = cell["compound"]
-                val = f"{angle:5.1f} {phase} {compound:6.1f}"
+                val = f"{angle:5.1f} {phase}{compound:6.1f}|"
                 msg += f"{val}"
         msg += "\n"
     app.signal_manager._emit("phases_changed", event, phases_data)
