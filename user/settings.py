@@ -117,7 +117,7 @@ if checked also select ayanamsa below""",
     # FLG_HELCTR
     # "heliocentric": (False, "calculate heliocentric (vs geocentric) positions"),
     # --- use default sweph ephemeris & speed calculations
-    "default flag": (True, "use default (sweph ephemeris & speed calculations)"),
+    "default flag": (True, "use default (swiss ephemeris & speed) calculations"),
     # --- do NOT use nutation : small irregularity in the precession of the equinoxes
     # use mean equinox of date
     # FLG_NONUT
@@ -243,6 +243,15 @@ CHART_SETTINGS = {
         ),
         "transit": (False, "show transit for event 2"),
     },
+    # --- use varga positions for phases table
+    "use varga": (
+        False,
+        "use varga positions for cyclic index table calculations\nsort of 'harmonic' cyclic index",
+    ),
+    "cycle members": (
+        ("saturn", "jupiter", "mars"),
+        "select objects for custom cyclic index",
+    ),
     # --- draw fixed stars
     # in user/fixedstars.py are categories of stars :
     # custom ; naksatras28 ; behenian15 ; robson118 ; alphabetical521

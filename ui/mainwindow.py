@@ -18,7 +18,7 @@ from sweph.calculations.positions import connect_signals_positions
 from sweph.calculations.houses import connect_signals_houses
 from sweph.calculations.stars import connect_signals_stars
 from sweph.calculations.aspects import connect_signals_aspects
-from sweph.calculations.phases import connect_signals_phases
+from sweph.calculations.cyclicindex import connect_signals_cycles
 from sweph.calculations.vimsottari import connect_signals_vimsottari
 from sweph.calculations.p1 import connect_signals_p1
 from sweph.calculations.p2 import connect_signals_p2
@@ -65,7 +65,7 @@ class MainWindow(
         connect_signals_houses(self.app.signal_manager)
         connect_signals_stars(self.app.signal_manager)
         connect_signals_aspects(self.app.signal_manager)
-        connect_signals_phases(self.app.signal_manager)
+        connect_signals_cycles(self.app.signal_manager)
         connect_signals_vimsottari(self.app.signal_manager)
         connect_signals_p1(self.app.signal_manager)
         connect_signals_p2(self.app.signal_manager)

@@ -8,8 +8,7 @@ from gi.repository import Gtk  # type: ignore
 from typing import List, Optional
 from ui.helpers import _object_name_to_code as objcode
 from sweph.calculations.naksatras import calculate_naksatra
-from sweph.calculations.varga import get_varga
-# from sweph.calculations.retro import retro_marker
+from sweph.calculations.varga import get_varga_lon
 
 
 def calculate_positions(event: Optional[str] = None) -> None:
@@ -70,7 +69,7 @@ def calculate_positions(event: Optional[str] = None) -> None:
                 positions = result[0] if isinstance(result, tuple) else result
                 naksatra = calculate_naksatra(positions[0], use_28_naks)
                 # retro = retro_marker(code, positions[3])
-                varga = get_varga(positions[0], division)
+                varga = get_varga_lon(positions[0], division)
                 data[code] = {
                     "name": name,
                     "lon": positions[0],

@@ -1,4 +1,5 @@
 # ui/sidepane/settings.py
+
 # ruff: noqa: E402
 import swisseph as swe
 import gi
@@ -474,9 +475,36 @@ event 1 & 2 can have different objects"""
     box_var_tran.append(chk_tran)
     manager.app.checkbox_chart_settings["transit"] = chk_tran
     manager.app.chart_settings["transit"] = data_tran[0]
-
     row_var_tran.set_child(box_var_tran)
     lbx_chart_setts_btm.append(row_var_tran)
+    # checkbox to use varga for cyclic index table
+    row_use_varga = Gtk.ListBoxRow()
+    data_use_varga = CHART_SETTINGS["use varga"]
+    chk_use_varga = Gtk.CheckButton(label="use varga")
+    chk_use_varga.set_active(data_use_varga[0])
+    chk_use_varga.set_tooltip_text(data_use_varga[1])
+    chk_use_varga.connect(
+        "toggled",
+        lambda chk, k="use varga", m=manager: chart_settings_toggled(chk, k, m),
+    )
+    manager.app.checkbox_chart_settings["use varga"] = chk_use_varga
+    manager.app.chart_settings["use varga"] = data_use_varga[0]
+    row_use_varga.set_child(chk_use_varga)
+    lbx_chart_setts_btm.append(row_use_varga)
+
+    row_cycle_members = Gtk.ListBoxRow()
+    box_cycle_members = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=7)
+    lbl_cycle_members = Gtk.Label(label="cycle members")
+    box_cycle_members.append(lbl_cycle_members)
+    ent_cycle_members = Gtk.Entry()
+    ent_cycle_members.set_text(", ".join(CHART_SETTINGS["cycle members"][0]))
+    ent_cycle_members.set_tooltip_text(CHART_SETTINGS["cycle members"][1])
+    # ent_cycle_members.connect("activate", cycle_members, manager)
+    box_cycle_members.append(ent_cycle_members)
+    app.chart_settings["cycle members"] = ent_cycle_members.get_text()
+    row_cycle_members.set_child(box_cycle_members)
+
+    lbx_chart_setts_btm.append(row_cycle_members)
     # fixed stars --------------------------------------
     row = Gtk.ListBoxRow()
     box_fixed_stars = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=7)
@@ -1069,6 +1097,12 @@ def harmonic_ring(entry, manager):
         source="panel.settings",
         route=[""],
     )
+
+
+def cycle_members(entry, manager):
+    """planets used to calculate cyclic index table"""
+    print(f"sidepn:sett:cyclemem : {entry}")
+    pass
 
 
 def fixed_stars(entry, manager):

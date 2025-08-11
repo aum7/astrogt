@@ -45,7 +45,7 @@ class Tables(Gtk.Notebook):
         signal._connect("positions_changed", self.positions_changed)
         signal._connect("houses_changed", self.houses_changed)
         signal._connect("aspects_changed", self.aspects_changed)
-        signal._connect("phases_changed", self.phases_changed)
+        signal._connect("cycles_changed", self.cycles_changed)
         # vimsottari dasa widget
         signal._connect("vimsottari_changed", self.vimsottari_changed)
         # p2 table
@@ -96,11 +96,11 @@ class Tables(Gtk.Notebook):
         # print(f"tables posmap : {pos_map}")
         # get houses data if available
         houses = self.events_data[event].get("houses")
-        phases = self.update_phases(event)
+        cycles = self.update_cycles(event)
         aspects = self.update_aspects(event)
         content = ""
-        if phases:
-            content += phases
+        if cycles:
+            content += cycles
         if aspects:
             content += aspects
         if houses:
@@ -235,10 +235,10 @@ class Tables(Gtk.Notebook):
         self.events_data[event]["aspects"] = aspects
         self.update_event_data(event)
 
-    def phases_changed(self, event, data):
+    def cycles_changed(self, event, data):
         if event not in self.events_data:
             self.event_data[event] = {}
-        self.events_data[event]["phases"] = data
+        self.events_data[event]["cycles"] = data
         self.update_event_data(event)
 
     def vimsottari_changed(self, event, vimsottari):
@@ -544,25 +544,25 @@ class Tables(Gtk.Notebook):
         )
         return text
 
-    def update_phases(self, event):
+    def update_cycles(self, event):
         # called by update_event_data()
         if (
             event not in self.events_data
-            or "phases" not in self.events_data[event]
-            or not self.events_data[event]["phases"]
+            or "cycles" not in self.events_data[event]
+            or not self.events_data[event]["cycles"]
         ):
             self.notify.error(
-                "missing data for {event}",
+                f"missing data for {event}",
                 source="tables",
                 route=["terminal"],
             )
             return
-        phases = self.events_data[event]["phases"]
-        obj_names = phases["obj names"]
-        matrix = phases["matrix"]
+        cycles = self.events_data[event]["cycles"]
+        obj_names = cycles["obj names"]
+        matrix = cycles["matrix"]
         name2idx = {n: i for i, n in enumerate(obj_names)}
         # header
-        text = f" phases{self.vic_spc}{self.h_sym * 59}\n"
+        text = f" {event} cyclic index [compound : settings > chart settings > use varga for harmonic index & select cycle members] {self.vic_spc}{self.h_sym * 12}\n"
         text += f" > {self.v_sym}"
         for name in obj_names:
             text += f" {name:>2}    {self.v_sym}"
@@ -570,26 +570,24 @@ class Tables(Gtk.Notebook):
         h_line = f"{self.h_sym * 65}\n"
         for row_name in obj_names:
             i = name2idx[row_name]
-            # speed = speeds.get(row_name, 0.0)
-            # retro = "R" if speed < 0 else " "
-            # text += f" {row_name}{retro}{self.v_sym}"
             text += f" {row_name:>2}{self.v_sym}"
             for col_name in obj_names:
                 j = name2idx[col_name]
                 cell = matrix[i][j]
-                if i == j:
+                if cell is None or cell.get("type") == "skip":
+                    text += f"   -   {self.v_sym}"
+                elif i == j:
                     text += f" ***** {self.v_sym}"
                 else:
-                    sep = cell.get("angle")
-                    ph = cell.get("phase")
-                    # cum = cell.get("cumulative")
-                    sep_s = f"{sep:5.1f}" if sep is not None else ""
-                    ph_s = ph if ph is not None else ""
+                    com = cell.get("compound")
+                    if com is not None:
+                        sep_s = f"{com[0]:5.1f}"
+                        ph_s = com[1]
                     text += f"{sep_s} {ph_s}{self.v_sym}"
             text += "\n"
         text += h_line
         self.notify.debug(
-            f"updatephases :\n{text}",
+            f"updatecycles :\n{text}",
             source="tables",
             route=["terminal"],
         )

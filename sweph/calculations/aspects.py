@@ -10,7 +10,7 @@ from ui.fonts.glyphs import ASPECTS
 
 
 def angle_diff(a: float, b: float) -> float:
-    # shortest angle difference, range -180..+180, and phase up / down
+    # shortest angle difference, range -180..+180
     diff = (b - a) % 360.0
     # diff = (a - b) % 360.0 # for am2, also change line there
     if diff > 180.0:
@@ -94,14 +94,7 @@ def aspects_matrix(objs_map: list[str], pos_map: dict, orb: float):
         matrix.append(row)
     # collect speed for retro character in panetables.py
     speeds = {name: pos_map[name]["lon speed"] for name in objs_map}
-    # speeds = {obj1["name"]: obj1["lon speed"] for obj1 in pos_map.values()}
     return objs_map, matrix, speeds
-
-
-# def phases_matrix(objs_map: list[str], pos_map: dict):
-#     """build phases/aspects hybrid matrix"""
-#     n = len(objs_map)
-#     return ""
 
 
 def calculate_aspects(event: str):
@@ -139,12 +132,9 @@ def calculate_aspects(event: str):
     # msg += f"posmap : {pos_map}"
     orb = 1.5
     obj_names, aspect_matrix, speeds = aspects_matrix(objs_map, pos_map, orb)
-    # add also cumulative phases data
-    # phases_matrix = phases_matrix(objs_map, pos_map)
     aspects_data = {
         "obj names": obj_names,
         "aspects": aspect_matrix,
-        # "phases": phases_matrix,
         "speeds": speeds,
     }
 
