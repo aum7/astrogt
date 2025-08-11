@@ -491,17 +491,19 @@ event 1 & 2 can have different objects"""
     manager.app.chart_settings["use varga"] = data_use_varga[0]
     row_use_varga.set_child(chk_use_varga)
     lbx_chart_setts_btm.append(row_use_varga)
-
+    # row for selected members for custom cyclic index calculation
     row_cycle_members = Gtk.ListBoxRow()
     box_cycle_members = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=7)
     lbl_cycle_members = Gtk.Label(label="cycle members")
     box_cycle_members.append(lbl_cycle_members)
     ent_cycle_members = Gtk.Entry()
+    # ent_cycle_members.set_text(" ".join(CHART_SETTINGS["cycle members"][0]))
     ent_cycle_members.set_text(", ".join(CHART_SETTINGS["cycle members"][0]))
     ent_cycle_members.set_tooltip_text(CHART_SETTINGS["cycle members"][1])
-    # ent_cycle_members.connect("activate", cycle_members, manager)
+    ent_cycle_members.connect("activate", cycle_members, manager)
     box_cycle_members.append(ent_cycle_members)
-    app.chart_settings["cycle members"] = ent_cycle_members.get_text()
+    app.chart_settings["cycle members"] = CHART_SETTINGS["cycle members"][0]
+    # ent_cycle_members.get_text()
     row_cycle_members.set_child(box_cycle_members)
 
     lbx_chart_setts_btm.append(row_cycle_members)
@@ -1101,8 +1103,35 @@ def harmonic_ring(entry, manager):
 
 def cycle_members(entry, manager):
     """planets used to calculate cyclic index table"""
-    print(f"sidepn:sett:cyclemem : {entry}")
-    pass
+    # app_cyc_mem = manager.app.chart_settings["cycle members"]
+    text = entry.get_text().replace(",", " ")
+    members = [m.strip() for m in text.split() if m.strip()]
+    valid_objects = set()
+    for obj in OBJECTS.values():
+        valid_objects.add(obj[0])
+    if all(member in valid_objects for member in members):
+        entry.remove_css_class("entry-warning")
+        manager.app.chart_settings["cycle members"] = " ".join(members)
+        entry.set_text(manager.app.chart_settings["cycle members"])
+    else:
+        entry.set_text(manager.app.chart_settings["cycle members"])
+        manager.notify.warning(
+            "allowed are 2-character short english names only"
+            "\nie su (sun) | me (mercury) etc"
+            "\nsee user/settings.py > OBJECTS for details",
+            source="panel.settings",
+            route=["terminal", "user"],
+        )
+    setting = manager.app.chart_settings["cycle members"]
+    manager.signal._emit("settings_changed", None)
+    manager.notify.debug(
+        (
+            f"text : {text}\nmembers : {members}\nsetting : {setting}\n"
+            f"valobjs : {valid_objects}"
+        ),
+        source="panel.settings",
+        route=["terminal"],
+    )
 
 
 def fixed_stars(entry, manager):

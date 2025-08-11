@@ -248,9 +248,15 @@ CHART_SETTINGS = {
         False,
         "use varga positions for cyclic index table calculations\nsort of 'harmonic' cyclic index",
     ),
+    # --- use custom planet list for cyclic index
     "cycle members": (
-        ("saturn", "jupiter", "mars"),
-        "select objects for custom cyclic index",
+        ["pl ne ur sa ju"],
+        # ["sa ju ma"],
+        "select objects for custom cyclic index"
+        "\nshort english names only (mo : moon | ne : neptune etc)"
+        "\nuse [space] for separator"
+        "\nmin 2 objects are required for a cycle"
+        "\nsee user/settings.py > OBJECTS for all available values",
     ),
     # --- draw fixed stars
     # in user/fixedstars.py are categories of stars :
