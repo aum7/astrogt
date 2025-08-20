@@ -53,12 +53,16 @@ class DataGraph(Gtk.Box):
         """load & plot data"""
         # construct file path
         data_folder = self.app.files.get("data")
-        filepath = os.path.join(data_folder, "gold/xauusd_1h_030505_250801.csv")
-        # filepath = os.path.join(data_folder, "gold/gold_1h_utc.csv")
-        # filepath = os.path.join(data_folder, "gold/gold_1h_est.csv")
+        # filepath = os.path.join(data_folder, "gold/gold_1h_030505_250801.csv")
+        # filepath = os.path.join(data_folder, "gold/gold_d_1969_240515.csv")
+        # filepath = os.path.join(data_folder, "gold/gold_d_990603_250809.csv")
+        filepath = os.path.join(data_folder, "ejpt/ejpt.csv")
         # load csv
         df = pd.read_csv(
-            filepath, parse_dates=["datetime_utc"], index_col="datetime_utc"
+            filepath,
+            parse_dates=["datetime"],
+            index_col="datetime",
+            # filepath, parse_dates=["datetime_utc"], index_col="datetime_utc"
         )
         self.full_df = df
 
