@@ -23,8 +23,9 @@ def setup_event(manager, event_name: str, expand: bool) -> CollapsePanel:
     lbl_event = panel.get_title()
     lbl_event.set_tooltip_text(
         """main event ie natal / event chart
-click to set focus to event 1
+        click to set focus to event 1
 so change time will apply to it
+hk : e (toggle)
 
 note
 location (latitude & longitude) 1 + 

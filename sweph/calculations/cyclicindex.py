@@ -8,7 +8,19 @@ from gi.repository import Gtk  # type: ignore
 # from itertools import combinations
 
 # fixed slowest->fastest order by synodic period todo ra yes no ???
-SLOW_ORDER = ["pl", "ne", "ur", "sa", "ra", "ju", "ma", "su", "ve", "me", "mo"]
+SLOW_ORDER = [
+    "pl",
+    "ne",
+    "ur",
+    "sa",
+    # "ra",
+    "ju",
+    "ma",
+    "su",
+    "ve",
+    "me",
+    "mo",
+]
 
 
 def total_cycle(ordered, pos_map):
