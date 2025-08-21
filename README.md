@@ -26,32 +26,44 @@ installation
 
 linux (ubuntu / mint)
 
-- install virtual environment, ie :
-$ python3 -m venv <your_dev_folder>
+- install virtual environment, ie
 
-- clone `astrogt` repository inside <your_dev_folder>:
+`$ python3 -m venv <your_dev_folder>`
+
+- clone `astrogt` repository inside <your_dev_folder>
+
 `$ git clone https://github.com/aum7/astrogt.git`
 
 - next install dependencies, as listed in `requirements.txt`
 
 - open a terminal, activate & enter your virtual environment
-- run :
+- run 
+
 `$ sudo apt install libgirepository-2.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0`
+
 to install the build dependencies and gtk
-- run :
+- run 
+
 `$ pip3 install pycairo`
+
 to build and install pycairo
-- run :
+- run 
+
 `$ pip3 install pygobject`
+
 to build and install pygobject
 
-- download `ephe` folder, from :
+- download `ephe` folder, from
+
 https://github.com/aloistr/swisseph
+
 and put it into astrogt/sweph/ folder
-users of swiss ephemeris are bound to its license
+
+users of swiss ephemeris are bound to swisseph license
 
 - change the working directory to astrogt, where `main.py` script is
-- run :
+- run
+
 `$ python3 main.py`
 
 windows
@@ -65,3 +77,7 @@ also follow instruction on :
 https://pygobject.gnome.org/getting_started.html
 
 note : app was developed on linux mint os, for any other os, if you run into installation troubles, you are on your own (hint : use chatgpt to help you with installation)
+
+on app start, press [h] for quick manual, including hotkeys
+
+hover mouse over input fields / buttons / text for tooltips
