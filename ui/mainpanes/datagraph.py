@@ -53,7 +53,7 @@ class DataGraph(Gtk.Box):
         """load & plot data"""
         # construct file path
         data_folder = self.app.files.get("data")
-        filepath = os.path.join(data_folder, "ejpt/ejpt.csv")
+        filepath = os.path.join(data_folder, "gold/gold_d_990603_250809.csv")
         # load csv
         df = pd.read_csv(
             filepath,

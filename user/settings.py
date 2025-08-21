@@ -78,7 +78,7 @@ LOTS = {  # 7 hermetic lots : many different definitions for lots exist
         "tooltip": "fortuna - sa\nunderworld, concealed, exposure, destruction",
     },
 }
-# selected lots for event 2 todo do we need this ???
+# selected lots for event 2
 LOTS_2 = {""}
 # prenatal events : syzygy & eclipses
 PRENATAL = {
@@ -91,12 +91,10 @@ PRENATAL = {
         "tooltip": "last solar and lunar eclipse before event",
     },
 }
-# default prenatal for event 2 todo do we need this ???
+# default prenatal for event 2
 PRENATAL_2 = {""}
 SWE_FLAG = {
     # default flags for sweph calculations
-    # all flags are duplicated & commented as backup ; user can toggle them in
-    # settings panel which will update uncommented flags / values (this file)
     # --- use sidereal (jyotisa) zodiac : else use tropical (western) zodiac
     # FLG_SIDEREAL vs FLG_TROPICAL (default)
     "sidereal zodiac": (
@@ -184,9 +182,9 @@ CHART_SETTINGS = {
         False,
         "calculate mean node (vs default true node)",
     ),
-    # --- naksatras MEGA-ring ! lol
+    # --- naksatras ring
     "naksatras ring": (
-        True,
+        False,
         """show naksatras ring
 1  asv\t2  bha\t3  krt
 4  roh\t5  mrg\t6  ard
@@ -200,7 +198,7 @@ CHART_SETTINGS = {
     ),
     # --- use 28 (all equal = no mini abhijt) else standard 27 naksatras
     "28 naksatras": (
-        True,
+        False,
         """use 28 (all equal = no mini abhijit) vs standard 27 naksatras
 1  asv\t2  bha\t3  krt\t4  roh
 5  mrg\t6  ard\t7  pun\t8  pus
@@ -232,7 +230,7 @@ CHART_SETTINGS = {
             "show secondary progression (p2) for event 2",
         ),
         "p3 progress": (
-            True,
+            False,
             "show tertiary progression (p3) for event 2\ncalculations as per richard houck",
         ),
         "solar return": (False, "show solar return for event 2"),
@@ -241,7 +239,7 @@ CHART_SETTINGS = {
             True,
             "show (simple) varga ring for event 2\nset varga in above harmonic ring",
         ),
-        "transit": (False, "show transit for event 2"),
+        "transit": (True, "show transit for event 2"),
     },
     # --- use varga positions for phases table
     "use varga": (
@@ -323,13 +321,10 @@ LUNAR_MONTH = {
 # also arrange order as you please > move line up / down & save file
 # top line is default choice
 AYANAMSA = {
-    17: ("Galact. Center 0 Sag", "glc (17)"),  # SIDM_GALCENT_0SAG
-    255: ("user-defined (below)", "usr"),  # SIDM_USER
-    45: ("Krishnamurti-Senthilathiban", "kms (45)"),  # SIDM_KRISHNAMURTI_VP291
-    # 0: ("Fagan/Bradley", "fbr (00)"),  # SIDM_FAGAN_BRADLEY
-    # 1: ("Lahiri 1", "lhr (01)"),  # SIDM_LAHIRI
+    0: ("Fagan/Bradley", "fbr (00)"),  # SIDM_FAGAN_BRADLEY
+    1: ("Lahiri 1", "lhr (01)"),  # SIDM_LAHIRI
     # 2: ("De Luce", "dlc (02)"),  # SIDM_DELUCE
-    # 3: ("Raman", "rmn (03)"),  # SIDM_RAMAN
+    3: ("Raman", "rmn (03)"),  # SIDM_RAMAN
     # 4: ("Usha/Shashi", "uss (04)"),  # SIDM_USHASHASHI
     # 5: ("Krishnamurti", "kmr (05)"),  # SIDM_KRISHNAMURTI
     # 6: ("Djwhal Khul", "dwk (06)"),  # SIDM_DJWHAL_KHUL
@@ -343,6 +338,7 @@ AYANAMSA = {
     # 14: ("Babylonian/Aldebaran 15 Tau", "bat (14)"),  # SIDM_ALDEBARAN_15TAU
     # 15: ("Hipparchos", "hpc (15)"),  # SIDM_HIPPARCHOS
     # 16: ("Sassanian", "snn (16)"),  # SIDM_SASSANIAN
+    # 17: ("Galact. Center 0 Sag", "glc (17)"),  # SIDM_GALCENT_0SAG
     # 18: ("J2000", "j20 (18)"),  # SIDM_J2000
     # 19: ("J1900", "j19 (19)"),  # SIDM_J1900
     # 20: ("B1950", "b50 (20)"),  # SIDM_B1950
@@ -370,7 +366,9 @@ AYANAMSA = {
     # 42: ("Vettius Valens", "vvl (42)"),  # SIDM_VALENS_MOON
     # 43: ("Lahiri 1940", "lh2 (43)"),  # SIDM_LAHIRI_1940
     # 44: ("Lahiri VP285", "lh3 (44)"),  # SIDM_LAHIRI_VP285
+    # 45: ("Krishnamurti-Senthilathiban", "kms (45)"),  # SIDM_KRISHNAMURTI_VP291
     # 46: ("Lahiri ICRC", "lh4 (46)"),  # SIDM_LAHIRI_ICRC
+    # 255: ("user-defined (below)", "usr"),  # SIDM_USER
 }
 CUSTOM_AYANAMSA = {
     # custom user-defined ayanamsa properties

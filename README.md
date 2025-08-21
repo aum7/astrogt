@@ -4,7 +4,7 @@ made using gtk4 & python
 
 uses swisseph via pyswisseph lib
 
-![current development stage](https://github.com/aum7/astrogt/blob/master/ui/imgs/250626astrogt.png)
+![current development stage](https://github.com/aum7/astrogt/blob/master/ui/imgs/astrogt250821.png)
 
 ## License
 
@@ -21,3 +21,38 @@ Under the following terms:
     NonCommercial — You may not use the material for commercial purposes.
 
 [![License: CC BY-NC 4.0](https://licensebuttons.net/l/by-nc/4.0/80x15.png)](https://creativecommons.org/licenses/by-nc/4.0/)
+
+installation
+
+linux (ubuntu / mint)
+
+- install virtual environment, ie :
+$ python3 -m venv <your_dev_folder>
+
+- next install dependencies, as listed in 'requirements.txt'
+
+- open a terminal, activate & enter your virtual environment
+- run :
+'$ sudo apt install libgirepository-2.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0'
+to install the build dependencies and gtk
+- run :
+'$ pip3 install pycairo'
+to build and install pycairo
+- run :
+'$ pip3 install pygobject'
+to build and install pygobject
+- change the working directory to astrogt, where 'main.py' script is
+- run :
+'$ python3 main.py'
+
+windows
+
+follow instructions on :
+https://pygobject.gnome.org/getting_started.html
+
+macos
+
+also follow instruction on :
+https://pygobject.gnome.org/getting_started.html
+
+note : app was developed on linux mint os, for any other os, if you run into installation troubles, you are on your own (hint : use chatgpt to help you with installation)
