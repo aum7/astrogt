@@ -569,12 +569,12 @@ class Tables(Gtk.Notebook):
         # name2idx_col = {n: i for i, n in enumerate(col_names)}
         # headecolr
         text = " settings > chart settings > use varga for harmonic cyclic index\n & select cycle members for custom cyclic index\n\n"
-        text += f" {event} cyclic index {self.vic_spc}{self.h_sym * 43}\n"
+        text += f" {event} cyclic index{self.vic_spc}{self.h_sym * 42}\n"
         # text += f" > {self.v_sym}"
         # for name in col_names:
         #     text += f" {name:>2}    {self.v_sym}"
         # text += "\n"
-        h_line = f"{self.h_sym * 51}\n"
+        h_line = f"{self.h_sym * 53}\n"
         # for row_name in row_names:
         #     i = name2idx_row[row_name]
         #     text += f" {row_name:>2}{self.v_sym}"
