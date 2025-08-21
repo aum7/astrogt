@@ -29,6 +29,9 @@ linux (ubuntu / mint)
 - install virtual environment, ie :
 $ python3 -m venv <your_dev_folder>
 
+- clone 'astrogt' repository inside <your_dev_folder>:
+'$ git clone https://github.com/aum7/astrogt.git'
+
 - next install dependencies, as listed in 'requirements.txt'
 
 - open a terminal, activate & enter your virtual environment
@@ -41,6 +44,12 @@ to build and install pycairo
 - run :
 '$ pip3 install pygobject'
 to build and install pygobject
+
+- download 'ephe' folder, from :
+https://github.com/aloistr/swisseph
+and put it into astrogt/sweph/ folder
+users of swiss ephemeris are bound to its license
+
 - change the working directory to astrogt, where 'main.py' script is
 - run :
 '$ python3 main.py'
