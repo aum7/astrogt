@@ -29,30 +29,30 @@ linux (ubuntu / mint)
 - install virtual environment, ie :
 $ python3 -m venv <your_dev_folder>
 
-- clone 'astrogt' repository inside <your_dev_folder>:
-'$ git clone https://github.com/aum7/astrogt.git'
+- clone `astrogt` repository inside <your_dev_folder>:
+`$ git clone https://github.com/aum7/astrogt.git`
 
-- next install dependencies, as listed in 'requirements.txt'
+- next install dependencies, as listed in `requirements.txt`
 
 - open a terminal, activate & enter your virtual environment
 - run :
-'$ sudo apt install libgirepository-2.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0'
+`$ sudo apt install libgirepository-2.0-dev gcc libcairo2-dev pkg-config python3-dev gir1.2-gtk-4.0`
 to install the build dependencies and gtk
 - run :
-'$ pip3 install pycairo'
+`$ pip3 install pycairo`
 to build and install pycairo
 - run :
-'$ pip3 install pygobject'
+`$ pip3 install pygobject`
 to build and install pygobject
 
-- download 'ephe' folder, from :
+- download `ephe` folder, from :
 https://github.com/aloistr/swisseph
 and put it into astrogt/sweph/ folder
 users of swiss ephemeris are bound to its license
 
-- change the working directory to astrogt, where 'main.py' script is
+- change the working directory to astrogt, where `main.py` script is
 - run :
-'$ python3 main.py'
+`$ python3 main.py`
 
 windows
 
