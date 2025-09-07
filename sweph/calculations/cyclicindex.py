@@ -135,7 +135,7 @@ def calculate_cycles(event: str):
     notify.debug(
         msg,
         source="cyclicindex",
-        route=["terminal"],
+        route=[""],
     )
 
 

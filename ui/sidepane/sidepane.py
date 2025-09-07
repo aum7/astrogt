@@ -177,6 +177,7 @@ or ie panes have been manually resized (click any text to focus sidepane)"""
             # )
             key = next(k for k, v in self.CHANGE_TIME_PERIODS.items() if v == new_value)
             self.CHANGE_TIME_SELECTED = float(key)
+            self.app.selected_time_change_str = new_value
             # update main window title
             _update_main_title(self, new_value)
 

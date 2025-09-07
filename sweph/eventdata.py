@@ -684,5 +684,6 @@ class EventData:
             source="eventdata",
             route=["none"],
         )
-        _update_main_title(self)
+        change_time = getattr(self.app, "selected_change_time_str", "1 D")
+        _update_main_title(self, change_time)
         return
